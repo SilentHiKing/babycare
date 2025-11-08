@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="transparent">#00000000</color>
+
+    <color name="Black100">#FF000000</color> <!-- 100% 黑 -->
+    <color name="Black90">#EB000000</color>  <!-- 92% 黑 -->
+    <color name="Black80">#D6000000</color>  <!-- 84% 黑 -->
+    <color name="Black70">#B8000000</color>  <!-- 72% 黑 -->
+    <color name="Black60">#99000000</color>  <!-- 60% 黑 -->
+    <color name="Black50">#8A000000</color>  <!-- 54% 黑 -->
+    <color name="Black40">#6B000000</color>  <!-- 42% 黑 -->
+    <color name="Black30">#3D000000</color>  <!-- 24% 黑 -->
+    <color name="Black20">#1F000000</color>  <!-- 12% 黑 -->
+    <color name="Black10">#0F000000</color>  <!-- 6% 黑 -->
+    <color name="Black4">#0A000000</color>  <!-- 4% 黑 -->
+
+
+    <color name="White100">#FFFFFFFF</color> <!-- 100% 白 -->
+    <color name="White90">#EBFFFFFF</color>  <!-- 92% 白 -->
+    <color name="White80">#D6FFFFFF</color>  <!-- 84% 白 -->
+    <color name="White70">#B8FFFFFF</color>  <!-- 72% 白 -->
+    <color name="White60">#99FFFFFF</color>  <!-- 60% 白 -->
+    <color name="White50">#8AFFFFFF</color>  <!-- 54% 白 -->
+    <color name="White40">#6BFFFFFF</color>  <!-- 42% 白 -->
+    <color name="White30">#3DFFFFFF</color>  <!-- 24% 白 -->
+    <color name="White20">#1FFFFFFF</color>  <!-- 12% 白 -->
+    <color name="White10">#0FFFFFFF</color>  <!-- 6% 白 -->
+
+    <color name="Red50">#FF293B</color>      <!--50 红-->
+    <color name="Red60">#CC1827</color>      <!--50 红-->
+    <color name="Red6">#0FF54545</color>      <!--50 红-->
+    <color name="Red30">#4DF54545</color>      <!--50 红-->
+    <color name="Red12">#1FFF293B</color>      <!--50 红-->
+    <color name="Red92">#FF3779</color>      <!--50 红-->
+
+    <color name="pink00">#F9E7EC</color>
+    <color name="pink10">#FFEDF3</color>
+    <color name="pink20">#33FF3779</color>
+    <color name="pink30">#4DFF3779</color>
+    <color name="pink40">#66FF3779</color>
+    <color name="pink50">#80FF3779</color>
+    <color name="pink60">#99FF3779</color>
+    <color name="pink70">#B3FF3779</color>
+    <color name="pink80">#FF3779</color>
+    <color name="pink90">#E12966</color>
+    <color name="pink100">#C00744</color>
+    <color name="pink_F9E7EC">#F9E7EC</color>
+    <color name="pink2">#05FF3779</color>
+    <color name="pink_FFA1C0">#FFA1C0</color>
+    <color name="pink_FF7BA6">#FF7BA6</color>
+    <color name="pink_FEF3F5">#FEF3F5</color>
+    <color name="pink_F7E2E9">#F7E2E9</color>
+    <color name="pink_FFDBE8">#FFDBE8</color>
+    <color name="pink_FF6F9F">#FF6F9F</color>
+    <color name="pink_1AFF3779">#1AFF3779</color>
+
+    <color name="green00">#F6FFE6</color>
+    <color name="green10">#EAF3DB</color>
+    <color name="green20">#334E7900</color>
+    <color name="green30">#4D4E7900</color>
+    <color name="green40">#664E7900</color>
+    <color name="green50">#804E7900</color>
+    <color name="green60">#994E7900</color>
+    <color name="green70">#B34E7900</color>
+    <color name="green80">#CC4E7900</color>
+    <color name="green90">#4E7900</color>
+    <color name="green100">#4E7900</color>
+    <color name="green_ACC977">#ACC977</color>
+    <color name="green_DEECC4">#DEECC4</color>
+    <color name="green_1A4E7900">#1A4E7900</color>
+
+    <color name="ice_blue00">#E3EDFF</color>
+    <color name="ice_blue10">#EAF1FF</color>
+    <color name="ice_blue20">#3308368B</color>
+    <color name="ice_blue30">#4D08368B</color>
+    <color name="ice_blue40">#6608368B</color>
+    <color name="ice_blue50">#8008368B</color>
+    <color name="ice_blue60">#9908368B</color>
+    <color name="ice_blue70">#B308368B</color>
+    <color name="ice_blue80">#CC08368B</color>
+    <color name="ice_blue90">#08368B</color>
+    <color name="blue_BEDCFF">#BEDCFF</color>
+    <color name="blue_CCDEFF">#CCDEFF</color>
+    <color name="blue_1A08368B">#1A08368B</color>
+
+
+    <color name="purple00">#FBF8FF</color>
+    <color name="purple10">#EEE2FF</color>
+    <color name="purple20">#33410093</color>
+    <color name="purple30">#4D410093</color>
+    <color name="purple40">#66410093</color>
+    <color name="purple50">#80410093</color>
+    <color name="purple60">#99410093</color>
+    <color name="purple70">#B3410093</color>
+    <color name="purple80">#CC410093</color>
+    <color name="purple90">#E5410093</color>
+    <color name="purple100">#410093</color>
+    <color name="purple_1A410093">#1A410093</color>
+
+
+
+    <color name="WhiteAA">#AAFFFFFF</color>
+    <color name="opacity10">#FFF0F0F0</color>
+    <color name="opacity20">#FFE0E0E0</color>
+    <color name="opacity30">#FFC2C2C2</color>
+    <color name="opacity70">#FF474747</color>
+    <color name="opacity80">#FF292929</color>
+    <color name="opacity90">#FF141414</color>
+
+    <color name="opacity_F7F8FA">#FFF7F8FA</color>
+    <color name="opacity_F7F7F8">#FFF7F7F8</color>
+    <color name="opacity_F2F2F7">#FFF2F2F7</color>
+    <color name="opacity_1F1F1F">#FF1F1F1F</color>
+    <color name="opacity_1C1C1E">#FF1C1C1E</color>
+    <color name="opacity_DEE2E8">#FFDEE2E8</color>
+    <color name="opacity_1F2228">#FF1F2228</color>
+    <color name="opacity_191B1E">#FF191B1E</color>
+    <color name="opacity_161C2C">#FF161C2C</color>
+    <color name="opacity_2C2C2C">#FF2C2C2C</color>
+    <color name="opacity_C0C0C0">#FFC0C0C0</color>
+
+    <color name="opacity_CCCCCC">#CCCCCC</color>
+    <color name="opacity_EFEFEF">#FFEFEFEF</color>
+    <color name="opacity_2C2C2E">#FF2C2C2E</color>
+    <color name="opacity_F5F5F5">#FFF5F5F5</color>
+    <color name="opacity_E7E7E7">#E7E7E7</color>
+    <color name="opacity_007AFF">#007AFF</color>
+    <color name="opacity_ECECEC">#ECECEC</color>
+    <color name="opacity_48484A">#48484A</color>
+    <color name="opacity_e5e5e5">#E5E5E5</color>
+    <color name="opacity_333333">#333333</color>
+    <color name="opacity_F9F9F9">#F9F9F9</color>
+    <color name="opacity_868B91">#868B91</color>
+    <color name="opacity_2A000000">#2A000000</color>
+    <color name="opacity_80000000">#80000000</color>
+    <color name="opacity_99535353">#99535353</color>
+    <color name="opacity_404040">#404040</color>
+    <color name="opacity_737373">#737373</color>
+    <color name="opacity_FBFBFB">#99FBFBFB</color>
+    <color name="opacity_969696">#969696</color>
+    <color name="opacity_464646">#464646</color>
+    <color name="opacity_999999">#999999</color>
+    <color name="opacity_FFC5D8">#FFC5D8</color>
+    <color name="opacity_C9D9FA">#C9D9FA</color>
+    <color name="opacity_E9F3FF">#E9F3FF</color>
+    <color name="opacity_E2E2E2">#E2E2E2</color>
+    <color name="opacity_33b5e5">#ff33b5e5</color>
+    <color name="opacity_4A4A4A">#4A4A4A</color>
+    <color name="opacity_F6F6F6">#F6F6F6</color>
+    <color name="opacity_F1FFD6">#F1FFD6</color>
+    <color name="opacity_525254">#525254</color>
+    <color name="opacity_222327">#222327</color>
+    <color name="opacity_F1F5FF">#F1F5FF</color>
+    <color name="opacity_C6C6C6">#C6C6C6</color>
+    <color name="opacity_0F047AFF">#0F047AFF</color>
+    <color name="opacity_1AFFFFFF">#1AFFFFFF</color>
+    <color name="opacity_C7E1FF">#C7E1FF</color>
+    <color name="opacity_EBFFFFFF">#EBFFFFFF</color>
+    <color name="opacity_1B1B1D">#1B1B1D</color>
+    <color name="opacity_2A2A2C">#2A2A2C</color>
+    <color name="opacity_C9F5FF">#C9F5FF</color>
+    <color name="opacity_004A5B">#004A5B</color>
+    <color name="opacity_698C93">#698C93</color>
+    <color name="opacity_9BCAFF">#9BCAFF</color>
+    <color name="opacity_F7FBFF">#F7FBFF</color>
+    <color name="opacity_49494B">#49494B</color>
+    <color name="opacity_191F26">#191F26</color>
+    <color name="opacity_124278">#124278</color>
+    <color name="opacity_3A3A3C">#3A3A3C</color>
+    <color name="opacity_F2FFFFFF">#F2FFFFFF</color>
+    <color name="opacity_F21C1C1E">#F21C1C1E</color>
+
+
+
+    <color name="opacity_E9E9E9">#E9E9E9</color>
+
+
+
+
+    <color name="darkblue">#047AFF</color>
+    <color name="darkblue70">#FF047AFF</color> <!-- 不透明 -->
+    <color name="darkblue50">#B8047AFF</color> <!-- 72% 透明度 (Alpha = B8) -->
+    <color name="blue_AFD5FF">#AFD5FF</color>
+    <color name="blue_1A007AFF">#1A007AFF</color> <!-- 透明度10% -->
+    <color name="opacity_F1F1F1">#F1F1F1</color>
+    <color name="opacity_82A3C8">#82A3C8</color>
+    <color name="opacity_1A047AFF">#1A047AFF</color>
+
+    <color name="opacity_shadow_2A">#2A000000</color> <!--浅色模式阴影-->
+    <color name="opacity_shadow_66">#55000000</color> <!--深色模式阴影-->
+
+
+</resources>

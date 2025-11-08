@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="babyName">Name</string>
+    <string name="babyBirthday">Birthday</string>
+    <string name="babyGender">Gender</string>
+    <string name="babyWeight">Weight at birth</string>
+    <string name="babyHeight">Height at birth</string>
+    <string name="babyInfo">Baby Info</string>
+    <string name="finish">Finish</string>
+    <string name="boy">boy</string>
+    <string name="girl">girl</string>
+    <string name="unit_g">g</string>
+    <string name="unit_cm">cm</string>
+    <string name="updateSuccess">Update success</string>
+    <string name="nameIsNullTip">Name is null</string>
+</resources>

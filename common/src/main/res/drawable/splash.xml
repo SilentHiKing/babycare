@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--https://android.jlelse.eu/launch-screen-in-android-the-right-way-aca7e8c31f52-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:opacity="opaque">
+    <item android:drawable="@color/colorTemplateBlack"/>
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/ic_launcher_logo"
+            />
+    </item>
+</layer-list>

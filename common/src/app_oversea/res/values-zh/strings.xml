@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="babyName">姓名</string>
+    <string name="babyBirthday">生日</string>
+    <string name="babyGender">性别</string>
+    <string name="babyWeight">出生体重</string>
+    <string name="babyHeight">出生身高</string>
+    <string name="babyInfo">婴儿信息</string>
+    <string name="finish">完成</string>
+    <string name="babyNameHint">请输入姓名</string>
+    <string name="babyBirthdayHint">请输入生日</string>
+    <string name="babyGenderHint">请输入性别</string>
+    <string name="babyHeightHint">请输入出生身高</string>
+    <string name="babyWeightHint">请输入出生体重</string>
+    <string name="boy">男</string>
+    <string name="girl">女</string>
+    <string name="unit_g">克</string>
+    <string name="unit_cm">厘米</string>
+    <string name="updateSuccess">更新成功</string>
+    <string name="nameIsNullTip">请给孩子取个名字吧</string>
+</resources>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- System theme override. -->
+    <color name="colorPrimary">#047AFF</color>
+    <color name="colorPrimarySecondary">#EDEBEB</color>
+    <color name="colorPrimary3">#2E302F</color>
+
+
+    <color name="textColorPrimary">#047AFF</color>
+    <color name="textColorSecondary">#000000</color>
+
+    <color name="textColorTertiary">#ABABAB</color>
+    <color name="textColorRed">#FF0000</color>
+    <color name="textColorPrimaryGray">#999999</color>
+
+    <color name="pageLineColorRed">#FE3B32</color>
+
+    <color name="windowBackground">#F1F1F1</color>
+    <color name="viewBackground">#1D1D1E</color>
+
+
+    <color name="colorBlue">#047AFF</color>
+<!--    <color name="colorBlueFade">#82A3C8</color>-->
+    <color name="colorDotGray">#D9D9D9</color>
+
+    <color name="dividerVertical">#333333</color>
+    <color name="dividerHorizontal">#333333</color>
+    <color name="colorDivider">#D6D6D6</color>
+    <color name="colorBorder">#CECECE</color>
+    <color name="colorPicBar">#393a3e</color>
+    <color name="colorVersion">#AAAAAA</color>
+    <color name="colorYellow">#EADC63</color>
+    <color name="colorE3">#E3E3E3</color>
+
+
+
+    <color name="shadowColor">#15000000</color>
+    <color name="popUpWindow">#2a2a2c</color>
+
+    <!--颜色选择弹框颜色值背景-->
+    <color name="colorPickerValue">#EAE9E9</color>
+    <!--颜色选择弹框背景色 #F5F5F5 - #2C2C2E -->
+    <color name="colorPopupBg">#F9F9F9</color>
+    <!--新建笔记弹框背景色 #F5F5F5 - #1C1C1E-->
+    <color name="dialogBackground">#F5F5F5</color>
+    <!--通用弹框背景色-->
+    <color name="colorCommonBubbleBg">#F5F5F5</color>
+    <!--笔刷弹框title背景色-->
+    <color name="colorPopupTitleBg">#FFFFFF</color>
+    <!--滑动条背景色-->
+    <color name="colorPopupSlide">#D6D6D6</color>
+    <!--橡皮擦套索选项背景-->
+    <color name="colorLassoShapeBg">#ECECEC</color>
+    <!--笔刷点状和线状选项背景-->
+    <color name="colorShapeSelect">#E9F3FF</color>
+    <!--开关按钮颜色-->
+    <color name="colorSwitchNormal">#E1E1E1</color>
+
+    <color name="colorKeyword">#FBDB78</color>
+
+
+
+
+    <color name="customShadowColor">#2A000000</color>
+
+
+    <!-- System theme override. -->
+
+    <!--新建笔记固定颜色-->
+    <color name="colorTemplateWhite">#FFFFFF</color>
+    <color name="colorTemplateYellow">#FFFEEA</color>
+    <color name="colorTemplateBlack">#000000</color>
+    <color name="colorTemplateGray">#C9C9C9</color>
+    <color name="colorTemplateBlue">#B7D9FF</color>
+    <color name="colorTemplateRed">#CD0404</color>
+
+    <color name="color_cover_1">#B6E1FE</color>
+    <color name="color_cover_2">#FFD0E4</color>
+    <color name="color_cover_3">#D8C5FF</color>
+    <color name="color_cover_4">#FFC9B5</color>
+    <color name="color_cover_5">#80E7A3</color>
+    <color name="color_cover_6">#242323</color>
+
+    <!--默认颜色选择-->
+    <color name="color_default_1">#FFFF00</color>
+    <color name="color_default_2">#FA9D00</color>
+    <color name="color_default_3">#FF0000</color>
+    <color name="color_default_4">#FF00D4</color>
+    <color name="color_default_5">#00733B</color>
+    <color name="color_default_6">#047AFF</color>
+    <color name="color_default_7">#1749B3</color>
+    <color name="color_default_8">#120377</color>
+    <color name="color_default_9">#A9FF17</color>
+    <color name="color_default_10">#60BA46</color>
+    <color name="color_default_11">#A400C7</color>
+    <color name="color_default_12">#622D90</color>
+    <color name="color_default_13">#FFFFFF</color>
+    <color name="color_default_14">#969696</color>
+    <color name="color_default_15">#000000</color>
+    <color name="color_default_16">#946635</color>
+    <color name="color_default_17">#FFCF2F</color>
+    <color name="color_default_18">#CB670E</color>
+    <color name="color_default_19">#E26A6A</color>
+    <color name="color_default_20">#B51515</color>
+    <color name="color_default_21">#9DBBDB</color>
+    <color name="color_default_22">#14C7DE</color>
+    <color name="color_default_23">#3498DB</color>
+    <color name="color_default_24">#444FAD</color>
+    <color name="color_default_25">#EF5F33</color>
+    <color name="color_default_26">#CF366C</color>
+    <color name="color_default_27">#55D768</color>
+    <color name="color_default_28">#19B092</color>
+    <color name="color_default_29">#C7C3BD</color>
+    <color name="color_default_30">#515C5D</color>
+    <color name="color_default_31">#B09CFF</color>
+    <color name="color_default_32">#8C54D0</color>
+
+
+</resources>

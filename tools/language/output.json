@@ -1,0 +1,229 @@
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "common": [
+      {
+        "codeKey": "babyName",
+        "language": {
+          "zh-Hans": "姓名",
+          "en": "Name"
+        }
+      },
+      {
+        "codeKey": "babyBirthday",
+        "language": {
+          "zh-Hans": "生日",
+          "en": "Birthday"
+        }
+      },
+      {
+        "codeKey": "babyGender",
+        "language": {
+          "zh-Hans": "性别",
+          "en": "Gender"
+        }
+      },
+      {
+        "codeKey": "babyWeight",
+        "language": {
+          "zh-Hans": "出生体重",
+          "en": "Weight at birth"
+        }
+      },
+      {
+        "codeKey": "babyHeight",
+        "language": {
+          "zh-Hans": "出生身高",
+          "en": "Height at birth"
+        }
+      },
+      {
+        "codeKey": "babyInfo",
+        "language": {
+          "zh-Hans": "婴儿信息",
+          "en": "Baby Info"
+        }
+      },
+      {
+        "codeKey": "finish",
+        "language": {
+          "zh-Hans": "完成",
+          "en": "Finish"
+        }
+      },
+      {
+        "codeKey": "babyNameHint",
+        "language": {
+          "zh-Hans": "请输入姓名"
+        }
+      },
+      {
+        "codeKey": "babyBirthdayHint",
+        "language": {
+          "zh-Hans": "请输入生日"
+        }
+      },
+      {
+        "codeKey": "babyGenderHint",
+        "language": {
+          "zh-Hans": "请输入性别"
+        }
+      },
+      {
+        "codeKey": "babyHeightHint",
+        "language": {
+          "zh-Hans": "请输入出生身高"
+        }
+      },
+      {
+        "codeKey": "babyWeightHint",
+        "language": {
+          "zh-Hans": "请输入出生体重"
+        }
+      },
+      {
+        "codeKey": "boy",
+        "language": {
+          "zh-Hans": "男",
+          "en": "boy"
+        }
+      },
+      {
+        "codeKey": "girl",
+        "language": {
+          "zh-Hans": "女",
+          "en": "girl"
+        }
+      },
+      {
+        "codeKey": "unit_g",
+        "language": {
+          "zh-Hans": "克",
+          "en": "g"
+        }
+      },
+      {
+        "codeKey": "unit_cm",
+        "language": {
+          "zh-Hans": "厘米",
+          "en": "cm"
+        }
+      },
+      {
+        "codeKey": "updateSuccess",
+        "language": {
+          "zh-Hans": "更新成功",
+          "en": "Update success"
+        }
+      },
+      {
+        "codeKey": "nameIsNullTip",
+        "language": {
+          "zh-Hans": "请给孩子取个名字吧",
+          "en": "Name is null"
+        }
+      }
+    ],
+    "FDTextView": [
+      {
+        "codeKey": "textInputFont",
+        "language": {
+          "zh-Hans": "PingFangSC-Regular",
+          "en": "PingFangSC-Regular",
+          "zh-Hant": "PingFangSC-Regular",
+          "ja": "PingFangSC-Regular",
+          "ko": "PingFangSC-Regular",
+          "de": "PingFangSC-Regular",
+          "fr": "PingFangSC-Regular",
+          "ar": "PingFangSC-Regular",
+          "it": "PingFangSC-Regular",
+          "pl": "PingFangSC-Regular",
+          "pt": "PingFangSC-Regular",
+          "es": "PingFangSC-Regular",
+          "ru": "PingFangSC-Regular",
+          "ms": "PingFangSC-Regular",
+          "th": "PingFangSC-Regular",
+          "vi": "PingFangSC-Regular",
+          "uk": "PingFangSC-Regular",
+          "id": "PingFangSC-Regular",
+          "tr": "PingFangSC-Regular",
+          "el": "PingFangSC-Regular",
+          "cs": "PingFangSC-Regular",
+          "nl": "PingFangSC-Regular",
+          "da": "PingFangSC-Regular",
+          "hu": "PingFangSC-Regular",
+          "nb": "PingFangSC-Regular",
+          "sv": "PingFangSC-Regular",
+          "fi": "PingFangSC-Regular"
+        }
+      }
+    ],
+    "FDNotepad": [
+      {
+        "codeKey": "nightFormat",
+        "language": {
+          "zh-Hans": "夜间模式",
+          "en": "Dark Themes",
+          "zh-Hant": "夜間模式",
+          "ja": "夜間モード",
+          "ko": "다크모드",
+          "de": "Dunkelmodus",
+          "fr": "Thèmes sombres",
+          "ar": "سمات الظلام",
+          "it": "Temi scuri",
+          "pl": "Ciemne motywy",
+          "pt": "Temas Escuros",
+          "es": "Temas oscuros",
+          "ru": "Темные темы",
+          "ms": "Tema Gelap",
+          "th": "ธีมมืด",
+          "vi": "Chủ đề Tối",
+          "uk": "Теми оформлення",
+          "id": "Tema Gelap",
+          "tr": "Koyu Temalar",
+          "el": "Σκοτεινά Θέματα",
+          "cs": "Tmavé motivy",
+          "nl": "Donkere Thema's",
+          "da": "Mørke Temaer",
+          "hu": "Sötét témák",
+          "nb": "Mørke temaer",
+          "sv": "Mörka teman",
+          "fi": "Tumma teemat"
+        }
+      },
+      {
+        "codeKey": "defaultTemplate",
+        "language": {
+          "zh-Hans": "默认模板",
+          "en": "Default Templates",
+          "zh-Hant": "默認模板",
+          "ja": "デフォルトテンプレート",
+          "ko": "기본 템플릿",
+          "de": "Standardvorlagen",
+          "fr": "Modèles par défaut",
+          "ar": "القوالب الافتراضية",
+          "it": "Modelli predefiniti",
+          "pl": "Domyślne szablony",
+          "pt": "Modelos Padrão",
+          "es": "Plantillas predeterminadas",
+          "ru": "Шаблоны по умолчанию",
+          "ms": "Templat Lalai",
+          "th": "เทมเพลตเริ่มต้น",
+          "vi": "Mẫu Mặc Định",
+          "uk": "Шаблони за замовчуванням",
+          "id": "Template Bawaan",
+          "tr": "Varsayılan Şablonlar",
+          "el": "Προεπιλεγμένα Πρότυπα",
+          "cs": "Výchozí šablony",
+          "nl": "Standaard Sjablonen",
+          "da": "Standard Skabeloner",
+          "hu": "Alapértelmezett sablonok",
+          "nb": "Standardmaler",
+          "sv": "Standardmallar",
+          "fi": "Oletusmallipohjat"
+        }
+      }
+    ]
+  }
+}

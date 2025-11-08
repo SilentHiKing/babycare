@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="TickSeekBar">
+        <attr name="tickDrawable" format="reference" />
+        <attr name="tickCount" format="integer" />
+        <attr name="tickIndex" format="integer" />
+        <attr name="tickWidth" format="dimension" />
+        <attr name="tickHeight" format="dimension" />
+        <attr name="gearPaddingL" format="dimension" />
+        <attr name="gearPaddingR" format="dimension" />
+        <attr name="tickOffset" format="dimension" />
+    </declare-styleable>
+
+
+    <declare-styleable name="ColorCircleView">
+        <attr name="circlePadding" format="dimension" />
+        <attr name="strokeWidth" format="dimension" />
+    </declare-styleable>
+
+
+    <declare-styleable name="ColorAbsorberView">
+        <attr name="Padding" format="dimension" />
+        <attr name="Width" format="dimension" />
+    </declare-styleable>
+
+    <!--Brand Color-->
+    <attr name="brand_color" format="color"/>
+
+    <!--Container-Bg 应用于不同类型容器背景填充-->
+    <attr name="primary_bg_default" format="color" />     <!--opacity_F2F2F7  opacity_1C1C1E opacity_F2F2F7-->
+    <attr name="secondary_bg_default" format="color" />   <!--White100  Black90 White100-->
+    <attr name="secondary_bg_brand" format="color" />   <!--White100  Black90 pink00-->
+    <attr name="primary_bg_brand" format="color" />   <!--opacity_F2F2F7  opacity_1C1C1E pink10-->
+    <attr name="block_default" format="color"/>          <!--White100  opacity90-->
+    <attr name="block_gridview" format="color"/>          <!--opacity_F7F7F8 opacity_2C2C2C -->
+    <attr name="primary_btn_normal" format="color"/>     <!--darkblue  darkblue pink80-->
+    <attr name="primary_btn_pressed" format="color"/>    <!--darkblue50  darkblue50 pink10-->
+    <attr name="primary_btn_disable" format="color"/>    <!--Black10  White10 White10-->
+    <attr name="secondary_btn_normal" format="color"/>    <!--Black10  White10 White10 White10-->
+
+    <attr name="shape_bg_e9e9e9_white6" format="color"/> <!--e9e9e9  0FFFFFFF-->
+    <attr name="primary_btn_bg_normal" format="color"/>  <!--White100 2C2C2E White100 White100-->
+
+
+
+    <!--Text-->
+    <attr name="primary100" format="color" />            <!--Black100  White100 Black100 Black100-->
+    <attr name="primary90" format="color" />            <!--Black90  White90 Black90 Black90-->
+    <attr name="secondary80" format="color" />          <!--Black80  White80 pink92-->
+    <attr name="third70" format="color" />              <!--Black70  White70 Black70-->
+    <attr name="tertiary60" format="color" />           <!--Black60  White60 Black60-->
+    <attr name="weaken40" format="color"/>              <!--Black40  White40-->
+    <attr name="semantics_blue" format="color" />        <!--darkblue  darkblue pink80-->
+    <attr name="semantics_warning_red" format="color"/>  <!--Red60  Red50 Red50-->
+    <attr name="white_primary90" format="color"/>        <!--white90  Black90-->
+    <attr name="semantics_brand" format="color"/>         <!--Black90  White90  pink80 green90-->
+    <attr name="semantics_brand60" format="color"/>       <!--Black80  White80  pink60 green60-->
+    <attr name="semantics_brand50" format="color"/>       <!--Black70  White70  pink50 green50-->
+    <attr name="semantics_brand40" format="color"/>       <!--Black60  White60  pink40 green40-->
+
+    <attr name="primary_black100_white90" format="color"/>        <!--Black100  White90-->
+    <attr name="c_999999_white80" format="color"/>        <!--999999  White80-->
+    <attr name="white100_black100" format="color"/>        <!--White00 Black100-->
+
+    <attr name="divider_secondary" format="color"/>      <!--opacity_CCCCCC  White20-->
+
+    <!--Icon-->
+    <attr name="icon_primary" format="color"/>              <!--Opacity90  Opacity10 Opacity90-->
+    <attr name="icon_secondary" format="color"/>            <!--Opacity80  Opacity20 Opacity10-->
+    <attr name="icon_third" format="color"/>                <!--Black70  White50 Black70 Black70-->
+    <attr name="icon_forth" format="color"/>                <!--Black40  White40 White40-->
+    <attr name="icon_fifty" format="color" />               <!--Black30  White30 White30-->
+    <attr name="icon_brand" format="color"/>                <!--darkblue darkblue pink80-->
+    <attr name="icon_tipsblue" format="color"/>             <!--Blue50  Blue50-->
+    <attr name="icon_tipsred" format="color"/>              <!--Red60  Red50-->
+    <attr name="icon_brandHigh" format="color"/>            <!--Green60  Green50-->
+    <attr name="icon_tipsgreen" format="color"/>
+    <attr name="icon_theme_brand" format="color"/>           <!--Opacity90 Opacity10 pink80 应用所有主题都切换的场景-->
+    <attr name="icon_brand_background" format="color"/>
+
+    <!--line-->>
+    <attr name="line10" format="color"/>         <!--Black10  White10-->
+    <attr name="line20" format="color"/>         <!--Black20  White20-->
+    <attr name="line30" format="color"/>         <!--Black30  White30-->
+    <attr name="line50" format="color"/>         <!--Black50  White50-->
+    <attr name="line1" format="color"/>         <!--opacity_e5e5e5  opacity_333333-->
+    <attr name="line3" format="color"/>         <!--Black30  Black40-->
+    <attr name="line_brand" format="color"/>    <!--darkblue  darkblue pink80-->
+    <attr name="line_border" format="color"/>    <!--Black10  White10 opacity_FFC5D8-->
+    <attr name="line_border_with_theme" format="color"/>    <!--Black10  White10 opacity_FFC5D8-->
+
+
+
+    <!--自定义-->
+    <attr name="shape_bg_default" format="color"/>       <!--opacity_ECECEC  opacity_1C1C1E opacity_ECECEC-->
+    <attr name="shape_bg_normal" format="color"/>       <!--opacity_ECECEC  opacity_1C1C1E opacity_ECECEC-->
+    <attr name="shape_bg_enable" format="color"/>       <!--opacity_E9F3FF  opacity_2A2A2C pink10-->
+    <attr name="windowBackground" format="color"/>
+    <attr name="bg_f9f9f9" format="color"/>
+    <attr name="colorPopupBg" format="color"/>
+    <attr name="ruler_rotation_text" format="color"/>
+    <attr name="ruler_rotation_disc_bg" format="color"/>
+    <attr name="ruler_bg" format="color"/>
+    <attr name="ruler_scale_1" format="color"/>
+    <attr name="ruler_scale_2" format="color"/>
+    <attr name="customShadowColor" format="color"/>
+    <attr name="expand_page_bg" format="color"/>
+    <attr name="colorThumbBg" format="color"/>
+    <attr name="textColorGray" format="color"/>  <!--用于浅色文案-->
+    <attr name="switchTrackOff" format="color"/>
+    <attr name="colorBlueFade" format="color"/>
+    <attr name="note_dir_pressed" format="color"/> <!--应用文件树选中时颜色 White100 White100 pink80-->
+    <attr name="ic_adjust_no" format="color"/>
+    <attr name="bg_add_web_title" format="color"/> <!--应用在线视频 识别网页名称背景 blue_1A007AFF blue_1A007AFF pink10-->
+    <attr name="icon_note_dir_pressed" format="color"/>  <!--应用文件树选中时图标颜色 White100 White100 pink80 transparent transparent-->
+
+    <attr name="ic_canvas_enable" format="color"/>
+    <attr name="ic_canvas_enable1" format="color"/>
+    <attr name="bg_align_selected" format="color"/>
+    <attr name="lasso_line" format="color"/>
+    <attr name="ic_more_bg" format="color"/>
+    <attr name="item_sub_text" format="color"/>
+    <attr name="item_tab_text" format="color"/>
+    <attr name="item_tab_text_bg" format="color"/>             <!--opacity_E7E7E7  White10-->
+    <attr name="theme_thumb_bg" format="color"/>
+    <attr name="theme_thumb_text_bg" format="color"/>
+    <attr name="drawer_item_select_bg" format="color"/>
+    <attr name="bg_canvas" format="color"/>         <!--笔记页面画布背景-->
+    <attr name="drag_cover" format="color"/>
+    <attr name="line_drag_insert" format="color"/>
+    <attr name="drag_item_select_bg" format="color"/>
+    <attr name="drag_item_merge_bg" format="color"/>
+    <attr name="drag_insert_line" format="color"/>
+    <attr name="feedback_option_bg" format="color"/>
+    <attr name="feedback_button_no_click" format="color"/>
+    <attr name="evaluate_text" format="color"/>
+    <attr name="bg_lock_flag" format="color"/>
+
+    <!--图片资源-->
+    <attr name="bg_note_manager" format="reference"/>
+    <attr name="ic_note_dir_select_theme" format="reference"/> <!--应用文件树选中icon-->
+    <attr name="bg_note_dir_select" format="reference"/>
+    <attr name="bg_promotion_text" format="reference"/>
+    <attr name="bg_member_part" format="reference"/>
+    <attr name="bg_beta_test_part" format="reference"/>
+
+
+    <attr name="ic_notetag_close" format="reference" />
+
+    <attr name="ic_ball_shadow" format="reference" />
+    <attr name="ic_color_add" format="reference" />
+    <attr name="ic_array_add" format="reference" />
+    <attr name="ic_color_absorber" format="reference"/>
+    <attr name="ic_bookmark_empty" format="reference" />
+    <attr name="ic_clock_dismiss" format="reference" />
+    <attr name="ic_name_clear" format="reference" />
+
+    <attr name="lasso_shape_normal" format="reference" />
+    <attr name="lasso_shape_select" format="reference" />
+
+    <attr name="ic_tape_usage_tip" format="reference" />
+
+    <attr name="ic_pen_highlighter" format="reference" />
+    <attr name="ic_pen_part_2" format="reference" />
+    <attr name="ic_pen_part_3" format="reference" />
+    <attr name="ic_pen_part_4" format="reference" />
+
+    <attr name="ic_ball_pen_highlighter" format="reference" />
+    <attr name="ic_ball_pen_part_1" format="reference" />
+    <attr name="ic_ball_pen_part_2" format="reference" />
+    <attr name="ic_ball_pen_part_3" format="reference" />
+    <attr name="ic_ball_pen_part_4" format="reference" />
+
+    <attr name="ic_pencil_highlighter" format="reference" />
+    <attr name="ic_pencil_part_2" format="reference" />
+    <attr name="ic_pencil_part_3" format="reference" />
+    <attr name="ic_pencil_part_4" format="reference" />
+
+    <attr name="ic_highlighter_pen_highlighter" format="reference" />
+    <attr name="ic_highlighter_part_1" format="reference" />
+    <attr name="ic_highlighter_part_2" format="reference" />
+    <attr name="ic_highlighter_part_3" format="reference" />
+    <attr name="ic_highlighter_part_4" format="reference" />
+
+    <attr name="ic_eraser_highlighter" format="reference" />
+    <attr name="ic_eraser_part_1" format="reference" />
+    <attr name="ic_eraser_part_2" format="reference" />
+    <attr name="ic_eraser_pixel" format="reference" />
+    <attr name="ic_eraser_object" format="reference" />
+    <attr name="ic_eraser_clear_all" format="reference" />
+
+    <attr name="ic_laser_highlighter" format="reference" />
+    <attr name="ic_laser_pen_head" format="reference" />
+    <attr name="ic_laser_pen_foot" format="reference" />
+    <attr name="ic_lasso_random" format="reference" />
+    <attr name="ic_lasso_rectangle" format="reference" />
+
+    <attr name="ic_lasso_highlighter" format="reference" />
+    <attr name="ic_lasso_part_1" format="reference" />
+    <attr name="ic_lasso_part_2" format="reference" />
+
+    <attr name="ic_canvas_setting_normal" format="reference" />
+    <attr name="ic_canvas_setting_canvas" format="reference" />
+    <attr name="ic_canvas_setting_write" format="reference" />
+    <attr name="ic_canvas_setting_more" format="reference" />
+
+    <attr name="ic_brush_ruler" format="reference" />
+
+    <attr name="ic_font_bigger" format="reference" />
+    <attr name="ic_font_smaller" format="reference" />
+
+    <attr name="ic_empty_search" format="reference" />
+    <attr name="ic_empty_search_dir" format="reference" />
+    <attr name="ic_empty_search_result" format="reference" />
+    <attr name="ic_empty_create_stickers" format="reference" />
+    <attr name="ic_empty_stickers" format="reference" />
+    <attr name="ic_expand_preview" format="reference" />
+    <attr name="ic_expand_set" format="reference" />
+    <attr name="ic_net_error" format="reference" />
+    <attr name="ic_outline_empty" format="reference" />
+    <attr name="ic_top_arrow" format="reference" />
+    <attr name="img_browser_no_history" format="reference" />
+    <attr name="img_my_collect_empty" format="reference" />
+    <attr name="img_web_load_error" format="reference" />
+
+    <!--output-->
+    <attr name="ic_output_bitmap_pdf" format="reference" />
+    <attr name="ic_output_bitmap_pdf_unselected" format="reference" />
+    <attr name="ic_output_vertor_pdf" format="reference" />
+    <attr name="ic_output_vertor_pdf_unselected" format="reference" />
+    <attr name="ic_output_img" format="reference" />
+    <attr name="ic_output_img_unselect" format="reference" />
+    <attr name="ic_output_freenote" format="reference" />
+    <attr name="ic_output_freenote_unselect" format="reference" />
+    <attr name="ic_output_textfield_clear" format="reference" />
+
+    <!--RTToolbar-->
+    <attr name="ic_algin_left_selected" format="reference" />
+    <attr name="ic_align_center_selected" format="reference" />
+    <attr name="ic_align_right_selected" format="reference" />
+    <attr name="ic_toolbar_bold_checked" format="reference" />
+    <attr name="ic_toolbar_italic_checked" format="reference" />
+    <attr name="ic_toolbar_strikethrough_checked" format="reference" />
+    <attr name="ic_toolbar_underline_checked" format="reference" />
+
+    <attr name="selector_ic_toolbar_bold_light" format="reference" />
+    <attr name="selector_ic_toolbar_italic_light" format="reference" />
+    <attr name="selector_ic_toolbar_underline_light" format="reference" />
+    <attr name="selector_ic_toolbar_strikethrough_light" format="reference" />
+
+
+    <attr name="switch_track" format="reference" />
+    <attr name="cursor" format="reference" />
+    <attr name="text_box_drag" format="reference" />
+    <attr name="text_box_rotation" format="reference" />
+    <attr name="browser_progress" format="reference" />
+    <attr name="seekbar_background" format="reference" />
+
+
+
+    <!-- 大纲拖拽排序 -->
+    <attr name="bg_outline" format="reference" />
+    <attr name="bg_outline_item_eee_5" format="reference" />
+    <attr name="bg_outline_item_move" format="reference" />
+
+
+    <!-- secondary_bg_default -->
+    <attr name="bg_r4_top_secondary_bg_default" format="reference" />
+    <attr name="bg_r5_secondary_bg_default" format="reference" />
+    <attr name="bg_r6_secondary_bg_default" format="reference" />
+    <attr name="bg_r8_top_secondary_bg_default" format="reference" />
+    <attr name="bg_r10_secondary_bg_default" format="reference" />
+    <attr name="bg_r12_secondary_bg_default" format="reference" />
+    <attr name="bg_r12_bottom_secondary_bg_default" format="reference" />
+    <attr name="bg_r15_bottom_secondary_bg_default" format="reference" />
+    <attr name="bg_r999_secondary_bg_default" format="reference" />
+
+    <!-- primary_bg_default -->
+    <attr name="bg_r4_primary_bg_default" format="reference" />
+    <attr name="bg_r6_primary_bg_default" format="reference" />
+    <attr name="bg_r8_primary_bg_default" format="reference" />
+    <attr name="bg_r10_primary_bg_default" format="reference" />
+    <attr name="bg_r12_primary_bg_default" format="reference" />
+    <attr name="bg_r15_primary_bg_default" format="reference" />
+    <attr name="bg_r15_top_primary_bg_default" format="reference" />
+    <attr name="bg_r999_primary_bg_default" format="reference" />
+    <attr name="bg_r999_stroke_line10_solid_primary_bg_default" format="reference" />
+
+    <!-- block_gridview -->
+    <attr name="bg_r4_block_gridview" format="reference" />
+    <attr name="bg_r6_block_gridview" format="reference" />
+    <attr name="bg_r8_block_gridview" format="reference" />
+    <attr name="bg_r10_block_gridview" format="reference" />
+    <attr name="bg_r999_block_gridview" format="reference" />
+    <attr name="bg_r6_block_gridview_red_stroke" format="reference" />
+
+    <!-- semantics_blue -->
+    <attr name="bg_r6_semantics_blue" format="reference" />
+    <attr name="bg_r6_stroke1_5_semantics_blue" format="reference" />
+    <attr name="bg_r10_left_semantics_blue" format="reference" />
+    <attr name="bg_r10_right_semantics_blue" format="reference" />
+    <attr name="bg_r999_stroke1_line1_solid_semantics_blue" format="reference" />
+
+    <!-- textColorGray -->
+    <attr name="bg_r6_text_color_gray" format="reference" />
+
+    <!-- brand_color -->
+    <attr name="bg_stroke2_brand_color" format="reference" />
+    <attr name="bg_r2_brand_color" format="reference" />
+    <attr name="bg_r5_brand_color" format="reference" />
+    <attr name="bg_r999_brand_color" format="reference" />
+
+    <!-- line_brand -->
+    <attr name="bg_r999_stroke1_line_brand" format="reference" />
+
+    <!-- primary_btn_normal -->
+    <attr name="bg_r8_primary_btn_normal" format="reference" />
+
+    <!-- primary_bg_brand -->
+    <attr name="bg_r999_primary_bg_brand" format="reference" />
+
+    <!-- icon_brand_background -->
+    <attr name="bg_r999_icon_brand_background" format="reference" />
+
+    <!-- line1 -->
+    <attr name="bg_r999_stroke1_line1" format="reference" />
+
+    <!-- shape_bg_e9e9e9_white6 -->
+    <attr name="bg_r8_shape_bg_e9e9e9_white6" format="reference" />
+
+    <!--钢笔推荐参数卡片-->
+    <attr name="recommend_param_1" format="reference" />
+    <attr name="recommend_param_2" format="reference" />
+    <attr name="recommend_param_3" format="reference" />
+    <attr name="recommend_param_4" format="reference" />
+    <attr name="recommend_param_5" format="reference" />
+    <attr name="recommend_param_6" format="reference" />
+    <attr name="recommend_param_7" format="reference" />
+    <attr name="recommend_param_8" format="reference" />
+
+
+</resources>
