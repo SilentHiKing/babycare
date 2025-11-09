@@ -123,105 +123,110 @@
           "zh-Hans": "请给孩子取个名字吧",
           "en": "Name is null"
         }
-      }
-    ],
-    "FDTextView": [
+      },
       {
-        "codeKey": "textInputFont",
+        "codeKey": "breast",
         "language": {
-          "zh-Hans": "PingFangSC-Regular",
-          "en": "PingFangSC-Regular",
-          "zh-Hant": "PingFangSC-Regular",
-          "ja": "PingFangSC-Regular",
-          "ko": "PingFangSC-Regular",
-          "de": "PingFangSC-Regular",
-          "fr": "PingFangSC-Regular",
-          "ar": "PingFangSC-Regular",
-          "it": "PingFangSC-Regular",
-          "pl": "PingFangSC-Regular",
-          "pt": "PingFangSC-Regular",
-          "es": "PingFangSC-Regular",
-          "ru": "PingFangSC-Regular",
-          "ms": "PingFangSC-Regular",
-          "th": "PingFangSC-Regular",
-          "vi": "PingFangSC-Regular",
-          "uk": "PingFangSC-Regular",
-          "id": "PingFangSC-Regular",
-          "tr": "PingFangSC-Regular",
-          "el": "PingFangSC-Regular",
-          "cs": "PingFangSC-Regular",
-          "nl": "PingFangSC-Regular",
-          "da": "PingFangSC-Regular",
-          "hu": "PingFangSC-Regular",
-          "nb": "PingFangSC-Regular",
-          "sv": "PingFangSC-Regular",
-          "fi": "PingFangSC-Regular"
-        }
-      }
-    ],
-    "FDNotepad": [
-      {
-        "codeKey": "nightFormat",
-        "language": {
-          "zh-Hans": "夜间模式",
-          "en": "Dark Themes",
-          "zh-Hant": "夜間模式",
-          "ja": "夜間モード",
-          "ko": "다크모드",
-          "de": "Dunkelmodus",
-          "fr": "Thèmes sombres",
-          "ar": "سمات الظلام",
-          "it": "Temi scuri",
-          "pl": "Ciemne motywy",
-          "pt": "Temas Escuros",
-          "es": "Temas oscuros",
-          "ru": "Темные темы",
-          "ms": "Tema Gelap",
-          "th": "ธีมมืด",
-          "vi": "Chủ đề Tối",
-          "uk": "Теми оформлення",
-          "id": "Tema Gelap",
-          "tr": "Koyu Temalar",
-          "el": "Σκοτεινά Θέματα",
-          "cs": "Tmavé motivy",
-          "nl": "Donkere Thema's",
-          "da": "Mørke Temaer",
-          "hu": "Sötét témák",
-          "nb": "Mørke temaer",
-          "sv": "Mörka teman",
-          "fi": "Tumma teemat"
+          "zh-Hans": "母乳",
+          "en": "breast"
         }
       },
       {
-        "codeKey": "defaultTemplate",
+        "codeKey": "formula",
         "language": {
-          "zh-Hans": "默认模板",
-          "en": "Default Templates",
-          "zh-Hant": "默認模板",
-          "ja": "デフォルトテンプレート",
-          "ko": "기본 템플릿",
-          "de": "Standardvorlagen",
-          "fr": "Modèles par défaut",
-          "ar": "القوالب الافتراضية",
-          "it": "Modelli predefiniti",
-          "pl": "Domyślne szablony",
-          "pt": "Modelos Padrão",
-          "es": "Plantillas predeterminadas",
-          "ru": "Шаблоны по умолчанию",
-          "ms": "Templat Lalai",
-          "th": "เทมเพลตเริ่มต้น",
-          "vi": "Mẫu Mặc Định",
-          "uk": "Шаблони за замовчуванням",
-          "id": "Template Bawaan",
-          "tr": "Varsayılan Şablonlar",
-          "el": "Προεπιλεγμένα Πρότυπα",
-          "cs": "Výchozí šablony",
-          "nl": "Standaard Sjablonen",
-          "da": "Standard Skabeloner",
-          "hu": "Alapértelmezett sablonok",
-          "nb": "Standardmaler",
-          "sv": "Standardmallar",
-          "fi": "Oletusmallipohjat"
+          "zh-Hans": "奶粉",
+          "en": "formula"
+        }
+      },
+      {
+        "codeKey": "solidFood",
+        "language": {
+          "zh-Hans": "辅食（米糊、蔬菜泥、水果泥等）",
+          "en": "Solid food"
+        }
+      },
+      {
+        "codeKey": "mixedFeeding",
+        "language": {
+          "zh-Hans": "混合喂养",
+          "en": "Mixed feeding"
+        }
+      },
+      {
+        "codeKey": "other",
+        "language": {
+          "zh-Hans": "其他",
+          "en": "other"
+        }
+      },
+      {
+        "codeKey": "feeding",
+        "language": {
+          "zh-Hans": "喂养",
+          "en": "Feeding"
+        }
+      },
+      {
+        "codeKey": "sleeping",
+        "language": {
+          "zh-Hans": "睡眠",
+          "en": "Sleeping"
+        }
+      },
+      {
+        "codeKey": "today",
+        "language": {
+          "zh-Hans": "今天",
+          "en": "Today"
+        }
+      },
+      {
+        "codeKey": "next",
+        "language": {
+          "zh-Hans": "下一次",
+          "en": "Next"
+        }
+      },
+      {
+        "codeKey": "countAndTotalTime",
+        "language": {
+          "zh-Hans": "次数:%@,总时长:%@分钟（白天:%@;夜里:%@）"
+        }
+      },
+      {
+        "codeKey": "avgTime",
+        "language": {
+          "zh-Hans": "平均每次时长:%@"
+        }
+      },
+      {
+        "codeKey": "preGap",
+        "language": {
+          "zh-Hans": "距上次的时间%@"
+        }
+      },
+      {
+        "codeKey": "cannotPredict",
+        "language": {
+          "zh-Hans": "无法预测"
+        }
+      },
+      {
+        "codeKey": "predictNextIn",
+        "language": {
+          "zh-Hans": "预测下一次在"
+        }
+      },
+      {
+        "codeKey": "timeThis",
+        "language": {
+          "zh-Hans": "时长:"
+        }
+      },
+      {
+        "codeKey": "min",
+        "language": {
+          "zh-Hans": "分钟"
         }
       }
     ]

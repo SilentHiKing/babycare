@@ -23,4 +23,13 @@ public interface SleepRecordDao {
 
     @Query("DELETE FROM Sleep_Records WHERE sleepId = :sleepId")
     void deleteSleepRecordById(int sleepId);
+
+    @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId AND sleepStart BETWEEN :startOfDay AND :endOfDay ORDER BY sleepStart DESC")
+    List<SleepRecord> getSleepRecordsForDay(int babyId, long startOfDay, long endOfDay);
+
+    @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId ORDER BY sleepEnd DESC LIMIT 1")
+    SleepRecord getLastSleepRecord(int babyId);
+
+    @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId ORDER BY sleepStart DESC LIMIT :limit")
+    List<SleepRecord> getRecentSleeps(int babyId, int limit);
 }

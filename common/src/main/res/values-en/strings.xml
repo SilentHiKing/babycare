@@ -13,4 +13,13 @@
     <string name="unit_cm">cm</string>
     <string name="updateSuccess">Update success</string>
     <string name="nameIsNullTip">Name is null</string>
+    <string name="breast">breast</string>
+    <string name="formula">formula</string>
+    <string name="solidFood">Solid food</string>
+    <string name="mixedFeeding">Mixed feeding</string>
+    <string name="other">other</string>
+    <string name="feeding">Feeding</string>
+    <string name="sleeping">Sleeping</string>
+    <string name="today">Today</string>
+    <string name="next">Next</string>
 </resources>

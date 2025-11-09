@@ -72,7 +72,7 @@ tasks.register("generateLanguageJson") {
             println("开始从 Excel 生成 JSON 文件...")
 
             // 检查 Python 是否可用
-            val pythonCheck = ProcessBuilder("python3", "--version")
+            val pythonCheck = ProcessBuilder("python", "--version")
                 .redirectOutput(ProcessBuilder.Redirect.PIPE)
                 .redirectError(ProcessBuilder.Redirect.PIPE)
                 .start()

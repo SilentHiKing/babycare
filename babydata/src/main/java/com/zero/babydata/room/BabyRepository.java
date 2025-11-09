@@ -86,8 +86,34 @@ public class BabyRepository {
         BabyDatabase.getDatabaseWriteExecutor().execute(() -> sleepRecordDao.deleteSleepRecordById(sleepId));
     }
 
+
+    public List<FeedingRecord> getFeedingRecordsForDay(int babyId, long startOfDay, long endOfDay) {
+        return feedingRecordDao.getFeedingRecordsForDay(babyId, startOfDay, endOfDay);
+    }
+
+    public List<SleepRecord> getSleepRecordsForDay(int babyId, long startOfDay, long endOfDay) {
+        return sleepRecordDao.getSleepRecordsForDay(babyId, startOfDay, endOfDay);
+    }
+
+    public FeedingRecord getLastFeedingRecord(int babyId) {
+        return feedingRecordDao.getLastFeedingRecord(babyId);
+    }
+
+    public SleepRecord getLastSleepRecord(int babyId) {
+        return sleepRecordDao.getLastSleepRecord(babyId);
+    }
+
+    public List<SleepRecord> getRecentSleeps(int babyId, int limit) {
+        return sleepRecordDao.getRecentSleeps(babyId, limit);
+    }
+
+    public List<FeedingRecord> getRecentFeedings(int babyId, int limit) {
+        return feedingRecordDao.getRecentFeedings(babyId, limit);
+    }
+
+
     // 修改或插入某一天的体重、身高、pic 和 extra
-    public void updateOrInsertChildDailyRecord(int babyId, Long recordDate, Float weight, Float height, String pic, String extra) {
+    public void updateOrInsertChildDailyRecord(int babyId, Long recordDate, Float weight, Float height, Float headCircumference, String pic, String extra) {
         BabyDatabase.getDatabaseWriteExecutor().execute(() -> {
             // 先查询是否已有该日期的记录
             ChildDailyRecord existingRecord = childDailyRecordDao.getRecordByDate(babyId, recordDate);
@@ -99,6 +125,10 @@ public class BabyRepository {
                 }
                 if (height != null) {
                     childDailyRecordDao.updateHeight(babyId, recordDate, height);
+                }
+
+                if (headCircumference != null) {
+                    childDailyRecordDao.updateHeight(babyId, recordDate, headCircumference);
                 }
                 if (pic != null) {
                     childDailyRecordDao.updatePic(babyId, recordDate, pic);
@@ -113,6 +143,7 @@ public class BabyRepository {
                 newRecord.recordDate = recordDate;
                 newRecord.weight = weight;
                 newRecord.height = height;
+                newRecord.headCircumference = headCircumference;
                 newRecord.pic = pic;
                 newRecord.extra = extra;
 
@@ -135,4 +166,5 @@ public class BabyRepository {
     public LiveData<List<SleepRecord>> getAllSleepRecords(int babyId) {
         return new MutableLiveData<>(sleepRecordDao.getAllSleepRecords(babyId));
     }
+
 }

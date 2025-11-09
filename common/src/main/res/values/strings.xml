@@ -18,4 +18,20 @@
     <string name="unit_cm">厘米</string>
     <string name="updateSuccess">更新成功</string>
     <string name="nameIsNullTip">请给孩子取个名字吧</string>
+    <string name="breast">母乳</string>
+    <string name="formula">奶粉</string>
+    <string name="solidFood">辅食（米糊、蔬菜泥、水果泥等）</string>
+    <string name="mixedFeeding">混合喂养</string>
+    <string name="other">其他</string>
+    <string name="feeding">喂养</string>
+    <string name="sleeping">睡眠</string>
+    <string name="today">今天</string>
+    <string name="next">下一次</string>
+    <string name="countAndTotalTime">次数:%1$s,总时长:%2$s分钟（白天:%3$s;夜里:%4$s）</string>
+    <string name="avgTime">平均每次时长:%1$s</string>
+    <string name="preGap">距上次的时间%1$s</string>
+    <string name="cannotPredict">无法预测</string>
+    <string name="predictNextIn">预测下一次在</string>
+    <string name="timeThis">时长:</string>
+    <string name="min">分钟</string>
 </resources>

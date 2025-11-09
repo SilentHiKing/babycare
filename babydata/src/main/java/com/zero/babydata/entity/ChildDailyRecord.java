@@ -21,8 +21,11 @@ public class ChildDailyRecord {
 
     public float weight;  // 体重（单位：kg）
 
-    public float height;
-    // 身高（单位：cm）
+    public float height;// 身高（单位：cm）
+
+
+    public float headCircumference; // 头围 cm
+
     public String pic;  // 可空的字符串字段，保存图片的URL或路径
 
     public String extra;  // 可空的字符串字段，用于存储额外信息

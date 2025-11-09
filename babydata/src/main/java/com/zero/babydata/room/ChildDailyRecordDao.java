@@ -29,6 +29,9 @@ public interface ChildDailyRecordDao {
     @Query("UPDATE ChildDailyRecord SET height = :height WHERE babyId = :babyId AND recordDate = :recordDate")
     void updateHeight(int babyId, Long recordDate, float height);  // 仅更新身高
 
+    @Query("UPDATE ChildDailyRecord SET headCircumference = :headCircumference WHERE babyId = :babyId AND recordDate = :recordDate")
+    void updateHeadCircumference(int babyId, Long recordDate, float headCircumference);  // 仅更新身高
+
     @Query("UPDATE ChildDailyRecord SET pic = :pic WHERE babyId = :babyId AND recordDate = :recordDate")
     void updatePic(int babyId, Long recordDate, String pic);  // 仅更新 pic
 

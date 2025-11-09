@@ -18,9 +18,15 @@ public class FeedingRecord {
     public int feedingId;
 
     public int babyId;
+    public int feedingType;
     public Long feedingStart;
     public Long feedingEnd;
-    public int feedingDuration;
+    public Long feedingDuration;
+    public Long feedingDurationBreastLeft;
+    public Long feedingDurationBreastRight;
+
     public String note;
     public Long createdAt;
 }
+
+

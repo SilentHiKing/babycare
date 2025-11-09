@@ -1,12 +1,13 @@
 package com.zero.common.components.util
 
 import java.util.Calendar
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 /**
  * 日期时间操作扩展工具类
  */
-object DateOperationUtils {
+object DateUtils {
 
     /**
      * 计算两个时间戳之间的时间差（友好显示）
@@ -79,5 +80,25 @@ object DateOperationUtils {
             Calendar.SATURDAY -> "星期六"
             else -> ""
         }
+    }
+
+    // 工具方法：计算当天起止时间
+    fun getDayRange(date: Date): Pair<Long, Long> {
+        val cal = Calendar.getInstance().apply {
+            time = date
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val start = cal.timeInMillis
+        cal.add(Calendar.DAY_OF_MONTH, 1)
+        val end = cal.timeInMillis - 1
+        return Pair(start, end)
+    }
+
+    // 工具方法：获取一天中某个时间点的毫秒数
+    fun getTimeOfDayMillis(hour: Int, minute: Int): Long {
+        return TimeUnit.HOURS.toMillis(hour.toLong()) + TimeUnit.MINUTES.toMillis(minute.toLong())
     }
 }

@@ -14,14 +14,15 @@ open class BaseFragment<VB : ViewBinding> : BaseBindingFragment<VB>() {
         initView(view, savedInstanceState)
         initData(view, savedInstanceState)
     }
+    open fun initView(view: View, savedInstanceState: Bundle?) {
+
+    }
 
     open fun initData(view: View, savedInstanceState: Bundle?) {
 
     }
 
-    open fun initView(view: View, savedInstanceState: Bundle?) {
 
-    }
 
     protected fun showLoading(title: String? = "loading") {
         if (loadingPop == null) {
