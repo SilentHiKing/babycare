@@ -1,4 +1,4 @@
-package com.zero.common.components.util
+package com.zero.common.util
 
 import java.util.Calendar
 import java.util.Date

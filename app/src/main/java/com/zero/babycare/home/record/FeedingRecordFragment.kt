@@ -1,4 +1,4 @@
-package com.zero.babycare.home
+package com.zero.babycare.home.record
 
 import android.os.Bundle
 import android.view.View
@@ -8,6 +8,9 @@ import com.chad.library.adapter4.QuickAdapterHelper
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.babyinfo.UpdateInfoViewModel
 import com.zero.babycare.databinding.FragmentDashboardBinding
+import com.zero.babycare.databinding.FragmentFeedingRecordBinding
+import com.zero.babycare.home.DashboardAdapter
+import com.zero.babycare.home.DashboardViewModel
 import com.zero.babycare.home.bean.DashboardEntity
 import com.zero.common.ext.launchInLifecycle
 import com.zero.components.base.BaseFragment
@@ -15,30 +18,21 @@ import com.zero.components.base.vm.UiState
 import java.util.Date
 import kotlin.getValue
 
-class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
+class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
     companion object {
-        fun create(): DashboardFragment {
-            return DashboardFragment()
+        fun create(): FeedingRecordFragment {
+            return FeedingRecordFragment()
         }
     }
 
-    private val vm by viewModels<DashboardViewModel>()
+    private val vm by viewModels<FeedingRecordViewModel>()
     private val mainVm: MainViewModel by lazy {
         activityViewModels<MainViewModel>().value
     }
 
-    private val adapter by lazy(LazyThreadSafetyMode.NONE) {
-        DashboardAdapter(emptyList())
-    }
-
-    private val helper by lazy(LazyThreadSafetyMode.NONE) {
-        QuickAdapterHelper.Builder(adapter)
-            .build()
-    }
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
-        binding.rv.adapter = helper.adapter
     }
 
     override fun initData(view: View, savedInstanceState: Bundle?) {
@@ -48,7 +42,6 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
                 when (it) {
                     is UiState.Success -> {
                         (it.data as? List<DashboardEntity>)?.let { list ->
-                            adapter.items = list
                         }
                     }
                     else -> {
@@ -58,6 +51,5 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         }
 
 
-        vm.request(mainVm.getCurrentBabyInfo()?.babyId, Date())
     }
 }

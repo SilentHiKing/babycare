@@ -157,6 +157,10 @@ public class BabyRepository {
         return new MutableLiveData<>(babyInfoDao.getBabyInfo(babyId));
     }
 
+    public List<BabyInfo> getAllBabyInfo(){
+        return babyInfoDao.getAllBabyInfo();
+    }
+
     // 获取所有喂奶记录
     public LiveData<List<FeedingRecord>> getAllFeedingRecords(int babyId) {
         return new MutableLiveData<>(feedingRecordDao.getAllFeedingRecords(babyId));

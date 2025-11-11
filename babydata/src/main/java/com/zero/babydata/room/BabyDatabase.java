@@ -34,6 +34,7 @@ public abstract class BabyDatabase extends RoomDatabase {
         if (instance == null) {
             instance = Room.databaseBuilder(context.getApplicationContext(),
                             BabyDatabase.class, "baby_database")
+                    .allowMainThreadQueries()
                     .fallbackToDestructiveMigration()  // Handle migration automatically
                     .build();
         }

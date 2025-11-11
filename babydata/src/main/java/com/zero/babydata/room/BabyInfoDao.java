@@ -7,6 +7,8 @@ import androidx.room.Query;
 
 import com.zero.babydata.entity.BabyInfo;
 
+import java.util.List;
+
 @Dao
 public interface BabyInfoDao {
 
@@ -15,6 +17,9 @@ public interface BabyInfoDao {
 
     @Query("SELECT * FROM Baby_Info WHERE babyId = :babyId LIMIT 1")
     BabyInfo getBabyInfo(int babyId);
+
+    @Query("SELECT * FROM Baby_Info ORDER BY babyId DESC ")
+    List<BabyInfo> getAllBabyInfo();
 
     @Delete
     void deleteBabyInfo(BabyInfo babyInfo);

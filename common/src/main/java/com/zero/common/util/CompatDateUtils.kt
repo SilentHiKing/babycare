@@ -1,4 +1,4 @@
-package com.zero.common.components.util
+package com.zero.common.util
 
 import android.annotation.SuppressLint
 import java.text.ParseException

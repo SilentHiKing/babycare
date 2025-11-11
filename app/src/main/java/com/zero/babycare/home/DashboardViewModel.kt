@@ -10,18 +10,18 @@ import com.zero.babydata.entity.BabyInfo
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.SleepRecord
 import com.zero.babydata.room.BabyRepository
-import com.zero.common.components.util.DateUtils
-import com.zero.common.components.util.DateUtils.getTimeOfDayMillis
+import com.zero.common.util.DateUtils
+import com.zero.common.util.DateUtils.getTimeOfDayMillis
 import com.zero.components.base.vm.BaseViewModel
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import com.zero.babydata.domain.BabyDataHelper.repository
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToLong
 
 
 class DashboardViewModel() : BaseViewModel() {
-    val repository = BabyRepository(Utils.getApp())
 
     fun insert(babyInfo: BabyInfo, callback: Runnable) {
         safeLaunch {
@@ -29,8 +29,11 @@ class DashboardViewModel() : BaseViewModel() {
         }
     }
 
-    fun request(babyId: Int, date: Date) {
+    fun request(babyId: Int?, date: Date) {
         safeLaunch {
+            if (babyId == null) {
+                return@safeLaunch emptyList()
+            }
             val (startOfDay, endOfDay) = DateUtils.getDayRange(date)
 
 

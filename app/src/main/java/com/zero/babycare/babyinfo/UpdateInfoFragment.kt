@@ -1,8 +1,6 @@
 package com.zero.babycare.babyinfo
 
-import android.annotation.SuppressLint
 import android.os.Bundle
-import android.text.format.DateUtils
 import android.view.View
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -19,8 +17,8 @@ import com.zero.babycare.R
 import com.zero.babycare.databinding.FragmentUpdateInfoBinding
 import com.zero.babycare.home.DashboardFragment
 import com.zero.babydata.entity.BabyInfo
-import com.zero.common.components.ext.launchInLifecycle
-import com.zero.common.components.util.CompatDateUtils
+import com.zero.common.ext.launchInLifecycle
+import com.zero.common.util.CompatDateUtils
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.vm.UiState
 import java.util.Date

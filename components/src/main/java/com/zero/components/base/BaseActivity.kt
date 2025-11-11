@@ -1,15 +1,13 @@
 package com.zero.components.base
 
 import android.os.Bundle
-import android.os.PersistableBundle
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.IdRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.viewbinding.ViewBinding
-import com.lxj.xpopup.XPopup
 import com.lxj.xpopup.impl.LoadingPopupView
-import com.zero.common.components.util.ActivityCompatHelper
+import com.zero.common.util.ActivityCompatHelper
 import com.zero.components.base.util.DialogHelper
 
 abstract class BaseActivity<VB : ViewBinding> : BaseBindingActivity<VB>() {

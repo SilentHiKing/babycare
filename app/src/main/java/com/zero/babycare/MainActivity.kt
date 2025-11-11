@@ -3,14 +3,13 @@ package com.zero.babycare
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import com.blankj.utilcode.util.FragmentUtils
 import com.blankj.utilcode.util.LogUtils
 import com.zero.babycare.babyinfo.UpdateInfoFragment
-import com.zero.babycare.babyinfo.UpdateInfoViewModel
 import com.zero.babycare.databinding.ActivityMainBinding
 import com.zero.babycare.home.DashboardFragment
-import com.zero.common.components.ext.launchInLifecycle
+import com.zero.babycare.home.record.FeedingRecordFragment
+import com.zero.common.ext.launchInLifecycle
 import com.zero.components.base.BaseActivity
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.getValue
@@ -26,6 +25,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         fragments.add(UpdateInfoFragment.create())
         fragments.add(DashboardFragment.create())
+        fragments.add(FeedingRecordFragment.create())
         fragments.forEach {
             FragmentUtils.add(supportFragmentManager, it, R.id.flContainer, true)
         }

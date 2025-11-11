@@ -65,6 +65,8 @@ dependencies {
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.utilcodex)
+    implementation(libs.mmkv.static)
+    implementation(libs.gson)
     implementation(project(":babydata"))
     implementation(project(":components"))
     implementation(project(":common"))

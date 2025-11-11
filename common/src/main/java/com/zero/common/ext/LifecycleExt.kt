@@ -1,4 +1,4 @@
-package com.zero.common.components.ext
+package com.zero.common.ext
 
 import android.app.Activity
 import android.content.Context

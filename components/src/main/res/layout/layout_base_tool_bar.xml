@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingTop="@dimen/dp_45">
-
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:background="@color/spinner_bg"
+    tools:layout_height="wrap_content"
+    tools:paddingVertical="12dp"
+    tools:layout_width="match_parent"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
     <TextView
         android:id="@+id/tvTitle"
@@ -51,16 +52,4 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/tvTitle" />
 
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layoutManager="com.chad.library.adapter4.layoutmanager.QuickGridLayoutManager"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle"
-        app:spanCount="2"
-        tools:listitem="@layout/item_info_view" />
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>
-
+</merge>
