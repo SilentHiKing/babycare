@@ -79,12 +79,12 @@ tasks.register("generateLanguageJson") {
 
             val pythonCheckExitCode = pythonCheck.waitFor()
             if (pythonCheckExitCode != 0) {
-                println("❌ Python3 不可用，尝试使用 python...")
+                println("❌ Python 不可用，尝试使用 python3...")
                 // 可以尝试使用 python 命令
             }
 
             val process = ProcessBuilder(
-                "python3",
+                "python",
                 pythonScript.absolutePath
             )
                 .directory(File(project.rootProject.projectDir, "tools/language"))

@@ -19,38 +19,68 @@ class DashboardAdapter(data: List<DashboardEntity>) : BaseMultiItemAdapter<Dashb
     class HeaderVH(val viewBinding: ItemTitleViewBinding) : RecyclerView.ViewHolder(viewBinding.root)
 
     init {
-        addItemType(DashboardEntity.TYPE_INFO, object : OnMultiItemAdapterListener<DashboardEntity, ItemVH> {
-            override fun onCreate(context: Context, parent: ViewGroup, viewType: Int): ItemVH {
-                val viewBinding =
-                    ItemInfoViewBinding.inflate(LayoutInflater.from(context), parent, false)
-                return ItemVH(viewBinding)
-            }
+        addItemType(
+            DashboardEntity.TYPE_INFO,
+            object : OnMultiItemAdapterListener<DashboardEntity, ItemVH> {
+                override fun onCreate(context: Context, parent: ViewGroup, viewType: Int): ItemVH {
+                    val viewBinding =
+                        ItemInfoViewBinding.inflate(LayoutInflater.from(context), parent, false)
+                    return ItemVH(viewBinding)
+                }
 
-            override fun onBind(holder: ItemVH, position: Int, item: DashboardEntity?) {
-                if (item == null) return
-                holder.viewBinding.textView.text = item.title
-            }
-        }).addItemType(DashboardEntity.TYPE_TITLE, object : OnMultiItemAdapterListener<DashboardEntity, HeaderVH> {
-            override fun onCreate(context: Context, parent: ViewGroup, viewType: Int): HeaderVH {
-                val viewBinding =
-                    ItemTitleViewBinding.inflate(LayoutInflater.from(context), parent, false)
-                return HeaderVH(viewBinding)
-            }
+                override fun onBind(holder: ItemVH, position: Int, item: DashboardEntity?) {
+                    if (item == null) return
+                    holder.viewBinding.tvTitle.text = item.title
+                    holder.viewBinding.tvContent.text = item.content
+                    holder.viewBinding.tvDesc.text = item.desc
+                }
+            })
+        addItemType(
+            DashboardEntity.TYPE_NEXT,
+            object : OnMultiItemAdapterListener<DashboardEntity, ItemVH> {
+                override fun onCreate(context: Context, parent: ViewGroup, viewType: Int): ItemVH {
+                    val viewBinding =
+                        ItemInfoViewBinding.inflate(LayoutInflater.from(context), parent, false)
+                    return ItemVH(viewBinding)
+                }
 
-            override fun onBind(holder: HeaderVH, position: Int, item: DashboardEntity?) {
-                if (item == null) return
+                override fun onBind(holder: ItemVH, position: Int, item: DashboardEntity?) {
+                    if (item == null) return
+                    holder.viewBinding.tvTitle.text = item.title
+                    holder.viewBinding.tvContent.text = item.content
+                    holder.viewBinding.tvDesc.text = item.desc
+                }
+            })
+            .addItemType(
+                DashboardEntity.TYPE_TITLE,
+                object : OnMultiItemAdapterListener<DashboardEntity, HeaderVH> {
+                    override fun onCreate(
+                        context: Context,
+                        parent: ViewGroup,
+                        viewType: Int
+                    ): HeaderVH {
+                        val viewBinding =
+                            ItemTitleViewBinding.inflate(
+                                LayoutInflater.from(context),
+                                parent,
+                                false
+                            )
+                        return HeaderVH(viewBinding)
+                    }
 
-                holder.viewBinding.more.visibility = View.GONE
-                holder.viewBinding.header.text = item.title
+                    override fun onBind(holder: HeaderVH, position: Int, item: DashboardEntity?) {
+                        if (item == null) return
+                        holder.viewBinding.header.text = item.title
+                    }
+
+                    override fun isFullSpanItem(itemType: Int): Boolean {
+                        return true
+                    }
+
+                })
+            .onItemViewType { position, list ->
+                list[position].type
             }
-
-            override fun isFullSpanItem(itemType: Int): Boolean {
-                return true
-            }
-
-        }).onItemViewType { position, list ->
-            list[position].type
-        }
     }
 
 

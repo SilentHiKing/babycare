@@ -22,4 +22,6 @@
     <string name="sleeping">Sleeping</string>
     <string name="today">Today</string>
     <string name="next">Next</string>
+    <string name="startTime">start time</string>
+    <string name="endTime">end time</string>
 </resources>

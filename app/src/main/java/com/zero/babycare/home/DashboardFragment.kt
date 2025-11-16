@@ -4,11 +4,15 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import com.blankj.utilcode.util.DeviceUtils
+import com.blankj.utilcode.util.LogUtils
 import com.chad.library.adapter4.QuickAdapterHelper
+import com.chad.library.adapter4.layoutmanager.QuickGridLayoutManager
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.babyinfo.UpdateInfoViewModel
 import com.zero.babycare.databinding.FragmentDashboardBinding
 import com.zero.babycare.home.bean.DashboardEntity
+import com.zero.babycare.home.record.FeedingRecordFragment
 import com.zero.common.ext.launchInLifecycle
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.vm.UiState
@@ -38,7 +42,12 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
-        binding.rv.adapter = helper.adapter
+        binding.btn.setOnFinishListener { mainVm.switchFragment(FeedingRecordFragment::class.java) }
+        binding.rv.apply {
+            adapter = helper.adapter
+            layoutManager = QuickGridLayoutManager(requireContext(),1)
+
+        }
     }
 
     override fun initData(view: View, savedInstanceState: Bundle?) {
@@ -48,7 +57,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
                 when (it) {
                     is UiState.Success -> {
                         (it.data as? List<DashboardEntity>)?.let { list ->
-                            adapter.items = list
+                            adapter.submitList(list)
                         }
                     }
                     else -> {
@@ -58,6 +67,20 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         }
 
 
-        vm.request(mainVm.getCurrentBabyInfo()?.babyId, Date())
+
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        LogUtils.d("hello1=${hidden}")
+        if(!hidden){
+            vm.request(mainVm.getCurrentBabyInfo()?.babyId, Date())
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+
     }
 }

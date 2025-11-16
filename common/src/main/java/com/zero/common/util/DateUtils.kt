@@ -1,7 +1,9 @@
 package com.zero.common.util
 
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 /**
@@ -101,4 +103,107 @@ object DateUtils {
     fun getTimeOfDayMillis(hour: Int, minute: Int): Long {
         return TimeUnit.HOURS.toMillis(hour.toLong()) + TimeUnit.MINUTES.toMillis(minute.toLong())
     }
+
+
+    fun diffFromNow(timeStr: String): Long {
+        // 定义格式
+        val format = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
+
+        // 当前年份补上，否则只有月日时分会默认用 1970 年
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+        val fullTimeStr = "$currentYear-$timeStr"  // 变成 "2025-11-13 02:23"
+        val fullFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+
+        // 解析成时间戳
+        val date = fullFormat.parse(fullTimeStr)
+        val targetTime = date?.time ?: 0L
+
+        // 当前时间戳
+        val now = System.currentTimeMillis()
+
+        // 返回间隔（毫秒）
+        return now - targetTime
+    }
+
+
+    fun getDiffFromNow(timeStr: String): Long? {
+        // 输入必须是 MM-dd HH:mm 格式，比如 "11-13 02:23"
+        val regex = Regex("""\d{2}-\d{2} \d{2}:\d{2}""")
+        if (!regex.matches(timeStr)) return null  // 格式不对，直接返回 null
+
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+        val fullStr = "$currentYear-$timeStr"  // 拼接成 "2025-11-13 02:23"
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+        sdf.isLenient = false  // 禁止宽松解析，比如 13月 或 25:99 都会报错
+
+        return try {
+            val date = sdf.parse(fullStr) ?: return null
+            val timestamp = date.time
+            System.currentTimeMillis() - timestamp
+        } catch (e: Exception) {
+            null // 解析失败返回 null
+        }
+    }
+
+    fun timestampToMMddHHmm(timestamp: Long, isSeconds: Boolean = false): String {
+        val actualTimestamp = if (isSeconds) timestamp * 1000 else timestamp
+        val sdf = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
+        return sdf.format(Date(actualTimestamp))
+    }
+
+    fun timestampToMMddHHmmss(timestamp: Long): String {
+        val sdf = SimpleDateFormat("MM-dd HH:mm:ss", Locale.getDefault())
+        return sdf.format(Date(timestamp))
+    }
+
+    /**
+     * 将 MM-dd HH:mm:ss 格式转换为时间戳（年份为当年）
+     * @param dateStr 日期字符串，格式：MM-dd HH:mm:ss
+     * @return 时间戳，解析失败返回null
+     */
+    fun parseToTimestamp(dateStr: String): Long? {
+        return try {
+            val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+            val fullDateStr = "$currentYear-$dateStr"
+
+            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            sdf.parse(fullDateStr)?.time
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /**
+     * 将 MM-dd HH:mm:ss 格式转换为时间戳（年份为当年）
+     * @param dateStr 日期字符串，格式：MM-dd HH:mm:ss
+     * @param default 解析失败时的默认值
+     * @return 时间戳
+     */
+    fun parseToTimestamp(dateStr: String, default: Long): Long {
+        return parseToTimestamp(dateStr) ?: default
+    }
+
+    /**
+     * 将毫秒转换为分钟，智能格式化输出
+     * @param milliseconds 毫秒数
+     * @return 格式化后的分钟字符串
+     */
+    fun millisecondsToSmartMinutes(milliseconds: Long): String {
+        val totalMinutes = milliseconds / 60000.0
+
+        return when {
+            // 正好是整数分钟
+            milliseconds % 60000 == 0L -> {
+                totalMinutes.toInt().toString()
+            }
+            // 需要保留两位小数的情况
+            else -> {
+                // 格式化并移除末尾的0
+                val formatted = "%.2f".format(totalMinutes)
+                formatted.removeSuffix(".00").removeSuffix("0")
+            }
+        }
+    }
+
+
 }

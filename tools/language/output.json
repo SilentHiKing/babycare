@@ -228,6 +228,20 @@
         "language": {
           "zh-Hans": "分钟"
         }
+      },
+      {
+        "codeKey": "startTime",
+        "language": {
+          "zh-Hans": "开始时间",
+          "en": "start time"
+        }
+      },
+      {
+        "codeKey": "endTime",
+        "language": {
+          "zh-Hans": "结束时间",
+          "en": "end time"
+        }
       }
     ]
   }

@@ -25,13 +25,11 @@ import kotlin.math.roundToLong
 
 class FeedingRecordViewModel() : BaseViewModel() {
 
-    fun insert(babyInfo: BabyInfo, callback: Runnable) {
+    fun insert(feedingRecord: FeedingRecord, callback: Runnable) {
         safeLaunch {
-            repository.insertBabyInfo(babyInfo, callback)
+            repository.insertFeedingRecord(feedingRecord, callback)
         }
     }
-
-
 
 
 }

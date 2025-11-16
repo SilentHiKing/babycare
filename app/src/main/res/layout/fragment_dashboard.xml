@@ -7,57 +7,21 @@
     android:paddingTop="@dimen/dp_45">
 
 
-    <TextView
-        android:id="@+id/tvTitle"
-        style="@style/BoldTextAppearance"
-        android:layout_width="0dp"
+    <com.zero.components.widget.BaseToolbar
+        android:id="@+id/btn"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:gravity="center"
-        android:paddingHorizontal="@dimen/dp_5"
-        android:paddingVertical="@dimen/dp_20"
-        android:singleLine="true"
-        android:text="@string/babyInfo"
-        android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_18"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/ivBack"
-        android:layout_width="@dimen/dp_42"
-        android:layout_height="@dimen/dp_42"
-        android:layout_centerVertical="true"
-        android:layout_marginStart="@dimen/dp_25"
-        android:padding="@dimen/dp_10"
-        android:src="@drawable/ic_back"
-        app:layout_constraintBottom_toBottomOf="@+id/tvTitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="?attr/icon_brand" />
-
-    <TextView
-        android:id="@+id/tvFinish"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:layout_marginEnd="@dimen/dp_25"
-        android:text="@string/finish"
-        android:textColor="?attr/semantics_blue"
-        android:textSize="@dimen/sp_15"
-        app:layout_constraintBottom_toBottomOf="@id/tvTitle"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvTitle" />
 
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+
+        android:layout_height="0dp"
         app:layoutManager="com.chad.library.adapter4.layoutmanager.QuickGridLayoutManager"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        app:layout_constraintTop_toBottomOf="@id/btn"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:spanCount="2"
         tools:listitem="@layout/item_info_view" />
 

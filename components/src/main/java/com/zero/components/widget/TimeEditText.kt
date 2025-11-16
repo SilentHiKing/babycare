@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatEditText
+import java.util.Calendar
 import java.util.Locale
 
 /**
@@ -28,8 +29,7 @@ class TimeEditText @JvmOverloads constructor(
     private var onTimeEnteredListener: ((hour: Int, minute: Int) -> Unit)? = null
 
     init {
-        // 限制输入数字且最多5位
-        filters = arrayOf(InputFilter.LengthFilter(5))
+//        filters = arrayOf(InputFilter.LengthFilter(5))
         keyListener = DigitsKeyListener.getInstance("0123456789")
 
         addTextChangedListener(object : TextWatcher {
@@ -45,8 +45,8 @@ class TimeEditText @JvmOverloads constructor(
                     return
                 }
 
-                val digits = s.toString().replace(":", "").trim()
-                if (digits.length == 4) {
+                val digits = s.toString().trim()
+                if (digits.length == 4 && digits.all { it.isDigit() }) {
                     val hour = digits.substring(0, 2).toIntOrNull() ?: 0
                     val minute = digits.substring(2, 4).toIntOrNull() ?: 0
 
@@ -54,17 +54,32 @@ class TimeEditText @JvmOverloads constructor(
                         Toast.makeText(context, "请输入有效的时间", Toast.LENGTH_SHORT).show()
                         setText("")
                     } else {
-                        val formatted = String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
+                        isCursorVisible = false
+                        val calendar = Calendar.getInstance()
+                        val month = calendar.get(Calendar.MONTH) + 1
+                        val day = calendar.get(Calendar.DAY_OF_MONTH)
+                        val formatted = String.format(
+                            Locale.getDefault(),
+                            "%02d-%02d %02d:%02d:00",
+                            month,
+                            day,
+                            hour,
+                            minute
+                        )
                         setText(formatted)
+
+
 
                         // ✅ 延迟执行防止光标越界
                         post {
                             val safeLength = text?.length ?: 0
                             val cursorPos = formatted.length.coerceAtMost(safeLength)
+                            isCursorVisible = true
                             setSelection(cursorPos)
 
                             // ✅ 自动关闭键盘
-                            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                            val imm =
+                                context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                             imm.hideSoftInputFromWindow(windowToken, 0)
 
                             // ✅ 回调监听
@@ -79,12 +94,14 @@ class TimeEditText @JvmOverloads constructor(
     }
 
     /** 获取格式化时间 "HH:mm" */
-    fun getFormattedTime(): String = text?.toString()?.trim() ?: ""
+    fun getFormattedTime(): String = (text?.toString()?.trim() ?: "").let {
+        if (it.length > 8) it.takeLast(8) else it
+    }
 
     /** 获取小时和分钟 */
     fun getHourMinute(): Pair<Int, Int>? {
         val parts = getFormattedTime().split(":")
-        return if (parts.size == 2) {
+        return if (parts.size == 3) {
             val h = parts[0].toIntOrNull() ?: 0
             val m = parts[1].toIntOrNull() ?: 0
             h to m

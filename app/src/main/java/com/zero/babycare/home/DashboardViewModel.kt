@@ -1,22 +1,21 @@
 package com.zero.babycare.home
 
 import com.blankj.utilcode.util.StringUtils
-import com.blankj.utilcode.util.Utils
 import com.zero.babycare.home.bean.DashboardEntity
 import com.zero.babycare.home.bean.DashboardEntity.Companion.TYPE_INFO
 import com.zero.babycare.home.bean.DashboardEntity.Companion.TYPE_NEXT
 import com.zero.babycare.home.bean.DashboardEntity.Companion.TYPE_TITLE
+import com.zero.babydata.domain.BabyDataHelper.repository
 import com.zero.babydata.entity.BabyInfo
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.SleepRecord
-import com.zero.babydata.room.BabyRepository
+import com.zero.common.ext.msToSmartMinutes
 import com.zero.common.util.DateUtils
 import com.zero.common.util.DateUtils.getTimeOfDayMillis
 import com.zero.components.base.vm.BaseViewModel
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import com.zero.babydata.domain.BabyDataHelper.repository
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToLong
 
@@ -46,10 +45,8 @@ class DashboardViewModel() : BaseViewModel() {
             val totalFeedingDurationL = if (feedingCount > 0) {
                 feedings.sumOf { it.feedingEnd - it.feedingStart }
             } else 0L
-            val totalFeedingDuration =
-                TimeUnit.MILLISECONDS.toMinutes(totalFeedingDurationL).toDouble()
-            val avgFeedingDuration =
-                TimeUnit.MILLISECONDS.toMinutes(totalFeedingDurationL / feedingCount).toDouble()
+            val totalFeedingDuration = totalFeedingDurationL.msToSmartMinutes()
+            val avgFeedingDuration = (if (feedingCount == 0) 0 else totalFeedingDurationL / feedingCount).msToSmartMinutes()
             val feedingPair = getDayNightFeedingDuration(feedings)
 
             // 4️⃣ 睡眠统计
@@ -58,8 +55,9 @@ class DashboardViewModel() : BaseViewModel() {
                 sleeps.sumOf { it.sleepEnd - it.sleepStart }
             } else 0L
 
+
             val totalSleepDuration = TimeUnit.MILLISECONDS.toMinutes(totalSleepDurationL).toDouble()
-            val avgSleepDuration =
+            val avgSleepDuration = if (sleepCount == 0) 0 else
                 TimeUnit.MILLISECONDS.toMinutes(totalSleepDurationL / sleepCount).toDouble()
             val sleepPair = getDayNightSleepDuration(sleeps)
 
@@ -74,8 +72,8 @@ class DashboardViewModel() : BaseViewModel() {
                         StringUtils.getString(com.zero.common.R.string.countAndTotalTime),
                         feedingCount,
                         totalFeedingDuration,
-                        feedingPair.first.toInt().toString(),
-                        feedingPair.second.toInt().toString()
+                        feedingPair.first,
+                        feedingPair.second
                     )
                     desc = String.format(
                         StringUtils.getString(com.zero.common.R.string.avgTime),
@@ -88,8 +86,8 @@ class DashboardViewModel() : BaseViewModel() {
                         StringUtils.getString(com.zero.common.R.string.countAndTotalTime),
                         sleepCount,
                         totalSleepDuration,
-                        sleepPair.first.toInt().toString(),
-                        sleepPair.second.toInt().toString()
+                        sleepPair.first,
+                        sleepPair.second
                     )
                     desc = String.format(
                         StringUtils.getString(com.zero.common.R.string.avgTime),
@@ -169,7 +167,7 @@ class DashboardViewModel() : BaseViewModel() {
     }
 
     // ✅ 4. 白天 vs 夜间 喂奶时长
-    fun getDayNightFeedingDuration(feedings: List<FeedingRecord>): Pair<Double, Double> {
+    fun getDayNightFeedingDuration(feedings: List<FeedingRecord>): Pair<String, String> {
         val dayStart = getTimeOfDayMillis(6, 0)
         val nightStart = getTimeOfDayMillis(18, 0)
 
@@ -183,8 +181,9 @@ class DashboardViewModel() : BaseViewModel() {
         }
 
         return Pair(
-            TimeUnit.MILLISECONDS.toMinutes(dayFeed).toDouble(),
-            TimeUnit.MILLISECONDS.toMinutes(nightFeed).toDouble()
+            dayFeed.msToSmartMinutes(),
+            nightFeed.msToSmartMinutes()
+
         )
     }
 

@@ -37,10 +37,9 @@ public class BabyRepository {
     }
 
 
-    // 插入婴儿信息
-    public void insertBabyInfo(BabyInfo babyInfo, Runnable callback) {
+    private void run(Runnable action, Runnable callback) {
         BabyDatabase.getDatabaseWriteExecutor().execute(() -> {
-                    babyInfoDao.insertBabyInfo(babyInfo);
+                    action.run();
                     if (callback != null) {
                         callback.run();
                     }
@@ -48,9 +47,28 @@ public class BabyRepository {
         );
     }
 
+
+    // 插入婴儿信息
+    public void insertBabyInfo(BabyInfo babyInfo, Runnable callback) {
+        Runnable action = new Runnable() {
+            @Override
+            public void run() {
+                babyInfoDao.insertBabyInfo(babyInfo);
+            }
+        };
+
+        run(action, callback);
+    }
+
     // 插入喂奶记录
-    public void insertFeedingRecord(FeedingRecord feedingRecord) {
-        BabyDatabase.getDatabaseWriteExecutor().execute(() -> feedingRecordDao.insertFeedingRecord(feedingRecord));
+    public void insertFeedingRecord(FeedingRecord feedingRecord, Runnable callback) {
+        Runnable action = new Runnable() {
+            @Override
+            public void run() {
+                feedingRecordDao.insertFeedingRecord(feedingRecord);
+            }
+        };
+        run(action, callback);
     }
 
     // 插入睡觉记录
@@ -157,7 +175,7 @@ public class BabyRepository {
         return new MutableLiveData<>(babyInfoDao.getBabyInfo(babyId));
     }
 
-    public List<BabyInfo> getAllBabyInfo(){
+    public List<BabyInfo> getAllBabyInfo() {
         return babyInfoDao.getAllBabyInfo();
     }
 
