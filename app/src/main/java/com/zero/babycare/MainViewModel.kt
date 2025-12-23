@@ -2,6 +2,7 @@ package com.zero.babycare
 
 import androidx.fragment.app.Fragment
 import com.zero.babycare.babyinfo.UpdateInfoFragment
+import com.zero.babycare.home.DashboardFragment
 import com.zero.babycare.home.record.FeedingRecordFragment
 import com.zero.babydata.entity.BabyInfo
 import com.zero.components.base.vm.BaseViewModel
@@ -12,7 +13,7 @@ import com.zero.common.mmkv.MMKVStore
 
 
 class MainViewModel() : BaseViewModel() {
-    val fragmentStatus = MutableStateFlow<Class<out Fragment>?>(FeedingRecordFragment::class.java)
+    val fragmentStatus = MutableStateFlow<Class<out Fragment>?>(DashboardFragment::class.java)
 
 
     fun switchFragment(fragment: Class<out Fragment>) {
@@ -26,7 +27,7 @@ class MainViewModel() : BaseViewModel() {
 
     fun getCurrentBabyInfo(): BabyInfo? {
         return MMKVStore.get(BABY_INFO, BabyInfo::class.java)?:run {
-            repository.allBabyInfo.firstOrNull()
+            repository.getAllBabyInfo().firstOrNull()
         }
     }
 

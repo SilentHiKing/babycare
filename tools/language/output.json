@@ -242,6 +242,13 @@
           "zh-Hans": "结束时间",
           "en": "end time"
         }
+      },
+      {
+        "codeKey": "dashboard",
+        "language": {
+          "zh-Hans": "概况",
+          "en": "Dashboard"
+        }
       }
     ]
   }

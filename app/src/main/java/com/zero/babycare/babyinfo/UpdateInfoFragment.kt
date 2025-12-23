@@ -54,7 +54,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>() {
             baby.name = name
             baby.gender = binding.etGender.text.toString()
             binding.etBirthday.text?.toString()?.takeIf { it.isNotEmpty() }?.let {
-                baby.birthDate = CompatDateUtils.stringToTimestamp(it)
+                baby.birthDate = CompatDateUtils.stringToTimestamp(it) ?: 0L
             }
             binding.etHeight.text?.toString()?.takeIf { it.isNotEmpty() }?.let {
                 it.toFloat().also { baby.birthHeight = it }

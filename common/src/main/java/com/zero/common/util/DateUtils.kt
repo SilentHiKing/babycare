@@ -205,5 +205,77 @@ object DateUtils {
         }
     }
 
+    /**
+     * 检查时间戳是否是未来时间
+     */
+    fun isFutureTime(timestamp: Long): Boolean {
+        return timestamp > System.currentTimeMillis()
+    }
+
+    /**
+     * 检查结束时间是否晚于开始时间
+     */
+    fun isEndAfterStart(startTime: Long, endTime: Long): Boolean {
+        return endTime > startTime
+    }
+
+    /**
+     * 计算两个时间戳之间的时长（毫秒）
+     */
+    fun calculateDuration(startTime: Long, endTime: Long): Long {
+        return if (endTime > startTime) endTime - startTime else 0L
+    }
+
+    /**
+     * 将毫秒转换为分钟数
+     */
+    fun millisecondsToMinutes(milliseconds: Long): Long {
+        return milliseconds / 60000
+    }
+
+    /**
+     * 将分钟数转换为毫秒
+     */
+    fun minutesToMilliseconds(minutes: Long): Long {
+        return minutes * 60000
+    }
+
+    /**
+     * 格式化时长为可读字符串（如：1小时30分钟）
+     */
+    fun formatDuration(milliseconds: Long): String {
+        val totalMinutes = milliseconds / 60000
+        val hours = totalMinutes / 60
+        val minutes = totalMinutes % 60
+
+        return when {
+            hours > 0 && minutes > 0 -> "${hours}小时${minutes}分钟"
+            hours > 0 -> "${hours}小时"
+            else -> "${minutes}分钟"
+        }
+    }
+
+    /**
+     * 格式化时长为简短字符串（如：90分钟 或 1:30:00）
+     */
+    fun formatDurationShort(milliseconds: Long): String {
+        val totalSeconds = milliseconds / 1000
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        val seconds = totalSeconds % 60
+
+        return if (hours > 0) {
+            String.format(Locale.getDefault(), "%d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+        }
+    }
+
+    /**
+     * 检查时长是否超过指定分钟数
+     */
+    fun isDurationExceedMinutes(durationMs: Long, maxMinutes: Int): Boolean {
+        return durationMs > maxMinutes * 60 * 1000L
+    }
 
 }

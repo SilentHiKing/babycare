@@ -35,7 +35,6 @@ class DashboardViewModel() : BaseViewModel() {
             }
             val (startOfDay, endOfDay) = DateUtils.getDayRange(date)
 
-
             // 2️⃣ 查询数据库
             val feedings = repository.getFeedingRecordsForDay(babyId, startOfDay, endOfDay)
             val sleeps = repository.getSleepRecordsForDay(babyId, startOfDay, endOfDay)
@@ -54,7 +53,6 @@ class DashboardViewModel() : BaseViewModel() {
             val totalSleepDurationL = if (sleepCount > 0) {
                 sleeps.sumOf { it.sleepEnd - it.sleepStart }
             } else 0L
-
 
             val totalSleepDuration = TimeUnit.MILLISECONDS.toMinutes(totalSleepDurationL).toDouble()
             val avgSleepDuration = if (sleepCount == 0) 0 else
@@ -127,20 +125,16 @@ class DashboardViewModel() : BaseViewModel() {
 
     // ✅ 1. 上次喂奶距现在多久（分钟）
     fun getTimeSinceLastFeeding(babyId: Int): Long? {
-        val lastFeeding = repository.getLastFeedingRecord(babyId)
-        return lastFeeding?.let {
-            val diff = Date().time - it.feedingEnd
-            TimeUnit.MILLISECONDS.toMinutes(diff)
-        }
+        val lastFeeding = repository.getLastFeedingRecord(babyId) ?: return null
+        val diff = Date().time - lastFeeding.feedingEnd
+        return TimeUnit.MILLISECONDS.toMinutes(diff)
     }
 
     // ✅ 2. 上次睡觉距现在多久（分钟）
     fun getTimeSinceLastSleep(babyId: Int): Long? {
-        val lastSleep = repository.getLastSleepRecord(babyId)
-        return lastSleep?.let {
-            val diff = Date().time - it.sleepEnd
-            TimeUnit.MILLISECONDS.toMinutes(diff)
-        }
+        val lastSleep = repository.getLastSleepRecord(babyId) ?: return null
+        val diff = Date().time - lastSleep.sleepEnd
+        return TimeUnit.MILLISECONDS.toMinutes(diff)
     }
 
     // ✅ 3. 白天 vs 夜间 睡眠时长
@@ -153,7 +147,6 @@ class DashboardViewModel() : BaseViewModel() {
 
         for (s in sleeps) {
             val start = s.sleepStart % TimeUnit.DAYS.toMillis(1)
-            val end = s.sleepEnd % TimeUnit.DAYS.toMillis(1)
             val duration = s.sleepEnd - s.sleepStart
 
             // 若在 6:00 ~ 18:00 为白天，否则为夜间
@@ -183,7 +176,6 @@ class DashboardViewModel() : BaseViewModel() {
         return Pair(
             dayFeed.msToSmartMinutes(),
             nightFeed.msToSmartMinutes()
-
         )
     }
 
@@ -194,12 +186,9 @@ class DashboardViewModel() : BaseViewModel() {
         val records = repository.getRecentFeedings(babyId, recentCount)
         if (records.size < 2) return null
 
-        val (dayIntervals, nightIntervals) = splitIntervalsByPeriod(records.map {
-            FeedingLikeRecord(
-                it.feedingStart,
-                it.feedingEnd
-            )
-        })
+        val (dayIntervals, nightIntervals) = splitIntervalsByPeriod(
+            records.map { FeedingLikeRecord(it.feedingStart, it.feedingEnd) }
+        )
 
         // 当前时间段判断
         val nowHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
@@ -228,9 +217,9 @@ class DashboardViewModel() : BaseViewModel() {
         val records = repository.getRecentSleeps(babyId, recentCount)
         if (records.size < 2) return null
 
-        val (dayIntervals, nightIntervals) = splitIntervalsByPeriod(records.map {
-            FeedingLikeRecord(it.sleepStart, it.sleepEnd)
-        })
+        val (dayIntervals, nightIntervals) = splitIntervalsByPeriod(
+            records.map { FeedingLikeRecord(it.sleepStart, it.sleepEnd) }
+        )
 
         val nowHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         val avgInterval = if (nowHour in 6..18)
@@ -248,8 +237,9 @@ class DashboardViewModel() : BaseViewModel() {
         val records = repository.getRecentFeedings(babyId, recentCount)
         if (records.isEmpty()) return 0.0
 
-        val durations = records.map { it.feedingEnd - it.feedingStart }
-            .filter { it in TimeUnit.MINUTES.toMillis(5)..TimeUnit.HOURS.toMillis(2) } // 过滤异常
+        val durations = records
+            .map { it.feedingEnd - it.feedingStart }
+            .filter { it in TimeUnit.MINUTES.toMillis(5)..TimeUnit.HOURS.toMillis(2) }
         val avg = weightedAverage(durations)
         return TimeUnit.MILLISECONDS.toMinutes(avg).toDouble()
     }
@@ -259,8 +249,9 @@ class DashboardViewModel() : BaseViewModel() {
         val records = repository.getRecentSleeps(babyId, recentCount)
         if (records.isEmpty()) return 0.0
 
-        val durations = records.map { it.sleepEnd - it.sleepStart }
-            .filter { it in TimeUnit.MINUTES.toMillis(20)..TimeUnit.HOURS.toMillis(12) } // 过滤异常
+        val durations = records
+            .map { it.sleepEnd - it.sleepStart }
+            .filter { it in TimeUnit.MINUTES.toMillis(20)..TimeUnit.HOURS.toMillis(12) }
         val avg = weightedAverage(durations)
         return TimeUnit.MILLISECONDS.toMinutes(avg).toDouble()
     }
@@ -306,6 +297,5 @@ class DashboardViewModel() : BaseViewModel() {
         val start: Long,
         val end: Long
     )
-
 
 }

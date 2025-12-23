@@ -6,6 +6,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.blankj.utilcode.util.DeviceUtils
 import com.blankj.utilcode.util.LogUtils
+import com.blankj.utilcode.util.StringUtils
 import com.chad.library.adapter4.QuickAdapterHelper
 import com.chad.library.adapter4.layoutmanager.QuickGridLayoutManager
 import com.zero.babycare.MainViewModel
@@ -42,6 +43,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
+        binding.btn.title = StringUtils.getString(com.zero.common.R.string.dashboard)
         binding.btn.setOnFinishListener { mainVm.switchFragment(FeedingRecordFragment::class.java) }
         binding.rv.apply {
             adapter = helper.adapter
