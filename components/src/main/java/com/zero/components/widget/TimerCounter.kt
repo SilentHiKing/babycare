@@ -12,8 +12,11 @@ class TimerCounter {
         private set
     private var pauseOffset = 0L
     
-    // 累计暂停的总时长（用于多次暂停/继续场景）
+    // 累计的总时长（用于多次暂停/继续场景和手动设置时长）
     private var accumulatedDuration = 0L
+    
+    // 标记是否通过手动设置了时长（而非通过计时）
+    private var isManualDuration = false
 
     private var isRunning = false
 
@@ -36,27 +39,51 @@ class TimerCounter {
         pauseOffset = value
     }
 
+    /**
+     * 获取当前时长
+     * - 如果正在运行：返回实时计算的时长
+     * - 如果暂停/手动设置：返回累计时长
+     */
     fun getDuration(): Long {
-        return if (isRunning) {
-            System.currentTimeMillis() - startTime + accumulatedDuration
-        } else {
-            accumulatedDuration + pauseOffset
+        return when {
+            isRunning -> System.currentTimeMillis() - startTime + accumulatedDuration
+            isManualDuration -> accumulatedDuration
+            accumulatedDuration > 0 -> accumulatedDuration
+            else -> 0L
         }
     }
 
     /** 设置显示的时长（毫秒），用于手动设置时长显示 */
     fun setDisplayDuration(duration: Long) {
         accumulatedDuration = duration
+        isManualDuration = true
+        pauseOffset = 0L
         _elapsedTime.value = duration
     }
 
     /** 获取累计时长 */
     fun getAccumulatedDuration(): Long = accumulatedDuration
 
-    fun start() {
+    /** 检查是否有有效的时长数据 */
+    fun hasValidDuration(): Boolean = accumulatedDuration > 0 || isRunning
+
+    /**
+     * 开始计时
+     * @param fromInit 是否从初始状态开始（而非从暂停状态继续）
+     */
+    fun start(fromInit: Boolean = false) {
         if (isRunning) return
 
+        // 开始计时时，清除手动设置标记
+        isManualDuration = false
+        
+        // 如果是从初始状态开始，清零累计时长
+        if (fromInit) {
+            accumulatedDuration = 0L
+        }
+        
         startTime = System.currentTimeMillis() - pauseOffset
+        pauseOffset = 0L
         isRunning = true
         handler.post(updateRunnable)
     }
@@ -69,12 +96,14 @@ class TimerCounter {
         accumulatedDuration += currentSessionDuration
         pauseOffset = 0L
         isRunning = false
+        isManualDuration = false
         handler.removeCallbacks(updateRunnable)
         _elapsedTime.value = accumulatedDuration
     }
 
     fun stop() {
         isRunning = false
+        isManualDuration = false
         handler.removeCallbacks(updateRunnable)
         _elapsedTime.value = 0L
         pauseOffset = 0L
@@ -83,6 +112,7 @@ class TimerCounter {
     }
 
     fun release() {
+        stop()
         handler.removeCallbacksAndMessages(null)
     }
 

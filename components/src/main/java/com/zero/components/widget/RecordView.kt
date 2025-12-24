@@ -49,28 +49,42 @@ class RecordView @JvmOverloads constructor(
     /** 检查计时器是否正在运行 */
     fun isTimerRunning(): Boolean = timerCounter.isTimerRunning()
 
-    /** 强制暂停计时器（用于手动输入结束时间时） */
-    fun forcePause() {
+    /** 检查是否有有效的时长数据 */
+    fun hasValidDuration(): Boolean = timerCounter.hasValidDuration()
+
+    /**
+     * 强制暂停计时器（用于手动输入结束时间时）
+     * @param triggerCallback 是否触发 statusChange 回调
+     */
+    fun forcePause(triggerCallback: Boolean = false) {
         if (currentShowState == RecordState.RECORDING) {
+            val previousState = currentShowState
             timerCounter.pause()
             currentShowState = RecordState.PAUSE
             viewBinding.tvProgress.visibility = VISIBLE
             viewBinding.ivRecording.setImageResource(com.zero.common.R.drawable.ic_record)
+            
+            if (triggerCallback && ::statusChange.isInitialized) {
+                statusChange(previousState, RecordState.PAUSE)
+            }
         }
     }
 
     /** 获取开始时间戳 */
     fun getStartTimestamp(): Long = timerCounter.startTime
 
+    /** 释放资源，页面销毁时调用 */
+    fun release() {
+        timerCounter.release()
+    }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         timerCounter.elapsedTime.observeForever(observer)
     }
 
-    val observer = object : androidx.lifecycle.Observer<Long> {
-        override fun onChanged(value: Long) {
-            showProgress(timerCounter.formatToMinSec(value))
-        }
+    private val observer = androidx.lifecycle.Observer<Long> { value ->
+        showProgress(timerCounter.formatToMinSec(value))
     }
 
     override fun onDetachedFromWindow() {
@@ -81,19 +95,32 @@ class RecordView @JvmOverloads constructor(
     init {
         showState(currentShowState)
         setOnClickListener {
-            if (currentShowState == RecordState.INIT) {
-                statusChange(currentShowState, RecordState.RECORDING)
-                showState(RecordState.RECORDING)
-                return@setOnClickListener
-            } else if (currentShowState == RecordState.RECORDING) {
-                statusChange(currentShowState, RecordState.PAUSE)
-                showState(RecordState.PAUSE)
-                return@setOnClickListener
-            } else if (currentShowState == RecordState.PAUSE) {
-                statusChange(currentShowState, RecordState.RECORDING)
-                showState(RecordState.RECORDING)
-                return@setOnClickListener
+            when (currentShowState) {
+                RecordState.INIT -> {
+                    statusChange(currentShowState, RecordState.RECORDING)
+                    showState(RecordState.RECORDING)
+                }
+                RecordState.RECORDING -> {
+                    statusChange(currentShowState, RecordState.PAUSE)
+                    showState(RecordState.PAUSE)
+                }
+                RecordState.PAUSE -> {
+                    // PAUSE -> RECORDING 时，先回调让外部处理
+                    // 外部可以选择调用 resumeFromPause() 来真正继续计时
+                    // 或者不调用保持 PAUSE 状态
+                    statusChange(currentShowState, RecordState.RECORDING)
+                }
             }
+        }
+    }
+
+    /**
+     * 从暂停状态继续计时
+     * 外部在收到 PAUSE -> RECORDING 的回调后，确认要继续时调用此方法
+     */
+    fun resumeFromPause() {
+        if (currentShowState == RecordState.PAUSE) {
+            showState(RecordState.RECORDING)
         }
     }
 
@@ -102,6 +129,7 @@ class RecordView @JvmOverloads constructor(
     }
 
     fun showState(state: RecordState) {
+        val previousState = currentShowState
         currentShowState = state
         when (state) {
             RecordState.INIT -> {
@@ -113,7 +141,9 @@ class RecordView @JvmOverloads constructor(
             RecordState.RECORDING -> {
                 viewBinding.tvProgress.visibility = VISIBLE
                 viewBinding.ivRecording.setImageResource(com.zero.common.R.drawable.ic_recording)
-                timerCounter.start()
+                // 如果是从 INIT 状态开始，清零累计时长
+                val fromInit = previousState == RecordState.INIT
+                timerCounter.start(fromInit)
             }
 
             RecordState.PAUSE -> {

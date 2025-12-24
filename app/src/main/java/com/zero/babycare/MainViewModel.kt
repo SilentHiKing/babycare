@@ -13,7 +13,7 @@ import com.zero.common.mmkv.MMKVStore
 
 
 class MainViewModel() : BaseViewModel() {
-    val fragmentStatus = MutableStateFlow<Class<out Fragment>?>(DashboardFragment::class.java)
+    val fragmentStatus = MutableStateFlow<Class<out Fragment>?>(FeedingRecordFragment::class.java)
 
 
     fun switchFragment(fragment: Class<out Fragment>) {

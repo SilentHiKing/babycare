@@ -6,7 +6,6 @@ import android.text.TextWatcher
 import android.text.method.DigitsKeyListener
 import android.util.AttributeSet
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import androidx.appcompat.widget.AppCompatEditText
 import com.blankj.utilcode.util.ToastUtils
 import java.util.Calendar
@@ -33,6 +32,9 @@ class TimeEditText @JvmOverloads constructor(
     // 存储当前时间的时间戳
     var currentTimestamp: Long = 0L
         private set
+
+    // 用于结束时间跨天判断的参考时间戳（通常是开始时间）
+    private var referenceTimestamp: Long = 0L
 
     init {
         keyListener = DigitsKeyListener.getInstance("0123456789")
@@ -62,23 +64,12 @@ class TimeEditText @JvmOverloads constructor(
                         currentTimestamp = 0L
                     } else {
                         isCursorVisible = false
-                        val now = Calendar.getInstance()
-                        val inputCalendar = Calendar.getInstance().apply {
-                            set(Calendar.HOUR_OF_DAY, hour)
-                            set(Calendar.MINUTE, minute)
-                            set(Calendar.SECOND, 0)
-                            set(Calendar.MILLISECOND, 0)
-                        }
+                        val resultTimestamp = calculateSmartTimestamp(hour, minute)
+                        currentTimestamp = resultTimestamp
 
-                        // 智能识别跨天：如果输入的时间大于当前时间，理解为昨天
-                        if (inputCalendar.timeInMillis > now.timeInMillis) {
-                            inputCalendar.add(Calendar.DAY_OF_MONTH, -1)
-                        }
-
-                        currentTimestamp = inputCalendar.timeInMillis
-
-                        val month = inputCalendar.get(Calendar.MONTH) + 1
-                        val day = inputCalendar.get(Calendar.DAY_OF_MONTH)
+                        val calendar = Calendar.getInstance().apply { timeInMillis = resultTimestamp }
+                        val month = calendar.get(Calendar.MONTH) + 1
+                        val day = calendar.get(Calendar.DAY_OF_MONTH)
                         val formatted = String.format(
                             Locale.getDefault(),
                             "%02d-%02d %02d:%02d:00",
@@ -113,11 +104,80 @@ class TimeEditText @JvmOverloads constructor(
         })
     }
 
-    /** 设置时间（通过时间戳） */
-    fun setTimestamp(timestamp: Long) {
+    /**
+     * 智能计算时间戳
+     * - 如果有参考时间（开始时间），则结束时间应该 >= 开始时间
+     * - 如果没有参考时间，则判断是否超过当前时间，超过则设为昨天
+     */
+    private fun calculateSmartTimestamp(hour: Int, minute: Int): Long {
+        val now = Calendar.getInstance()
+        val inputCalendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        // 如果有参考时间（通常是开始时间）
+        if (referenceTimestamp > 0) {
+            val refCalendar = Calendar.getInstance().apply { timeInMillis = referenceTimestamp }
+            
+            // 如果输入的时间小于参考时间的时分，可能是跨天到第二天
+            val refHour = refCalendar.get(Calendar.HOUR_OF_DAY)
+            val refMinute = refCalendar.get(Calendar.MINUTE)
+            
+            // 设置输入时间为参考时间的同一天
+            inputCalendar.set(Calendar.YEAR, refCalendar.get(Calendar.YEAR))
+            inputCalendar.set(Calendar.MONTH, refCalendar.get(Calendar.MONTH))
+            inputCalendar.set(Calendar.DAY_OF_MONTH, refCalendar.get(Calendar.DAY_OF_MONTH))
+            
+            // 如果输入的时间小于参考时间，说明跨天了，加一天
+            if (hour < refHour || (hour == refHour && minute < refMinute)) {
+                // 检查加一天后是否超过当前时间
+                inputCalendar.add(Calendar.DAY_OF_MONTH, 1)
+                if (inputCalendar.timeInMillis > now.timeInMillis) {
+                    // 如果超过当前时间，则不跨天，保持原来的日期
+                    inputCalendar.add(Calendar.DAY_OF_MONTH, -1)
+                }
+            }
+            
+            // 最终检查：不能超过当前时间
+            if (inputCalendar.timeInMillis > now.timeInMillis) {
+                inputCalendar.add(Calendar.DAY_OF_MONTH, -1)
+            }
+        } else {
+            // 没有参考时间，使用默认逻辑：超过当前时间则设为昨天
+            if (inputCalendar.timeInMillis > now.timeInMillis) {
+                inputCalendar.add(Calendar.DAY_OF_MONTH, -1)
+            }
+        }
+
+        return inputCalendar.timeInMillis
+    }
+
+    /**
+     * 设置参考时间戳（用于结束时间的跨天判断）
+     * 通常在设置结束时间之前，先设置开始时间作为参考
+     */
+    fun setReferenceTimestamp(timestamp: Long) {
+        referenceTimestamp = timestamp
+    }
+
+    /** 清除参考时间戳 */
+    fun clearReferenceTimestamp() {
+        referenceTimestamp = 0L
+    }
+
+    /** 设置时间（通过时间戳），可选择是否触发回调 */
+    fun setTimestamp(timestamp: Long, triggerCallback: Boolean = false) {
         if (timestamp <= 0) {
+            isEditing = true
             setText("")
             currentTimestamp = 0L
+            isEditing = false
+            if (triggerCallback) {
+                onTimestampChangedListener?.invoke(0L)
+            }
             return
         }
         
@@ -136,11 +196,24 @@ class TimeEditText @JvmOverloads constructor(
         )
         setText(formatted)
         isEditing = false
+
+        if (triggerCallback) {
+            onTimeEnteredListener?.invoke(hour, minute)
+            onTimestampChangedListener?.invoke(currentTimestamp)
+        }
     }
 
     /** 设置为当前时间 */
-    fun setCurrentTime() {
-        setTimestamp(System.currentTimeMillis())
+    fun setCurrentTime(triggerCallback: Boolean = false) {
+        setTimestamp(System.currentTimeMillis(), triggerCallback)
+    }
+
+    /** 清空时间 */
+    fun clear() {
+        isEditing = true
+        setText("")
+        currentTimestamp = 0L
+        isEditing = false
     }
 
     /** 获取时间戳，如果未设置返回0 */

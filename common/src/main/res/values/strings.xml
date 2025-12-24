@@ -66,4 +66,8 @@
     <string name="last_feeding_time">上次: %1$s</string>
     <string name="yesterday">昨天</string>
     <string name="select_time">选择时间</string>
+    <string name="breast_duration_exceed">左右乳房时长之和不能超过总喂奶时长</string>
+    <string name="end_time_will_be_cleared">继续计时将清空已填写的结束时间，确定继续吗？</string>
+    <string name="continue_timing">继续计时</string>
+    <string name="tip">提示</string>
 </resources>
