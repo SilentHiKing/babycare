@@ -2,6 +2,7 @@ package com.zero.components.base.util
 
 import android.content.Context
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
 import com.blankj.utilcode.util.StringUtils
 import com.lxj.xpopup.core.CenterPopupView
@@ -37,7 +38,6 @@ class ConfirmPopup(context: Context) : CenterPopupView(context) {
         val tvContent = findViewById<TextView>(R.id.tv_content)
         val tvCancel = findViewById<TextView>(R.id.tv_cancel)
         val tvConfirm = findViewById<TextView>(R.id.tv_confirm)
-        val vLineVertical = findViewById<View>(R.id.v_line_vertical)
 
         // 设置标题
         if (title.isNotEmpty()) {
@@ -57,10 +57,12 @@ class ConfirmPopup(context: Context) : CenterPopupView(context) {
         // 处理隐藏取消按钮
         if (hideCancel) {
             tvCancel.visibility = View.GONE
-            vLineVertical.visibility = View.GONE
+            // 移除确认按钮的 marginEnd，使其居中显示
+            val params = tvConfirm.layoutParams as LinearLayout.LayoutParams
+            params.marginEnd = 0
+            tvConfirm.layoutParams = params
         } else {
             tvCancel.visibility = View.VISIBLE
-            vLineVertical.visibility = View.VISIBLE
         }
 
         // 取消按钮点击事件

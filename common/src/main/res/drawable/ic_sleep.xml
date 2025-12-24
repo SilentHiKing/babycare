@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 月亮睡眠图标 -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M12.43,2.3a1,1 0,0 1,-0.14 1.13,6 6,0 0,0 8.28,8.28 1,1 0,0 1,1.49 1.09A10,10 0,1 1,11.21 1.81,1 1,0 0,1 12.43,2.3ZM9.64,4.42a8,8 0,1 0,9.94 9.94A8,8 0,0 1,9.64 4.42Z" />
+</vector>
+

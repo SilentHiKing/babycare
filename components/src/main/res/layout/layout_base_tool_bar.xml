@@ -1,13 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     tools:background="?attr/primary_bg_default"
-    tools:layout_height="wrap_content"
-    tools:paddingVertical="12dp"
-    tools:layout_width="match_parent"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
+    <!-- 左侧返回按钮 -->
+    <ImageView
+        android:id="@+id/ivBack"
+        android:layout_width="@dimen/dp_48"
+        android:layout_height="@dimen/dp_48"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/back"
+        android:padding="@dimen/dp_12"
+        android:src="@drawable/ic_back"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/icon_brand" />
+
+    <!-- 左侧菜单按钮（可替代返回按钮） -->
+    <ImageView
+        android:id="@+id/ivMenu"
+        android:layout_width="@dimen/dp_48"
+        android:layout_height="@dimen/dp_48"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/menu"
+        android:padding="@dimen/dp_12"
+        android:src="@drawable/ic_menu"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/icon_brand"
+        tools:visibility="visible" />
+
+    <!-- 标题 -->
     <TextView
         android:id="@+id/tvTitle"
         style="@style/BoldTextAppearance"
@@ -15,41 +45,54 @@
         android:layout_height="wrap_content"
         android:ellipsize="end"
         android:gravity="center"
-        android:paddingHorizontal="@dimen/dp_5"
-        android:paddingVertical="@dimen/dp_20"
+        android:paddingVertical="@dimen/dp_14"
         android:singleLine="true"
-        android:text="@string/babyInfo"
         android:textColor="?attr/primary90"
         android:textSize="@dimen/sp_18"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/ivBack"
-        android:layout_width="@dimen/dp_42"
-        android:layout_height="@dimen/dp_42"
-        android:layout_centerVertical="true"
-        android:layout_marginStart="@dimen/dp_25"
-        android:padding="@dimen/dp_10"
-        android:src="@drawable/ic_back"
-        app:layout_constraintBottom_toBottomOf="@+id/tvTitle"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/llRightActions"
+        app:layout_constraintStart_toEndOf="@id/ivBack"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="?attr/icon_brand" />
+        tools:text="标题" />
 
-    <TextView
-        android:id="@+id/tvFinish"
+    <!-- 右侧操作区域 -->
+    <LinearLayout
+        android:id="@+id/llRightActions"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:layout_marginEnd="@dimen/dp_25"
-        android:text="@string/finish"
-        android:textColor="?attr/semantics_blue"
-        android:textSize="@dimen/sp_15"
-        app:layout_constraintBottom_toBottomOf="@id/tvTitle"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingEnd="@dimen/dp_8"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvTitle" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- 右侧文字按钮 -->
+        <TextView
+            android:id="@+id/tvAction"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/dp_36"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:paddingHorizontal="@dimen/dp_12"
+            android:textColor="?attr/brand_color"
+            android:textSize="@dimen/sp_15"
+            android:visibility="gone"
+            tools:text="保存"
+            tools:visibility="visible" />
+
+        <!-- 右侧图标按钮 -->
+        <ImageView
+            android:id="@+id/ivAction"
+            android:layout_width="@dimen/dp_40"
+            android:layout_height="@dimen/dp_40"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="@dimen/dp_8"
+            android:visibility="gone"
+            app:tint="?attr/icon_brand"
+            tools:src="@drawable/ic_add"
+            tools:visibility="visible" />
+
+    </LinearLayout>
 
 </merge>

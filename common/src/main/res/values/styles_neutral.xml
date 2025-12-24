@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        中性主题 - 薰衣草紫
+        用于未指定性别或多宝宝场景
+        继承 AppTheme，只覆盖需要变化的品牌色相关属性
+    -->
+    <style name="AppTheme.Neutral" parent="AppTheme">
+        <!-- ========== 系统品牌色 ========== -->
+        <item name="brand_color">@color/neutral_brand</item>
+        <item name="colorPrimary">@color/neutral_brand</item>
+        <item name="colorPrimaryDark">@color/neutral_brand_dark</item>
+        <item name="colorAccent">@color/neutral_accent</item>
+
+        <!-- ========== 按钮 ========== -->
+        <item name="primary_btn_normal">@color/neutral_brand</item>
+        <item name="primary_btn_pressed">@color/neutral_btn_pressed</item>
+
+        <!-- ========== 背景 ========== -->
+        <item name="primary_bg_brand">@color/neutral_bg_brand</item>
+        <item name="secondary_bg_brand">@color/neutral_bg_brand</item>
+        <item name="shape_bg_enable">@color/neutral_brand_10</item>
+        <item name="drawer_item_select_bg">@color/neutral_brand_10</item>
+        <item name="bg_add_web_title">@color/neutral_brand_10</item>
+        <item name="drag_item_merge_bg">@color/neutral_brand_10</item>
+        <item name="drag_cover">@color/neutral_brand_10</item>
+        <item name="feedback_option_bg">@color/neutral_bg_brand</item>
+        <item name="bg_canvas">@color/neutral_bg_brand</item>
+
+        <!-- ========== 文本/语义色 ========== -->
+        <item name="semantics_blue">@color/neutral_accent</item>
+        <item name="android:textColorPrimary">@color/neutral_accent</item>
+
+        <!-- ========== 图标 ========== -->
+        <item name="icon_brand">@color/neutral_accent</item>
+        <item name="icon_tipsblue">@color/neutral_accent</item>
+        <item name="ic_canvas_enable">@color/neutral_accent</item>
+        <item name="ic_canvas_enable1">@color/neutral_brand_light</item>
+        <item name="icon_brandHigh">@color/neutral_brand_light</item>
+
+        <!-- ========== 线条 ========== -->
+        <item name="line_brand">@color/neutral_accent</item>
+        <item name="line_drag_insert">@color/neutral_brand_20</item>
+        <item name="drag_insert_line">@color/neutral_brand_20</item>
+
+        <!-- ========== 其他 ========== -->
+        <item name="colorBlueFade">@color/neutral_brand_50</item>
+        <item name="ic_adjust_no">@color/neutral_brand_light</item>
+        <item name="feedback_button_no_click">@color/neutral_brand_50</item>
+    </style>
+</resources>
+

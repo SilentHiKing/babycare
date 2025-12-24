@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 通用 -->
+    <string name="back">返回</string>
+    <string name="menu">菜单</string>
+    
     <string name="babyName">姓名</string>
     <string name="babyBirthday">生日</string>
     <string name="babyGender">性别</string>
     <string name="babyWeight">出生体重</string>
     <string name="babyHeight">出生身高</string>
+    <string name="babyBloodType">血型</string>
     <string name="babyInfo">婴儿信息</string>
     <string name="finish">完成</string>
     <string name="babyNameHint">请输入姓名</string>
@@ -12,6 +17,12 @@
     <string name="babyGenderHint">请输入性别</string>
     <string name="babyHeightHint">请输入出生身高</string>
     <string name="babyWeightHint">请输入出生体重</string>
+    <string name="babyBloodTypeHint">请选择血型</string>
+    <string name="blood_type_a">A型</string>
+    <string name="blood_type_b">B型</string>
+    <string name="blood_type_ab">AB型</string>
+    <string name="blood_type_o">O型</string>
+    <string name="blood_type_unknown">未知</string>
     <string name="boy">男</string>
     <string name="girl">女</string>
     <string name="unit_g">克</string>
@@ -25,6 +36,18 @@
     <string name="other">其他</string>
     <string name="feeding">喂养</string>
     <string name="sleeping">睡眠</string>
+    <string name="sleep_record">睡眠记录</string>
+    <string name="sleep_start_time">入睡时间</string>
+    <string name="sleep_end_time">醒来时间</string>
+    <string name="sleep_duration">睡眠时长</string>
+    <string name="sleep_duration_format">%1$d小时%2$d分钟</string>
+    <string name="sleep_duration_minutes">%1$d分钟</string>
+    <string name="sleep_save_success">睡眠记录保存成功</string>
+    <string name="sleep_start_required">请输入入睡时间</string>
+    <string name="sleep_end_required">请输入醒来时间</string>
+    <string name="sleep_end_must_after_start">醒来时间必须晚于入睡时间</string>
+    <string name="last_sleep">上次睡眠</string>
+    <string name="last_sleep_time">上次: %1$s</string>
     <string name="today">今天</string>
     <string name="next">下一次</string>
     <string name="countAndTotalTime">次数:%1$s,总时长:%2$s分钟（白天:%3$s;夜里:%4$s）</string>
@@ -70,4 +93,31 @@
     <string name="end_time_will_be_cleared">继续计时将清空已填写的结束时间，确定继续吗？</string>
     <string name="continue_timing">继续计时</string>
     <string name="tip">提示</string>
+    <string name="tap_to_start">点击开始计时</string>
+    <string name="tap_to_pause">点击暂停</string>
+    <string name="tap_to_continue">点击继续</string>
+
+    <!-- 侧边栏相关 -->
+    <string name="all_babies">所有宝宝</string>
+    <string name="data_statistics">数据统计</string>
+    <string name="settings">设置</string>
+    <string name="help_feedback">帮助与反馈</string>
+    <string name="days_born">已出生 %1$d 天</string>
+    <string name="no_baby_yet">还没有宝宝</string>
+    <string name="add_baby">添加宝宝</string>
+    <string name="view_detail">查看详情</string>
+
+    <!-- 宝宝管理相关 -->
+    <string name="baby_list">宝宝列表</string>
+    <string name="add_new_baby">添加新宝宝</string>
+    <string name="edit_baby_info">编辑宝宝信息</string>
+    <string name="delete_baby">删除宝宝</string>
+    <string name="delete_baby_confirm">确定要删除 %1$s 的信息吗？\n删除后所有相关记录也将被删除，且无法恢复。</string>
+    <string name="delete_success">删除成功</string>
+    <string name="current_baby">当前宝宝</string>
+    <string name="switch_baby">切换宝宝</string>
+    <string name="baby_detail">宝宝详情</string>
+    <string name="edit">编辑</string>
+    <string name="save">保存</string>
+    <string name="create_baby">创建宝宝</string>
 </resources>

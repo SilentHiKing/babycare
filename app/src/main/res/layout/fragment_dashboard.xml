@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/primary_bg_default"
     android:paddingTop="@dimen/dp_45">
-
 
     <com.zero.components.widget.BaseToolbar
         android:id="@+id/btn"
@@ -13,18 +13,84 @@
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent" />
 
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv"
         android:layout_width="match_parent"
-
         android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/dp_80"
         app:layoutManager="com.chad.library.adapter4.layoutmanager.QuickGridLayoutManager"
-        app:layout_constraintTop_toBottomOf="@id/btn"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn"
         app:spanCount="2"
         tools:listitem="@layout/item_info_view" />
 
+    <!-- 底部快捷操作栏 -->
+    <LinearLayout
+        android:id="@+id/llQuickActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/secondary_bg_default"
+        android:elevation="@dimen/dp_4"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/dp_20"
+        android:paddingVertical="@dimen/dp_12"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- 喂养记录按钮 -->
+        <LinearLayout
+            android:id="@+id/llFeedingAction"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="@dimen/dp_8">
+
+            <ImageView
+                android:layout_width="@dimen/dp_32"
+                android:layout_height="@dimen/dp_32"
+                android:src="@drawable/ic_feeding"
+                app:tint="?attr/icon_brand" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_4"
+                android:text="@string/feeding"
+                android:textColor="?attr/primary90"
+                android:textSize="@dimen/sp_12" />
+
+        </LinearLayout>
+
+        <!-- 睡眠记录按钮 -->
+        <LinearLayout
+            android:id="@+id/llSleepAction"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="@dimen/dp_8">
+
+            <ImageView
+                android:layout_width="@dimen/dp_32"
+                android:layout_height="@dimen/dp_32"
+                android:src="@drawable/ic_sleep"
+                app:tint="?attr/icon_brand" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_4"
+                android:text="@string/sleeping"
+                android:textColor="?attr/primary90"
+                android:textSize="@dimen/sp_12" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

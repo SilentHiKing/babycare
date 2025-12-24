@@ -80,17 +80,14 @@ class TimeEditText @JvmOverloads constructor(
                         )
                         setText(formatted)
 
-                        // 延迟执行防止光标越界
+                        // 延迟执行，确保 setText 完成后再操作光标
                         post {
-                            val safeLength = text?.length ?: 0
-                            val cursorPos = formatted.length.coerceAtMost(safeLength)
+                            // 显示光标并移动到末尾
                             isCursorVisible = true
-                            setSelection(cursorPos)
+                            moveCursorToEnd()
 
                             // 自动关闭键盘
-                            val imm =
-                                context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                            imm.hideSoftInputFromWindow(windowToken, 0)
+                            hideKeyboard()
 
                             // 回调监听
                             onTimeEnteredListener?.invoke(hour, minute)
@@ -195,6 +192,10 @@ class TimeEditText @JvmOverloads constructor(
             month, day, hour, minute, second
         )
         setText(formatted)
+        
+        // 延迟将光标移动到末尾
+        post { moveCursorToEnd() }
+        
         isEditing = false
 
         if (triggerCallback) {
@@ -258,5 +259,21 @@ class TimeEditText @JvmOverloads constructor(
     /** 清除时间戳变化回调 */
     fun clearOnTimestampChangedListener() {
         onTimestampChangedListener = null
+    }
+
+    // ============ 私有辅助方法 ============
+
+    /** 将光标移动到文本末尾 */
+    private fun moveCursorToEnd() {
+        val length = text?.length ?: 0
+        if (length > 0) {
+            setSelection(length)
+        }
+    }
+
+    /** 隐藏软键盘 */
+    private fun hideKeyboard() {
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(windowToken, 0)
     }
 }

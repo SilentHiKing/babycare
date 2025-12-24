@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="@dimen/dp_6"
+    android:background="?attr/bg_r12_secondary_bg_default"
+    android:padding="@dimen/dp_16">
+
+    <!-- 当前选中标识 -->
+    <ImageView
+        android:id="@+id/ivSelected"
+        android:layout_width="@dimen/dp_20"
+        android:layout_height="@dimen/dp_20"
+        android:src="@drawable/ic_check"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/icon_brand"
+        tools:visibility="visible" />
+
+    <!-- 宝宝头像 -->
+    <ImageView
+        android:id="@+id/ivAvatar"
+        android:layout_width="@dimen/dp_56"
+        android:layout_height="@dimen/dp_56"
+        android:background="?attr/bg_r999_block_gridview"
+        android:padding="@dimen/dp_10"
+        android:src="@drawable/ic_baby_default"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 宝宝名字 -->
+    <TextView
+        android:id="@+id/tvName"
+        style="@style/BoldTextAppearance"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_12"
+        android:layout_marginEnd="@dimen/dp_8"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?attr/primary90"
+        android:textSize="@dimen/sp_17"
+        app:layout_constraintEnd_toStartOf="@id/ivSelected"
+        app:layout_constraintStart_toEndOf="@id/ivAvatar"
+        app:layout_constraintTop_toTopOf="@id/ivAvatar"
+        tools:text="小明" />
+
+    <!-- 性别和天数 -->
+    <TextView
+        android:id="@+id/tvInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_12"
+        android:layout_marginTop="@dimen/dp_4"
+        android:textColor="?attr/weaken40"
+        android:textSize="@dimen/sp_14"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/ivAvatar"
+        app:layout_constraintTop_toBottomOf="@id/tvName"
+        tools:text="♂ 男孩 · 180天" />
+
+    <!-- 出生日期 -->
+    <TextView
+        android:id="@+id/tvBirthDate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_12"
+        android:layout_marginTop="@dimen/dp_2"
+        android:textColor="?attr/weaken40"
+        android:textSize="@dimen/sp_12"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/ivAvatar"
+        app:layout_constraintTop_toBottomOf="@id/tvInfo"
+        tools:text="出生: 2024-06-28" />
+
+    <!-- 编辑按钮 -->
+    <TextView
+        android:id="@+id/tvEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_12"
+        android:background="?attr/bg_r6_block_gridview"
+        android:paddingHorizontal="@dimen/dp_16"
+        android:paddingVertical="@dimen/dp_6"
+        android:text="@string/edit"
+        android:textColor="?attr/semantics_blue"
+        android:textSize="@dimen/sp_13"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ivAvatar" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

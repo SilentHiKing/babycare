@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        主题专用颜色定义
+        用于 AppTheme.Boy / AppTheme.Girl / AppTheme.Neutral 主题
+    -->
+
+    <!-- ==================== 男孩主题色 (蓝色系) ==================== -->
+    <color name="boy_brand">#7BB3F0</color>
+    <color name="boy_brand_dark">#5A9DE0</color>
+    <color name="boy_brand_light">#B5D7FF</color>
+    <color name="boy_accent">#4A90D9</color>
+    <color name="boy_bg_brand">#EBF4FF</color>
+    <color name="boy_btn_pressed">#3A80C9</color>
+    <!-- 带透明度 -->
+    <color name="boy_brand_10">#1A7BB3F0</color>
+    <color name="boy_brand_20">#337BB3F0</color>
+    <color name="boy_brand_50">#807BB3F0</color>
+
+    <!-- ==================== 女孩主题色 (粉色系) ==================== -->
+    <color name="girl_brand">#F7A8B8</color>
+    <color name="girl_brand_dark">#E88FA0</color>
+    <color name="girl_brand_light">#FFD0E4</color>
+    <color name="girl_accent">#FF8FAB</color>
+    <color name="girl_bg_brand">#FFF0F5</color>
+    <color name="girl_btn_pressed">#D87F90</color>
+    <!-- 带透明度 -->
+    <color name="girl_brand_10">#1AF7A8B8</color>
+    <color name="girl_brand_20">#33F7A8B8</color>
+    <color name="girl_brand_50">#80F7A8B8</color>
+
+    <!-- ==================== 中性主题色 (薰衣草紫) ==================== -->
+    <color name="neutral_brand">#9B8CDE</color>
+    <color name="neutral_brand_dark">#7B6CBE</color>
+    <color name="neutral_brand_light">#C5B8FF</color>
+    <color name="neutral_accent">#8B7CCE</color>
+    <color name="neutral_bg_brand">#F5F0FF</color>
+    <color name="neutral_btn_pressed">#6B5CAE</color>
+    <!-- 带透明度 -->
+    <color name="neutral_brand_10">#1A9B8CDE</color>
+    <color name="neutral_brand_20">#339B8CDE</color>
+    <color name="neutral_brand_50">#809B8CDE</color>
+
+</resources>
+

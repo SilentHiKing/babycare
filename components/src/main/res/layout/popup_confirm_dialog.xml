@@ -4,92 +4,77 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/bg_r12_primary_bg_default"
-    android:gravity="center"
-    android:orientation="vertical">
+    android:background="@drawable/bg_popup_dialog"
+    android:paddingHorizontal="@dimen/dp_24"
+    android:paddingTop="@dimen/dp_28"
+    android:paddingBottom="@dimen/dp_24">
 
+    <!-- 标题 -->
     <TextView
         android:id="@+id/tv_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_20"
         android:gravity="center"
         android:textAlignment="center"
         android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_15"
+        android:textSize="@dimen/sp_17"
         android:textStyle="bold"
-        android:visibility="visible"
+        android:letterSpacing="0.01"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="@string/tip" />
+        tools:text="提示" />
 
+    <!-- 内容 -->
     <TextView
         android:id="@+id/tv_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_15"
+        android:layout_marginTop="@dimen/dp_16"
         android:gravity="center"
-        android:paddingHorizontal="@dimen/dp_20"
-        android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_13"
+        android:lineSpacingExtra="@dimen/dp_4"
+        android:textColor="?attr/tertiary60"
+        android:textSize="@dimen/sp_14"
         app:layout_constraintTop_toBottomOf="@+id/tv_title"
-        tools:text="弹窗内容" />
+        tools:text="确定要执行此操作吗？" />
 
-    <View
-        android:id="@+id/v_line"
+    <!-- 按钮区域 -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dp_0_5"
-        android:layout_marginTop="@dimen/dp_20"
-        android:background="?attr/line1"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_content" />
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="0dp"
-        android:layout_height="@dimen/dp_53"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_28"
         android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/v_line">
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/tv_content">
 
+        <!-- 取消按钮 -->
         <TextView
             android:id="@+id/tv_cancel"
             android:layout_width="0dp"
-            android:layout_height="@dimen/dp_53"
+            android:layout_height="@dimen/dp_44"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/dp_12"
             android:gravity="center"
             android:text="@string/cancel"
             android:textColor="?attr/tertiary60"
-            android:textSize="@dimen/sp_14"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/v_line_vertical"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:textSize="@dimen/sp_15"
+            android:background="@drawable/bg_btn_cancel"
+            android:stateListAnimator="@null" />
 
-        <View
-            android:id="@+id/v_line_vertical"
-            android:layout_width="@dimen/dp_0_5"
-            android:layout_height="match_parent"
-            android:background="?attr/line1"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
+        <!-- 确认按钮 -->
         <TextView
             android:id="@+id/tv_confirm"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="@dimen/dp_44"
+            android:layout_weight="1"
             android:gravity="center"
             android:text="@string/confirm"
-            android:textColor="?attr/brand_color"
-            android:textSize="@dimen/sp_14"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/v_line_vertical"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:textColor="@color/White100"
+            android:textSize="@dimen/sp_15"
+            android:textStyle="bold"
+            android:background="@drawable/bg_btn_confirm"
+            android:stateListAnimator="@null" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

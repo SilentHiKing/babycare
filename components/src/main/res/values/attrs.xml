@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- BaseToolbar 自定义属性 -->
+    <declare-styleable name="BaseToolbar">
+        <!-- 标题文字 -->
+        <attr name="toolbarTitle" format="string" />
+        <!-- 左侧按钮类型：back(默认)/menu/none -->
+        <attr name="leftButtonType" format="enum">
+            <enum name="back" value="0" />
+            <enum name="menu" value="1" />
+            <enum name="none" value="2" />
+        </attr>
+        <!-- 右侧文字按钮文案 -->
+        <attr name="actionText" format="string" />
+    </declare-styleable>
+
+</resources>
+

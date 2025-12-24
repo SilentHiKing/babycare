@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.viewbinding.ViewBinding
 import com.lxj.xpopup.impl.LoadingPopupView
+import com.zero.common.theme.ThemeManager
 import com.zero.common.util.ActivityCompatHelper
 import com.zero.components.base.util.DialogHelper
 
@@ -17,6 +18,8 @@ abstract class BaseActivity<VB : ViewBinding> : BaseBindingActivity<VB>() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 应用主题 - 必须在 super.onCreate() 之前
+        applyThemeIfNeeded()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         initView(savedInstanceState)
@@ -47,5 +50,13 @@ abstract class BaseActivity<VB : ViewBinding> : BaseBindingActivity<VB>() {
             add(containerViewId, fragment)
             addToBackStack(fragment.javaClass.simpleName)
         }
+    }
+
+    /**
+     * 应用主题
+     * 子类可以覆写此方法来自定义主题应用逻辑
+     */
+    protected open fun applyThemeIfNeeded() {
+        ThemeManager.applyTheme(this)
     }
 }

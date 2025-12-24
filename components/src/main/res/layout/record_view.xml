@@ -8,34 +8,52 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:paddingVertical="@dimen/dp_16">
 
+        <!-- 计时器图标 -->
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/ivRecording"
-            android:layout_width="@dimen/dp_22"
-            android:layout_height="@dimen/dp_22"
+            android:layout_width="@dimen/dp_48"
+            android:layout_height="@dimen/dp_48"
             android:src="@drawable/ic_recording"
             android:visibility="visible"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- 计时显示 -->
         <TextView
             android:id="@+id/tv_progress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/dp_1"
+            android:layout_marginTop="@dimen/dp_8"
+            android:fontFamily="sans-serif-medium"
             android:includeFontPadding="false"
+            android:letterSpacing="0.03"
             android:text="00:00"
             android:textColor="?attr/primary90"
-            android:textSize="@dimen/sp_12"
-            android:visibility="visible"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:textSize="@dimen/sp_20"
+            android:visibility="invisible"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ivRecording" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            app:layout_constraintTop_toBottomOf="@id/ivRecording"
+            tools:visibility="visible" />
 
+        <!-- 点击提示文字 -->
+        <TextView
+            android:id="@+id/tv_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_4"
+            android:text="@string/tap_to_start"
+            android:textColor="?attr/weaken40"
+            android:textSize="@dimen/sp_11"
+            android:visibility="visible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_progress" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </merge>

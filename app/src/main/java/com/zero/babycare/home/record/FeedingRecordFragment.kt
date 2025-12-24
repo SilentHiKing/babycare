@@ -12,7 +12,7 @@ import com.blankj.utilcode.util.StringUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentFeedingRecordBinding
-import com.zero.babycare.home.DashboardFragment
+import com.zero.babycare.navigation.NavTarget
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.common.R
 import com.zero.common.ext.launchInLifecycle
@@ -90,8 +90,12 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         setupFeedingTypeSelector()
         setupTimeInputs()
         setupTimerCounter()
-        setupFinishButton()
+        setupToolbar()
         setupTimePickerButtons()
+        setupSaveButton()
+        
+        // 初始化时重置页面数据
+        resetPage()
     }
 
     override fun onDestroyView() {
@@ -108,12 +112,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    if (hasUnsavedChanges) {
-                        showExitConfirmDialog()
-                    } else {
-                        isEnabled = false
-                        requireActivity().onBackPressed()
-                    }
+                    handleBack()
                 }
             }
         )
@@ -476,12 +475,30 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         ).show()
     }
 
+
+    private fun setupToolbar() {
+        binding.btn.showBackButton {
+            handleBack()
+        }
+    }
+
     /**
-     * 设置完成按钮
+     * 设置保存按钮
      */
-    private fun setupFinishButton() {
-        binding.btn.setOnFinishListener {
+    private fun setupSaveButton() {
+        binding.tvSave.setOnClickListener {
             saveRecord()
+        }
+    }
+
+    /**
+     * 处理返回
+     */
+    private fun handleBack() {
+        if (hasUnsavedChanges) {
+            showExitConfirmDialog()
+        } else {
+            mainVm.navigateTo(NavTarget.Dashboard)
         }
     }
 
@@ -719,8 +736,9 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
 
         vm.insert(feedingRecord) {
             LogUtils.d("feedingRecord success")
-            hasUnsavedChanges = false
-            mainVm.switchFragment(DashboardFragment::class.java)
+            // 重置页面数据，防止再次进入时显示历史数据
+            view?.post { resetPage() }
+            mainVm.navigateTo(NavTarget.Dashboard)
         }
     }
 
@@ -736,7 +754,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
             cancelText = StringUtils.getString(R.string.cancel),
             onConfirm = {
                 hasUnsavedChanges = false
-                mainVm.switchFragment(DashboardFragment::class.java)
+                mainVm.navigateTo(NavTarget.Dashboard)
             }
         )
     }
@@ -748,6 +766,39 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         hasUnsavedChanges = true
     }
 
+    /**
+     * 重置页面数据
+     * 在保存成功后或页面初始化时调用
+     */
+    private fun resetPage() {
+        isProgrammaticChange = true
+        
+        // 重置喂养类型
+        selectedFeedingType = FEEDING_TYPE_BREAST
+        binding.rbBreast.isChecked = true
+        updateBreastDurationVisibility()
+        
+        // 清空时间输入
+        binding.etStartTime.clear()
+        binding.etEndTime.clear()
+        binding.etEndTime.clearReferenceTimestamp()
+        pausedEndTimestamp = 0L
+        
+        // 重置计时器
+        binding.rvCounter.reset()
+        
+        // 清空左右乳房时长
+        binding.etLeftBreastDuration.setText("")
+        binding.etRightBreastDuration.setText("")
+        
+        // 清空备注
+        binding.etNote.setText("")
+        
+        // 重置未保存标记
+        hasUnsavedChanges = false
+        
+        isProgrammaticChange = false
+    }
 
     override fun initData(view: View, savedInstanceState: Bundle?) {
         super.initData(view, savedInstanceState)

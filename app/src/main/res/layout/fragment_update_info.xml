@@ -3,59 +3,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/primary_bg_default"
     android:paddingTop="@dimen/dp_45">
 
-
-    <TextView
-        android:id="@+id/tvTitle"
-        style="@style/BoldTextAppearance"
-        android:layout_width="0dp"
+    <!-- 使用通用 Toolbar -->
+    <com.zero.components.widget.BaseToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:gravity="center"
-        android:paddingHorizontal="@dimen/dp_5"
-        android:paddingVertical="@dimen/dp_20"
-        android:singleLine="true"
-        android:text="@string/babyInfo"
-        android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_18"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/ivBack"
-        android:layout_width="@dimen/dp_42"
-        android:layout_height="@dimen/dp_42"
-        android:layout_centerVertical="true"
-        android:layout_marginStart="@dimen/dp_25"
-        android:padding="@dimen/dp_10"
-        android:src="@drawable/ic_back"
-        app:layout_constraintBottom_toBottomOf="@+id/tvTitle"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="?attr/icon_brand" />
-
-    <TextView
-        android:id="@+id/tvFinish"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:layout_marginEnd="@dimen/dp_25"
-        android:text="@string/finish"
-        android:textColor="?attr/semantics_blue"
-        android:textSize="@dimen/sp_15"
-        app:layout_constraintBottom_toBottomOf="@id/tvTitle"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvTitle" />
-
+        app:toolbarTitle="@string/babyInfo" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle">
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -63,7 +26,7 @@
             android:orientation="vertical"
             android:paddingHorizontal="@dimen/dp_25">
 
-
+            <!-- 姓名 -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -110,12 +73,11 @@
                         android:textColorHint="?attr/weaken40"
                         android:textSize="@dimen/sp_16" />
 
-
                 </LinearLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-
+            <!-- 生日 -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -164,11 +126,11 @@
                         android:textColorHint="?attr/weaken40"
                         android:textSize="@dimen/sp_16" />
 
-
                 </LinearLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <!-- 性别 -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -217,17 +179,11 @@
                         android:textColorHint="?attr/weaken40"
                         android:textSize="@dimen/sp_16" />
 
-                    <androidx.appcompat.widget.AppCompatImageView
-                        android:layout_width="@dimen/dp_22"
-                        android:layout_height="@dimen/dp_22"
-                        android:src="?attr/ic_color_add"
-                        android:visibility="gone" />
-
                 </LinearLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-
+            <!-- 体重 -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -283,11 +239,11 @@
                         android:textColor="?attr/primary90"
                         android:textSize="@dimen/sp_16" />
 
-
                 </LinearLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <!-- 身高 -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -328,7 +284,7 @@
                         android:digits="0123456789."
                         android:focusable="true"
                         android:focusableInTouchMode="true"
-                        android:hint="@string/babyWeightHint"
+                        android:hint="@string/babyHeightHint"
                         android:includeFontPadding="false"
                         android:singleLine="true"
                         android:textColor="?attr/primary90"
@@ -343,15 +299,78 @@
                         android:textColor="?attr/primary90"
                         android:textSize="@dimen/sp_16" />
 
+                </LinearLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- 血型 -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_12">
+
+                <TextView
+                    android:id="@+id/tvBloodType"
+                    style="@style/BoldTextAppearance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="@dimen/dp_10"
+                    android:text="@string/babyBloodType"
+                    android:textColor="?attr/primary90"
+                    android:textSize="@dimen/sp_16"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/dp_44"
+                    android:layout_marginTop="@dimen/dp_10"
+                    android:background="?attr/bg_r6_block_gridview"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/dp_10"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvBloodType">
+
+                    <EditText
+                        android:id="@+id/etBloodType"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:cursorVisible="false"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:hint="@string/babyBloodTypeHint"
+                        android:includeFontPadding="false"
+                        android:inputType="text"
+                        android:singleLine="true"
+                        android:textColor="?attr/primary90"
+                        android:textColorHint="?attr/weaken40"
+                        android:textSize="@dimen/sp_16" />
 
                 </LinearLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <!-- 删除按钮（仅编辑模式显示） -->
+            <TextView
+                android:id="@+id/tvDelete"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/dp_48"
+                android:layout_marginTop="@dimen/dp_40"
+                android:layout_marginBottom="@dimen/dp_20"
+                android:background="?attr/bg_r6_block_gridview"
+                android:gravity="center"
+                android:text="@string/delete_baby"
+                android:textColor="?attr/semantics_warning_red"
+                android:textSize="@dimen/sp_16"
+                android:visibility="gone" />
 
         </LinearLayout>
     </ScrollView>
 
-
 </androidx.constraintlayout.widget.ConstraintLayout>
-

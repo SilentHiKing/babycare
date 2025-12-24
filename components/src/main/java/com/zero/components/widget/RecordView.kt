@@ -62,7 +62,9 @@ class RecordView @JvmOverloads constructor(
             timerCounter.pause()
             currentShowState = RecordState.PAUSE
             viewBinding.tvProgress.visibility = VISIBLE
-            viewBinding.ivRecording.setImageResource(com.zero.common.R.drawable.ic_record)
+            viewBinding.ivRecording.setImageResource(com.zero.common.R.drawable.ic_record_start)
+            viewBinding.tvHint.visibility = VISIBLE
+            viewBinding.tvHint.setText(com.zero.common.R.string.tap_to_continue)
             
             if (triggerCallback && ::statusChange.isInitialized) {
                 statusChange(previousState, RecordState.PAUSE)
@@ -134,13 +136,17 @@ class RecordView @JvmOverloads constructor(
         when (state) {
             RecordState.INIT -> {
                 viewBinding.tvProgress.visibility = INVISIBLE
-                viewBinding.ivRecording.setImageResource(com.zero.common.R.drawable.ic_record)
+                viewBinding.ivRecording.setImageResource(com.zero.common.R.drawable.ic_record_start)
+                viewBinding.tvHint.visibility = VISIBLE
+                viewBinding.tvHint.setText(com.zero.common.R.string.tap_to_start)
                 timerCounter.stop()
             }
 
             RecordState.RECORDING -> {
                 viewBinding.tvProgress.visibility = VISIBLE
                 viewBinding.ivRecording.setImageResource(com.zero.common.R.drawable.ic_recording)
+                viewBinding.tvHint.visibility = VISIBLE
+                viewBinding.tvHint.setText(com.zero.common.R.string.tap_to_pause)
                 // 如果是从 INIT 状态开始，清零累计时长
                 val fromInit = previousState == RecordState.INIT
                 timerCounter.start(fromInit)
@@ -148,7 +154,9 @@ class RecordView @JvmOverloads constructor(
 
             RecordState.PAUSE -> {
                 viewBinding.tvProgress.visibility = VISIBLE
-                viewBinding.ivRecording.setImageResource(com.zero.common.R.drawable.ic_record)
+                viewBinding.ivRecording.setImageResource(com.zero.common.R.drawable.ic_record_start)
+                viewBinding.tvHint.visibility = VISIBLE
+                viewBinding.tvHint.setText(com.zero.common.R.string.tap_to_continue)
                 timerCounter.pause()
             }
         }
@@ -162,6 +170,7 @@ class RecordView @JvmOverloads constructor(
     fun showDurationWithoutTimer(durationMs: Long) {
         viewBinding.tvProgress.visibility = VISIBLE
         viewBinding.tvProgress.text = timerCounter.formatToMinSec(durationMs)
+        viewBinding.tvHint.visibility = GONE
         timerCounter.setDisplayDuration(durationMs)
     }
 
