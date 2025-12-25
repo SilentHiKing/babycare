@@ -11,6 +11,7 @@ import com.blankj.utilcode.util.StringUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentSleepRecordBinding
+import com.zero.babycare.home.OngoingRecordManager
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babydata.entity.SleepRecord
 import com.zero.common.R
@@ -95,12 +96,38 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>() {
         if (view == null) return
         
         if (hidden) {
-            // 隐藏时重置计时器
-            binding.rvCounter.reset()
+            // 隐藏时不重置计时器（保留进行中状态）
         } else {
-            resetPage()
+            // 检查是否有进行中的睡眠记录
+            val babyId = mainVm.getCurrentBabyInfo()?.babyId
+            if (babyId != null && OngoingRecordManager.isSleeping(babyId)) {
+                // 恢复进行中的记录
+                restoreOngoingSleep()
+            } else {
+                resetPage()
+            }
             loadLastSleepRecord()
         }
+    }
+
+    /**
+     * 恢复进行中的睡眠记录
+     */
+    private fun restoreOngoingSleep() {
+        val startTime = OngoingRecordManager.getOngoingSleepStart() ?: return
+        
+        isProgrammaticChange = true
+        
+        // 设置入睡时间
+        binding.etStartTime.setTimestamp(startTime)
+        updateEndTimeReference()
+        
+        // 计算已经过的时间，恢复计时器状态
+        val elapsed = System.currentTimeMillis() - startTime
+        binding.rvCounter.startFromOffset(elapsed)
+        
+        hasUnsavedChanges = true
+        isProgrammaticChange = false
     }
 
     /**
@@ -282,6 +309,11 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>() {
                 binding.etStartTime.setTimestamp(timerStartTime)
                 // 同步更新醒来时间的参考时间戳
                 updateEndTimeReference()
+                
+                // 记录进行中状态到 MMKV
+                mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
+                    OngoingRecordManager.startSleep(babyId)
+                }
             }
             isProgrammaticChange = false
         }
@@ -514,6 +546,8 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>() {
 
         vm.insert(sleepRecord) {
             ToastUtils.showShort(R.string.sleep_save_success)
+            // 清除进行中状态
+            OngoingRecordManager.endSleep()
             hasUnsavedChanges = false
             view?.post { resetPage() }
             mainVm.navigateTo(NavTarget.Dashboard)

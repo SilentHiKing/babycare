@@ -126,6 +126,16 @@ class RecordView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * 从指定偏移量开始计时（用于恢复进行中的记录）
+     * 不触发 statusChange 回调
+     */
+    fun startFromOffset(offsetMs: Long) {
+        timerCounter.setPauseOffset(offsetMs)
+        currentShowState = RecordState.INIT
+        showState(RecordState.RECORDING)
+    }
+
     fun reset() {
         showState(RecordState.INIT)
     }

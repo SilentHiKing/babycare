@@ -50,8 +50,8 @@
         android:textColor="?attr/primary90"
         android:textSize="@dimen/sp_18"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/llRightActions"
-        app:layout_constraintStart_toEndOf="@id/ivBack"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="标题" />
 

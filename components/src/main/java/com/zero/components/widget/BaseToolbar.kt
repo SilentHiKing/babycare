@@ -96,19 +96,19 @@ class BaseToolbar @JvmOverloads constructor(
     /**
      * 显示返回按钮
      */
-    fun showBackButton(listener: OnClickListener? = null) {
+    fun showBackButton(listener: (() -> Unit)? = null) {
         binding.ivMenu.visibility = View.GONE
         binding.ivBack.visibility = View.VISIBLE
-        listener?.let { binding.ivBack.setOnClickListener(it) }
+        listener?.let { binding.ivBack.setOnClickListener { it() } }
     }
 
     /**
      * 显示菜单按钮
      */
-    fun showMenuButton(listener: OnClickListener? = null) {
+    fun showMenuButton(listener: (() -> Unit)? = null) {
         binding.ivBack.visibility = View.GONE
         binding.ivMenu.visibility = View.VISIBLE
-        listener?.let { binding.ivMenu.setOnClickListener(it) }
+        listener?.let { binding.ivMenu.setOnClickListener { it() } }
     }
 
     /**
@@ -122,8 +122,8 @@ class BaseToolbar @JvmOverloads constructor(
     /**
      * 设置返回按钮点击事件
      */
-    fun setOnBackListener(listener: OnClickListener) {
-        binding.ivBack.setOnClickListener(listener)
+    fun setOnBackListener(listener: () -> Unit) {
+        binding.ivBack.setOnClickListener { listener() }
     }
 
     // ==================== 右侧操作区 ====================
@@ -131,29 +131,29 @@ class BaseToolbar @JvmOverloads constructor(
     /**
      * 设置右侧文字按钮
      */
-    fun setActionText(text: String, listener: OnClickListener? = null) {
+    fun setActionText(text: String, listener: (() -> Unit)? = null) {
         binding.tvAction.text = text
         binding.tvAction.visibility = View.VISIBLE
         binding.ivAction.visibility = View.GONE
-        listener?.let { binding.tvAction.setOnClickListener(it) }
+        listener?.let { binding.tvAction.setOnClickListener { it() } }
     }
 
     /**
      * 设置右侧图标按钮
      */
-    fun setActionIcon(@DrawableRes iconRes: Int, listener: OnClickListener? = null) {
+    fun setActionIcon(@DrawableRes iconRes: Int, listener: (() -> Unit)? = null) {
         binding.ivAction.setImageResource(iconRes)
         binding.ivAction.visibility = View.VISIBLE
         binding.tvAction.visibility = View.GONE
-        listener?.let { binding.ivAction.setOnClickListener(it) }
+        listener?.let { binding.ivAction.setOnClickListener { it() } }
     }
 
     /**
      * 设置右侧按钮点击事件
      */
-    fun setOnActionClickListener(listener: OnClickListener) {
-        binding.tvAction.setOnClickListener(listener)
-        binding.ivAction.setOnClickListener(listener)
+    fun setOnActionClickListener(listener: () -> Unit) {
+        binding.tvAction.setOnClickListener { listener() }
+        binding.ivAction.setOnClickListener { listener() }
     }
 
     /**
@@ -177,7 +177,7 @@ class BaseToolbar @JvmOverloads constructor(
     }
 
     @Deprecated("Use setOnActionClickListener() instead", ReplaceWith("setOnActionClickListener(listener)"))
-    fun setOnFinishListener(listener: OnClickListener) {
+    fun setOnFinishListener(listener: () -> Unit) {
         setOnActionClickListener(listener)
     }
 

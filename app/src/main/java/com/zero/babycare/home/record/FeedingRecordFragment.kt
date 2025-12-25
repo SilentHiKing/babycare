@@ -12,6 +12,7 @@ import com.blankj.utilcode.util.StringUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentFeedingRecordBinding
+import com.zero.babycare.home.OngoingRecordManager
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.common.R
@@ -315,6 +316,11 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
                 binding.etStartTime.setTimestamp(timerStartTime)
                 // 同步更新结束时间的参考时间戳
                 updateEndTimeReference()
+                
+                // 记录进行中状态到 MMKV
+                mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
+                    OngoingRecordManager.startFeeding(babyId, selectedFeedingType)
+                }
             }
             isProgrammaticChange = false
         }
@@ -736,6 +742,8 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
 
         vm.insert(feedingRecord) {
             LogUtils.d("feedingRecord success")
+            // 清除进行中状态
+            OngoingRecordManager.endFeeding()
             // 重置页面数据，防止再次进入时显示历史数据
             view?.post { resetPage() }
             mainVm.navigateTo(NavTarget.Dashboard)
@@ -800,13 +808,69 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         isProgrammaticChange = false
     }
 
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        // View 未创建时不执行
+        if (view == null) return
+        
+        if (hidden) {
+            // 隐藏时不重置计时器（保留进行中状态）
+        } else {
+            // 检查是否有进行中的喂养记录
+            val babyId = mainVm.getCurrentBabyInfo()?.babyId
+            if (babyId != null && OngoingRecordManager.isFeeding(babyId)) {
+                // 恢复进行中的记录
+                restoreOngoingFeeding()
+            } else {
+                resetPage()
+            }
+            loadLastFeedingRecord()
+        }
+    }
+
+    /**
+     * 恢复进行中的喂养记录
+     */
+    private fun restoreOngoingFeeding() {
+        val startTime = OngoingRecordManager.getOngoingFeedingStart() ?: return
+        
+        isProgrammaticChange = true
+        
+        // 恢复喂养类型
+        selectedFeedingType = OngoingRecordManager.getOngoingFeedingType()
+        when (selectedFeedingType) {
+            FEEDING_TYPE_BREAST -> binding.rbBreast.isChecked = true
+            FEEDING_TYPE_FORMULA -> binding.rbFormula.isChecked = true
+            FEEDING_TYPE_MIXED -> binding.rbMixed.isChecked = true
+        }
+        updateBreastDurationVisibility()
+        
+        // 设置开始时间
+        binding.etStartTime.setTimestamp(startTime)
+        updateEndTimeReference()
+        
+        // 计算已经过的时间，恢复计时器状态
+        val elapsed = System.currentTimeMillis() - startTime
+        binding.rvCounter.startFromOffset(elapsed)
+        
+        hasUnsavedChanges = true
+        isProgrammaticChange = false
+    }
+
+    /**
+     * 加载上次喂奶记录
+     */
+    private fun loadLastFeedingRecord() {
+        mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
+            vm.loadLastFeedingRecord(babyId)
+        }
+    }
+
     override fun initData(view: View, savedInstanceState: Bundle?) {
         super.initData(view, savedInstanceState)
 
         // 加载上次喂奶记录
-        mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
-            vm.loadLastFeedingRecord(babyId)
-        }
+        loadLastFeedingRecord()
 
         // 观察上次喂奶记录
         launchInLifecycle {

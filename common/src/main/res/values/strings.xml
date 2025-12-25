@@ -60,6 +60,7 @@
     <string name="startTime">开始时间</string>
     <string name="endTime">结束时间</string>
     <string name="dashboard">概况</string>
+    <string name="baby_dashboard_title">%1$s的概况</string>
 
     <!-- 喂养记录相关 -->
     <string name="feeding_type">喂养类型</string>
@@ -120,4 +121,30 @@
     <string name="edit">编辑</string>
     <string name="save">保存</string>
     <string name="create_baby">创建宝宝</string>
+
+    <!-- Dashboard 首页 -->
+    <string name="baby_awake">宝宝醒着</string>
+    <string name="baby_sleeping">宝宝正在睡觉</string>
+    <string name="baby_feeding">正在喂奶</string>
+    <string name="awake_duration">已醒 %1$s</string>
+    <string name="sleeping_duration">已睡 %1$s</string>
+    <string name="feeding_duration">喂奶中 %1$s</string>
+    <string name="end_record">结束记录</string>
+    <string name="since_last">距上次</string>
+    <string name="today_count">今日 %1$d次</string>
+    <string name="today_duration">共 %1$s</string>
+    <string name="next_prediction">下次预测</string>
+    <string name="predict_feeding">下次喂奶 约 %1$s</string>
+    <string name="predict_feeding_with_range">下次喂奶 %1$s~%2$s</string>
+    <string name="predict_sleep">下次睡觉 约 %1$s</string>
+    <string name="predict_sleep_with_range">下次睡觉 %1$s~%2$s</string>
+    <string name="remain_time">还有%1$s</string>
+    <string name="confidence_high">准确度高</string>
+    <string name="confidence_medium">准确度中</string>
+    <string name="confidence_low">准确度低</string>
+    <string name="confidence_very_low">仅供参考</string>
+    <string name="no_data">暂无数据</string>
+    <string name="start_first_record">开始记录第一条数据吧</string>
+    <string name="hour_min_format">%1$d小时%2$d分</string>
+    <string name="min_format">%1$d分钟</string>
 </resources>

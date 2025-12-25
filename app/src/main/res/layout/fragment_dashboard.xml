@@ -8,30 +8,372 @@
     android:paddingTop="@dimen/dp_45">
 
     <com.zero.components.widget.BaseToolbar
-        android:id="@+id/btn"
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:paddingBottom="@dimen/dp_80"
-        app:layoutManager="com.chad.library.adapter4.layoutmanager.QuickGridLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn"
-        app:spanCount="2"
-        tools:listitem="@layout/item_info_view" />
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
 
-    <!-- 底部快捷操作栏 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/dp_16">
+
+            <!-- ==================== 实时状态卡片 ==================== -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cardStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_12"
+                android:background="@drawable/bg_status_card_awake"
+                android:padding="@dimen/dp_20">
+
+                <ImageView
+                    android:id="@+id/ivStatusIcon"
+                    android:layout_width="@dimen/dp_56"
+                    android:layout_height="@dimen/dp_56"
+                    android:src="@drawable/ic_baby_awake"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvStatusTitle"
+                    style="@style/BoldTextAppearance"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/dp_16"
+                    android:textColor="@color/status_text_primary"
+                    android:textSize="@dimen/sp_18"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/ivStatusIcon"
+                    app:layout_constraintTop_toTopOf="@id/ivStatusIcon"
+                    tools:text="宝宝正在睡觉中..." />
+
+                <TextView
+                    android:id="@+id/tvStatusTime"
+                    style="@style/BoldTextAppearance"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/dp_16"
+                    android:layout_marginTop="@dimen/dp_4"
+                    android:textColor="@color/status_text_secondary"
+                    android:textSize="@dimen/sp_28"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/ivStatusIcon"
+                    app:layout_constraintTop_toBottomOf="@id/tvStatusTitle"
+                    tools:text="已睡 01:23:45" />
+
+                <TextView
+                    android:id="@+id/tvStatusAction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp_12"
+                    android:background="@drawable/bg_r999_white"
+                    android:paddingHorizontal="@dimen/dp_16"
+                    android:paddingVertical="@dimen/dp_8"
+                    android:text="@string/end_record"
+                    android:textColor="@color/status_text_primary"
+                    android:textSize="@dimen/sp_14"
+                    android:visibility="gone"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/ivStatusIcon"
+                    tools:visibility="visible" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- ==================== 距上次时间卡片 ==================== -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_16"
+                android:orientation="horizontal">
+
+                <!-- 喂养卡片 -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/cardFeeding"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/dp_8"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_card_feeding"
+                    android:padding="@dimen/dp_16">
+
+                    <ImageView
+                        android:id="@+id/ivFeedingIcon"
+                        android:layout_width="@dimen/dp_32"
+                        android:layout_height="@dimen/dp_32"
+                        android:src="@drawable/ic_feeding"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:tint="@color/feeding_primary" />
+
+                    <TextView
+                        android:id="@+id/tvFeedingLabel"
+                        style="@style/BoldTextAppearance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/dp_8"
+                        android:text="@string/feeding"
+                        android:textColor="@color/feeding_primary"
+                        android:textSize="@dimen/sp_14"
+                        app:layout_constraintBottom_toBottomOf="@id/ivFeedingIcon"
+                        app:layout_constraintStart_toEndOf="@id/ivFeedingIcon"
+                        app:layout_constraintTop_toTopOf="@id/ivFeedingIcon" />
+
+                    <TextView
+                        android:id="@+id/tvFeedingSinceTime"
+                        style="@style/BoldTextAppearance"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/dp_12"
+                        android:textColor="@color/feeding_primary_dark"
+                        android:textSize="@dimen/sp_24"
+                        app:layout_constraintTop_toBottomOf="@id/ivFeedingIcon"
+                        tools:text="2小时15分" />
+
+                    <TextView
+                        android:id="@+id/tvFeedingSinceLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/since_last"
+                        android:textColor="@color/feeding_secondary"
+                        android:textSize="@dimen/sp_12"
+                        app:layout_constraintTop_toBottomOf="@id/tvFeedingSinceTime" />
+
+                    <View
+                        android:id="@+id/dividerFeeding"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="@dimen/dp_12"
+                        android:background="@color/feeding_divider"
+                        app:layout_constraintTop_toBottomOf="@id/tvFeedingSinceLabel" />
+
+                    <TextView
+                        android:id="@+id/tvFeedingTodayCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/dp_8"
+                        android:textColor="@color/feeding_primary"
+                        android:textSize="@dimen/sp_12"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/dividerFeeding"
+                        tools:text="今日 5次" />
+
+                    <TextView
+                        android:id="@+id/tvFeedingTodayDuration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/dp_2"
+                        android:textColor="@color/feeding_secondary"
+                        android:textSize="@dimen/sp_12"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tvFeedingTodayCount"
+                        tools:text="共 1小时20分" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- 睡眠卡片 -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/cardSleep"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/dp_8"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_card_sleep"
+                    android:padding="@dimen/dp_16">
+
+                    <ImageView
+                        android:id="@+id/ivSleepIcon"
+                        android:layout_width="@dimen/dp_32"
+                        android:layout_height="@dimen/dp_32"
+                        android:src="@drawable/ic_sleep"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:tint="@color/sleep_primary" />
+
+                    <TextView
+                        android:id="@+id/tvSleepLabel"
+                        style="@style/BoldTextAppearance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/dp_8"
+                        android:text="@string/sleeping"
+                        android:textColor="@color/sleep_primary"
+                        android:textSize="@dimen/sp_14"
+                        app:layout_constraintBottom_toBottomOf="@id/ivSleepIcon"
+                        app:layout_constraintStart_toEndOf="@id/ivSleepIcon"
+                        app:layout_constraintTop_toTopOf="@id/ivSleepIcon" />
+
+                    <TextView
+                        android:id="@+id/tvSleepSinceTime"
+                        style="@style/BoldTextAppearance"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/dp_12"
+                        android:textColor="@color/sleep_primary_dark"
+                        android:textSize="@dimen/sp_24"
+                        app:layout_constraintTop_toBottomOf="@id/ivSleepIcon"
+                        tools:text="35分钟" />
+
+                    <TextView
+                        android:id="@+id/tvSleepSinceLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/since_last"
+                        android:textColor="@color/sleep_secondary"
+                        android:textSize="@dimen/sp_12"
+                        app:layout_constraintTop_toBottomOf="@id/tvSleepSinceTime" />
+
+                    <View
+                        android:id="@+id/dividerSleep"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="@dimen/dp_12"
+                        android:background="@color/sleep_divider"
+                        app:layout_constraintTop_toBottomOf="@id/tvSleepSinceLabel" />
+
+                    <TextView
+                        android:id="@+id/tvSleepTodayCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/dp_8"
+                        android:textColor="@color/sleep_primary"
+                        android:textSize="@dimen/sp_12"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/dividerSleep"
+                        tools:text="今日 3次" />
+
+                    <TextView
+                        android:id="@+id/tvSleepTodayDuration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/dp_2"
+                        android:textColor="@color/sleep_secondary"
+                        android:textSize="@dimen/sp_12"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tvSleepTodayCount"
+                        tools:text="共 4小时30分" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </LinearLayout>
+
+            <!-- ==================== 下次预测区域 ==================== -->
+            <TextView
+                android:id="@+id/tvPredictionTitle"
+                style="@style/BoldTextAppearance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_24"
+                android:text="@string/next_prediction"
+                android:textColor="?attr/primary90"
+                android:textSize="@dimen/sp_16" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cardPrediction"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_12"
+                android:background="?attr/bg_r12_secondary_bg_default"
+                android:padding="@dimen/dp_16">
+
+                <!-- 喂养预测 -->
+                <ImageView
+                    android:id="@+id/ivPredictFeeding"
+                    android:layout_width="@dimen/dp_24"
+                    android:layout_height="@dimen/dp_24"
+                    android:src="@drawable/ic_feeding"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="@color/feeding_primary" />
+
+                <TextView
+                    android:id="@+id/tvPredictFeedingTime"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/dp_12"
+                    android:textColor="?attr/primary90"
+                    android:textSize="@dimen/sp_15"
+                    app:layout_constraintBottom_toBottomOf="@id/ivPredictFeeding"
+                    app:layout_constraintEnd_toStartOf="@id/tvPredictFeedingRemain"
+                    app:layout_constraintStart_toEndOf="@id/ivPredictFeeding"
+                    app:layout_constraintTop_toTopOf="@id/ivPredictFeeding"
+                    tools:text="下次喂奶 约 14:30" />
+
+                <TextView
+                    android:id="@+id/tvPredictFeedingRemain"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/weaken40"
+                    android:textSize="@dimen/sp_13"
+                    app:layout_constraintBottom_toBottomOf="@id/ivPredictFeeding"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/ivPredictFeeding"
+                    tools:text="还有45分钟" />
+
+                <View
+                    android:id="@+id/dividerPredict"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="@dimen/dp_12"
+                    android:background="?attr/line10"
+                    app:layout_constraintTop_toBottomOf="@id/ivPredictFeeding" />
+
+                <!-- 睡眠预测 -->
+                <ImageView
+                    android:id="@+id/ivPredictSleep"
+                    android:layout_width="@dimen/dp_24"
+                    android:layout_height="@dimen/dp_24"
+                    android:src="@drawable/ic_sleep"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/dividerPredict"
+                    app:tint="@color/sleep_primary" />
+
+                <TextView
+                    android:id="@+id/tvPredictSleepTime"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/dp_12"
+                    android:textColor="?attr/primary90"
+                    android:textSize="@dimen/sp_15"
+                    app:layout_constraintBottom_toBottomOf="@id/ivPredictSleep"
+                    app:layout_constraintEnd_toStartOf="@id/tvPredictSleepRemain"
+                    app:layout_constraintStart_toEndOf="@id/ivPredictSleep"
+                    app:layout_constraintTop_toTopOf="@id/ivPredictSleep"
+                    tools:text="下次睡觉 约 16:00" />
+
+                <TextView
+                    android:id="@+id/tvPredictSleepRemain"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/weaken40"
+                    android:textSize="@dimen/sp_13"
+                    app:layout_constraintBottom_toBottomOf="@id/ivPredictSleep"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/ivPredictSleep"
+                    tools:text="还有2小时" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- ==================== 底部快捷操作栏 ==================== -->
     <LinearLayout
         android:id="@+id/llQuickActions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/secondary_bg_default"
-        android:elevation="@dimen/dp_4"
+        android:elevation="@dimen/dp_8"
         android:orientation="horizontal"
         android:paddingHorizontal="@dimen/dp_20"
         android:paddingVertical="@dimen/dp_12"
@@ -52,14 +394,14 @@
                 android:layout_width="@dimen/dp_32"
                 android:layout_height="@dimen/dp_32"
                 android:src="@drawable/ic_feeding"
-                app:tint="?attr/icon_brand" />
+                app:tint="@color/feeding_primary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/dp_4"
                 android:text="@string/feeding"
-                android:textColor="?attr/primary90"
+                android:textColor="@color/feeding_primary"
                 android:textSize="@dimen/sp_12" />
 
         </LinearLayout>
@@ -79,14 +421,14 @@
                 android:layout_width="@dimen/dp_32"
                 android:layout_height="@dimen/dp_32"
                 android:src="@drawable/ic_sleep"
-                app:tint="?attr/icon_brand" />
+                app:tint="@color/sleep_primary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/dp_4"
                 android:text="@string/sleeping"
-                android:textColor="?attr/primary90"
+                android:textColor="@color/sleep_primary"
                 android:textSize="@dimen/sp_12" />
 
         </LinearLayout>

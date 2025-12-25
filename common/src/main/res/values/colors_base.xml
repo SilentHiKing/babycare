@@ -190,5 +190,34 @@
     <color name="opacity_shadow_2A">#2A000000</color> <!--浅色模式阴影-->
     <color name="opacity_shadow_66">#55000000</color> <!--深色模式阴影-->
 
+    <!-- ==================== Dashboard 功能性颜色 ==================== -->
+    <!-- 喂养卡片 (蓝色系) -->
+    <color name="feeding_primary">#1976D2</color>
+    <color name="feeding_primary_dark">#1565C0</color>
+    <color name="feeding_secondary">#64B5F6</color>
+    <color name="feeding_divider">#BBDEFB</color>
+    <color name="feeding_bg">#E3F2FD</color>
+
+    <!-- 睡眠卡片 (紫色系) -->
+    <color name="sleep_primary">#7B1FA2</color>
+    <color name="sleep_primary_dark">#6A1B9A</color>
+    <color name="sleep_secondary">#CE93D8</color>
+    <color name="sleep_divider">#E1BEE7</color>
+    <color name="sleep_bg">#F3E5F5</color>
+
+    <!-- 状态卡片文字 (棕色系，在渐变背景上易读) -->
+    <color name="status_text_primary">#5D4037</color>
+    <color name="status_text_secondary">#8D6E63</color>
+
+    <!-- 状态卡片背景渐变色 -->
+    <!-- 醒着状态 (橙色系) -->
+    <color name="status_awake_start">#FFE0B2</color>
+    <color name="status_awake_end">#FFCC80</color>
+    <!-- 睡眠状态 (紫色系) -->
+    <color name="status_sleeping_start">#D1C4E9</color>
+    <color name="status_sleeping_end">#B39DDB</color>
+    <!-- 喂奶状态 (浅蓝色系) -->
+    <color name="status_feeding_start">#B3E5FC</color>
+    <color name="status_feeding_end">#81D4FA</color>
 
 </resources>

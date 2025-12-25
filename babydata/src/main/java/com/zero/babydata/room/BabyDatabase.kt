@@ -20,7 +20,7 @@ import java.util.concurrent.Executors
         ChildDailyRecord::class,
         EventRecord::class
     ],
-    version = 2,
+    version = 3,  // v3: FeedingRecord 添加 feedingAmount, babyMood, feedingLocation 字段
     exportSchema = false
 )
 abstract class BabyDatabase : RoomDatabase() {
