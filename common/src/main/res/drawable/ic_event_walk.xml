@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 行走 -->
+    <path
+        android:fillColor="@color/event_milestone"
+        android:pathData="M12,2a2,2 0,1 0,0 4a2,2 0,1 0,0 -4z"/>
+    <path
+        android:fillColor="@color/event_milestone"
+        android:pathData="M13.5,7h-3c-0.83,0 -1.5,0.67 -1.5,1.5V12h2v10h2V12h2V8.5C15,7.67 14.33,7 13.5,7z"/>
+    <path
+        android:fillColor="@color/event_milestone"
+        android:pathData="M7,22l3,-6l-2,-2v-4l-2,2v5h-1v5H7z"/>
+    <path
+        android:fillColor="@color/event_milestone"
+        android:pathData="M17,22l-3,-6l2,-2v-4l2,2v5h1v5H17z"/>
+</vector>
+

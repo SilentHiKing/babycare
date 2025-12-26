@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/bg_r12_secondary_bg_default"
+    android:orientation="vertical"
+    android:padding="@dimen/dp_16">
+
+    <!-- 体温输入 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/etTemperature"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/dp_56"
+            android:layout_weight="1"
+            android:background="?attr/bg_r6_block_gridview"
+            android:gravity="center"
+            android:hint="36.5"
+            android:inputType="numberDecimal"
+            android:maxLength="4"
+            android:textColor="?attr/primary90"
+            android:textColorHint="?attr/weaken40"
+            android:textSize="@dimen/sp_28"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dp_12"
+            android:text="@string/temperature_unit"
+            android:textColor="?attr/primary90"
+            android:textSize="@dimen/sp_20" />
+
+    </LinearLayout>
+
+    <!-- 体温状态提示 -->
+    <LinearLayout
+        android:id="@+id/llTemperatureStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_16"
+        android:background="?attr/bg_r6_block_gridview"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="@dimen/dp_12">
+
+        <ImageView
+            android:id="@+id/ivStatusIcon"
+            android:layout_width="@dimen/dp_20"
+            android:layout_height="@dimen/dp_20"
+            android:contentDescription="@null"
+            tools:src="@drawable/ic_check" />
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dp_8"
+            android:textSize="@dimen/sp_14"
+            tools:text="@string/temperature_normal"
+            tools:textColor="@color/temp_normal" />
+
+    </LinearLayout>
+
+    <!-- 高温警告 -->
+    <TextView
+        android:id="@+id/tvWarning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_12"
+        android:gravity="center"
+        android:text="@string/temperature_danger"
+        android:textColor="@color/temp_danger"
+        android:textSize="@dimen/sp_13"
+        android:visibility="gone" />
+
+</LinearLayout>
+

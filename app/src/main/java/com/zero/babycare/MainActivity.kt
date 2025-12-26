@@ -16,6 +16,7 @@ import com.zero.babycare.databinding.LayoutNavDrawerBinding
 import com.zero.babycare.home.DashboardFragment
 import com.zero.babycare.home.record.FeedingRecordFragment
 import com.zero.babycare.home.record.SleepRecordFragment
+import com.zero.babycare.home.record.event.EventRecordFragment
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.ext.launchInLifecycle
@@ -89,7 +90,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         fragments.add(FeedingRecordFragment.create())
         fragments.add(SleepRecordFragment.create())
         fragments.add(AllChildrenFragment.create())
-        
+        fragments.add(EventRecordFragment.create())
+
         fragments.forEach {
             FragmentUtils.add(supportFragmentManager, it, R.id.flContainer, true)
         }

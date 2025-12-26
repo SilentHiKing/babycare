@@ -26,10 +26,27 @@ class MainViewModel : BaseViewModel() {
 
     /**
      * 获取当前选中的宝宝信息
+     * 
+     * 安全策略：验证缓存的宝宝是否仍存在于数据库中
+     * 防止因删除宝宝后缓存未清理导致的外键约束失败
      */
     fun getCurrentBabyInfo(): BabyInfo? {
-        return MMKVStore.get(BABY_INFO, BabyInfo::class.java) ?: run {
-            repository.getAllBabyInfo().firstOrNull()
+        val cachedBaby = MMKVStore.get(BABY_INFO, BabyInfo::class.java)
+        
+        if (cachedBaby != null) {
+            // 验证缓存的宝宝是否存在于数据库中
+            val existsInDb = repository.getAllBabyInfo().any { it.babyId == cachedBaby.babyId }
+            if (existsInDb) {
+                return cachedBaby
+            } else {
+                // 缓存无效，清除
+                MMKVStore.remove(BABY_INFO)
+            }
+        }
+        
+        // 返回数据库中的第一个宝宝
+        return repository.getAllBabyInfo().firstOrNull()?.also {
+            setCurrentBaby(it)
         }
     }
 

@@ -36,7 +36,13 @@ android {
     }
 }
 
+// Room schema 导出配置（用于数据库版本追踪和迁移测试）
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
+    implementation(project(":common"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

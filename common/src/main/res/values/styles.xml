@@ -450,8 +450,57 @@
         <item name="android:fontFamily">sans-serif-medium</item>
     </style>
 
+    <!-- 辅食分类选择按钮样式 -->
+    <style name="SolidCategoryRadioButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/dp_32</item>
+        <item name="android:layout_marginEnd">@dimen/dp_8</item>
+        <item name="android:paddingHorizontal">@dimen/dp_12</item>
+        <item name="android:background">@drawable/selector_solid_category_bg</item>
+        <item name="android:button">@null</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/selector_radio_text_color</item>
+        <item name="android:textSize">@dimen/sp_13</item>
+    </style>
 
+    <!-- 辅食子类选择按钮样式 -->
+    <style name="SolidSubtypeRadioButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/dp_28</item>
+        <item name="android:layout_marginEnd">@dimen/dp_6</item>
+        <item name="android:paddingHorizontal">@dimen/dp_10</item>
+        <item name="android:background">@drawable/selector_solid_subtype_bg</item>
+        <item name="android:button">@null</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/selector_radio_text_color</item>
+        <item name="android:textSize">@dimen/sp_12</item>
+    </style>
 
+    <!-- 事件详情 RadioButton 样式 -->
+    <style name="EventDetailRadioButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">@dimen/dp_40</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginEnd">@dimen/dp_8</item>
+        <item name="android:background">@drawable/selector_radio_bg</item>
+        <item name="android:button">@null</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/selector_radio_text_color</item>
+        <item name="android:textSize">@dimen/sp_14</item>
+    </style>
+
+    <!-- 事件颜色选择 RadioButton 样式 -->
+    <style name="EventColorRadioButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">@dimen/dp_40</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginEnd">@dimen/dp_8</item>
+        <item name="android:background">@drawable/selector_radio_bg</item>
+        <item name="android:button">@null</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/selector_radio_text_color</item>
+        <item name="android:textSize">@dimen/sp_13</item>
+    </style>
 
 
 </resources>

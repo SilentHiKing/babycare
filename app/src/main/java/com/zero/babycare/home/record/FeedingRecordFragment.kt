@@ -15,6 +15,8 @@ import com.zero.babycare.databinding.FragmentFeedingRecordBinding
 import com.zero.babycare.home.OngoingRecordManager
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babydata.entity.FeedingRecord
+import com.zero.babydata.entity.FeedingType
+import com.zero.babydata.entity.SolidFoodType
 import com.zero.common.R
 import com.zero.common.ext.launchInLifecycle
 import com.zero.common.util.DateUtils
@@ -53,11 +55,6 @@ import java.util.Calendar
  */
 class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
     companion object {
-        // 喂养类型常量
-        const val FEEDING_TYPE_BREAST = 0
-        const val FEEDING_TYPE_FORMULA = 1
-        const val FEEDING_TYPE_MIXED = 2
-
         // 最大喂奶时长警告阈值（分钟）
         const val MAX_FEEDING_DURATION_WARNING_MINUTES = 120
 
@@ -72,7 +69,13 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
     }
 
     // 当前选择的喂养类型
-    private var selectedFeedingType = FEEDING_TYPE_BREAST
+    private var selectedFeedingType = FeedingType.BREAST
+    
+    // 当前选择的辅食分类
+    private var selectedSolidCategory: Int? = null
+    
+    // 当前选择的辅食子类型
+    private var selectedSolidSubtype: Int? = null
 
     // 是否有未保存的记录（用于退出提示）
     private var hasUnsavedChanges = false
@@ -94,6 +97,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         setupToolbar()
         setupTimePickerButtons()
         setupSaveButton()
+        setupFirstTimeCheckbox()
         
         // 初始化时重置页面数据
         resetPage()
@@ -124,28 +128,205 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
      */
     private fun setupFeedingTypeSelector() {
         binding.rbBreast.isChecked = true
-        updateBreastDurationVisibility()
+        updateFeedingTypeVisibility()
 
         binding.rgFeedingType.setOnCheckedChangeListener { _, checkedId ->
             selectedFeedingType = when (checkedId) {
-                com.zero.babycare.R.id.rbBreast -> FEEDING_TYPE_BREAST
-                com.zero.babycare.R.id.rbFormula -> FEEDING_TYPE_FORMULA
-                com.zero.babycare.R.id.rbMixed -> FEEDING_TYPE_MIXED
-                else -> FEEDING_TYPE_BREAST
+                com.zero.babycare.R.id.rbBreast -> FeedingType.BREAST
+                com.zero.babycare.R.id.rbFormula -> FeedingType.FORMULA
+                com.zero.babycare.R.id.rbMixed -> FeedingType.MIXED
+                com.zero.babycare.R.id.rbSolid -> FeedingType.SOLID_FOOD
+                com.zero.babycare.R.id.rbOther -> FeedingType.OTHER
+                else -> FeedingType.BREAST
             }
-            updateBreastDurationVisibility()
+            updateFeedingTypeVisibility()
+            markAsUnsaved()
+        }
+        
+        // 设置辅食分类选择器
+        setupSolidCategorySelector()
+    }
+    
+    /**
+     * 设置辅食分类选择器
+     */
+    private fun setupSolidCategorySelector() {
+        binding.rgSolidCategory.setOnCheckedChangeListener { _, checkedId ->
+            selectedSolidCategory = when (checkedId) {
+                com.zero.babycare.R.id.rbSolidStaple -> SolidFoodType.CATEGORY_STAPLE
+                com.zero.babycare.R.id.rbSolidVegetable -> SolidFoodType.CATEGORY_VEGETABLE
+                com.zero.babycare.R.id.rbSolidFruit -> SolidFoodType.CATEGORY_FRUIT
+                com.zero.babycare.R.id.rbSolidProtein -> SolidFoodType.CATEGORY_PROTEIN
+                com.zero.babycare.R.id.rbSolidDairy -> SolidFoodType.CATEGORY_DAIRY
+                com.zero.babycare.R.id.rbSolidDrink -> SolidFoodType.CATEGORY_DRINK
+                com.zero.babycare.R.id.rbSolidSupplement -> SolidFoodType.CATEGORY_SUPPLEMENT
+                com.zero.babycare.R.id.rbSolidSnack -> SolidFoodType.CATEGORY_SNACK
+                com.zero.babycare.R.id.rbSolidOther -> SolidFoodType.CATEGORY_OTHER
+                else -> null
+            }
+            updateSolidSubtypes()
+            markAsUnsaved()
+        }
+    }
+    
+    /**
+     * 更新辅食子类型选项
+     */
+    private fun updateSolidSubtypes() {
+        val category = selectedSolidCategory
+        if (category == null || category == SolidFoodType.CATEGORY_OTHER) {
+            binding.hsvSolidSubtype.visibility = View.GONE
+            binding.llSolidFoodName.visibility = View.VISIBLE
+            selectedSolidSubtype = if (category == SolidFoodType.CATEGORY_OTHER) SolidFoodType.OTHER else null
+            updateSolidUnit()
+            updateAllergenTip()
+            return
+        }
+        
+        val subtypes = SolidFoodType.getSubtypes(category)
+        if (subtypes.isEmpty()) {
+            binding.hsvSolidSubtype.visibility = View.GONE
+            binding.llSolidFoodName.visibility = View.VISIBLE
+            return
+        }
+        
+        // 动态创建子类型 RadioButton
+        binding.rgSolidSubtype.removeAllViews()
+        subtypes.forEach { (type, stringResId) ->
+            val radioButton = android.widget.RadioButton(requireContext()).apply {
+                id = View.generateViewId()
+                tag = type
+                text = StringUtils.getString(stringResId)
+                layoutParams = android.widget.RadioGroup.LayoutParams(
+                    android.widget.RadioGroup.LayoutParams.WRAP_CONTENT,
+                    resources.getDimensionPixelSize(com.zero.common.R.dimen.dp_28)
+                ).apply {
+                    marginEnd = resources.getDimensionPixelSize(com.zero.common.R.dimen.dp_6)
+                }
+                setPadding(
+                    resources.getDimensionPixelSize(com.zero.common.R.dimen.dp_10),
+                    0,
+                    resources.getDimensionPixelSize(com.zero.common.R.dimen.dp_10),
+                    0
+                )
+                setBackgroundResource(com.zero.common.R.drawable.selector_solid_subtype_bg)
+                buttonDrawable = null
+                gravity = android.view.Gravity.CENTER
+                setTextColor(resources.getColorStateList(com.zero.common.R.color.selector_radio_text_color, null))
+                textSize = 12f
+            }
+            binding.rgSolidSubtype.addView(radioButton)
+        }
+        
+        binding.rgSolidSubtype.setOnCheckedChangeListener { _, checkedId ->
+            val selectedRadio = binding.rgSolidSubtype.findViewById<android.widget.RadioButton>(checkedId)
+            selectedSolidSubtype = selectedRadio?.tag as? Int
+            updateSolidFoodNameVisibility()
+            updateSolidUnit()
+            updateAllergenTip()
+            markAsUnsaved()
+        }
+        
+        binding.hsvSolidSubtype.visibility = View.VISIBLE
+        // 默认选中第一个
+        if (binding.rgSolidSubtype.childCount > 0) {
+            (binding.rgSolidSubtype.getChildAt(0) as? android.widget.RadioButton)?.isChecked = true
+        }
+    }
+    
+    /**
+     * 更新食物名称输入框可见性
+     */
+    private fun updateSolidFoodNameVisibility() {
+        val subtype = selectedSolidSubtype
+        binding.llSolidFoodName.visibility = if (subtype != null && SolidFoodType.requiresFoodName(subtype)) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+    }
+    
+    /**
+     * 更新辅食单位
+     */
+    private fun updateSolidUnit() {
+        val subtype = selectedSolidSubtype ?: return
+        binding.tvSolidUnit.text = SolidFoodType.getDefaultUnit(subtype)
+    }
+    
+    /**
+     * 更新过敏风险提示
+     */
+    private fun updateAllergenTip() {
+        val subtype = selectedSolidSubtype
+        val isFirstTime = binding.cbFirstTime.isChecked
+        binding.tvAllergenTip.visibility = if (subtype != null && isFirstTime && SolidFoodType.isAllergenRisk(subtype)) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+    }
+    
+    /**
+     * 设置首次尝试勾选框监听
+     */
+    private fun setupFirstTimeCheckbox() {
+        binding.cbFirstTime.setOnCheckedChangeListener { _, _ ->
+            updateAllergenTip()
             markAsUnsaved()
         }
     }
 
     /**
-     * 更新左右乳房时长输入框的可见性
+     * 根据喂养类型更新所有相关区域的可见性
      */
-    private fun updateBreastDurationVisibility() {
-        binding.llBreastDuration.visibility = if (selectedFeedingType == FEEDING_TYPE_BREAST) {
+    private fun updateFeedingTypeVisibility() {
+        // 母乳 - 显示左右乳房时长
+        binding.llBreastDuration.visibility = if (selectedFeedingType == FeedingType.BREAST) {
             View.VISIBLE
         } else {
             View.GONE
+        }
+        
+        // 配方奶/混合 - 显示喂奶量
+        binding.llFeedingAmount.visibility = when (selectedFeedingType) {
+            FeedingType.FORMULA, FeedingType.MIXED -> View.VISIBLE
+            else -> View.GONE
+        }
+        
+        // 辅食 - 显示辅食选项区域
+        binding.llSolidFood.visibility = if (selectedFeedingType == FeedingType.SOLID_FOOD) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+        
+        // 其他 - 显示自定义输入框
+        binding.llOtherFood.visibility = if (selectedFeedingType == FeedingType.OTHER) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+    }
+    
+    /**
+     * 更新左右乳房时长输入框的可见性
+     */
+    private fun updateBreastDurationVisibility() {
+        binding.llBreastDuration.visibility = if (selectedFeedingType == FeedingType.BREAST) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+    }
+    
+    /**
+     * 更新喂奶量输入框的可见性（配方奶和混合喂养时显示）
+     */
+    private fun updateFeedingAmountVisibility() {
+        binding.llFeedingAmount.visibility = when (selectedFeedingType) {
+            FeedingType.FORMULA, FeedingType.MIXED -> View.VISIBLE
+            else -> View.GONE
         }
     }
 
@@ -319,7 +500,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
                 
                 // 记录进行中状态到 MMKV
                 mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
-                    OngoingRecordManager.startFeeding(babyId, selectedFeedingType)
+                    OngoingRecordManager.startFeeding(babyId, selectedFeedingType.type)
                 }
             }
             isProgrammaticChange = false
@@ -564,7 +745,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
      * @param totalDuration 总喂奶时长（毫秒）
      */
     private fun validateBreastDuration(totalDuration: Long): Boolean {
-        if (selectedFeedingType != FEEDING_TYPE_BREAST) {
+        if (selectedFeedingType != FeedingType.BREAST) {
             return true
         }
 
@@ -716,26 +897,58 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         duration: Long
     ) {
         // 获取左右乳房时长（仅母乳喂养时）
-        val leftBreastDuration = if (selectedFeedingType == FEEDING_TYPE_BREAST) {
+        val leftBreastDuration = if (selectedFeedingType == FeedingType.BREAST) {
             binding.etLeftBreastDuration.text.toString().toLongOrNull()?.let {
                 DateUtils.minutesToMilliseconds(it)
             } ?: 0L
         } else 0L
 
-        val rightBreastDuration = if (selectedFeedingType == FEEDING_TYPE_BREAST) {
+        val rightBreastDuration = if (selectedFeedingType == FeedingType.BREAST) {
             binding.etRightBreastDuration.text.toString().toLongOrNull()?.let {
                 DateUtils.minutesToMilliseconds(it)
             } ?: 0L
         } else 0L
+        
+        // 获取喂奶量（配方奶/混合喂养时）
+        val feedingAmount = when (selectedFeedingType) {
+            FeedingType.FORMULA, FeedingType.MIXED -> {
+                binding.etFeedingAmount.text.toString().toIntOrNull()
+            }
+            else -> null
+        }
+        
+        // 获取辅食相关数据
+        val solidFoodType = if (selectedFeedingType == FeedingType.SOLID_FOOD) {
+            selectedSolidSubtype
+        } else null
+        
+        val foodName = when (selectedFeedingType) {
+            FeedingType.SOLID_FOOD -> binding.etSolidFoodName.text.toString().trim().takeIf { it.isNotEmpty() }
+            FeedingType.OTHER -> binding.etOtherFoodName.text.toString().trim().takeIf { it.isNotEmpty() }
+            else -> null
+        }
+        
+        val isFirstTime = if (selectedFeedingType == FeedingType.SOLID_FOOD) {
+            binding.cbFirstTime.isChecked
+        } else false
+        
+        // 辅食的喂食量
+        val solidAmount = if (selectedFeedingType == FeedingType.SOLID_FOOD) {
+            binding.etSolidAmount.text.toString().toIntOrNull()
+        } else null
 
         val feedingRecord = FeedingRecord().apply {
             this.babyId = babyId
-            this.feedingType = selectedFeedingType
+            this.feedingType = selectedFeedingType.type
             this.feedingStart = startTime
             this.feedingEnd = endTime
             this.feedingDuration = duration
             this.feedingDurationBreastLeft = leftBreastDuration
             this.feedingDurationBreastRight = rightBreastDuration
+            this.feedingAmount = feedingAmount ?: solidAmount
+            this.solidFoodType = solidFoodType
+            this.foodName = foodName
+            this.isFirstTime = isFirstTime
             this.note = binding.etNote.text.toString().trim()
             this.createdAt = System.currentTimeMillis()
         }
@@ -782,9 +995,24 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         isProgrammaticChange = true
         
         // 重置喂养类型
-        selectedFeedingType = FEEDING_TYPE_BREAST
+        selectedFeedingType = FeedingType.BREAST
         binding.rbBreast.isChecked = true
-        updateBreastDurationVisibility()
+        updateFeedingTypeVisibility()
+        
+        // 重置辅食相关
+        selectedSolidCategory = null
+        selectedSolidSubtype = null
+        binding.rgSolidCategory.clearCheck()
+        binding.rgSolidSubtype.removeAllViews()
+        binding.hsvSolidSubtype.visibility = View.GONE
+        binding.llSolidFoodName.visibility = View.GONE
+        binding.etSolidFoodName.setText("")
+        binding.etSolidAmount.setText("")
+        binding.cbFirstTime.isChecked = false
+        binding.tvAllergenTip.visibility = View.GONE
+        
+        // 重置其他类型
+        binding.etOtherFoodName.setText("")
         
         // 清空时间输入
         binding.etStartTime.clear()
@@ -798,6 +1026,9 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         // 清空左右乳房时长
         binding.etLeftBreastDuration.setText("")
         binding.etRightBreastDuration.setText("")
+        
+        // 清空喂奶量
+        binding.etFeedingAmount.setText("")
         
         // 清空备注
         binding.etNote.setText("")
@@ -837,13 +1068,15 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         isProgrammaticChange = true
         
         // 恢复喂养类型
-        selectedFeedingType = OngoingRecordManager.getOngoingFeedingType()
+        selectedFeedingType = FeedingType.fromType(OngoingRecordManager.getOngoingFeedingType())
         when (selectedFeedingType) {
-            FEEDING_TYPE_BREAST -> binding.rbBreast.isChecked = true
-            FEEDING_TYPE_FORMULA -> binding.rbFormula.isChecked = true
-            FEEDING_TYPE_MIXED -> binding.rbMixed.isChecked = true
+            FeedingType.BREAST -> binding.rbBreast.isChecked = true
+            FeedingType.FORMULA -> binding.rbFormula.isChecked = true
+            FeedingType.MIXED -> binding.rbMixed.isChecked = true
+            FeedingType.SOLID_FOOD -> binding.rbSolid.isChecked = true
+            FeedingType.OTHER -> binding.rbOther.isChecked = true
         }
-        updateBreastDurationVisibility()
+        updateFeedingTypeVisibility()
         
         // 设置开始时间
         binding.etStartTime.setTimestamp(startTime)

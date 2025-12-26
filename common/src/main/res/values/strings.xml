@@ -36,6 +36,8 @@
     <string name="other">其他</string>
     <string name="feeding">喂养</string>
     <string name="sleeping">睡眠</string>
+    <string name="more_events">更多</string>
+    <string name="quick_record">快速记录</string>
     <string name="sleep_record">睡眠记录</string>
     <string name="sleep_start_time">入睡时间</string>
     <string name="sleep_end_time">醒来时间</string>
@@ -66,7 +68,64 @@
     <string name="feeding_type">喂养类型</string>
     <string name="feeding_type_breast">母乳</string>
     <string name="feeding_type_formula">配方奶</string>
-    <string name="feeding_type_mixed">混合喂养</string>
+    <string name="feeding_type_mixed">混合</string>
+    <string name="feeding_type_solid">辅食</string>
+    <string name="feeding_type_other">其他</string>
+    <string name="feeding_amount">喂奶量</string>
+    
+    <!-- 辅食相关 -->
+    <string name="solid_food_type">辅食类型</string>
+    <string name="solid_food_name">食物名称</string>
+    <string name="solid_food_name_hint">如：胡萝卜泥</string>
+    <string name="solid_food_amount">食用量</string>
+    <string name="solid_food_first_time">首次尝试此食物</string>
+    <string name="solid_food_allergen_tip">⚠️ 此食物有过敏风险，请注意观察</string>
+    <string name="other_food_name">食物名称</string>
+    <string name="other_food_name_hint">请输入食物名称</string>
+    
+    <!-- 辅食分类 -->
+    <string name="solid_category_staple">主食</string>
+    <string name="solid_category_vegetable">蔬菜</string>
+    <string name="solid_category_fruit">水果</string>
+    <string name="solid_category_protein">蛋白质</string>
+    <string name="solid_category_dairy">奶制品</string>
+    <string name="solid_category_drink">饮品</string>
+    <string name="solid_category_supplement">营养剂</string>
+    <string name="solid_category_snack">零食</string>
+    <string name="solid_category_other">其他</string>
+    
+    <!-- 辅食子类 -->
+    <string name="solid_rice_cereal">米糊/米粉</string>
+    <string name="solid_noodle">面条</string>
+    <string name="solid_porridge">粥</string>
+    <string name="solid_bread">馒头/面包</string>
+    <string name="solid_rice">米饭</string>
+    <string name="solid_vegetable_puree">蔬菜泥</string>
+    <string name="solid_vegetable_pieces">蔬菜块</string>
+    <string name="solid_fruit_puree">水果泥</string>
+    <string name="solid_fruit_pieces">水果块</string>
+    <string name="solid_egg_yolk">蛋黄</string>
+    <string name="solid_whole_egg">全蛋</string>
+    <string name="solid_meat_puree">肉泥</string>
+    <string name="solid_fish_puree">鱼泥</string>
+    <string name="solid_shrimp_puree">虾泥</string>
+    <string name="solid_tofu">豆腐</string>
+    <string name="solid_yogurt">酸奶</string>
+    <string name="solid_cheese">奶酪</string>
+    <string name="solid_water">水</string>
+    <string name="solid_juice">果汁</string>
+    <string name="solid_soup">汤</string>
+    <string name="solid_vitamin_d">维生素D</string>
+    <string name="solid_iron">铁剂</string>
+    <string name="solid_calcium">钙</string>
+    <string name="solid_dha">DHA</string>
+    <string name="solid_probiotic">益生菌</string>
+    <string name="solid_supplement_other">其他营养剂</string>
+    <string name="solid_puff">溶豆</string>
+    <string name="solid_teething_biscuit">磨牙棒</string>
+    <string name="solid_rice_cracker">米饼</string>
+    <string name="feeding_amount_hint">可选</string>
+    <string name="unit_ml">毫升</string>
     <string name="left_breast">左侧</string>
     <string name="right_breast">右侧</string>
     <string name="left_breast_duration">左侧时长</string>
@@ -128,6 +187,8 @@
     <string name="baby_feeding">正在喂奶</string>
     <string name="awake_duration">已醒 %1$s</string>
     <string name="sleeping_duration">已睡 %1$s</string>
+    <string name="no_sleep_record">暂无睡眠记录</string>
+    <string name="no_feeding_record">暂无喂养记录</string>
     <string name="feeding_duration">喂奶中 %1$s</string>
     <string name="end_record">结束记录</string>
     <string name="since_last">距上次</string>
@@ -147,4 +208,113 @@
     <string name="start_first_record">开始记录第一条数据吧</string>
     <string name="hour_min_format">%1$d小时%2$d分</string>
     <string name="min_format">%1$d分钟</string>
+
+    <!-- ==================== 事件记录相关 ==================== -->
+    <string name="event_record">记录事件</string>
+    <string name="select_event_type">选择事件类型</string>
+    <string name="event_detail">详细信息</string>
+    <string name="event_time">事件时间</string>
+    <string name="start_time">开始时间</string>
+    <string name="event_end_time">结束时间</string>
+    <string name="event_duration">持续时长</string>
+    <string name="save_success">保存成功</string>
+    <string name="please_select_event_type">请选择事件类型</string>
+
+    <!-- 事件大类 -->
+    <string name="event_category_diaper">排泄</string>
+    <string name="event_category_health">健康</string>
+    <string name="event_category_growth">生长</string>
+    <string name="event_category_milestone">里程碑</string>
+    <string name="event_category_care">护理</string>
+    <string name="event_category_activity">活动</string>
+    <string name="event_category_other">其他</string>
+
+    <!-- 排泄类事件 -->
+    <string name="event_diaper_wet">小便</string>
+    <string name="event_diaper_dirty">大便</string>
+    <string name="event_diaper_mixed">混合</string>
+    <string name="event_diaper_dry">干净换尿布</string>
+    <string name="stool_consistency">大便性状</string>
+    <string name="stool_consistency_watery">稀</string>
+    <string name="stool_consistency_soft">软</string>
+    <string name="stool_consistency_hard">硬</string>
+    <string name="stool_color">大便颜色</string>
+    <string name="stool_color_yellow">黄色</string>
+    <string name="stool_color_green">绿色</string>
+    <string name="stool_color_brown">棕色</string>
+    <string name="stool_color_black">黑色</string>
+    <string name="urine_amount">小便量</string>
+    <string name="urine_amount_little">少</string>
+    <string name="urine_amount_normal">中</string>
+    <string name="urine_amount_much">多</string>
+
+    <!-- 健康类事件 -->
+    <string name="event_health_temperature">体温</string>
+    <string name="event_health_medicine">用药</string>
+    <string name="event_health_vaccine">疫苗</string>
+    <string name="event_health_doctor">就医</string>
+    <string name="event_health_symptom">症状</string>
+    <string name="temperature_value">体温值</string>
+    <string name="temperature_unit">℃</string>
+    <string name="temperature_normal">正常</string>
+    <string name="temperature_low_fever">低烧</string>
+    <string name="temperature_high_fever">高烧</string>
+    <string name="temperature_warning">体温偏高，请注意观察</string>
+    <string name="temperature_danger">体温过高，建议就医</string>
+    <string name="medicine_name">药品名称</string>
+    <string name="medicine_name_hint">请输入药品名称</string>
+    <string name="medicine_dosage">剂量</string>
+    <string name="medicine_unit">单位</string>
+    <string name="vaccine_name">疫苗名称</string>
+    <string name="vaccine_name_hint">请输入疫苗名称</string>
+    <string name="vaccine_dose">剂次</string>
+    <string name="symptom_description">症状描述</string>
+    <string name="symptom_hint">请描述症状</string>
+
+    <!-- 生长类事件 -->
+    <string name="event_growth_weight">体重</string>
+    <string name="event_growth_height">身高</string>
+    <string name="event_growth_head">头围</string>
+    <string name="weight_unit">kg</string>
+    <string name="height_unit">cm</string>
+    <string name="last_record">上次记录</string>
+    <string name="growth_change">变化</string>
+
+    <!-- 里程碑事件 -->
+    <string name="event_milestone_roll">翻身</string>
+    <string name="event_milestone_sit">独坐</string>
+    <string name="event_milestone_crawl">爬行</string>
+    <string name="event_milestone_stand">站立</string>
+    <string name="event_milestone_walk">行走</string>
+    <string name="event_milestone_first_word">第一个词</string>
+    <string name="event_milestone_first_tooth">第一颗牙</string>
+    <string name="event_milestone_custom">自定义</string>
+    <string name="milestone_congratulation">🎉 恭喜！宝宝又进步了！</string>
+    <string name="milestone_name">里程碑名称</string>
+    <string name="milestone_name_hint">请输入里程碑名称</string>
+    <string name="milestone_description">记录这个珍贵时刻</string>
+    <string name="milestone_description_hint">今天宝宝…</string>
+
+    <!-- 护理类事件 -->
+    <string name="event_care_bath">洗澡</string>
+    <string name="event_care_nail">剪指甲</string>
+    <string name="event_care_skincare">护肤</string>
+    <string name="event_care_massage">抚触按摩</string>
+    <string name="event_care_nose">清洁鼻腔</string>
+    <string name="event_care_ear">清洁耳朵</string>
+
+    <!-- 活动类事件 -->
+    <string name="event_activity_outdoor">户外活动</string>
+    <string name="event_activity_tummy">趴趴时间</string>
+    <string name="event_activity_swimming">游泳</string>
+    <string name="event_activity_play">亲子游戏</string>
+    <string name="use_timer">使用计时器</string>
+
+    <!-- 其他事件 -->
+    <string name="event_other_burp">拍嗝</string>
+    <string name="event_other_cry">哭闹</string>
+    <string name="event_other_spit_up">吐奶</string>
+    <string name="event_other_custom">自定义</string>
+    <string name="custom_event_name">事件名称</string>
+    <string name="custom_event_hint">请输入事件名称</string>
 </resources>

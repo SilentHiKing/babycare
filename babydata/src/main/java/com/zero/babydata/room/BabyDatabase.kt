@@ -20,8 +20,8 @@ import java.util.concurrent.Executors
         ChildDailyRecord::class,
         EventRecord::class
     ],
-    version = 3,  // v3: FeedingRecord 添加 feedingAmount, babyMood, feedingLocation 字段
-    exportSchema = false
+    version = 4,  // v4: EventRecord 添加 endTime, extraData 字段
+    exportSchema = true  // 商业应用建议开启，便于追踪数据库变更
 )
 abstract class BabyDatabase : RoomDatabase() {
 
@@ -46,7 +46,9 @@ abstract class BabyDatabase : RoomDatabase() {
                     "baby_database"
                 )
                     .allowMainThreadQueries()
-                    .fallbackToDestructiveMigration()
+                    // 商业应用禁止使用 fallbackToDestructiveMigration()
+                    // 必须通过 Migration 保护用户数据
+                    .addMigrations(*DatabaseMigrations.getAllMigrations())
                     .build()
                     .also { instance = it }
             }

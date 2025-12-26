@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="?attr/bg_r12_secondary_bg_default"
+    android:padding="@dimen/dp_16">
+
+    <!-- 大便性状（仅大便/混合时显示） -->
+    <LinearLayout
+        android:id="@+id/llStoolConsistency"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/stool_consistency"
+            android:textColor="?attr/primary90"
+            android:textSize="@dimen/sp_14"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/rgStoolConsistency"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_8"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/rbWatery"
+                style="@style/EventDetailRadioButton"
+                android:text="@string/stool_consistency_watery" />
+
+            <RadioButton
+                android:id="@+id/rbSoft"
+                style="@style/EventDetailRadioButton"
+                android:text="@string/stool_consistency_soft" />
+
+            <RadioButton
+                android:id="@+id/rbHard"
+                style="@style/EventDetailRadioButton"
+                android:text="@string/stool_consistency_hard" />
+
+        </RadioGroup>
+
+        <!-- 大便颜色 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_16"
+            android:text="@string/stool_color"
+            android:textColor="?attr/primary90"
+            android:textSize="@dimen/sp_14"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/rgStoolColor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_8"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/rbYellow"
+                style="@style/EventColorRadioButton"
+                android:tag="yellow"
+                android:text="@string/stool_color_yellow" />
+
+            <RadioButton
+                android:id="@+id/rbGreen"
+                style="@style/EventColorRadioButton"
+                android:tag="green"
+                android:text="@string/stool_color_green" />
+
+            <RadioButton
+                android:id="@+id/rbBrown"
+                style="@style/EventColorRadioButton"
+                android:tag="brown"
+                android:text="@string/stool_color_brown" />
+
+            <RadioButton
+                android:id="@+id/rbBlack"
+                style="@style/EventColorRadioButton"
+                android:tag="black"
+                android:text="@string/stool_color_black" />
+
+        </RadioGroup>
+
+    </LinearLayout>
+
+    <!-- 小便量（仅小便/混合时显示） -->
+    <LinearLayout
+        android:id="@+id/llUrineAmount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/urine_amount"
+            android:textColor="?attr/primary90"
+            android:textSize="@dimen/sp_14"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/rgUrineAmount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_8"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/rbLittle"
+                style="@style/EventDetailRadioButton"
+                android:text="@string/urine_amount_little" />
+
+            <RadioButton
+                android:id="@+id/rbNormal"
+                style="@style/EventDetailRadioButton"
+                android:text="@string/urine_amount_normal" />
+
+            <RadioButton
+                android:id="@+id/rbMuch"
+                style="@style/EventDetailRadioButton"
+                android:text="@string/urine_amount_much" />
+
+        </RadioGroup>
+
+    </LinearLayout>
+
+</LinearLayout>
+

@@ -6,6 +6,7 @@ import com.zero.babycare.babyinfo.UpdateInfoFragment
 import com.zero.babycare.home.DashboardFragment
 import com.zero.babycare.home.record.FeedingRecordFragment
 import com.zero.babycare.home.record.SleepRecordFragment
+import com.zero.babycare.home.record.event.EventRecordFragment
 
 /**
  * 导航目标定义
@@ -34,6 +35,16 @@ sealed class NavTarget {
     /** 睡眠记录页 */
     data object SleepRecord : NavTarget() {
         override val fragmentClass = SleepRecordFragment::class.java
+    }
+
+    /**
+     * 事件记录页
+     * @param preSelectedCategory 预选的事件分类ID（对应 EventType.CATEGORY_*），null 表示不预选
+     */
+    data class EventRecord(
+        val preSelectedCategory: Int? = null
+    ) : NavTarget() {
+        override val fragmentClass = EventRecordFragment::class.java
     }
 
     /**

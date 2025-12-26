@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/bg_r12_secondary_bg_default"
+    android:orientation="vertical"
+    android:padding="@dimen/dp_16">
+
+    <!-- 数值输入 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/etValue"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/dp_56"
+            android:layout_weight="1"
+            android:background="?attr/bg_r6_block_gridview"
+            android:gravity="center"
+            android:hint="0.00"
+            android:inputType="numberDecimal"
+            android:maxLength="6"
+            android:textColor="?attr/primary90"
+            android:textColorHint="?attr/weaken40"
+            android:textSize="@dimen/sp_28"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvUnit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dp_12"
+            android:textColor="?attr/primary90"
+            android:textSize="@dimen/sp_20"
+            tools:text="kg" />
+
+    </LinearLayout>
+
+    <!-- 上次记录对比 -->
+    <LinearLayout
+        android:id="@+id/llLastRecord"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_16"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/last_record"
+            android:textColor="?attr/weaken40"
+            android:textSize="@dimen/sp_13" />
+
+        <TextView
+            android:id="@+id/tvLastValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dp_8"
+            android:textColor="?attr/primary90"
+            android:textSize="@dimen/sp_13"
+            tools:text="5.32 kg (12月18日)" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/tvChange"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/event_growth"
+            android:textSize="@dimen/sp_13"
+            android:textStyle="bold"
+            tools:text="+0.18 kg ↑" />
+
+    </LinearLayout>
+
+</LinearLayout>
+

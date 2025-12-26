@@ -15,14 +15,13 @@ enum class FeedingType(val type: Int) {
     FORMULA(1),
 
     /**
-     * 辅食（米糊、蔬菜泥、水果泥等）
-     */
-    SOLID_FOOD(2),
-
-    /**
      * 母乳 + 奶粉 混合喂养
      */
-    MIXED(3),
+    MIXED(2),
+    /**
+     * 辅食（米糊、蔬菜泥、水果泥，水，维生素，零食等）
+     */
+    SOLID_FOOD(3),
 
     /**
      * 其他（手动输入）

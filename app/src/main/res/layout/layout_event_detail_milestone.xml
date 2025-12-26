@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/bg_r12_secondary_bg_default"
+    android:orientation="vertical"
+    android:padding="@dimen/dp_16">
+
+    <!-- 恭喜提示 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/milestone_congratulation"
+        android:textColor="@color/event_milestone"
+        android:textSize="@dimen/sp_18"
+        android:textStyle="bold" />
+
+    <!-- 自定义里程碑名称（仅自定义时显示） -->
+    <LinearLayout
+        android:id="@+id/llCustomName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_16"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/milestone_name"
+            android:textColor="?attr/primary90"
+            android:textSize="@dimen/sp_14"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/etMilestoneName"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dp_44"
+            android:layout_marginTop="@dimen/dp_8"
+            android:background="?attr/bg_r6_block_gridview"
+            android:hint="@string/milestone_name_hint"
+            android:inputType="text"
+            android:paddingHorizontal="@dimen/dp_12"
+            android:textColor="?attr/primary90"
+            android:textColorHint="?attr/weaken40"
+            android:textSize="@dimen/sp_14" />
+
+    </LinearLayout>
+
+    <!-- 描述 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_16"
+        android:text="@string/milestone_description"
+        android:textColor="?attr/primary90"
+        android:textSize="@dimen/sp_14"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/etDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_8"
+        android:background="?attr/bg_r6_block_gridview"
+        android:gravity="top|start"
+        android:hint="@string/milestone_description_hint"
+        android:inputType="textMultiLine"
+        android:minHeight="@dimen/dp_80"
+        android:padding="@dimen/dp_12"
+        android:textColor="?attr/primary90"
+        android:textColorHint="?attr/weaken40"
+        android:textSize="@dimen/sp_14" />
+
+</LinearLayout>
+

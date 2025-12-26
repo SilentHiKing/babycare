@@ -186,6 +186,7 @@
                 android:textColor="?attr/primary90"
                 android:textSize="@dimen/sp_16" />
 
+            <!-- 第一行：母乳、配方奶、混合 -->
             <RadioGroup
                 android:id="@+id/rgFeedingType"
                 android:layout_width="match_parent"
@@ -238,7 +239,329 @@
                     android:textColor="@color/selector_radio_text_color"
                     android:textSize="@dimen/sp_14" />
 
+                <View
+                    android:layout_width="@dimen/dp_8"
+                    android:layout_height="1dp" />
+
+                <RadioButton
+                    android:id="@+id/rbSolid"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/dp_40"
+                    android:layout_weight="1"
+                    android:background="@drawable/selector_radio_bg"
+                    android:button="@null"
+                    android:gravity="center"
+                    android:text="@string/feeding_type_solid"
+                    android:textColor="@color/selector_radio_text_color"
+                    android:textSize="@dimen/sp_14" />
+
+                <View
+                    android:layout_width="@dimen/dp_8"
+                    android:layout_height="1dp" />
+
+                <RadioButton
+                    android:id="@+id/rbOther"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/dp_40"
+                    android:layout_weight="1"
+                    android:background="@drawable/selector_radio_bg"
+                    android:button="@null"
+                    android:gravity="center"
+                    android:text="@string/feeding_type_other"
+                    android:textColor="@color/selector_radio_text_color"
+                    android:textSize="@dimen/sp_14" />
+
             </RadioGroup>
+
+            <!-- ==================== 辅食选项区域 ==================== -->
+            <LinearLayout
+                android:id="@+id/llSolidFood"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_16"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <!-- 辅食分类选择 -->
+                <TextView
+                    style="@style/BoldTextAppearance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="@dimen/dp_10"
+                    android:text="@string/solid_food_type"
+                    android:textColor="?attr/primary90"
+                    android:textSize="@dimen/sp_14" />
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp_8"
+                    android:scrollbars="none">
+
+                    <RadioGroup
+                        android:id="@+id/rgSolidCategory"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/dp_10">
+
+                        <RadioButton
+                            android:id="@+id/rbSolidStaple"
+                            style="@style/SolidCategoryRadioButton"
+                            android:text="@string/solid_category_staple" />
+
+                        <RadioButton
+                            android:id="@+id/rbSolidVegetable"
+                            style="@style/SolidCategoryRadioButton"
+                            android:text="@string/solid_category_vegetable" />
+
+                        <RadioButton
+                            android:id="@+id/rbSolidFruit"
+                            style="@style/SolidCategoryRadioButton"
+                            android:text="@string/solid_category_fruit" />
+
+                        <RadioButton
+                            android:id="@+id/rbSolidProtein"
+                            style="@style/SolidCategoryRadioButton"
+                            android:text="@string/solid_category_protein" />
+
+                        <RadioButton
+                            android:id="@+id/rbSolidDairy"
+                            style="@style/SolidCategoryRadioButton"
+                            android:text="@string/solid_category_dairy" />
+
+                        <RadioButton
+                            android:id="@+id/rbSolidDrink"
+                            style="@style/SolidCategoryRadioButton"
+                            android:text="@string/solid_category_drink" />
+
+                        <RadioButton
+                            android:id="@+id/rbSolidSupplement"
+                            style="@style/SolidCategoryRadioButton"
+                            android:text="@string/solid_category_supplement" />
+
+                        <RadioButton
+                            android:id="@+id/rbSolidSnack"
+                            style="@style/SolidCategoryRadioButton"
+                            android:text="@string/solid_category_snack" />
+
+                        <RadioButton
+                            android:id="@+id/rbSolidOther"
+                            style="@style/SolidCategoryRadioButton"
+                            android:text="@string/solid_category_other" />
+
+                    </RadioGroup>
+                </HorizontalScrollView>
+
+                <!-- 辅食子类选择 -->
+                <HorizontalScrollView
+                    android:id="@+id/hsvSolidSubtype"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp_8"
+                    android:scrollbars="none"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <RadioGroup
+                        android:id="@+id/rgSolidSubtype"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/dp_10" />
+                </HorizontalScrollView>
+
+                <!-- 食物名称输入（需要时显示） -->
+                <LinearLayout
+                    android:id="@+id/llSolidFoodName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp_12"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <TextView
+                        style="@style/BoldTextAppearance"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="@dimen/dp_10"
+                        android:text="@string/solid_food_name"
+                        android:textColor="?attr/primary90"
+                        android:textSize="@dimen/sp_14" />
+
+                    <EditText
+                        android:id="@+id/etSolidFoodName"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/dp_44"
+                        android:layout_marginTop="@dimen/dp_8"
+                        android:background="?attr/bg_r6_block_gridview"
+                        android:hint="@string/solid_food_name_hint"
+                        android:inputType="text"
+                        android:paddingHorizontal="@dimen/dp_12"
+                        android:textColor="?attr/primary90"
+                        android:textColorHint="?attr/weaken40"
+                        android:textSize="@dimen/sp_14" />
+
+                </LinearLayout>
+
+                <!-- 喂食量 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp_12"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/BoldTextAppearance"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="@dimen/dp_10"
+                        android:text="@string/solid_food_amount"
+                        android:textColor="?attr/primary90"
+                        android:textSize="@dimen/sp_14" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/dp_44"
+                        android:layout_marginTop="@dimen/dp_8"
+                        android:background="?attr/bg_r6_block_gridview"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="@dimen/dp_12">
+
+                        <EditText
+                            android:id="@+id/etSolidAmount"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@null"
+                            android:hint="@string/feeding_amount_hint"
+                            android:inputType="number"
+                            android:maxLength="4"
+                            android:textColor="?attr/primary90"
+                            android:textColorHint="?attr/weaken40"
+                            android:textSize="@dimen/sp_14" />
+
+                        <TextView
+                            android:id="@+id/tvSolidUnit"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="g"
+                            android:textColor="?attr/weaken40"
+                            android:textSize="@dimen/sp_14" />
+
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- 首次尝试勾选 -->
+                <CheckBox
+                    android:id="@+id/cbFirstTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp_12"
+                    android:paddingHorizontal="@dimen/dp_10"
+                    android:text="@string/solid_food_first_time"
+                    android:textColor="?attr/primary90"
+                    android:textSize="@dimen/sp_14" />
+
+                <!-- 过敏风险提示 -->
+                <TextView
+                    android:id="@+id/tvAllergenTip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp_8"
+                    android:paddingHorizontal="@dimen/dp_10"
+                    android:text="@string/solid_food_allergen_tip"
+                    android:textColor="#E65100"
+                    android:textSize="@dimen/sp_12"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+            <!-- ==================== 其他类型输入区域 ==================== -->
+            <LinearLayout
+                android:id="@+id/llOtherFood"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_16"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    style="@style/BoldTextAppearance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="@dimen/dp_10"
+                    android:text="@string/other_food_name"
+                    android:textColor="?attr/primary90"
+                    android:textSize="@dimen/sp_14" />
+
+                <EditText
+                    android:id="@+id/etOtherFoodName"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/dp_44"
+                    android:layout_marginTop="@dimen/dp_8"
+                    android:background="?attr/bg_r6_block_gridview"
+                    android:hint="@string/other_food_name_hint"
+                    android:inputType="text"
+                    android:paddingHorizontal="@dimen/dp_12"
+                    android:textColor="?attr/primary90"
+                    android:textColorHint="?attr/weaken40"
+                    android:textSize="@dimen/sp_14" />
+
+            </LinearLayout>
+
+            <!-- 喂奶量（配方奶/混合喂养时显示） -->
+            <LinearLayout
+                android:id="@+id/llFeedingAmount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_16"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    style="@style/BoldTextAppearance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="@dimen/dp_10"
+                    android:text="@string/feeding_amount"
+                    android:textColor="?attr/primary90"
+                    android:textSize="@dimen/sp_14" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/dp_44"
+                    android:layout_marginTop="@dimen/dp_8"
+                    android:background="?attr/bg_r6_block_gridview"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="@dimen/dp_10">
+
+                    <EditText
+                        android:id="@+id/etFeedingAmount"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:hint="@string/feeding_amount_hint"
+                        android:inputType="number"
+                        android:maxLength="4"
+                        android:textColor="?attr/primary90"
+                        android:textColorHint="?attr/weaken40"
+                        android:textSize="@dimen/sp_14" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/unit_ml"
+                        android:textColor="?attr/weaken40"
+                        android:textSize="@dimen/sp_14" />
+
+                </LinearLayout>
+
+            </LinearLayout>
 
             <!-- 左右乳房时长（仅母乳喂养时显示） -->
             <LinearLayout

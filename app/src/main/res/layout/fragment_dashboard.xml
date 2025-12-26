@@ -332,6 +332,7 @@
                     android:id="@+id/ivPredictSleep"
                     android:layout_width="@dimen/dp_24"
                     android:layout_height="@dimen/dp_24"
+                    android:layout_marginTop="@dimen/dp_12"
                     android:src="@drawable/ic_sleep"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/dividerPredict"
@@ -363,6 +364,26 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <!-- ==================== 快速记录区域 ==================== -->
+            <TextView
+                android:id="@+id/tvQuickRecordTitle"
+                style="@style/BoldTextAppearance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_24"
+                android:text="@string/quick_record"
+                android:textColor="?attr/primary90"
+                android:textSize="@dimen/sp_16" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvQuickRecord"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_12"
+                android:background="?attr/bg_r12_secondary_bg_default"
+                android:clipToPadding="false"
+                android:overScrollMode="never" />
+
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
@@ -375,7 +396,6 @@
         android:background="?attr/secondary_bg_default"
         android:elevation="@dimen/dp_8"
         android:orientation="horizontal"
-        android:paddingHorizontal="@dimen/dp_20"
         android:paddingVertical="@dimen/dp_12"
         app:layout_constraintBottom_toBottomOf="parent">
 
@@ -385,14 +405,12 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="?attr/selectableItemBackground"
             android:gravity="center"
-            android:orientation="vertical"
-            android:padding="@dimen/dp_8">
+            android:orientation="vertical">
 
             <ImageView
-                android:layout_width="@dimen/dp_32"
-                android:layout_height="@dimen/dp_32"
+                android:layout_width="@dimen/dp_28"
+                android:layout_height="@dimen/dp_28"
                 android:src="@drawable/ic_feeding"
                 app:tint="@color/feeding_primary" />
 
@@ -412,14 +430,12 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="?attr/selectableItemBackground"
             android:gravity="center"
-            android:orientation="vertical"
-            android:padding="@dimen/dp_8">
+            android:orientation="vertical">
 
             <ImageView
-                android:layout_width="@dimen/dp_32"
-                android:layout_height="@dimen/dp_32"
+                android:layout_width="@dimen/dp_28"
+                android:layout_height="@dimen/dp_28"
                 android:src="@drawable/ic_sleep"
                 app:tint="@color/sleep_primary" />
 
@@ -429,6 +445,31 @@
                 android:layout_marginTop="@dimen/dp_4"
                 android:text="@string/sleeping"
                 android:textColor="@color/sleep_primary"
+                android:textSize="@dimen/sp_12" />
+
+        </LinearLayout>
+
+        <!-- 事件记录按钮 -->
+        <LinearLayout
+            android:id="@+id/llEventAction"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="@dimen/dp_28"
+                android:layout_height="@dimen/dp_28"
+                android:src="@drawable/ic_event_other"
+                app:tint="@color/event_other" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_4"
+                android:text="@string/more_events"
+                android:textColor="@color/event_other"
                 android:textSize="@dimen/sp_12" />
 
         </LinearLayout>
