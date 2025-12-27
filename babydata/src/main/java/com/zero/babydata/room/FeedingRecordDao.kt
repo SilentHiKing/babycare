@@ -33,4 +33,10 @@ interface FeedingRecordDao {
 
     @Query("SELECT * FROM Feeding_Records WHERE babyId = :babyId ORDER BY feedingStart DESC LIMIT :limit")
     fun getRecentFeedings(babyId: Int, limit: Int): List<FeedingRecord>
+
+    @Query("SELECT DISTINCT date(feedingStart / 1000, 'unixepoch', 'localtime') as recordDate FROM Feeding_Records WHERE babyId = :babyId AND feedingStart BETWEEN :startTime AND :endTime")
+    fun getDatesWithFeedings(babyId: Int, startTime: Long, endTime: Long): List<String>
+
+    @Query("SELECT * FROM Feeding_Records WHERE feedingId = :feedingId")
+    fun getFeedingRecordById(feedingId: Int): FeedingRecord?
 }

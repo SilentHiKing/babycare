@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/bg_r12_secondary_bg_default"
+    android:layout_marginBottom="@dimen/dp_8"
+    android:padding="@dimen/dp_12">
+
+    <!-- 时间 -->
+    <TextView
+        android:id="@+id/tvTime"
+        style="@style/BoldTextAppearance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/primary90"
+        android:textSize="@dimen/sp_14"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="08:30" />
+
+    <!-- 时间轴点 -->
+    <View
+        android:id="@+id/vTimelineDot"
+        android:layout_width="@dimen/dp_8"
+        android:layout_height="@dimen/dp_8"
+        android:layout_marginStart="@dimen/dp_8"
+        android:background="@drawable/circle_white"
+        android:backgroundTint="@color/feeding_primary"
+        app:layout_constraintBottom_toBottomOf="@id/tvTime"
+        app:layout_constraintStart_toEndOf="@id/tvTime"
+        app:layout_constraintTop_toTopOf="@id/tvTime" />
+
+    <!-- 图标 -->
+    <ImageView
+        android:id="@+id/ivIcon"
+        android:layout_width="@dimen/dp_32"
+        android:layout_height="@dimen/dp_32"
+        android:layout_marginStart="@dimen/dp_12"
+        android:padding="@dimen/dp_4"
+        android:background="@drawable/bg_event_icon_circle"
+        android:backgroundTint="@color/feeding_bg"
+        android:src="@drawable/ic_feeding"
+        app:layout_constraintStart_toEndOf="@id/vTimelineDot"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/feeding_primary" />
+
+    <!-- 标题 -->
+    <TextView
+        android:id="@+id/tvTitle"
+        style="@style/BoldTextAppearance"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_10"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?attr/primary90"
+        android:textSize="@dimen/sp_15"
+        app:layout_constraintBottom_toBottomOf="@id/ivIcon"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/ivIcon"
+        app:layout_constraintTop_toTopOf="@id/ivIcon"
+        tools:text="母乳喂养" />
+
+    <!-- 详情信息 -->
+    <TextView
+        android:id="@+id/tvDetail"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_6"
+        android:textColor="?attr/weaken40"
+        android:textSize="@dimen/sp_13"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/ivIcon"
+        app:layout_constraintTop_toBottomOf="@id/ivIcon"
+        tools:text="左侧10分 · 右侧5分 · 共15分钟" />
+
+    <!-- 备注（可选） -->
+    <TextView
+        android:id="@+id/tvNote"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_4"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="?attr/weaken40"
+        android:textSize="@dimen/sp_12"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/ivIcon"
+        app:layout_constraintTop_toBottomOf="@id/tvDetail"
+        tools:text="备注：喝得很好"
+        tools:visibility="visible" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

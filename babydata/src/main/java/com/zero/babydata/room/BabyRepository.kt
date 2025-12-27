@@ -6,8 +6,13 @@ import androidx.lifecycle.MutableLiveData
 import com.zero.babydata.entity.BabyInfo
 import com.zero.babydata.entity.ChildDailyRecord
 import com.zero.babydata.entity.EventRecord
+import com.zero.babydata.entity.EventType
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.SleepRecord
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.ZoneId
+import java.util.concurrent.TimeUnit
 
 class BabyRepository(context: Context) {
 
@@ -198,5 +203,148 @@ class BabyRepository(context: Context) {
 
     fun getEventRecordsByType(babyId: Int, type: Int): List<EventRecord> {
         return eventRecordDao.getAllEventRecordByType(babyId, type)
+    }
+
+    fun getEventRecordsForDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<EventRecord> {
+        return eventRecordDao.getEventRecordsForDay(babyId, startOfDay, endOfDay)
+    }
+
+    fun deleteEventRecordById(eventId: Int, callback: Runnable? = null) {
+        run({ eventRecordDao.deleteEventRecordById(eventId) }, callback)
+    }
+
+    fun getEventRecordById(eventId: Int): EventRecord? {
+        return eventRecordDao.getEventRecordById(eventId)
+    }
+
+    fun getFeedingRecordById(feedingId: Int): FeedingRecord? {
+        return feedingRecordDao.getFeedingRecordById(feedingId)
+    }
+
+    fun getSleepRecordById(sleepId: Int): SleepRecord? {
+        return sleepRecordDao.getSleepRecordById(sleepId)
+    }
+
+    // ==================== 统计页面相关查询 ====================
+
+    /**
+     * 获取指定日期有记录的日期集合
+     * @param babyId 宝宝ID
+     * @param yearMonth 年月
+     * @return 有记录的日期集合
+     */
+    fun getDatesWithRecords(babyId: Int, yearMonth: YearMonth): Set<LocalDate> {
+        val startOfMonth = yearMonth.atDay(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val endOfMonth = yearMonth.atEndOfMonth().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1
+
+        val feedingDates = feedingRecordDao.getDatesWithFeedings(babyId, startOfMonth, endOfMonth)
+        val sleepDates = sleepRecordDao.getDatesWithSleeps(babyId, startOfMonth, endOfMonth)
+        val eventDates = eventRecordDao.getDatesWithEvents(babyId, startOfMonth, endOfMonth)
+
+        val allDates = mutableSetOf<LocalDate>()
+        (feedingDates + sleepDates + eventDates).forEach { dateStr ->
+            try {
+                allDates.add(LocalDate.parse(dateStr))
+            } catch (_: Exception) {
+                // 忽略解析错误
+            }
+        }
+        return allDates
+    }
+
+    /**
+     * 数据类：当日统计摘要
+     */
+    data class DaySummaryData(
+        val feedingCount: Int = 0,
+        val feedingTotalMinutes: Int = 0,
+        val feedingTotalMl: Int = 0,
+        val sleepCount: Int = 0,
+        val sleepTotalMinutes: Int = 0,
+        val diaperWetCount: Int = 0,
+        val diaperDirtyCount: Int = 0,
+        val diaperMixedCount: Int = 0,
+        val diaperDryCount: Int = 0,
+        val otherEventCount: Int = 0
+    )
+
+    /**
+     * 获取当日统计摘要
+     */
+    fun getDaySummary(babyId: Int, date: LocalDate): DaySummaryData {
+        val startOfDay = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val endOfDay = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1
+
+        // 喂养统计
+        val feedings = feedingRecordDao.getFeedingRecordsForDay(babyId, startOfDay, endOfDay)
+        val feedingCount = feedings.size
+        val feedingTotalMinutes = feedings.sumOf { 
+            TimeUnit.MILLISECONDS.toMinutes(it.feedingDuration).toInt() 
+        }
+        val feedingTotalMl = feedings.sumOf { it.feedingAmount ?: 0 }
+
+        // 睡眠统计
+        val sleeps = sleepRecordDao.getSleepRecordsForDay(babyId, startOfDay, endOfDay)
+        val sleepCount = sleeps.size
+        val sleepTotalMinutes = sleeps.sumOf { 
+            TimeUnit.MILLISECONDS.toMinutes(it.sleepDuration).toInt() 
+        }
+
+        // 事件统计
+        val events = eventRecordDao.getEventRecordsForDay(babyId, startOfDay, endOfDay)
+        var diaperWetCount = 0
+        var diaperDirtyCount = 0
+        var diaperMixedCount = 0
+        var diaperDryCount = 0
+        var otherEventCount = 0
+
+        events.forEach { event ->
+            when (event.type) {
+                EventType.DIAPER_WET -> diaperWetCount++
+                EventType.DIAPER_DIRTY -> diaperDirtyCount++
+                EventType.DIAPER_MIXED -> diaperMixedCount++
+                EventType.DIAPER_DRY -> diaperDryCount++
+                else -> otherEventCount++
+            }
+        }
+
+        return DaySummaryData(
+            feedingCount = feedingCount,
+            feedingTotalMinutes = feedingTotalMinutes,
+            feedingTotalMl = feedingTotalMl,
+            sleepCount = sleepCount,
+            sleepTotalMinutes = sleepTotalMinutes,
+            diaperWetCount = diaperWetCount,
+            diaperDirtyCount = diaperDirtyCount,
+            diaperMixedCount = diaperMixedCount,
+            diaperDryCount = diaperDryCount,
+            otherEventCount = otherEventCount
+        )
+    }
+
+    /**
+     * 数据类：时间轴条目
+     */
+    sealed class TimelineRecord(open val time: Long) {
+        data class Feeding(val record: FeedingRecord) : TimelineRecord(record.feedingStart)
+        data class Sleep(val record: SleepRecord) : TimelineRecord(record.sleepStart)
+        data class Event(val record: EventRecord) : TimelineRecord(record.time)
+    }
+
+    /**
+     * 获取当日时间轴记录（按时间倒序）
+     */
+    fun getTimelineRecords(babyId: Int, date: LocalDate): List<TimelineRecord> {
+        val startOfDay = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val endOfDay = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1
+
+        val feedings = feedingRecordDao.getFeedingRecordsForDay(babyId, startOfDay, endOfDay)
+            .map { TimelineRecord.Feeding(it) }
+        val sleeps = sleepRecordDao.getSleepRecordsForDay(babyId, startOfDay, endOfDay)
+            .map { TimelineRecord.Sleep(it) }
+        val events = eventRecordDao.getEventRecordsForDay(babyId, startOfDay, endOfDay)
+            .map { TimelineRecord.Event(it) }
+
+        return (feedings + sleeps + events).sortedByDescending { it.time }
     }
 }

@@ -317,4 +317,20 @@
     <string name="event_other_custom">自定义</string>
     <string name="custom_event_name">事件名称</string>
     <string name="custom_event_hint">请输入事件名称</string>
+
+    <!-- 统计页面 -->
+    <string name="statistics">统计</string>
+    <string name="daily_records">生活记录</string>
+    <string name="no_records_today">这一天还没有记录</string>
+    <string name="add_record">添加记录</string>
+    <string name="diaper">尿布</string>
+    <string name="count_times">%d次</string>
+    <string name="duration_format_short">%1$dh%2$dm</string>
+    <string name="left_side">左侧</string>
+    <string name="right_side">右侧</string>
+    <string name="duration_min">%d分钟</string>
+    <string name="amount_ml">%dml</string>
+    <string name="sleep_started">开始睡觉</string>
+    <string name="sleep_ended">睡醒了</string>
+    <string name="sleep_in_progress">睡眠中</string>
 </resources>

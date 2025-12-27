@@ -33,4 +33,10 @@ interface SleepRecordDao {
 
     @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId ORDER BY sleepStart DESC LIMIT :limit")
     fun getRecentSleeps(babyId: Int, limit: Int): List<SleepRecord>
+
+    @Query("SELECT DISTINCT date(sleepStart / 1000, 'unixepoch', 'localtime') as recordDate FROM Sleep_Records WHERE babyId = :babyId AND sleepStart BETWEEN :startTime AND :endTime")
+    fun getDatesWithSleeps(babyId: Int, startTime: Long, endTime: Long): List<String>
+
+    @Query("SELECT * FROM Sleep_Records WHERE sleepId = :sleepId")
+    fun getSleepRecordById(sleepId: Int): SleepRecord?
 }

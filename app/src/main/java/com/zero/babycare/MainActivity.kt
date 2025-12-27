@@ -18,6 +18,7 @@ import com.zero.babycare.home.record.FeedingRecordFragment
 import com.zero.babycare.home.record.SleepRecordFragment
 import com.zero.babycare.home.record.event.EventRecordFragment
 import com.zero.babycare.navigation.NavTarget
+import com.zero.babycare.statistics.StatisticsFragment
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.ext.launchInLifecycle
 import com.zero.common.theme.ThemeManager
@@ -91,6 +92,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         fragments.add(SleepRecordFragment.create())
         fragments.add(AllChildrenFragment.create())
         fragments.add(EventRecordFragment.create())
+        fragments.add(StatisticsFragment.create())
 
         fragments.forEach {
             FragmentUtils.add(supportFragmentManager, it, R.id.flContainer, true)
@@ -135,7 +137,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // 数据统计
         drawerBinding.llStatistics.setOnClickListener {
             closeDrawer()
-            // TODO: 进入数据统计页面
+            vm.navigateTo(NavTarget.Statistics)
         }
         
         // 设置

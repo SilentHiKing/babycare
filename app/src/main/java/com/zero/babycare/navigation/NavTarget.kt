@@ -7,6 +7,7 @@ import com.zero.babycare.home.DashboardFragment
 import com.zero.babycare.home.record.FeedingRecordFragment
 import com.zero.babycare.home.record.SleepRecordFragment
 import com.zero.babycare.home.record.event.EventRecordFragment
+import com.zero.babycare.statistics.StatisticsFragment
 
 /**
  * 导航目标定义
@@ -25,6 +26,11 @@ sealed class NavTarget {
     /** 所有宝宝列表 */
     data object AllChildren : NavTarget() {
         override val fragmentClass = AllChildrenFragment::class.java
+    }
+
+    /** 数据统计页 */
+    data object Statistics : NavTarget() {
+        override val fragmentClass = StatisticsFragment::class.java
     }
 
     /** 喂养记录页 */
