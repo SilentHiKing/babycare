@@ -5,6 +5,10 @@ import android.app.TimePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.EditText
+import android.widget.RadioGroup
+import android.widget.Spinner
+import android.widget.TextView
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
@@ -45,11 +49,19 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
     private lateinit var categoryAdapter: EventCategoryAdapter
     private lateinit var subtypeAdapter: EventSubtypeAdapter
 
+    private var editRecordId: Int? = null
+    private var editingRecord: com.zero.babydata.entity.EventRecord? = null
+    private var isEditMode = false
+    private var isCategoryLocked = false
+    private var pendingExtraData: com.zero.babydata.entity.EventExtraData? = null
+
     private val dateFormat = SimpleDateFormat("M月d日 E", Locale.CHINESE)
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
+
+        resolveEditMode()
 
         setupToolbar()
         setupTimeCard()
@@ -57,8 +69,12 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
         setupSubtypeRecyclerView()
         setupSaveButton()
 
-        // 先处理预选分类，再开始观察，确保初始值正确
-        handlePreSelectedCategory()
+        if (isEditMode) {
+            loadEditRecord()
+        } else {
+            // 先处理预选分类，再开始观察，确保初始值正确
+            handlePreSelectedCategory()
+        }
 
         observeViewModel()
     }
@@ -66,8 +82,13 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (!hidden) {
-            // Fragment 从隐藏变为显示时，处理预选分类
-            handlePreSelectedCategory()
+            resolveEditMode()
+            if (isEditMode) {
+                loadEditRecord()
+            } else {
+                // Fragment 从隐藏变为显示时，处理预选分类
+                handlePreSelectedCategory()
+            }
         }
     }
 
@@ -81,6 +102,44 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
             if (category != null) {
                 vm.selectCategory(category)
             }
+        }
+    }
+
+    private fun resolveEditMode() {
+        val navTarget = mainVm.navTarget.value as? NavTarget.EventRecord
+        editRecordId = navTarget?.editRecordId
+        isEditMode = editRecordId != null
+        isCategoryLocked = isEditMode && navTarget?.returnTarget is NavTarget.Statistics
+        if (!isEditMode) {
+            editingRecord = null
+            pendingExtraData = null
+        }
+    }
+
+    private fun loadEditRecord() {
+        val recordId = editRecordId ?: return
+        vm.loadEventRecordById(recordId) { record ->
+            if (record == null) {
+                mainVm.navigateTo(getReturnTarget())
+                return@loadEventRecordById
+            }
+            editingRecord = record
+            pendingExtraData = com.zero.babydata.entity.EventExtraData.parse(record.type, record.extraData)
+
+            val category = EventCategory.fromId(com.zero.babydata.entity.EventType.getCategory(record.type))
+            val subtype = EventSubtype.fromType(record.type)
+            if (category != null) {
+                vm.selectCategory(category)
+            }
+            if (subtype != null) {
+                vm.selectSubtype(subtype)
+            }
+
+            vm.setEventTime(record.time)
+            vm.setEndTime(if (record.endTime > 0L) record.endTime else null)
+            vm.setExtraData(pendingExtraData)
+            vm.setNote(record.note)
+            binding.etNote.setText(record.note)
         }
     }
 
@@ -100,14 +159,18 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
 
     private fun setupCategoryRecyclerView() {
         categoryAdapter = EventCategoryAdapter { category ->
-            vm.selectCategory(category)
+            if (!isCategoryLocked) {
+                vm.selectCategory(category)
+            }
         }
         binding.rvCategory.adapter = categoryAdapter
     }
 
     private fun setupSubtypeRecyclerView() {
         subtypeAdapter = EventSubtypeAdapter { subtype ->
-            vm.selectSubtype(subtype)
+            if (!isCategoryLocked) {
+                vm.selectSubtype(subtype)
+            }
         }
         binding.rvSubtype.layoutManager = GridLayoutManager(requireContext(), SUBTYPE_SPAN_COUNT)
         binding.rvSubtype.addItemDecoration(
@@ -231,6 +294,92 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
                 binding.containerDetail.visibility = View.GONE
             }
         }
+
+        applyEditDetailIfNeeded(subtype)
+    }
+
+    private fun applyEditDetailIfNeeded(subtype: EventSubtype) {
+        if (!isEditMode) return
+
+        val root = binding.containerDetail
+        val data = pendingExtraData
+
+        when {
+            EventType.isDiaper(subtype.type) -> {
+                val consistencyGroup = root.findViewById<RadioGroup>(com.zero.babycare.R.id.rgStoolConsistency)
+                val colorGroup = root.findViewById<RadioGroup>(com.zero.babycare.R.id.rgStoolColor)
+                val urineGroup = root.findViewById<RadioGroup>(com.zero.babycare.R.id.rgUrineAmount)
+                if (data is DiaperData) {
+                    when (data.consistency) {
+                        DiaperData.CONSISTENCY_WATERY -> consistencyGroup?.check(com.zero.babycare.R.id.rbWatery)
+                        DiaperData.CONSISTENCY_HARD -> consistencyGroup?.check(com.zero.babycare.R.id.rbHard)
+                        DiaperData.CONSISTENCY_NORMAL -> consistencyGroup?.check(com.zero.babycare.R.id.rbSoft)
+                    }
+                    when (data.color) {
+                        DiaperData.COLOR_YELLOW -> colorGroup?.check(com.zero.babycare.R.id.rbYellow)
+                        DiaperData.COLOR_GREEN -> colorGroup?.check(com.zero.babycare.R.id.rbGreen)
+                        DiaperData.COLOR_BROWN -> colorGroup?.check(com.zero.babycare.R.id.rbBrown)
+                        DiaperData.COLOR_BLACK -> colorGroup?.check(com.zero.babycare.R.id.rbBlack)
+                    }
+                    if (data.abnormal) {
+                        urineGroup?.check(com.zero.babycare.R.id.rbMuch)
+                    } else {
+                        urineGroup?.check(com.zero.babycare.R.id.rbNormal)
+                    }
+                }
+            }
+            EventType.isGrowth(subtype.type) -> {
+                val valueView = root.findViewById<EditText>(com.zero.babycare.R.id.etValue)
+                if (data is GrowthData) {
+                    valueView?.setText(data.value.toString())
+                }
+            }
+            subtype.type == EventType.HEALTH_TEMPERATURE -> {
+                val tempView = root.findViewById<EditText>(com.zero.babycare.R.id.etTemperature)
+                if (data is TemperatureData) {
+                    tempView?.setText(data.value.toString())
+                    val detailBinding = LayoutEventDetailTemperatureBinding.bind(root.getChildAt(0))
+                    updateTemperatureStatus(detailBinding, data.value)
+                }
+            }
+            subtype.type == EventType.HEALTH_MEDICINE -> {
+                val nameView = root.findViewById<EditText>(com.zero.babycare.R.id.etMedicineName)
+                val dosageView = root.findViewById<EditText>(com.zero.babycare.R.id.etDosage)
+                val unitView = root.findViewById<Spinner>(com.zero.babycare.R.id.spinnerUnit)
+                if (data is MedicineData) {
+                    nameView?.setText(data.name)
+                    dosageView?.setText(data.dosage)
+                    val adapter = unitView?.adapter
+                    if (adapter != null) {
+                        for (index in 0 until adapter.count) {
+                            if (adapter.getItem(index).toString() == data.unit) {
+                                unitView.setSelection(index)
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+            EventType.isMilestone(subtype.type) -> {
+                val nameView = root.findViewById<EditText>(com.zero.babycare.R.id.etMilestoneName)
+                val descView = root.findViewById<EditText>(com.zero.babycare.R.id.etDescription)
+                if (data is MilestoneData) {
+                    nameView?.setText(data.name.orEmpty())
+                    descView?.setText(data.description.orEmpty())
+                }
+            }
+        }
+
+        if (EventType.hasDuration(subtype.type)) {
+            val endTime = vm.endTime.value
+            if (endTime != null && endTime > 0L) {
+                val detailBinding = LayoutEventDetailActivityBinding.bind(root.getChildAt(0))
+                detailBinding.tvEndTime.text = timeFormat.format(endTime)
+                updateDuration(detailBinding)
+            }
+        }
+
+        pendingExtraData = null
     }
 
     private fun inflateDiaperDetail(inflater: LayoutInflater, type: Int) {
@@ -469,15 +618,19 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
             return
         }
 
+        syncDetailInputs()
+
         // 获取备注
         vm.setNote(binding.etNote.text.toString().trim())
 
         vm.saveRecord(
             babyId = babyId,
+            editRecordId = editRecordId,
+            createdAt = editingRecord?.createdAt,
             onSuccess = {
                 ToastUtils.showShort(R.string.save_success)
                 vm.reset()
-                mainVm.navigateTo(NavTarget.Dashboard)
+                mainVm.navigateTo(getReturnTarget())
             },
             onError = { message ->
                 ToastUtils.showShort(message)
@@ -485,8 +638,86 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
         )
     }
 
+    private fun syncDetailInputs() {
+        val subtype = vm.selectedSubtype.value ?: return
+        val root = binding.containerDetail
+        when {
+            EventType.isDiaper(subtype.type) -> {
+                val consistencyGroup = root.findViewById<RadioGroup>(com.zero.babycare.R.id.rgStoolConsistency)
+                val colorGroup = root.findViewById<RadioGroup>(com.zero.babycare.R.id.rgStoolColor)
+                val urineGroup = root.findViewById<RadioGroup>(com.zero.babycare.R.id.rgUrineAmount)
+                if (consistencyGroup == null || colorGroup == null || urineGroup == null) {
+                    return
+                }
+
+                val consistency = when (consistencyGroup.checkedRadioButtonId) {
+                    com.zero.babycare.R.id.rbWatery -> DiaperData.CONSISTENCY_WATERY
+                    com.zero.babycare.R.id.rbSoft -> DiaperData.CONSISTENCY_NORMAL
+                    com.zero.babycare.R.id.rbHard -> DiaperData.CONSISTENCY_HARD
+                    else -> null
+                }
+                val color = when (colorGroup.checkedRadioButtonId) {
+                    com.zero.babycare.R.id.rbYellow -> DiaperData.COLOR_YELLOW
+                    com.zero.babycare.R.id.rbGreen -> DiaperData.COLOR_GREEN
+                    com.zero.babycare.R.id.rbBrown -> DiaperData.COLOR_BROWN
+                    com.zero.babycare.R.id.rbBlack -> DiaperData.COLOR_BLACK
+                    else -> null
+                }
+                val abnormal = urineGroup.checkedRadioButtonId == com.zero.babycare.R.id.rbMuch
+                vm.setExtraData(DiaperData(color = color, consistency = consistency, abnormal = abnormal))
+            }
+            EventType.isGrowth(subtype.type) -> {
+                val valueView = root.findViewById<EditText>(com.zero.babycare.R.id.etValue)
+                val unitView = root.findViewById<TextView>(com.zero.babycare.R.id.tvUnit)
+                val value = valueView?.text?.toString()?.toDoubleOrNull()
+                val unit = unitView?.text?.toString() ?: ""
+                if (value != null) {
+                    vm.setExtraData(GrowthData(value, unit))
+                } else {
+                    vm.setExtraData(null)
+                }
+            }
+            subtype.type == EventType.HEALTH_TEMPERATURE -> {
+                val tempView = root.findViewById<EditText>(com.zero.babycare.R.id.etTemperature)
+                val value = tempView?.text?.toString()?.toDoubleOrNull()
+                if (value != null) {
+                    vm.setExtraData(TemperatureData(value))
+                } else {
+                    vm.setExtraData(null)
+                }
+            }
+            subtype.type == EventType.HEALTH_MEDICINE -> {
+                val nameView = root.findViewById<EditText>(com.zero.babycare.R.id.etMedicineName)
+                val dosageView = root.findViewById<EditText>(com.zero.babycare.R.id.etDosage)
+                val unitView = root.findViewById<Spinner>(com.zero.babycare.R.id.spinnerUnit)
+                val name = nameView?.text?.toString()?.trim().orEmpty()
+                val dosage = dosageView?.text?.toString()?.trim().orEmpty()
+                val unit = unitView?.selectedItem?.toString()?.ifBlank { "ml" } ?: "ml"
+                if (name.isNotBlank()) {
+                    vm.setExtraData(MedicineData(name, dosage, unit))
+                } else {
+                    vm.setExtraData(null)
+                }
+            }
+            subtype.type == EventType.MILESTONE_CUSTOM -> {
+                val nameView = root.findViewById<EditText>(com.zero.babycare.R.id.etMilestoneName)
+                val descView = root.findViewById<EditText>(com.zero.babycare.R.id.etDescription)
+                val name = nameView?.text?.toString()?.trim().orEmpty()
+                val description = descView?.text?.toString()?.trim().orEmpty()
+                if (name.isNotBlank()) {
+                    vm.setExtraData(MilestoneData(name, description, true))
+                } else {
+                    vm.setExtraData(null)
+                }
+            }
+        }
+    }
+
+    private fun getReturnTarget(): NavTarget {
+        return (mainVm.navTarget.value as? NavTarget.EventRecord)?.returnTarget ?: NavTarget.Dashboard
+    }
+
     private fun handleBack() {
-        mainVm.navigateTo(NavTarget.Dashboard)
+        mainVm.navigateTo(getReturnTarget())
     }
 }
-

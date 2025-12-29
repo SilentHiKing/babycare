@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
-        app:title="@string/event_record" />
+        app:toolbarTitle="@string/event_record" />
 
     <!-- 可滚动内容区域 -->
     <androidx.core.widget.NestedScrollView
@@ -194,4 +194,3 @@
         tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

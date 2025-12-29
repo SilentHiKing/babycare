@@ -48,8 +48,18 @@ fun View.getThemeDrawable(attrRes: Int) = context.getThemeDrawable(attrRes)
 fun Context.getThemeColor(attrRes: Int): Int {
     val context = this as? ContextThemeWrapper ?: Utils.getApp()
     val typedValue = TypedValue()
-    context.theme.resolveAttribute(attrRes, typedValue, true)
-    return ContextCompat.getColor(context, typedValue.resourceId)
+    val resolved = context.theme.resolveAttribute(attrRes, typedValue, true)
+    if (!resolved) {
+        return Color.TRANSPARENT
+    }
+    if (typedValue.resourceId != 0) {
+        return ContextCompat.getColor(context, typedValue.resourceId)
+    }
+    return if (typedValue.type in TypedValue.TYPE_FIRST_COLOR_INT..TypedValue.TYPE_LAST_COLOR_INT) {
+        typedValue.data
+    } else {
+        Color.TRANSPARENT
+    }
 }
 
 fun Context.getThemeDrawable(@AttrRes attrRes: Int): Drawable? {

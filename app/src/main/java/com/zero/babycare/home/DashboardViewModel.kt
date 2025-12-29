@@ -44,10 +44,10 @@ class DashboardViewModel : BaseViewModel() {
             // 计算当前状态（使用 OngoingRecordManager）
             val currentStatus = determineCurrentStatus(babyId)
             val ongoingSleepStart = if (currentStatus == DashboardData.BabyStatus.SLEEPING) {
-                OngoingRecordManager.getOngoingSleepStart()
+                OngoingRecordManager.getOngoingSleepStart(babyId)
             } else null
             val ongoingFeedingStart = if (currentStatus == DashboardData.BabyStatus.FEEDING) {
-                OngoingRecordManager.getOngoingFeedingStart()
+                OngoingRecordManager.getOngoingFeedingStart(babyId)
             } else null
 
             // 上次结束时间（时间戳，用于实时计算）

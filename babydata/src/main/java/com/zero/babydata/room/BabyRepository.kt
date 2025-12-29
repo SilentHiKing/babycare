@@ -7,6 +7,7 @@ import com.zero.babydata.entity.BabyInfo
 import com.zero.babydata.entity.ChildDailyRecord
 import com.zero.babydata.entity.EventRecord
 import com.zero.babydata.entity.EventType
+import com.zero.babydata.entity.FeedingType
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.SleepRecord
 import java.time.LocalDate
@@ -281,7 +282,12 @@ class BabyRepository(context: Context) {
         val feedingTotalMinutes = feedings.sumOf { 
             TimeUnit.MILLISECONDS.toMinutes(it.feedingDuration).toInt() 
         }
-        val feedingTotalMl = feedings.sumOf { it.feedingAmount ?: 0 }
+        val feedingTotalMl = feedings
+            .filter {
+                it.feedingType == FeedingType.FORMULA.type ||
+                    it.feedingType == FeedingType.MIXED.type
+            }
+            .sumOf { it.feedingAmount ?: 0 }
 
         // 睡眠统计
         val sleeps = sleepRecordDao.getSleepRecordsForDay(babyId, startOfDay, endOfDay)

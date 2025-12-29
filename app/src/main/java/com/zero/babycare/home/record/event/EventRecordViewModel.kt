@@ -1,5 +1,6 @@
 package com.zero.babycare.home.record.event
 
+import androidx.lifecycle.viewModelScope
 import com.blankj.utilcode.util.ThreadUtils
 import com.zero.babydata.domain.BabyDataHelper.repository
 import com.zero.babydata.entity.EventExtraData
@@ -8,6 +9,9 @@ import com.zero.babydata.entity.EventType
 import com.zero.components.base.vm.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * 事件记录 ViewModel
@@ -83,6 +87,15 @@ class EventRecordViewModel : BaseViewModel() {
         _note.value = note
     }
 
+    fun loadEventRecordById(eventId: Int, callback: (EventRecord?) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val record = repository.getEventRecordById(eventId)
+            withContext(Dispatchers.Main) {
+                callback(record)
+            }
+        }
+    }
+
     /**
      * 判断当前事件类型是否需要时长
      */
@@ -144,7 +157,13 @@ class EventRecordViewModel : BaseViewModel() {
     /**
      * 保存事件记录
      */
-    fun saveRecord(babyId: Int, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    fun saveRecord(
+        babyId: Int,
+        editRecordId: Int? = null,
+        createdAt: Long? = null,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         val validation = validateData()
         if (validation is ValidationResult.Error) {
             onError(validation.message)
@@ -155,19 +174,24 @@ class EventRecordViewModel : BaseViewModel() {
 
         safeLaunch {
             val record = EventRecord(
+                eventId = editRecordId ?: 0,
                 babyId = babyId,
                 type = subtype.type,
                 time = _eventTime.value,
                 endTime = _endTime.value ?: 0L,
                 extraData = _extraData.value?.toJson() ?: "",
                 note = _note.value,
-                createdAt = System.currentTimeMillis()
+                createdAt = createdAt ?: System.currentTimeMillis()
             )
 
-            repository.insertEventRecord(record) {
-                ThreadUtils.runOnUiThread {
-                    onSuccess()
-                }
+            val onComplete = Runnable {
+                ThreadUtils.runOnUiThread { onSuccess() }
+            }
+
+            if (editRecordId != null) {
+                repository.updateEventRecord(record, onComplete)
+            } else {
+                repository.insertEventRecord(record, onComplete)
             }
         }
     }
@@ -192,4 +216,3 @@ class EventRecordViewModel : BaseViewModel() {
         data class Error(val message: String) : ValidationResult()
     }
 }
-

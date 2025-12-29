@@ -1,7 +1,6 @@
 package com.zero.components.base
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
 import androidx.annotation.IdRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
@@ -9,6 +8,7 @@ import androidx.viewbinding.ViewBinding
 import com.lxj.xpopup.impl.LoadingPopupView
 import com.zero.common.theme.ThemeManager
 import com.zero.common.util.ActivityCompatHelper
+import com.zero.common.util.StatusBarUtil
 import com.zero.components.base.util.DialogHelper
 
 abstract class BaseActivity<VB : ViewBinding> : BaseBindingActivity<VB>() {
@@ -20,8 +20,9 @@ abstract class BaseActivity<VB : ViewBinding> : BaseBindingActivity<VB>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // 应用主题 - 必须在 super.onCreate() 之前
         applyThemeIfNeeded()
-        enableEdgeToEdge()
+
         super.onCreate(savedInstanceState)
+        setupSystemBars()
         initView(savedInstanceState)
         initData(savedInstanceState)
 
@@ -58,5 +59,9 @@ abstract class BaseActivity<VB : ViewBinding> : BaseBindingActivity<VB>() {
      */
     protected open fun applyThemeIfNeeded() {
         ThemeManager.applyTheme(this)
+    }
+
+    protected open fun setupSystemBars() {
+        StatusBarUtil.setupForLightPage(this, binding.root)
     }
 }

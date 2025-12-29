@@ -68,6 +68,10 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         activityViewModels<MainViewModel>().value
     }
 
+    private var editRecordId: Int? = null
+    private var editingRecord: FeedingRecord? = null
+    private var isEditMode = false
+
     // 当前选择的喂养类型
     private var selectedFeedingType = FeedingType.BREAST
     
@@ -100,7 +104,11 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         setupFirstTimeCheckbox()
         
         // 初始化时重置页面数据
+        resolveEditMode()
         resetPage()
+        if (isEditMode) {
+            loadEditRecord()
+        }
     }
 
     override fun onDestroyView() {
@@ -685,7 +693,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         if (hasUnsavedChanges) {
             showExitConfirmDialog()
         } else {
-            mainVm.navigateTo(NavTarget.Dashboard)
+            mainVm.navigateTo(getReturnTarget())
         }
     }
 
@@ -771,6 +779,107 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         val endTime = binding.etEndTime.getTimestamp()
         val duration = DateUtils.calculateDuration(startTime, endTime)
         binding.rvCounter.showDurationWithoutTimer(duration)
+    }
+
+    private fun resolveEditMode() {
+        val navTarget = mainVm.navTarget.value as? NavTarget.FeedingRecord
+        editRecordId = navTarget?.editRecordId
+        isEditMode = editRecordId != null
+        if (!isEditMode) {
+            editingRecord = null
+        }
+    }
+
+    private fun loadEditRecord() {
+        val recordId = editRecordId ?: return
+        vm.loadFeedingRecordById(recordId) { record ->
+            if (record == null) {
+                mainVm.navigateTo(getReturnTarget())
+                return@loadFeedingRecordById
+            }
+            editingRecord = record
+            applyRecordToUi(record)
+        }
+    }
+
+    private fun applyRecordToUi(record: FeedingRecord) {
+        isProgrammaticChange = true
+
+        selectedFeedingType = FeedingType.fromType(record.feedingType)
+        when (selectedFeedingType) {
+            FeedingType.BREAST -> binding.rbBreast.isChecked = true
+            FeedingType.FORMULA -> binding.rbFormula.isChecked = true
+            FeedingType.MIXED -> binding.rbMixed.isChecked = true
+            FeedingType.SOLID_FOOD -> binding.rbSolid.isChecked = true
+            FeedingType.OTHER -> binding.rbOther.isChecked = true
+        }
+        updateFeedingTypeVisibility()
+
+        binding.etStartTime.setTimestamp(record.feedingStart)
+        updateEndTimeReference()
+        if (record.feedingEnd > 0L) {
+            binding.etEndTime.setTimestamp(record.feedingEnd)
+        }
+        updateDurationFromTimeRange()
+
+        val leftMinutes = DateUtils.millisecondsToMinutes(record.feedingDurationBreastLeft)
+        val rightMinutes = DateUtils.millisecondsToMinutes(record.feedingDurationBreastRight)
+        binding.etLeftBreastDuration.setText(if (leftMinutes > 0) leftMinutes.toString() else "")
+        binding.etRightBreastDuration.setText(if (rightMinutes > 0) rightMinutes.toString() else "")
+
+        when (selectedFeedingType) {
+            FeedingType.FORMULA, FeedingType.MIXED -> {
+                binding.etFeedingAmount.setText(record.feedingAmount?.toString().orEmpty())
+            }
+            FeedingType.SOLID_FOOD -> {
+                val solidType = record.solidFoodType
+                if (solidType != null) {
+                    selectedSolidCategory = if (solidType == SolidFoodType.OTHER) {
+                        SolidFoodType.CATEGORY_OTHER
+                    } else {
+                        SolidFoodType.getCategory(solidType)
+                    }
+                    when (selectedSolidCategory) {
+                        SolidFoodType.CATEGORY_STAPLE -> binding.rbSolidStaple.isChecked = true
+                        SolidFoodType.CATEGORY_VEGETABLE -> binding.rbSolidVegetable.isChecked = true
+                        SolidFoodType.CATEGORY_FRUIT -> binding.rbSolidFruit.isChecked = true
+                        SolidFoodType.CATEGORY_PROTEIN -> binding.rbSolidProtein.isChecked = true
+                        SolidFoodType.CATEGORY_DAIRY -> binding.rbSolidDairy.isChecked = true
+                        SolidFoodType.CATEGORY_DRINK -> binding.rbSolidDrink.isChecked = true
+                        SolidFoodType.CATEGORY_SUPPLEMENT -> binding.rbSolidSupplement.isChecked = true
+                        SolidFoodType.CATEGORY_SNACK -> binding.rbSolidSnack.isChecked = true
+                        SolidFoodType.CATEGORY_OTHER -> binding.rbSolidOther.isChecked = true
+                    }
+                    updateSolidSubtypes()
+                    if (selectedSolidCategory != SolidFoodType.CATEGORY_OTHER) {
+                        for (index in 0 until binding.rgSolidSubtype.childCount) {
+                            val radio = binding.rgSolidSubtype.getChildAt(index) as? android.widget.RadioButton
+                            if (radio?.tag == solidType) {
+                                radio.isChecked = true
+                                break
+                            }
+                        }
+                    }
+                    selectedSolidSubtype = solidType
+                }
+
+                binding.etSolidFoodName.setText(record.foodName.orEmpty())
+                binding.etSolidAmount.setText(record.feedingAmount?.toString().orEmpty())
+                binding.cbFirstTime.isChecked = record.isFirstTime
+                updateSolidFoodNameVisibility()
+                updateSolidUnit()
+                updateAllergenTip()
+            }
+            FeedingType.OTHER -> {
+                binding.etOtherFoodName.setText(record.foodName.orEmpty())
+            }
+            else -> Unit
+        }
+
+        binding.etNote.setText(record.note)
+
+        hasUnsavedChanges = false
+        isProgrammaticChange = false
     }
 
     /**
@@ -938,6 +1047,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         } else null
 
         val feedingRecord = FeedingRecord().apply {
+            this.feedingId = editingRecord?.feedingId ?: 0
             this.babyId = babyId
             this.feedingType = selectedFeedingType.type
             this.feedingStart = startTime
@@ -950,16 +1060,24 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
             this.foodName = foodName
             this.isFirstTime = isFirstTime
             this.note = binding.etNote.text.toString().trim()
-            this.createdAt = System.currentTimeMillis()
+            this.createdAt = editingRecord?.createdAt ?: System.currentTimeMillis()
         }
 
-        vm.insert(feedingRecord) {
+        val onSaved = Runnable {
             LogUtils.d("feedingRecord success")
-            // 清除进行中状态
-            OngoingRecordManager.endFeeding()
-            // 重置页面数据，防止再次进入时显示历史数据
-            view?.post { resetPage() }
-            mainVm.navigateTo(NavTarget.Dashboard)
+            if (!isEditMode) {
+                // 清除进行中状态
+                OngoingRecordManager.endFeeding(babyId)
+                // 重置页面数据，防止再次进入时显示历史数据
+                view?.post { resetPage() }
+            }
+            mainVm.navigateTo(getReturnTarget())
+        }
+
+        if (isEditMode) {
+            vm.update(feedingRecord, onSaved)
+        } else {
+            vm.insert(feedingRecord, onSaved)
         }
     }
 
@@ -975,9 +1093,18 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
             cancelText = StringUtils.getString(R.string.cancel),
             onConfirm = {
                 hasUnsavedChanges = false
-                mainVm.navigateTo(NavTarget.Dashboard)
+                if (!isEditMode) {
+                    mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
+                        OngoingRecordManager.cancelFeeding(babyId)
+                    }
+                }
+                mainVm.navigateTo(getReturnTarget())
             }
         )
+    }
+
+    private fun getReturnTarget(): NavTarget {
+        return (mainVm.navTarget.value as? NavTarget.FeedingRecord)?.returnTarget ?: NavTarget.Dashboard
     }
 
     /**
@@ -1047,11 +1174,16 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         if (hidden) {
             // 隐藏时不重置计时器（保留进行中状态）
         } else {
+            resolveEditMode()
+            if (isEditMode) {
+                loadEditRecord()
+                return
+            }
             // 检查是否有进行中的喂养记录
             val babyId = mainVm.getCurrentBabyInfo()?.babyId
             if (babyId != null && OngoingRecordManager.isFeeding(babyId)) {
                 // 恢复进行中的记录
-                restoreOngoingFeeding()
+                restoreOngoingFeeding(babyId)
             } else {
                 resetPage()
             }
@@ -1062,13 +1194,13 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
     /**
      * 恢复进行中的喂养记录
      */
-    private fun restoreOngoingFeeding() {
-        val startTime = OngoingRecordManager.getOngoingFeedingStart() ?: return
+    private fun restoreOngoingFeeding(babyId: Int) {
+        val startTime = OngoingRecordManager.getOngoingFeedingStart(babyId) ?: return
         
         isProgrammaticChange = true
         
         // 恢复喂养类型
-        selectedFeedingType = FeedingType.fromType(OngoingRecordManager.getOngoingFeedingType())
+        selectedFeedingType = FeedingType.fromType(OngoingRecordManager.getOngoingFeedingType(babyId))
         when (selectedFeedingType) {
             FeedingType.BREAST -> binding.rbBreast.isChecked = true
             FeedingType.FORMULA -> binding.rbFormula.isChecked = true

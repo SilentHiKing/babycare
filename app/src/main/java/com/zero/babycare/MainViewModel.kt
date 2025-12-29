@@ -21,7 +21,30 @@ class MainViewModel : BaseViewModel() {
      * 导航到指定目标
      */
     fun navigateTo(target: NavTarget) {
-        _navTarget.value = target
+        val current = _navTarget.value
+        _navTarget.value = when (target) {
+            is NavTarget.Statistics -> target.copy(
+                returnTarget = resolveReturnTarget(target.returnTarget, current, (current as? NavTarget.Statistics)?.returnTarget)
+            )
+            is NavTarget.FeedingRecord -> target.copy(
+                returnTarget = resolveReturnTarget(target.returnTarget, current, (current as? NavTarget.FeedingRecord)?.returnTarget)
+            )
+            is NavTarget.SleepRecord -> target.copy(
+                returnTarget = resolveReturnTarget(target.returnTarget, current, (current as? NavTarget.SleepRecord)?.returnTarget)
+            )
+            is NavTarget.EventRecord -> target.copy(
+                returnTarget = resolveReturnTarget(target.returnTarget, current, (current as? NavTarget.EventRecord)?.returnTarget)
+            )
+            else -> target
+        }
+    }
+
+    private fun resolveReturnTarget(
+        explicitReturnTarget: NavTarget?,
+        current: NavTarget,
+        sameTypeReturnTarget: NavTarget?
+    ): NavTarget {
+        return explicitReturnTarget ?: sameTypeReturnTarget ?: current
     }
 
     /**

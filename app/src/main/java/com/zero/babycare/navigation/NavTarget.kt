@@ -29,17 +29,25 @@ sealed class NavTarget {
     }
 
     /** 数据统计页 */
-    data object Statistics : NavTarget() {
+    data class Statistics(
+        val returnTarget: NavTarget? = null
+    ) : NavTarget() {
         override val fragmentClass = StatisticsFragment::class.java
     }
 
     /** 喂养记录页 */
-    data object FeedingRecord : NavTarget() {
+    data class FeedingRecord(
+        val editRecordId: Int? = null,
+        val returnTarget: NavTarget? = null
+    ) : NavTarget() {
         override val fragmentClass = FeedingRecordFragment::class.java
     }
 
     /** 睡眠记录页 */
-    data object SleepRecord : NavTarget() {
+    data class SleepRecord(
+        val editRecordId: Int? = null,
+        val returnTarget: NavTarget? = null
+    ) : NavTarget() {
         override val fragmentClass = SleepRecordFragment::class.java
     }
 
@@ -48,7 +56,9 @@ sealed class NavTarget {
      * @param preSelectedCategory 预选的事件分类ID（对应 EventType.CATEGORY_*），null 表示不预选
      */
     data class EventRecord(
-        val preSelectedCategory: Int? = null
+        val preSelectedCategory: Int? = null,
+        val editRecordId: Int? = null,
+        val returnTarget: NavTarget? = null
     ) : NavTarget() {
         override val fragmentClass = EventRecordFragment::class.java
     }

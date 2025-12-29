@@ -10,6 +10,8 @@
 <!--        <item name="colorSurface">@color/colorPopupBg</item>-->
         <!--  状态栏 -->
         <item name="colorPrimaryDark">@color/colorPrimary</item>
+        <item name="android:statusBarColor">@color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!--  seak bar 颜色覆盖不上来直接现这样来-->
         <item name="colorAccent">@color/colorPrimary</item>
 

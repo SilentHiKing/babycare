@@ -61,6 +61,10 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>() {
         activityViewModels<MainViewModel>().value
     }
 
+    private var editRecordId: Int? = null
+    private var editingRecord: SleepRecord? = null
+    private var isEditMode = false
+
     // 是否有未保存的记录
     private var hasUnsavedChanges = false
 
@@ -82,7 +86,11 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>() {
         setupSaveButton()
 
         // 初始化时重置页面数据
+        resolveEditMode()
         resetPage()
+        if (isEditMode) {
+            loadEditRecord()
+        }
     }
 
     override fun onDestroyView() {
@@ -98,11 +106,16 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>() {
         if (hidden) {
             // 隐藏时不重置计时器（保留进行中状态）
         } else {
+            resolveEditMode()
+            if (isEditMode) {
+                loadEditRecord()
+                return
+            }
             // 检查是否有进行中的睡眠记录
             val babyId = mainVm.getCurrentBabyInfo()?.babyId
             if (babyId != null && OngoingRecordManager.isSleeping(babyId)) {
                 // 恢复进行中的记录
-                restoreOngoingSleep()
+                restoreOngoingSleep(babyId)
             } else {
                 resetPage()
             }
@@ -113,8 +126,8 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>() {
     /**
      * 恢复进行中的睡眠记录
      */
-    private fun restoreOngoingSleep() {
-        val startTime = OngoingRecordManager.getOngoingSleepStart() ?: return
+    private fun restoreOngoingSleep(babyId: Int) {
+        val startTime = OngoingRecordManager.getOngoingSleepStart(babyId) ?: return
         
         isProgrammaticChange = true
         
@@ -501,6 +514,40 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>() {
         binding.rvCounter.showDurationWithoutTimer(duration)
     }
 
+    private fun resolveEditMode() {
+        val navTarget = mainVm.navTarget.value as? NavTarget.SleepRecord
+        editRecordId = navTarget?.editRecordId
+        isEditMode = editRecordId != null
+        if (!isEditMode) {
+            editingRecord = null
+        }
+    }
+
+    private fun loadEditRecord() {
+        val recordId = editRecordId ?: return
+        vm.loadSleepRecordById(recordId) { record ->
+            if (record == null) {
+                mainVm.navigateTo(getReturnTarget())
+                return@loadSleepRecordById
+            }
+            editingRecord = record
+            applyRecordToUi(record)
+        }
+    }
+
+    private fun applyRecordToUi(record: SleepRecord) {
+        isProgrammaticChange = true
+
+        binding.etStartTime.setTimestamp(record.sleepStart)
+        updateEndTimeReference()
+        binding.etEndTime.setTimestamp(record.sleepEnd)
+        updateDurationFromTimeRange()
+        binding.etNote.setText(record.note)
+
+        hasUnsavedChanges = false
+        isProgrammaticChange = false
+    }
+
     /**
      * 保存睡眠记录
      */
@@ -536,21 +583,30 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>() {
         }
 
         val sleepRecord = SleepRecord(
+            sleepId = editingRecord?.sleepId ?: 0,
             babyId = babyId,
             sleepStart = startTime,
             sleepEnd = endTime,
             sleepDuration = endTime - startTime,
             note = binding.etNote.text.toString(),
-            createdAt = System.currentTimeMillis()
+            createdAt = editingRecord?.createdAt ?: System.currentTimeMillis()
         )
 
-        vm.insert(sleepRecord) {
+        val onSaved = {
             ToastUtils.showShort(R.string.sleep_save_success)
-            // 清除进行中状态
-            OngoingRecordManager.endSleep()
+            if (!isEditMode) {
+                // 清除进行中状态
+                OngoingRecordManager.endSleep(babyId)
+                view?.post { resetPage() }
+            }
             hasUnsavedChanges = false
-            view?.post { resetPage() }
-            mainVm.navigateTo(NavTarget.Dashboard)
+            mainVm.navigateTo(getReturnTarget())
+        }
+
+        if (isEditMode) {
+            vm.update(sleepRecord, onSaved)
+        } else {
+            vm.insert(sleepRecord, onSaved)
         }
     }
 
@@ -617,11 +673,20 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>() {
                 cancelText = StringUtils.getString(R.string.cancel),
                 onConfirm = {
                     hasUnsavedChanges = false
-                    mainVm.navigateTo(NavTarget.Dashboard)
+                    if (!isEditMode) {
+                        mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
+                            OngoingRecordManager.cancelSleep(babyId)
+                        }
+                    }
+                    mainVm.navigateTo(getReturnTarget())
                 }
             )
         } else {
-            mainVm.navigateTo(NavTarget.Dashboard)
+            mainVm.navigateTo(getReturnTarget())
         }
+    }
+
+    private fun getReturnTarget(): NavTarget {
+        return (mainVm.navTarget.value as? NavTarget.SleepRecord)?.returnTarget ?: NavTarget.Dashboard
     }
 }

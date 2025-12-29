@@ -6,7 +6,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.blankj.utilcode.util.StringUtils
-import com.zero.babycare.MainActivity
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentStatisticsBinding
 import com.zero.babycare.navigation.NavTarget
@@ -42,9 +41,9 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>() {
         // 设置标题
         binding.toolbar.title = StringUtils.getString(com.zero.common.R.string.statistics)
         
-        // 左侧菜单按钮 - 打开侧边栏
-        binding.toolbar.showMenuButton {
-            (activity as? MainActivity)?.openDrawer()
+        // 左侧返回按钮 - 返回到入口页面
+        binding.toolbar.showBackButton {
+            mainVm.navigateTo(getReturnTarget())
         }
         
         // 隐藏右侧按钮
@@ -164,6 +163,10 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>() {
             // 跳转到快速记录选择
             mainVm.navigateTo(NavTarget.Dashboard)
         }
+    }
+
+    private fun getReturnTarget(): NavTarget {
+        return (mainVm.navTarget.value as? NavTarget.Statistics)?.returnTarget ?: NavTarget.Dashboard
     }
 
     /**
@@ -302,17 +305,31 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>() {
         when (item) {
             is TimelineItem.Feeding -> {
                 // 跳转到喂养编辑页面
-                mainVm.navigateTo(NavTarget.FeedingRecord)
+                mainVm.navigateTo(
+                    NavTarget.FeedingRecord(
+                        editRecordId = item.record.feedingId,
+                        returnTarget = NavTarget.Statistics(getReturnTarget())
+                    )
+                )
             }
             is TimelineItem.Sleep -> {
                 // 跳转到睡眠编辑页面
-                mainVm.navigateTo(NavTarget.SleepRecord)
+                mainVm.navigateTo(
+                    NavTarget.SleepRecord(
+                        editRecordId = item.record.sleepId,
+                        returnTarget = NavTarget.Statistics(getReturnTarget())
+                    )
+                )
             }
             is TimelineItem.Event -> {
                 // 跳转到事件编辑页面
-                mainVm.navigateTo(NavTarget.EventRecord())
+                mainVm.navigateTo(
+                    NavTarget.EventRecord(
+                        editRecordId = item.record.eventId,
+                        returnTarget = NavTarget.Statistics(getReturnTarget())
+                    )
+                )
             }
         }
     }
 }
-

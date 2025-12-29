@@ -6,11 +6,11 @@ import android.os.Looper
 import android.view.View
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.GridLayoutManager
 import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.StringUtils
 import com.zero.babycare.MainActivity
 import com.zero.babycare.MainViewModel
-import com.zero.babycare.R
 import com.zero.babycare.databinding.FragmentDashboardBinding
 import com.zero.babycare.home.bean.DashboardData
 import com.zero.babycare.home.OngoingRecordManager
@@ -35,6 +35,12 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         activityViewModels<MainViewModel>().value
     }
 
+    private val quickActionAdapter by lazy {
+        DashboardQuickActionAdapter { action ->
+            mainVm.navigateTo(action.target)
+        }
+    }
+
     private val handler = Handler(Looper.getMainLooper())
     private var secondTimerRunnable: Runnable? = null   // 每秒更新（状态卡片）
     private var minuteTimerRunnable: Runnable? = null   // 每分钟更新（距上次时间）
@@ -54,22 +60,19 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         binding.toolbar.hideAction()
 
         // 底部快捷操作
-        binding.llFeedingAction.setOnClickListener {
-            mainVm.navigateTo(NavTarget.FeedingRecord)
-        }
-        binding.llSleepAction.setOnClickListener {
-            mainVm.navigateTo(NavTarget.SleepRecord)
-        }
-        binding.llEventAction.setOnClickListener {
-            mainVm.navigateTo(NavTarget.EventRecord())
+        setupQuickActions()
+
+        // 状态卡点击
+        binding.cardStatus.setOnClickListener {
+            mainVm.navigateTo(NavTarget.Statistics(returnTarget = NavTarget.Dashboard))
         }
 
         // 卡片点击
         binding.cardFeeding.setOnClickListener {
-            mainVm.navigateTo(NavTarget.FeedingRecord)
+            mainVm.navigateTo(NavTarget.FeedingRecord())
         }
         binding.cardSleep.setOnClickListener {
-            mainVm.navigateTo(NavTarget.SleepRecord)
+            mainVm.navigateTo(NavTarget.SleepRecord())
         }
 
         // 快速记录区域点击
@@ -132,6 +135,45 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         val baby = mainVm.getCurrentBabyInfo() ?: return
         val ageMonths = calculateBabyAgeMonths(baby.birthDate)
         vm.loadDashboardData(baby.babyId, ageMonths)
+    }
+
+    private fun setupQuickActions() {
+        val actions = buildQuickActions()
+        binding.rvQuickActions.apply {
+            adapter = quickActionAdapter
+            layoutManager = GridLayoutManager(context, actions.size.coerceAtLeast(1))
+            setHasFixedSize(true)
+        }
+        quickActionAdapter.submitList(actions)
+    }
+
+    private fun buildQuickActions(): List<DashboardQuickAction> {
+        return listOf(
+            DashboardQuickAction(
+                iconResId = com.zero.common.R.drawable.ic_feeding,
+                labelResId = com.zero.common.R.string.feeding,
+                color = DashboardQuickActionColor.Res(com.zero.common.R.color.feeding_primary),
+                target = NavTarget.FeedingRecord()
+            ),
+            DashboardQuickAction(
+                iconResId = com.zero.common.R.drawable.ic_sleep,
+                labelResId = com.zero.common.R.string.sleeping,
+                color = DashboardQuickActionColor.Res(com.zero.common.R.color.sleep_primary),
+                target = NavTarget.SleepRecord()
+            ),
+            DashboardQuickAction(
+                iconResId = com.zero.common.R.drawable.ic_statistics,
+                labelResId = com.zero.common.R.string.data_statistics,
+                color = DashboardQuickActionColor.Res(com.zero.common.R.color.statistics_primary),
+                target = NavTarget.Statistics()
+            ),
+            DashboardQuickAction(
+                iconResId = com.zero.common.R.drawable.ic_event_other,
+                labelResId = com.zero.common.R.string.more_events,
+                color = DashboardQuickActionColor.Res(com.zero.common.R.color.event_other),
+                target = NavTarget.EventRecord()
+            )
+        )
     }
     
     /**
@@ -530,11 +572,11 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         when (currentStatus) {
             OngoingRecordManager.OngoingStatus.SLEEPING -> {
                 // 跳转到睡眠记录页面完成记录
-                mainVm.navigateTo(NavTarget.SleepRecord)
+                mainVm.navigateTo(NavTarget.SleepRecord())
             }
             OngoingRecordManager.OngoingStatus.FEEDING -> {
                 // 跳转到喂养记录页面完成记录
-                mainVm.navigateTo(NavTarget.FeedingRecord)
+                mainVm.navigateTo(NavTarget.FeedingRecord())
             }
             else -> { /* 无进行中记录 */ }
         }

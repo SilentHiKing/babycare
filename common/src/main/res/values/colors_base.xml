@@ -205,6 +205,9 @@
     <color name="sleep_divider">#E1BEE7</color>
     <color name="sleep_bg">#F3E5F5</color>
 
+    <!-- 统计入口 (青绿色系) -->
+    <color name="statistics_primary">#2A9D8F</color>
+
     <!-- 状态卡片文字 (棕色系，在渐变背景上易读) -->
     <color name="status_text_primary">#5D4037</color>
     <color name="status_text_secondary">#8D6E63</color>

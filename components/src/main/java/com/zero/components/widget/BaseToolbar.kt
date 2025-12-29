@@ -6,6 +6,9 @@ import android.view.LayoutInflater
 import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import com.zero.components.R
 import com.zero.components.databinding.LayoutBaseToolBarBinding
 
@@ -89,6 +92,26 @@ class BaseToolbar @JvmOverloads constructor(
             
             typedArray.recycle()
         }
+
+        val initialPaddingTop = paddingTop
+        val initialPaddingBottom = paddingBottom
+        val initialPaddingLeft = paddingLeft
+        val initialPaddingRight = paddingRight
+        ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+            val statusBars = insets.getInsets(WindowInsetsCompat.Type.statusBars())
+            view.updatePadding(
+                left = initialPaddingLeft,
+                top = initialPaddingTop + statusBars.top,
+                right = initialPaddingRight,
+                bottom = initialPaddingBottom
+            )
+            insets
+        }
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        ViewCompat.requestApplyInsets(this)
     }
 
     // ==================== 左侧按钮 ====================

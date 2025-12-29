@@ -127,17 +127,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 vm.navigateTo(NavTarget.BabyInfo.create())
             }
         }
-        
+
         // 所有宝宝
         drawerBinding.llAllBabies.setOnClickListener {
             closeDrawer()
             vm.navigateTo(NavTarget.AllChildren)
-        }
-        
-        // 数据统计
-        drawerBinding.llStatistics.setOnClickListener {
-            closeDrawer()
-            vm.navigateTo(NavTarget.Statistics)
         }
         
         // 设置

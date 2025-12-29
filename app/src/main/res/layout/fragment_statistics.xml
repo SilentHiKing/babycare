@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/primary_bg_default"
-    android:paddingTop="@dimen/dp_45">
+    android:background="?attr/primary_bg_default">
 
     <com.zero.components.widget.BaseToolbar
         android:id="@+id/toolbar"
@@ -345,4 +344,3 @@
     </androidx.core.widget.NestedScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-
