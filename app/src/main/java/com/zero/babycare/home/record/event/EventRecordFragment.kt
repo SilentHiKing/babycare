@@ -24,13 +24,20 @@ import com.zero.babycare.databinding.LayoutEventDetailTemperatureBinding
 import com.zero.babycare.databinding.LayoutEventDetailMedicineBinding
 import com.zero.babycare.databinding.LayoutEventDetailMilestoneBinding
 import com.zero.babycare.databinding.LayoutEventDetailActivityBinding
+import com.zero.babycare.databinding.LayoutEventDetailCustomBinding
+import com.zero.babycare.databinding.LayoutEventDetailSymptomBinding
+import com.zero.babycare.databinding.LayoutEventDetailVaccineBinding
 import com.zero.babycare.navigation.NavTarget
+import com.zero.babycare.navigation.BackPressHandler
+import com.zero.babydata.entity.CustomEventData
 import com.zero.babydata.entity.DiaperData
 import com.zero.babydata.entity.EventType
 import com.zero.babydata.entity.GrowthData
 import com.zero.babydata.entity.MedicineData
 import com.zero.babydata.entity.MilestoneData
+import com.zero.babydata.entity.SymptomData
 import com.zero.babydata.entity.TemperatureData
+import com.zero.babydata.entity.VaccineData
 import com.zero.common.R
 import com.zero.common.ext.launchInLifecycle
 import com.zero.components.base.BaseFragment
@@ -41,7 +48,7 @@ import java.util.Locale
 /**
  * 事件记录页面
  */
-class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
+class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPressHandler {
 
     private val vm by viewModels<EventRecordViewModel>()
     private val mainVm by activityViewModels<MainViewModel>()
@@ -286,11 +293,20 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
             subtype.type == EventType.HEALTH_MEDICINE -> {
                 inflateMedicineDetail(inflater)
             }
+            subtype.type == EventType.HEALTH_VACCINE -> {
+                inflateVaccineDetail(inflater)
+            }
+            subtype.type == EventType.HEALTH_SYMPTOM -> {
+                inflateSymptomDetail(inflater)
+            }
             EventType.isMilestone(subtype.type) -> {
                 inflateMilestoneDetail(inflater, subtype.type)
             }
             EventType.hasDuration(subtype.type) -> {
                 inflateActivityDetail(inflater)
+            }
+            subtype.type == EventType.OTHER_CUSTOM -> {
+                inflateCustomDetail(inflater)
             }
             else -> {
                 // 简单事件无详情
@@ -324,10 +340,13 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
                         DiaperData.COLOR_BROWN -> colorGroup?.check(com.zero.babycare.R.id.rbBrown)
                         DiaperData.COLOR_BLACK -> colorGroup?.check(com.zero.babycare.R.id.rbBlack)
                     }
-                    if (data.abnormal) {
-                        urineGroup?.check(com.zero.babycare.R.id.rbMuch)
-                    } else {
-                        urineGroup?.check(com.zero.babycare.R.id.rbNormal)
+                    when (data.urineAmount) {
+                        DiaperData.URINE_AMOUNT_LITTLE -> urineGroup?.check(com.zero.babycare.R.id.rbLittle)
+                        DiaperData.URINE_AMOUNT_NORMAL -> urineGroup?.check(com.zero.babycare.R.id.rbNormal)
+                        DiaperData.URINE_AMOUNT_MUCH -> urineGroup?.check(com.zero.babycare.R.id.rbMuch)
+                        else -> if (data.abnormal) {
+                            urineGroup?.check(com.zero.babycare.R.id.rbMuch)
+                        }
                     }
                 }
             }
@@ -342,6 +361,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
                 if (data is TemperatureData) {
                     tempView?.setText(data.value.toString())
                     val detailBinding = LayoutEventDetailTemperatureBinding.bind(root.getChildAt(0))
+                    selectTemperatureLocation(detailBinding, data.location)
                     updateTemperatureStatus(detailBinding, data.value)
                 }
             }
@@ -363,10 +383,38 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
                     }
                 }
             }
+            subtype.type == EventType.HEALTH_VACCINE -> {
+                val nameView = root.findViewById<EditText>(com.zero.babycare.R.id.etVaccineName)
+                val doseView = root.findViewById<EditText>(com.zero.babycare.R.id.etVaccineDose)
+                val siteView = root.findViewById<EditText>(com.zero.babycare.R.id.etVaccineSite)
+                val clinicView = root.findViewById<EditText>(com.zero.babycare.R.id.etVaccineClinic)
+                val batchView = root.findViewById<EditText>(com.zero.babycare.R.id.etVaccineBatch)
+                if (data is VaccineData) {
+                    nameView?.setText(data.name)
+                    doseView?.setText(data.dose?.toString().orEmpty())
+                    siteView?.setText(data.site.orEmpty())
+                    clinicView?.setText(data.clinic.orEmpty())
+                    batchView?.setText(data.batchNumber.orEmpty())
+                }
+            }
+            subtype.type == EventType.HEALTH_SYMPTOM -> {
+                val descView = root.findViewById<EditText>(com.zero.babycare.R.id.etSymptomDescription)
+                if (data is SymptomData) {
+                    descView?.setText(data.description.orEmpty())
+                }
+            }
             EventType.isMilestone(subtype.type) -> {
                 val nameView = root.findViewById<EditText>(com.zero.babycare.R.id.etMilestoneName)
                 val descView = root.findViewById<EditText>(com.zero.babycare.R.id.etDescription)
                 if (data is MilestoneData) {
+                    nameView?.setText(data.name.orEmpty())
+                    descView?.setText(data.description.orEmpty())
+                }
+            }
+            subtype.type == EventType.OTHER_CUSTOM -> {
+                val nameView = root.findViewById<EditText>(com.zero.babycare.R.id.etCustomEventName)
+                val descView = root.findViewById<EditText>(com.zero.babycare.R.id.etCustomEventDescription)
+                if (data is CustomEventData) {
                     nameView?.setText(data.name.orEmpty())
                     descView?.setText(data.description.orEmpty())
                 }
@@ -421,9 +469,22 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
             com.zero.babycare.R.id.rbBlack -> DiaperData.COLOR_BLACK
             else -> null
         }
-        val abnormal = detailBinding.rgUrineAmount.checkedRadioButtonId == com.zero.babycare.R.id.rbMuch
+        val urineAmount = when (detailBinding.rgUrineAmount.checkedRadioButtonId) {
+            com.zero.babycare.R.id.rbLittle -> DiaperData.URINE_AMOUNT_LITTLE
+            com.zero.babycare.R.id.rbNormal -> DiaperData.URINE_AMOUNT_NORMAL
+            com.zero.babycare.R.id.rbMuch -> DiaperData.URINE_AMOUNT_MUCH
+            else -> null
+        }
+        val abnormal = urineAmount == DiaperData.URINE_AMOUNT_MUCH
 
-        vm.setExtraData(DiaperData(color = color, consistency = consistency, abnormal = abnormal))
+        vm.setExtraData(
+            DiaperData(
+                color = color,
+                consistency = consistency,
+                abnormal = abnormal,
+                urineAmount = urineAmount
+            )
+        )
     }
 
     private fun inflateGrowthDetail(inflater: LayoutInflater, type: Int) {
@@ -453,13 +514,50 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
 
         detailBinding.etTemperature.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
-                val value = detailBinding.etTemperature.text.toString().toDoubleOrNull()
-                if (value != null) {
-                    vm.setExtraData(TemperatureData(value))
-                    updateTemperatureStatus(detailBinding, value)
-                }
+                updateTemperatureData(detailBinding)
             }
         }
+
+        detailBinding.rgTemperatureLocation.setOnCheckedChangeListener { _, _ ->
+            updateTemperatureData(detailBinding)
+        }
+
+        selectTemperatureLocation(detailBinding, TemperatureData.LOCATION_EAR)
+    }
+
+    private fun updateTemperatureData(detailBinding: LayoutEventDetailTemperatureBinding) {
+        val value = detailBinding.etTemperature.text.toString().toDoubleOrNull()
+        if (value != null) {
+            val location = getTemperatureLocation(detailBinding)
+            vm.setExtraData(TemperatureData(value, location))
+            updateTemperatureStatus(detailBinding, value)
+        } else {
+            vm.setExtraData(null)
+        }
+    }
+
+    private fun getTemperatureLocation(detailBinding: LayoutEventDetailTemperatureBinding): String {
+        return when (detailBinding.rgTemperatureLocation.checkedRadioButtonId) {
+            com.zero.babycare.R.id.rbTempForehead -> TemperatureData.LOCATION_FOREHEAD
+            com.zero.babycare.R.id.rbTempArmpit -> TemperatureData.LOCATION_ARMPIT
+            com.zero.babycare.R.id.rbTempOral -> TemperatureData.LOCATION_ORAL
+            com.zero.babycare.R.id.rbTempRectal -> TemperatureData.LOCATION_RECTAL
+            else -> TemperatureData.LOCATION_EAR
+        }
+    }
+
+    private fun selectTemperatureLocation(
+        detailBinding: LayoutEventDetailTemperatureBinding,
+        location: String
+    ) {
+        val targetId = when (location) {
+            TemperatureData.LOCATION_FOREHEAD -> com.zero.babycare.R.id.rbTempForehead
+            TemperatureData.LOCATION_ARMPIT -> com.zero.babycare.R.id.rbTempArmpit
+            TemperatureData.LOCATION_ORAL -> com.zero.babycare.R.id.rbTempOral
+            TemperatureData.LOCATION_RECTAL -> com.zero.babycare.R.id.rbTempRectal
+            else -> com.zero.babycare.R.id.rbTempEar
+        }
+        detailBinding.rgTemperatureLocation.check(targetId)
     }
 
     private fun updateTemperatureStatus(detailBinding: LayoutEventDetailTemperatureBinding, temp: Double) {
@@ -496,6 +594,73 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
         }
     }
 
+    private fun inflateVaccineDetail(inflater: LayoutInflater) {
+        val detailBinding = LayoutEventDetailVaccineBinding.inflate(inflater, binding.containerDetail, true)
+
+        detailBinding.etVaccineName.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                updateVaccineData(detailBinding)
+            }
+        }
+        detailBinding.etVaccineDose.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                updateVaccineData(detailBinding)
+            }
+        }
+        detailBinding.etVaccineSite.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                updateVaccineData(detailBinding)
+            }
+        }
+        detailBinding.etVaccineClinic.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                updateVaccineData(detailBinding)
+            }
+        }
+        detailBinding.etVaccineBatch.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                updateVaccineData(detailBinding)
+            }
+        }
+    }
+
+    private fun updateVaccineData(detailBinding: LayoutEventDetailVaccineBinding) {
+        val name = detailBinding.etVaccineName.text.toString().trim()
+        val dose = detailBinding.etVaccineDose.text.toString().trim().toIntOrNull()
+        val site = detailBinding.etVaccineSite.text.toString().trim()
+        val clinic = detailBinding.etVaccineClinic.text.toString().trim()
+        val batch = detailBinding.etVaccineBatch.text.toString().trim()
+        val doseValue = dose?.takeIf { it > 0 }
+        if (name.isNotBlank() || site.isNotBlank() || clinic.isNotBlank() || batch.isNotBlank() || doseValue != null) {
+            vm.setExtraData(
+                VaccineData(
+                    name = name,
+                    dose = doseValue,
+                    site = site.ifBlank { null },
+                    batchNumber = batch.ifBlank { null },
+                    clinic = clinic.ifBlank { null }
+                )
+            )
+        } else {
+            vm.setExtraData(null)
+        }
+    }
+
+    private fun inflateSymptomDetail(inflater: LayoutInflater) {
+        val detailBinding = LayoutEventDetailSymptomBinding.inflate(inflater, binding.containerDetail, true)
+
+        detailBinding.etSymptomDescription.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val description = detailBinding.etSymptomDescription.text.toString().trim()
+                if (description.isNotBlank()) {
+                    vm.setExtraData(SymptomData(description))
+                } else {
+                    vm.setExtraData(null)
+                }
+            }
+        }
+    }
+
     private fun inflateMilestoneDetail(inflater: LayoutInflater, type: Int) {
         val detailBinding = LayoutEventDetailMilestoneBinding.inflate(inflater, binding.containerDetail, true)
 
@@ -526,6 +691,22 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
                 } else null
                 val description = detailBinding.etDescription.text.toString()
                 vm.setExtraData(MilestoneData(name, description, true))
+            }
+        }
+    }
+
+    private fun inflateCustomDetail(inflater: LayoutInflater) {
+        val detailBinding = LayoutEventDetailCustomBinding.inflate(inflater, binding.containerDetail, true)
+
+        detailBinding.etCustomEventName.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                updateCustomData(detailBinding)
+            }
+        }
+
+        detailBinding.etCustomEventDescription.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                updateCustomData(detailBinding)
             }
         }
     }
@@ -602,10 +783,13 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
 
         val durationMinutes = (endTime - startTime) / 60000
         if (durationMinutes > 0) {
-            detailBinding.tvDuration.text = StringUtils.getString(
-                R.string.event_duration
-            ) + "：${durationMinutes} " + StringUtils.getString(R.string.min_format, durationMinutes.toInt())
+            detailBinding.tvDuration.text =
+                StringUtils.getString(R.string.event_duration) +
+                    "：" +
+                    StringUtils.getString(R.string.min_format, durationMinutes.toInt())
             detailBinding.tvDuration.visibility = View.VISIBLE
+        } else {
+            detailBinding.tvDuration.visibility = View.GONE
         }
     }
 
@@ -667,8 +851,21 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
                     com.zero.babycare.R.id.rbBlack -> DiaperData.COLOR_BLACK
                     else -> null
                 }
-                val abnormal = urineGroup.checkedRadioButtonId == com.zero.babycare.R.id.rbMuch
-                vm.setExtraData(DiaperData(color = color, consistency = consistency, abnormal = abnormal))
+                val urineAmount = when (urineGroup.checkedRadioButtonId) {
+                    com.zero.babycare.R.id.rbLittle -> DiaperData.URINE_AMOUNT_LITTLE
+                    com.zero.babycare.R.id.rbNormal -> DiaperData.URINE_AMOUNT_NORMAL
+                    com.zero.babycare.R.id.rbMuch -> DiaperData.URINE_AMOUNT_MUCH
+                    else -> null
+                }
+                val abnormal = urineAmount == DiaperData.URINE_AMOUNT_MUCH
+                vm.setExtraData(
+                    DiaperData(
+                        color = color,
+                        consistency = consistency,
+                        abnormal = abnormal,
+                        urineAmount = urineAmount
+                    )
+                )
             }
             EventType.isGrowth(subtype.type) -> {
                 val valueView = root.findViewById<EditText>(com.zero.babycare.R.id.etValue)
@@ -683,9 +880,17 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
             }
             subtype.type == EventType.HEALTH_TEMPERATURE -> {
                 val tempView = root.findViewById<EditText>(com.zero.babycare.R.id.etTemperature)
+                val locationGroup = root.findViewById<RadioGroup>(com.zero.babycare.R.id.rgTemperatureLocation)
                 val value = tempView?.text?.toString()?.toDoubleOrNull()
                 if (value != null) {
-                    vm.setExtraData(TemperatureData(value))
+                    val location = when (locationGroup?.checkedRadioButtonId) {
+                        com.zero.babycare.R.id.rbTempForehead -> TemperatureData.LOCATION_FOREHEAD
+                        com.zero.babycare.R.id.rbTempArmpit -> TemperatureData.LOCATION_ARMPIT
+                        com.zero.babycare.R.id.rbTempOral -> TemperatureData.LOCATION_ORAL
+                        com.zero.babycare.R.id.rbTempRectal -> TemperatureData.LOCATION_RECTAL
+                        else -> TemperatureData.LOCATION_EAR
+                    }
+                    vm.setExtraData(TemperatureData(value, location))
                 } else {
                     vm.setExtraData(null)
                 }
@@ -704,6 +909,41 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
                     vm.setExtraData(null)
                 }
             }
+            subtype.type == EventType.HEALTH_VACCINE -> {
+                val nameView = root.findViewById<EditText>(com.zero.babycare.R.id.etVaccineName)
+                val doseView = root.findViewById<EditText>(com.zero.babycare.R.id.etVaccineDose)
+                val siteView = root.findViewById<EditText>(com.zero.babycare.R.id.etVaccineSite)
+                val clinicView = root.findViewById<EditText>(com.zero.babycare.R.id.etVaccineClinic)
+                val batchView = root.findViewById<EditText>(com.zero.babycare.R.id.etVaccineBatch)
+                val name = nameView?.text?.toString()?.trim().orEmpty()
+                val dose = doseView?.text?.toString()?.trim()?.toIntOrNull()
+                val site = siteView?.text?.toString()?.trim().orEmpty()
+                val clinic = clinicView?.text?.toString()?.trim().orEmpty()
+                val batch = batchView?.text?.toString()?.trim().orEmpty()
+                val doseValue = dose?.takeIf { it > 0 }
+                if (name.isNotBlank() || site.isNotBlank() || clinic.isNotBlank() || batch.isNotBlank() || doseValue != null) {
+                    vm.setExtraData(
+                        VaccineData(
+                            name = name,
+                            dose = doseValue,
+                            site = site.ifBlank { null },
+                            batchNumber = batch.ifBlank { null },
+                            clinic = clinic.ifBlank { null }
+                        )
+                    )
+                } else {
+                    vm.setExtraData(null)
+                }
+            }
+            subtype.type == EventType.HEALTH_SYMPTOM -> {
+                val descView = root.findViewById<EditText>(com.zero.babycare.R.id.etSymptomDescription)
+                val description = descView?.text?.toString()?.trim().orEmpty()
+                if (description.isNotBlank()) {
+                    vm.setExtraData(SymptomData(description))
+                } else {
+                    vm.setExtraData(null)
+                }
+            }
             subtype.type == EventType.MILESTONE_CUSTOM -> {
                 val nameView = root.findViewById<EditText>(com.zero.babycare.R.id.etMilestoneName)
                 val descView = root.findViewById<EditText>(com.zero.babycare.R.id.etDescription)
@@ -715,11 +955,37 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
                     vm.setExtraData(null)
                 }
             }
+            subtype.type == EventType.OTHER_CUSTOM -> {
+                val nameView = root.findViewById<EditText>(com.zero.babycare.R.id.etCustomEventName)
+                val descView = root.findViewById<EditText>(com.zero.babycare.R.id.etCustomEventDescription)
+                val name = nameView?.text?.toString()?.trim().orEmpty()
+                val description = descView?.text?.toString()?.trim().orEmpty()
+                if (name.isNotBlank() || description.isNotBlank()) {
+                    vm.setExtraData(CustomEventData(name, description))
+                } else {
+                    vm.setExtraData(null)
+                }
+            }
+        }
+    }
+
+    private fun updateCustomData(detailBinding: LayoutEventDetailCustomBinding) {
+        val name = detailBinding.etCustomEventName.text.toString().trim()
+        val description = detailBinding.etCustomEventDescription.text.toString().trim()
+        if (name.isNotBlank() || description.isNotBlank()) {
+            vm.setExtraData(CustomEventData(name, description))
+        } else {
+            vm.setExtraData(null)
         }
     }
 
     private fun getReturnTarget(): NavTarget {
         return (mainVm.navTarget.value as? NavTarget.EventRecord)?.returnTarget ?: NavTarget.Dashboard
+    }
+
+    override fun onSystemBackPressed(): Boolean {
+        handleBack()
+        return true
     }
 
     private fun handleBack() {

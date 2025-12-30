@@ -4,45 +4,65 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/bg_r12_secondary_bg_default"
-    android:layout_marginBottom="@dimen/dp_8"
-    android:padding="@dimen/dp_12">
+    android:layout_marginHorizontal="@dimen/dp_16"
+    android:background="?attr/secondary_bg_default"
+    android:paddingHorizontal="@dimen/dp_50">
+
+    <Space
+        android:id="@+id/spaceTop"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp_12"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- 开始时间 -->
     <TextView
         android:id="@+id/tvStartTime"
         style="@style/BoldTextAppearance"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="@dimen/dp_56"
+        android:layout_height="@dimen/dp_32"
+        android:gravity="center_vertical"
+        android:includeFontPadding="false"
         android:textColor="?attr/primary90"
         android:textSize="@dimen/sp_14"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/spaceTop"
         tools:text="09:30" />
 
-    <!-- 结束时间 -->
-    <TextView
-        android:id="@+id/tvEndTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/dp_4"
-        android:textColor="?attr/weaken40"
-        android:textSize="@dimen/sp_12"
-        app:layout_constraintBaseline_toBaselineOf="@id/tvStartTime"
-        app:layout_constraintStart_toEndOf="@id/tvStartTime"
-        tools:text="- 11:45" />
+    <!-- 时间轴线（上） -->
+    <View
+        android:id="@+id/vTimelineLineTop"
+        android:layout_width="@dimen/dp_1"
+        android:layout_height="0dp"
+        android:background="?attr/weaken40"
+        app:layout_constraintBottom_toTopOf="@id/vTimelineDot"
+        app:layout_constraintEnd_toEndOf="@id/vTimelineDot"
+        app:layout_constraintStart_toStartOf="@id/vTimelineDot"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- 时间轴点 -->
     <View
         android:id="@+id/vTimelineDot"
-        android:layout_width="@dimen/dp_8"
-        android:layout_height="@dimen/dp_8"
-        android:layout_marginStart="@dimen/dp_8"
+        android:layout_width="@dimen/dp_6"
+        android:layout_height="@dimen/dp_6"
+        android:layout_marginStart="@dimen/dp_6"
         android:background="@drawable/circle_white"
         android:backgroundTint="@color/sleep_primary"
         app:layout_constraintBottom_toBottomOf="@id/tvStartTime"
-        app:layout_constraintStart_toEndOf="@id/tvEndTime"
+        app:layout_constraintStart_toEndOf="@id/tvStartTime"
         app:layout_constraintTop_toTopOf="@id/tvStartTime" />
+
+    <!-- 时间轴线（下） -->
+    <View
+        android:id="@+id/vTimelineLineBottom"
+        android:layout_width="@dimen/dp_1"
+        android:layout_height="0dp"
+        android:background="?attr/weaken40"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/vTimelineDot"
+        app:layout_constraintStart_toStartOf="@id/vTimelineDot"
+        app:layout_constraintTop_toBottomOf="@id/vTimelineDot" />
 
     <!-- 图标 -->
     <ImageView
@@ -54,11 +74,12 @@
         android:background="@drawable/bg_event_icon_circle"
         android:backgroundTint="@color/sleep_bg"
         android:src="@drawable/ic_sleep"
+        app:layout_constraintBottom_toBottomOf="@id/tvStartTime"
         app:layout_constraintStart_toEndOf="@id/vTimelineDot"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tvStartTime"
         app:tint="@color/sleep_primary" />
 
-    <!-- 标题 -->
+    <!-- 标题：与时间同一水平线（居中对齐） -->
     <TextView
         android:id="@+id/tvTitle"
         style="@style/BoldTextAppearance"
@@ -67,26 +88,51 @@
         android:layout_marginStart="@dimen/dp_10"
         android:ellipsize="end"
         android:maxLines="1"
+        android:includeFontPadding="false"
         android:text="@string/sleeping"
         android:textColor="?attr/primary90"
         android:textSize="@dimen/sp_15"
-        app:layout_constraintBottom_toBottomOf="@id/ivIcon"
+        app:layout_constraintBottom_toBottomOf="@id/tvStartTime"
         app:layout_constraintEnd_toStartOf="@id/tvDuration"
         app:layout_constraintStart_toEndOf="@id/ivIcon"
-        app:layout_constraintTop_toTopOf="@id/ivIcon" />
+        app:layout_constraintTop_toTopOf="@id/tvStartTime" />
 
-    <!-- 时长 -->
+    <!-- 时长：同一水平线（居中对齐） -->
     <TextView
         android:id="@+id/tvDuration"
         style="@style/BoldTextAppearance"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:includeFontPadding="false"
         android:textColor="@color/sleep_primary"
         android:textSize="@dimen/sp_14"
-        app:layout_constraintBottom_toBottomOf="@id/tvTitle"
+        app:layout_constraintBottom_toBottomOf="@id/tvStartTime"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvTitle"
+        app:layout_constraintTop_toTopOf="@id/tvStartTime"
         tools:text="2h15m" />
+
+    <!-- 结束时间（可选） -->
+    <TextView
+        android:id="@+id/tvEndTime"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_6"
+        android:textColor="?attr/weaken40"
+        android:textSize="@dimen/sp_13"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/ivIcon"
+        app:layout_constraintTop_toBottomOf="@id/ivIcon"
+        tools:text="- 11:45"
+        tools:visibility="visible" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barDetail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierAllowsGoneWidgets="false"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="ivIcon,tvEndTime" />
 
     <!-- 备注（可选） -->
     <TextView
@@ -101,9 +147,25 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/ivIcon"
-        app:layout_constraintTop_toBottomOf="@id/ivIcon"
+        app:layout_constraintTop_toBottomOf="@id/barDetail"
         tools:text="备注：睡得很香"
         tools:visibility="visible" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barContentBottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierAllowsGoneWidgets="false"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="ivIcon,tvEndTime,tvNote" />
 
+    <Space
+        android:id="@+id/spaceBottom"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/dp_10"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/barContentBottom" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

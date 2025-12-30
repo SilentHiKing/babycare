@@ -30,7 +30,9 @@ sealed class EventExtraData {
                     type == EventType.HEALTH_TEMPERATURE -> gson.fromJson(json, TemperatureData::class.java)
                     type == EventType.HEALTH_MEDICINE -> gson.fromJson(json, MedicineData::class.java)
                     type == EventType.HEALTH_VACCINE -> gson.fromJson(json, VaccineData::class.java)
+                    type == EventType.HEALTH_SYMPTOM -> gson.fromJson(json, SymptomData::class.java)
                     EventType.isMilestone(type) -> gson.fromJson(json, MilestoneData::class.java)
+                    type == EventType.OTHER_CUSTOM -> gson.fromJson(json, CustomEventData::class.java)
                     else -> gson.fromJson(json, GenericData::class.java)
                 }
             } catch (e: Exception) {
@@ -53,6 +55,10 @@ data class DiaperData(
     /** 大便性状：normal(正常), loose(稀), hard(硬), watery(水样) */
     @SerializedName("consistency")
     val consistency: String? = null,
+
+    /** 小便量：little(少), normal(中), much(多) */
+    @SerializedName("urineAmount")
+    val urineAmount: String? = null,
     
     /** 是否有异常（如血丝、粘液） */
     @SerializedName("abnormal")
@@ -75,6 +81,11 @@ data class DiaperData(
         const val CONSISTENCY_LOOSE = "loose"
         const val CONSISTENCY_HARD = "hard"
         const val CONSISTENCY_WATERY = "watery"
+
+        // 小便量常量
+        const val URINE_AMOUNT_LITTLE = "little"
+        const val URINE_AMOUNT_NORMAL = "normal"
+        const val URINE_AMOUNT_MUCH = "much"
         
         fun fromJson(json: String): DiaperData? = try {
             Gson().fromJson(json, DiaperData::class.java)
@@ -173,6 +184,10 @@ data class VaccineData(
     /** 疫苗名称 */
     @SerializedName("name")
     val name: String,
+
+    /** 剂次 */
+    @SerializedName("dose")
+    val dose: Int? = null,
     
     /** 接种部位 */
     @SerializedName("site")
@@ -189,6 +204,21 @@ data class VaccineData(
     companion object {
         fun fromJson(json: String): VaccineData? = try {
             Gson().fromJson(json, VaccineData::class.java)
+        } catch (e: Exception) { null }
+    }
+}
+
+/**
+ * 症状扩展数据
+ */
+data class SymptomData(
+    /** 症状描述 */
+    @SerializedName("description")
+    val description: String? = null
+) : EventExtraData() {
+    companion object {
+        fun fromJson(json: String): SymptomData? = try {
+            Gson().fromJson(json, SymptomData::class.java)
         } catch (e: Exception) { null }
     }
 }
@@ -222,6 +252,24 @@ data class MilestoneData(
 }
 
 /**
+ * 自定义事件扩展数据
+ */
+data class CustomEventData(
+    /** 事件名称 */
+    @SerializedName("name")
+    val name: String? = null,
+    /** 事件描述 */
+    @SerializedName("description")
+    val description: String? = null
+) : EventExtraData() {
+    companion object {
+        fun fromJson(json: String): CustomEventData? = try {
+            Gson().fromJson(json, CustomEventData::class.java)
+        } catch (e: Exception) { null }
+    }
+}
+
+/**
  * 通用扩展数据（用于简单场景或未来扩展）
  */
 data class GenericData(
@@ -235,4 +283,3 @@ data class GenericData(
         } catch (e: Exception) { null }
     }
 }
-

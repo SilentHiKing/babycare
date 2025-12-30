@@ -4,7 +4,6 @@ import android.app.TimePickerDialog
 import com.zero.components.base.util.DialogHelper
 import android.os.Bundle
 import android.view.View
-import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.blankj.utilcode.util.LogUtils
@@ -14,6 +13,7 @@ import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentFeedingRecordBinding
 import com.zero.babycare.home.OngoingRecordManager
 import com.zero.babycare.navigation.NavTarget
+import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.FeedingType
 import com.zero.babydata.entity.SolidFoodType
@@ -53,7 +53,7 @@ import java.util.Calendar
  * 2. 方式二（手动输入）：输入开始时间 → 输入结束时间 → 根据时间差显示时长
  * 3. 混合方式：手动输入开始时间 → 点击计时器开始 → 从该时间点开始计时
  */
-class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
+class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), BackPressHandler {
     companion object {
         // 最大喂奶时长警告阈值（分钟）
         const val MAX_FEEDING_DURATION_WARNING_MINUTES = 120
@@ -94,7 +94,6 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         super.initView(view, savedInstanceState)
         binding.btn.title = StringUtils.getString(R.string.feeding)
 
-        setupBackPressHandler()
         setupFeedingTypeSelector()
         setupTimeInputs()
         setupTimerCounter()
@@ -115,20 +114,6 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         super.onDestroyView()
         // 释放计时器资源
         binding.rvCounter.release()
-    }
-
-    /**
-     * 设置返回键处理（退出提示）
-     */
-    private fun setupBackPressHandler() {
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner,
-            object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    handleBack()
-                }
-            }
-        )
     }
 
     /**
@@ -689,6 +674,11 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
     /**
      * 处理返回
      */
+    override fun onSystemBackPressed(): Boolean {
+        handleBack()
+        return true
+    }
+
     private fun handleBack() {
         if (hasUnsavedChanges) {
             showExitConfirmDialog()

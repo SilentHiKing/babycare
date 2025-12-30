@@ -4,23 +4,33 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.blankj.utilcode.util.StringUtils
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentStatisticsBinding
 import com.zero.babycare.navigation.NavTarget
+import com.zero.babycare.navigation.BackPressHandler
+import com.zero.babycare.statistics.adapter.StatisticsBabyAgeAdapter
+import com.zero.babycare.statistics.adapter.StatisticsCalendarAdapter
+import com.zero.babycare.statistics.adapter.StatisticsEmptyAdapter
+import com.zero.babycare.statistics.adapter.StatisticsSummaryAdapter
 import com.zero.babycare.statistics.adapter.TimelineAdapter
 import com.zero.babycare.statistics.model.DaySummary
 import com.zero.babycare.statistics.model.TimelineItem
-import com.zero.babycare.statistics.widget.BabyCalendarView
+import com.zero.babydata.entity.BabyInfo
 import com.zero.common.ext.launchInLifecycle
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.vm.UiState
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 
 /**
  * 数据统计页面
  */
-class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>() {
+class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressHandler {
 
     companion object {
         fun create(): StatisticsFragment {
@@ -33,7 +43,13 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>() {
         activityViewModels<MainViewModel>().value
     }
 
+    private lateinit var calendarAdapter: StatisticsCalendarAdapter
+    private lateinit var summaryAdapter: StatisticsSummaryAdapter
+    private lateinit var babyAgeAdapter: StatisticsBabyAgeAdapter
+    private lateinit var emptyAdapter: StatisticsEmptyAdapter
+    private lateinit var concatAdapter: ConcatAdapter
     private lateinit var timelineAdapter: TimelineAdapter
+    private var currentBabyInfo: BabyInfo? = null
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
@@ -49,24 +65,15 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>() {
         // 隐藏右侧按钮
         binding.toolbar.hideAction()
 
-        // 初始化日历
-        setupCalendar()
-        
-        // 初始化时间轴列表
-        setupTimeline()
-        
-        // 设置点击事件
-        setupClickListeners()
+        // 初始化列表内容
+        setupContentList()
     }
 
     override fun initData(view: View, savedInstanceState: Bundle?) {
         super.initData(view, savedInstanceState)
 
         // 获取当前宝宝ID
-        val currentBaby = mainVm.getCurrentBabyInfo()
-        currentBaby?.let {
-            vm.setBabyId(it.babyId)
-        }
+        ensureBabyOrNavigate()
 
         // 观察数据变化
         observeData()
@@ -76,97 +83,96 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>() {
         super.onHiddenChanged(hidden)
         if (!hidden) {
             // 页面显示时刷新数据
-            val currentBaby = mainVm.getCurrentBabyInfo()
-            currentBaby?.let {
-                if (vm.currentBabyId.value != it.babyId) {
-                    vm.setBabyId(it.babyId)
-                } else {
-                    vm.refreshData()
+            if (ensureBabyOrNavigate()) {
+                val currentBaby = mainVm.getCurrentBabyInfo()
+                currentBaby?.let {
+                    if (vm.currentBabyId.value != it.babyId) {
+                        vm.setBabyId(it.babyId)
+                    } else {
+                        vm.refreshData()
+                    }
                 }
             }
         }
     }
 
     /**
-     * 初始化日历
+     * 初始化列表内容
      */
-    private fun setupCalendar() {
-        // 日期选择监听
-        binding.calendarView.setOnDateSelectedListener { date ->
-            vm.selectDate(date)
-            updateCalendarTitle()
-        }
-
-        // 月份变化监听
-        binding.calendarView.setOnMonthChangedListener { yearMonth ->
-            vm.onMonthChanged(yearMonth)
-            // 切换月份时不改变选中日期，所以不需要同步
-            updateCalendarTitle()
-        }
-
-        // 模式变化监听
-        binding.calendarView.setOnModeChangedListener { mode ->
-            updateExpandIndicator(mode)
-            updateCalendarTitle()
-        }
-
-        // 上一周/月
-        binding.ivPrevious.setOnClickListener {
-            binding.calendarView.navigatePrevious()
-            // 切换周/月时不改变选中日期，所以不需要同步到 ViewModel
-            updateCalendarTitle()
-        }
-
-        // 下一周/月
-        binding.ivNext.setOnClickListener {
-            binding.calendarView.navigateNext()
-            // 切换周/月时不改变选中日期，所以不需要同步到 ViewModel
-            updateCalendarTitle()
-        }
-
-        // 今天按钮
-        binding.tvToday.setOnClickListener {
-            binding.calendarView.goToToday()
-            vm.goToToday()
-            updateCalendarTitle()
-        }
-
-        // 点击展开/收起指示器切换视图模式
-        binding.ivExpandIndicator.setOnClickListener {
-            binding.calendarView.toggleViewMode()
-        }
-
-        // 初始化标题
-        updateCalendarTitle()
-    }
-
-    /**
-     * 初始化时间轴列表
-     */
-    private fun setupTimeline() {
+    private fun setupContentList() {
+        calendarAdapter = StatisticsCalendarAdapter(
+            onDateSelected = { date -> vm.selectDate(date) },
+            onMonthChanged = { yearMonth -> vm.onMonthChanged(yearMonth) },
+            onModeChanged = { },
+            onTodayClick = { vm.goToToday() }
+        )
+        summaryAdapter = StatisticsSummaryAdapter()
+        babyAgeAdapter = StatisticsBabyAgeAdapter()
         timelineAdapter = TimelineAdapter { item ->
             handleTimelineItemClick(item)
         }
-
-        binding.rvTimeline.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = timelineAdapter
-        }
-    }
-
-    /**
-     * 设置点击事件
-     */
-    private fun setupClickListeners() {
-        // 空状态添加记录按钮
-        binding.tvAddRecord.setOnClickListener {
-            // 跳转到快速记录选择
+        emptyAdapter = StatisticsEmptyAdapter {
+            if (!ensureBabyOrNavigate()) {
+                return@StatisticsEmptyAdapter
+            }
             mainVm.navigateTo(NavTarget.Dashboard)
+        }
+
+        concatAdapter = ConcatAdapter(
+            calendarAdapter,
+            summaryAdapter,
+            babyAgeAdapter,
+            timelineAdapter
+        )
+
+        binding.rvStatistics.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = concatAdapter
         }
     }
 
     private fun getReturnTarget(): NavTarget {
         return (mainVm.navTarget.value as? NavTarget.Statistics)?.returnTarget ?: NavTarget.Dashboard
+    }
+
+    override fun onSystemBackPressed(): Boolean {
+        mainVm.navigateTo(getReturnTarget())
+        return true
+    }
+
+    private fun ensureBabyOrNavigate(): Boolean {
+        val currentBaby = mainVm.getCurrentBabyInfo()
+        return if (currentBaby == null) {
+            currentBabyInfo = null
+            babyAgeAdapter.updateBabyDaysText(null)
+            mainVm.navigateTo(NavTarget.BabyInfo.create(returnTarget = NavTarget.Statistics(getReturnTarget())))
+            false
+        } else {
+            vm.setBabyId(currentBaby.babyId)
+            currentBabyInfo = currentBaby
+            updateBabyDays(currentBaby, vm.selectedDate.value)
+            true
+        }
+    }
+
+    private fun updateBabyDays(babyInfo: BabyInfo, selectedDate: LocalDate) {
+        if (babyInfo.birthDate > 0) {
+            val birthDate = Instant.ofEpochMilli(babyInfo.birthDate)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+            val days = ChronoUnit.DAYS.between(birthDate, selectedDate)
+            if (days < 0) {
+                babyAgeAdapter.updateBabyDaysText(
+                    StringUtils.getString(com.zero.common.R.string.baby_not_born_yet_playful)
+                )
+            } else {
+                babyAgeAdapter.updateBabyDaysText(
+                    StringUtils.getString(com.zero.common.R.string.days_born, days.toInt())
+                )
+            }
+        } else {
+            babyAgeAdapter.updateBabyDaysText(null)
+        }
     }
 
     /**
@@ -216,85 +222,42 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>() {
         // 观察有记录的日期
         launchInLifecycle {
             vm.datesWithRecords.collect { dates ->
-                binding.calendarView.setDatesWithRecords(dates)
+                calendarAdapter.setDatesWithRecords(dates)
             }
         }
 
         // 观察 ViewModel 的选中日期变化（外部设置时同步到日历）
         launchInLifecycle {
             vm.selectedDate.collect { date ->
-                val calendarSelectedDate = binding.calendarView.getSelectedDate()
-                if (date != calendarSelectedDate) {
-                    binding.calendarView.setSelectedDate(date, notify = false)
-                    updateCalendarTitle()
-                }
+                calendarAdapter.syncSelectedDate(date)
+                currentBabyInfo?.let { updateBabyDays(it, date) }
             }
         }
-    }
-
-    /**
-     * 更新日历标题
-     */
-    private fun updateCalendarTitle() {
-        binding.tvCalendarTitle.text = binding.calendarView.getFormattedTitle()
-    }
-
-    /**
-     * 更新展开/收起指示器
-     */
-    private fun updateExpandIndicator(mode: BabyCalendarView.ViewMode) {
-        val rotation = when (mode) {
-            BabyCalendarView.ViewMode.WEEK -> 90f   // 向下箭头
-            BabyCalendarView.ViewMode.MONTH -> -90f // 向上箭头
-        }
-        binding.ivExpandIndicator.animate()
-            .rotation(rotation)
-            .setDuration(200)
-            .start()
     }
 
     /**
      * 更新统计摘要 UI
      */
     private fun updateSummaryUI(summary: DaySummary) {
-        with(binding) {
-            // 喂养
-            tvFeedingCount.text = if (summary.feedingCount > 0) {
-                "${summary.feedingCount}次"
-            } else {
-                "0次"
-            }
-
-            // 睡眠
-            tvSleepDuration.text = summary.formatSleepDuration()
-
-            // 尿布
-            tvDiaperCount.text = if (summary.totalDiaperCount > 0) {
-                "${summary.totalDiaperCount}次"
-            } else {
-                "0次"
-            }
-
-            // 其他
-            tvOtherCount.text = if (summary.otherEventCount > 0) {
-                "${summary.otherEventCount}次"
-            } else {
-                "0次"
-            }
-        }
+        summaryAdapter.updateSummary(summary)
     }
 
     /**
      * 更新时间轴 UI
      */
     private fun updateTimelineUI(items: List<TimelineItem>) {
+        timelineAdapter.submitList(items)
+        val hasEmptyAdapter = concatAdapter.adapters.contains(emptyAdapter)
         if (items.isEmpty()) {
-            binding.rvTimeline.visibility = View.GONE
-            binding.llEmptyState.visibility = View.VISIBLE
+            if (!hasEmptyAdapter) {
+                concatAdapter.addAdapter(emptyAdapter)
+            }
+            timelineAdapter.setRoundBottom(false)
+        } else if (hasEmptyAdapter) {
+            concatAdapter.removeAdapter(emptyAdapter)
+            timelineAdapter.setRoundBottom(true)
         } else {
-            binding.rvTimeline.visibility = View.VISIBLE
-            binding.llEmptyState.visibility = View.GONE
-            timelineAdapter.submitList(items)
+            timelineAdapter.setRoundBottom(true)
         }
     }
 

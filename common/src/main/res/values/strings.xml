@@ -6,6 +6,9 @@
     <string name="loading">加载中</string>
     <string name="number_zero">0</string>
     <string name="number_decimal_zero">0.00</string>
+    <string name="list_separator_dot"> · </string>
+    <string name="times_count_format">%1$d次</string>
+    <string name="baby_not_born_yet_playful">时光机没开张，我还没出生哟！</string>
     
     <string name="babyName">姓名</string>
     <string name="babyBirthday">生日</string>
@@ -47,7 +50,9 @@
     <string name="sleep_end_time">醒来时间</string>
     <string name="sleep_duration">睡眠时长</string>
     <string name="sleep_duration_format">%1$d小时%2$d分钟</string>
+    <string name="sleep_duration_hours">%1$d小时</string>
     <string name="sleep_duration_minutes">%1$d分钟</string>
+    <string name="timeline_end_time_format">- %1$s</string>
     <string name="sleep_save_success">睡眠记录保存成功</string>
     <string name="sleep_start_required">请输入入睡时间</string>
     <string name="sleep_end_required">请输入醒来时间</string>
@@ -75,7 +80,11 @@
     <string name="feeding_type_mixed">混合</string>
     <string name="feeding_type_solid">辅食</string>
     <string name="feeding_type_other">其他</string>
+    <string name="feeding_type_title_format">%1$s喂养</string>
     <string name="feeding_amount">喂奶量</string>
+    <string name="feeding_breast_side_minutes_format">%1$s%2$d分钟</string>
+    <string name="feeding_total_minutes_format">共%1$d分钟</string>
+    <string name="feeding_amount_unit_format">%1$d%2$s</string>
     
     <!-- 辅食相关 -->
     <string name="solid_food_type">辅食类型</string>
@@ -218,12 +227,25 @@
 
     <!-- ==================== 事件记录相关 ==================== -->
     <string name="event_record">记录事件</string>
+    <string name="event_diaper_wet_title">换尿布（小便）</string>
+    <string name="event_diaper_dirty_title">换尿布（大便）</string>
+    <string name="event_diaper_mixed_title">换尿布（混合）</string>
+    <string name="event_diaper_dry_title">换尿布（干净）</string>
+    <string name="event_measure_title_format">测量%1$s</string>
+    <string name="event_record_title_format">%1$s记录</string>
+    <string name="event_milestone_title_format">里程碑：%1$s</string>
+    <string name="event_vaccine_title">疫苗接种</string>
+    <string name="event_doctor_title">就医检查</string>
+    <string name="event_other_title">其他事件</string>
+    <string name="event_duration_minutes_format">时长 %1$d分钟</string>
     <string name="select_event_type">选择事件类型</string>
     <string name="event_detail">详细信息</string>
     <string name="event_time">事件时间</string>
     <string name="start_time">开始时间</string>
     <string name="event_end_time">结束时间</string>
     <string name="event_duration">持续时长</string>
+    <string name="event_end_time_invalid">请设置有效的结束时间</string>
+    <string name="event_value_required">请输入数值</string>
     <string name="save_success">保存成功</string>
     <string name="please_select_event_type">请选择事件类型</string>
 
@@ -250,10 +272,12 @@
     <string name="stool_color_green">绿色</string>
     <string name="stool_color_brown">棕色</string>
     <string name="stool_color_black">黑色</string>
+    <string name="stool_color_red">红色</string>
     <string name="urine_amount">小便量</string>
     <string name="urine_amount_little">少</string>
     <string name="urine_amount_normal">中</string>
     <string name="urine_amount_much">多</string>
+    <string name="event_label_value_format">%1$s：%2$s</string>
 
     <!-- 健康类事件 -->
     <string name="event_health_temperature">体温</string>
@@ -264,11 +288,18 @@
     <string name="temperature_value">体温值</string>
     <string name="temperature_unit">℃</string>
     <string name="temperature_value_hint">36.5</string>
+    <string name="temperature_value_required">请输入体温值</string>
     <string name="temperature_normal">正常</string>
     <string name="temperature_low_fever">低烧</string>
     <string name="temperature_high_fever">高烧</string>
     <string name="temperature_warning">体温偏高，请注意观察</string>
     <string name="temperature_danger">体温过高，建议就医</string>
+    <string name="temperature_location_label">测量部位</string>
+    <string name="temperature_location_ear">耳温</string>
+    <string name="temperature_location_forehead">额温</string>
+    <string name="temperature_location_armpit">腋温</string>
+    <string name="temperature_location_oral">口温</string>
+    <string name="temperature_location_rectal">肛温</string>
     <string name="medicine_name">药品名称</string>
     <string name="medicine_name_hint">请输入药品名称</string>
     <string name="medicine_dosage">剂量</string>
@@ -276,6 +307,14 @@
     <string name="vaccine_name">疫苗名称</string>
     <string name="vaccine_name_hint">请输入疫苗名称</string>
     <string name="vaccine_dose">剂次</string>
+    <string name="vaccine_dose_hint">请输入剂次</string>
+    <string name="vaccine_dose_format">第%1$d剂</string>
+    <string name="vaccine_site">接种部位</string>
+    <string name="vaccine_site_hint">如：左上臂</string>
+    <string name="vaccine_clinic">接种机构</string>
+    <string name="vaccine_clinic_hint">请输入接种机构</string>
+    <string name="vaccine_batch">疫苗批号</string>
+    <string name="vaccine_batch_hint">请输入疫苗批号</string>
     <string name="symptom_description">症状描述</string>
     <string name="symptom_hint">请描述症状</string>
 
@@ -325,6 +364,9 @@
     <string name="event_other_custom">自定义</string>
     <string name="custom_event_name">事件名称</string>
     <string name="custom_event_hint">请输入事件名称</string>
+    <string name="custom_event_description">事件描述</string>
+    <string name="custom_event_description_hint">请输入事件描述</string>
+    <string name="custom_event_required">请输入事件名称或描述</string>
 
     <!-- 统计页面 -->
     <string name="statistics">统计</string>

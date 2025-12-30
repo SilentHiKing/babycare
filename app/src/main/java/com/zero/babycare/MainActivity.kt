@@ -2,6 +2,7 @@ package com.zero.babycare
 
 import android.os.Bundle
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
@@ -17,6 +18,7 @@ import com.zero.babycare.home.DashboardFragment
 import com.zero.babycare.home.record.FeedingRecordFragment
 import com.zero.babycare.home.record.SleepRecordFragment
 import com.zero.babycare.home.record.event.EventRecordFragment
+import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babycare.statistics.StatisticsFragment
 import com.zero.babydata.entity.BabyInfo
@@ -30,6 +32,11 @@ import kotlin.getValue
 class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val vm by viewModels<MainViewModel>()
     private val fragments = mutableListOf<Fragment>()
+    private val backPressCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            handleSystemBack()
+        }
+    }
     
     /** 侧边栏绑定 */
     private val drawerBinding: LayoutNavDrawerBinding by lazy {
@@ -78,6 +85,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         setupFragments()
         // 初始化侧边栏
         setupDrawer()
+        // 统一系统返回
+        setupBackPressDispatcher()
         // 监听 Fragment 切换
         observeFragmentStatus()
     }
@@ -139,6 +148,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             closeDrawer()
             // TODO: 进入设置页面
         }
+    }
+
+    private fun setupBackPressDispatcher() {
+        onBackPressedDispatcher.addCallback(this, backPressCallback)
     }
 
     /**
@@ -231,13 +244,29 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
+    private fun handleSystemBack() {
         if (isDrawerOpen()) {
             closeDrawer()
-        } else {
-            super.onBackPressed()
+            return
         }
+
+        val currentTarget = vm.navTarget.value
+        val currentFragment = fragments.firstOrNull { fragment ->
+            currentTarget.fragmentClass.isInstance(fragment)
+        }
+
+        if (currentFragment is BackPressHandler && currentFragment.onSystemBackPressed()) {
+            return
+        }
+
+        if (currentTarget !is NavTarget.Dashboard) {
+            vm.navigateTo(NavTarget.Dashboard)
+            return
+        }
+
+        backPressCallback.isEnabled = false
+        onBackPressedDispatcher.onBackPressed()
+        backPressCallback.isEnabled = true
     }
 
     /**

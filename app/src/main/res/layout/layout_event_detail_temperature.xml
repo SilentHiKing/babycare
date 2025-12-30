@@ -68,6 +68,50 @@
 
     </LinearLayout>
 
+    <!-- 测量部位 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_16"
+        android:text="@string/temperature_location_label"
+        android:textColor="?attr/primary90"
+        android:textSize="@dimen/sp_14"
+        android:textStyle="bold" />
+
+    <RadioGroup
+        android:id="@+id/rgTemperatureLocation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_8"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/rbTempEar"
+            style="@style/EventDetailRadioButton"
+            android:text="@string/temperature_location_ear" />
+
+        <RadioButton
+            android:id="@+id/rbTempForehead"
+            style="@style/EventDetailRadioButton"
+            android:text="@string/temperature_location_forehead" />
+
+        <RadioButton
+            android:id="@+id/rbTempArmpit"
+            style="@style/EventDetailRadioButton"
+            android:text="@string/temperature_location_armpit" />
+
+        <RadioButton
+            android:id="@+id/rbTempOral"
+            style="@style/EventDetailRadioButton"
+            android:text="@string/temperature_location_oral" />
+
+        <RadioButton
+            android:id="@+id/rbTempRectal"
+            style="@style/EventDetailRadioButton"
+            android:text="@string/temperature_location_rectal" />
+
+    </RadioGroup>
+
     <!-- 高温警告 -->
     <TextView
         android:id="@+id/tvWarning"

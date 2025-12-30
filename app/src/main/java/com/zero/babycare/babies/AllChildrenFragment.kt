@@ -14,6 +14,7 @@ import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentAllChildrenBinding
 import com.zero.babycare.databinding.ItemBabyCardBinding
 import com.zero.babycare.navigation.NavTarget
+import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babydata.entity.BabyInfo
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
@@ -26,7 +27,7 @@ import java.util.concurrent.TimeUnit
  * 所有宝宝列表页面
  * 支持查看、切换、编辑、删除宝宝
  */
-class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>() {
+class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPressHandler {
 
     companion object {
         fun create(): AllChildrenFragment {
@@ -96,6 +97,11 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>() {
             adapter.setCurrentBabyId(currentBaby?.babyId ?: -1)
             adapter.submitList(babies)
         }
+    }
+
+    override fun onSystemBackPressed(): Boolean {
+        mainVm.navigateTo(NavTarget.Dashboard)
+        return true
     }
 
     /**
@@ -223,4 +229,3 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>() {
         }
     }
 }
-

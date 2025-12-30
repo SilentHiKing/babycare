@@ -3,7 +3,6 @@ package com.zero.babycare.home.record
 import android.app.TimePickerDialog
 import android.os.Bundle
 import android.view.View
-import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.blankj.utilcode.util.LogUtils
@@ -13,6 +12,7 @@ import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentSleepRecordBinding
 import com.zero.babycare.home.OngoingRecordManager
 import com.zero.babycare.navigation.NavTarget
+import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babydata.entity.SleepRecord
 import com.zero.common.R
 import com.zero.common.util.DateUtils
@@ -48,7 +48,7 @@ import java.util.Calendar
  * 2. 方式二（手动输入）：输入入睡时间 → 输入醒来时间 → 根据时间差显示时长
  * 3. 混合方式：手动输入入睡时间 → 点击计时器开始 → 从该时间点开始计时
  */
-class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>() {
+class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPressHandler {
 
     companion object {
         fun create(): SleepRecordFragment {
@@ -78,7 +78,6 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>() {
         super.initView(view, savedInstanceState)
         binding.btn.title = StringUtils.getString(R.string.sleep_record)
 
-        setupBackPressHandler()
         setupTimeInputs()
         setupTimerCounter()
         setupToolbar()
@@ -141,20 +140,6 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>() {
         
         hasUnsavedChanges = true
         isProgrammaticChange = false
-    }
-
-    /**
-     * 设置返回按钮处理
-     */
-    private fun setupBackPressHandler() {
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner,
-            object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    handleBack()
-                }
-            }
-        )
     }
 
     /**
@@ -672,6 +657,11 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>() {
     /**
      * 处理返回
      */
+    override fun onSystemBackPressed(): Boolean {
+        handleBack()
+        return true
+    }
+
     private fun handleBack() {
         if (hasUnsavedChanges) {
             DialogHelper.showConfirmDialog(

@@ -3,10 +3,12 @@ package com.zero.babycare.home.record.event
 import androidx.lifecycle.viewModelScope
 import com.blankj.utilcode.util.ThreadUtils
 import com.zero.babydata.domain.BabyDataHelper.repository
+import com.blankj.utilcode.util.StringUtils
 import com.zero.babydata.entity.EventExtraData
 import com.zero.babydata.entity.EventRecord
 import com.zero.babydata.entity.EventType
 import com.zero.components.base.vm.BaseViewModel
+import com.zero.common.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.Dispatchers
@@ -109,13 +111,13 @@ class EventRecordViewModel : BaseViewModel() {
      */
     fun validateData(): ValidationResult {
         val subtype = _selectedSubtype.value
-            ?: return ValidationResult.Error("请选择事件类型")
+            ?: return ValidationResult.Error(StringUtils.getString(R.string.please_select_event_type))
 
         // 需要时长的事件验证结束时间
         if (requiresDuration()) {
             val end = _endTime.value
             if (end == null || end <= _eventTime.value) {
-                return ValidationResult.Error("请设置有效的结束时间")
+                return ValidationResult.Error(StringUtils.getString(R.string.event_end_time_invalid))
             }
         }
 
@@ -123,7 +125,7 @@ class EventRecordViewModel : BaseViewModel() {
         if (EventType.isGrowth(subtype.type)) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.GrowthData) {
-                return ValidationResult.Error("请输入数值")
+                return ValidationResult.Error(StringUtils.getString(R.string.event_value_required))
             }
         }
 
@@ -131,7 +133,7 @@ class EventRecordViewModel : BaseViewModel() {
         if (subtype.type == EventType.HEALTH_TEMPERATURE) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.TemperatureData) {
-                return ValidationResult.Error("请输入体温值")
+                return ValidationResult.Error(StringUtils.getString(R.string.temperature_value_required))
             }
         }
 
@@ -139,7 +141,23 @@ class EventRecordViewModel : BaseViewModel() {
         if (subtype.type == EventType.HEALTH_MEDICINE) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.MedicineData || data.name.isBlank()) {
-                return ValidationResult.Error("请输入药品名称")
+                return ValidationResult.Error(StringUtils.getString(R.string.medicine_name_hint))
+            }
+        }
+
+        // 疫苗验证
+        if (subtype.type == EventType.HEALTH_VACCINE) {
+            val data = _extraData.value
+            if (data !is com.zero.babydata.entity.VaccineData || data.name.isBlank()) {
+                return ValidationResult.Error(StringUtils.getString(R.string.vaccine_name_hint))
+            }
+        }
+
+        // 症状验证
+        if (subtype.type == EventType.HEALTH_SYMPTOM) {
+            val data = _extraData.value
+            if (data !is com.zero.babydata.entity.SymptomData || data.description.isNullOrBlank()) {
+                return ValidationResult.Error(StringUtils.getString(R.string.symptom_hint))
             }
         }
 
@@ -147,7 +165,17 @@ class EventRecordViewModel : BaseViewModel() {
         if (subtype.type == EventType.MILESTONE_CUSTOM) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.MilestoneData || data.name.isNullOrBlank()) {
-                return ValidationResult.Error("请输入里程碑名称")
+                return ValidationResult.Error(StringUtils.getString(R.string.milestone_name_hint))
+            }
+        }
+
+        // 自定义事件验证
+        if (subtype.type == EventType.OTHER_CUSTOM) {
+            val data = _extraData.value
+            val hasValue = data is com.zero.babydata.entity.CustomEventData &&
+                (!data.name.isNullOrBlank() || !data.description.isNullOrBlank())
+            if (!hasValue) {
+                return ValidationResult.Error(StringUtils.getString(R.string.custom_event_required))
             }
         }
 

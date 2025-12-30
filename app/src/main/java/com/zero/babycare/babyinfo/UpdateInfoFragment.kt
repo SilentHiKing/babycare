@@ -16,6 +16,7 @@ import com.zero.babycare.MainActivity
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentUpdateInfoBinding
 import com.zero.babycare.navigation.NavTarget
+import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.ext.launchInLifecycle
 import com.zero.common.util.CompatDateUtils
@@ -33,7 +34,7 @@ import java.util.Locale
  * - 创建模式：首次使用，创建新宝宝
  * - 编辑模式：编辑现有宝宝信息
  */
-class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>() {
+class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressHandler {
     companion object {
         fun create(): UpdateInfoFragment {
             return UpdateInfoFragment()
@@ -344,6 +345,11 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>() {
      * 返回上一页
      * 根据导航参数中的 returnTarget 决定返回目标
      */
+    override fun onSystemBackPressed(): Boolean {
+        goBack()
+        return true
+    }
+
     private fun goBack() {
         val navTarget = mainVm.navTarget.value
         val returnTarget = if (navTarget is NavTarget.BabyInfo) {

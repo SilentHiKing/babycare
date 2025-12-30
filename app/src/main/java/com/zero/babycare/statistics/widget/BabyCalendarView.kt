@@ -188,11 +188,11 @@ class BabyCalendarView @JvmOverloads constructor(
 
     private fun initSizes() {
         val density = resources.displayMetrics.density
-        weekDayTextSize = 12 * density
-        dateTextSize = 16 * density
-        weekDayHeight = 32 * density
+        weekDayTextSize = 11 * density
+        dateTextSize = 15 * density
+        weekDayHeight = 26 * density
         dotRadius = 3 * density
-        selectedRadius = 18 * density
+        selectedRadius = 15 * density
     }
 
     private val visibleRowCount: Int
@@ -210,7 +210,7 @@ class BabyCalendarView @JvmOverloads constructor(
         }
 
         cellWidth = measuredWidth / DAYS_IN_WEEK.toFloat()
-        cellHeight = cellWidth * 0.9f
+        cellHeight = cellWidth * 0.76f
 
         val desiredHeight = (weekDayHeight + cellHeight * visibleRowCount).toInt()
         val measuredHeight = when (heightMode) {
