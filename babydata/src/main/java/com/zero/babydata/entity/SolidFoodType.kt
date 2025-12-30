@@ -1,5 +1,7 @@
 package com.zero.babydata.entity
 
+import com.blankj.utilcode.util.StringUtils
+
 /**
  * 辅食类型
  * 
@@ -128,9 +130,9 @@ object SolidFoodType {
      * 获取默认单位
      */
     fun getDefaultUnit(type: Int): String = when (getCategory(type)) {
-        CATEGORY_DRINK -> "ml"
-        CATEGORY_SUPPLEMENT -> "滴"
-        else -> "g"
+        CATEGORY_DRINK -> StringUtils.getString(com.zero.common.R.string.unit_ml_abbr)
+        CATEGORY_SUPPLEMENT -> StringUtils.getString(com.zero.common.R.string.unit_drop)
+        else -> StringUtils.getString(com.zero.common.R.string.unit_g_abbr)
     }
     
     /**
@@ -197,4 +199,3 @@ object SolidFoodType {
         else -> emptyList()
     }
 }
-

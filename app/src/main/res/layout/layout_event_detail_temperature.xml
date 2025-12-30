@@ -21,7 +21,7 @@
             android:layout_weight="1"
             android:background="?attr/bg_r6_block_gridview"
             android:gravity="center"
-            android:hint="36.5"
+            android:hint="@string/temperature_value_hint"
             android:inputType="numberDecimal"
             android:maxLength="4"
             android:textColor="?attr/primary90"
@@ -81,4 +81,3 @@
         android:visibility="gone" />
 
 </LinearLayout>
-

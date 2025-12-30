@@ -31,7 +31,7 @@
             android:fontFamily="sans-serif-medium"
             android:includeFontPadding="false"
             android:letterSpacing="0.03"
-            android:text="00:00"
+            android:text="@string/record_timer_default"
             android:textColor="?attr/primary90"
             android:textSize="@dimen/sp_20"
             android:visibility="invisible"

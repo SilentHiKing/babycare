@@ -16,6 +16,8 @@ class EventCategoryAdapter(
 ) : BaseQuickAdapter<EventCategory, EventCategoryAdapter.VH>() {
 
     private var selectedCategory: EventCategory? = null
+    private var isLocked = false
+    private val lockedAlpha = 0.4f
 
     init {
         // 初始化数据
@@ -53,6 +55,9 @@ class EventCategoryAdapter(
             ivIcon.setColorFilter(iconTint)
 
             root.setOnClickListener {
+                if (isLocked) {
+                    return@setOnClickListener
+                }
                 if (item != selectedCategory) {
                     val oldPosition = items.indexOf(selectedCategory)
                     selectedCategory = item
@@ -61,6 +66,8 @@ class EventCategoryAdapter(
                     onCategorySelected(item)
                 }
             }
+            root.isEnabled = !isLocked
+            rootLayout.alpha = if (isLocked) lockedAlpha else 1f
         }
     }
 
@@ -74,6 +81,13 @@ class EventCategoryAdapter(
             selectedCategory = category
             if (oldPosition >= 0) notifyItemChanged(oldPosition)
             if (newPosition >= 0) notifyItemChanged(newPosition)
+        }
+    }
+
+    fun setLocked(locked: Boolean) {
+        if (isLocked != locked) {
+            isLocked = locked
+            notifyDataSetChanged()
         }
     }
 }

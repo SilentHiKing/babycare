@@ -442,13 +442,13 @@
                             android:textColorHint="?attr/weaken40"
                             android:textSize="@dimen/sp_14" />
 
-                        <TextView
-                            android:id="@+id/tvSolidUnit"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="g"
-                            android:textColor="?attr/weaken40"
-                            android:textSize="@dimen/sp_14" />
+                    <TextView
+                        android:id="@+id/tvSolidUnit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/unit_g_abbr"
+                        android:textColor="?attr/weaken40"
+                        android:textSize="@dimen/sp_14" />
 
                     </LinearLayout>
                 </LinearLayout>
@@ -601,7 +601,7 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:background="@null"
-                            android:hint="0"
+                            android:hint="@string/number_zero"
                             android:inputType="number"
                             android:maxLength="3"
                             android:textColor="?attr/primary90"
@@ -653,7 +653,7 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:background="@null"
-                            android:hint="0"
+                            android:hint="@string/number_zero"
                             android:inputType="number"
                             android:maxLength="3"
                             android:textColor="?attr/primary90"

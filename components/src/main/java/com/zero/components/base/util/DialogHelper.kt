@@ -46,13 +46,15 @@ object DialogHelper {
     /**
      * 创建加载对话框
      */
-    fun createLoadingDialog(context: Context, title: String? = "loading"): LoadingPopupView {
+    fun createLoadingDialog(context: Context, title: String? = null): LoadingPopupView {
+        val displayTitle = title?.takeIf { it.isNotBlank() }
+            ?: context.getString(com.zero.common.R.string.loading)
         return XPopup.Builder(context)
             .isViewMode(false)
             .hasShadowBg(true)
             .dismissOnTouchOutside(false)
             .dismissOnBackPressed(false)
-            .asLoading(title, LoadingPopupView.Style.Spinner)
+            .asLoading(displayTitle, LoadingPopupView.Style.Spinner)
     }
 
     /**
@@ -121,9 +123,8 @@ object DialogHelper {
         message = "Use createLoadingDialog instead",
         replaceWith = ReplaceWith("createLoadingDialog(context, title)")
     )
-    fun generateLoadingDialog(context: Context, title: String? = "loading"): LoadingPopupView {
+    fun generateLoadingDialog(context: Context, title: String? = null): LoadingPopupView {
         return createLoadingDialog(context, title)
     }
 }
-
 

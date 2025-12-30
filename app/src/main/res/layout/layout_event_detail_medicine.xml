@@ -51,7 +51,7 @@
             android:layout_weight="1"
             android:background="?attr/bg_r6_block_gridview"
             android:gravity="center"
-            android:hint="0"
+            android:hint="@string/number_zero"
             android:inputType="numberDecimal"
             android:textColor="?attr/primary90"
             android:textColorHint="?attr/weaken40"
@@ -67,4 +67,3 @@
     </LinearLayout>
 
 </LinearLayout>
-

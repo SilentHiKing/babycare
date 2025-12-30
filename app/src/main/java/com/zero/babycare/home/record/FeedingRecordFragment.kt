@@ -788,6 +788,15 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>() {
         if (!isEditMode) {
             editingRecord = null
         }
+        applyTimerLockState()
+    }
+
+    private fun applyTimerLockState() {
+        val returnTarget = (mainVm.navTarget.value as? NavTarget.FeedingRecord)?.returnTarget
+        val locked = isEditMode && returnTarget is NavTarget.Statistics
+        binding.rvCounter.isEnabled = !locked
+        binding.rvCounter.isClickable = !locked
+        binding.rvCounter.alpha = if (locked) 0.4f else 1f
     }
 
     private fun loadEditRecord() {

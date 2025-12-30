@@ -114,6 +114,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
             editingRecord = null
             pendingExtraData = null
         }
+        applyCategoryLockState()
     }
 
     private fun loadEditRecord() {
@@ -164,6 +165,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
             }
         }
         binding.rvCategory.adapter = categoryAdapter
+        applyCategoryLockState()
     }
 
     private fun setupSubtypeRecyclerView() {
@@ -181,6 +183,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
             )
         )
         binding.rvSubtype.adapter = subtypeAdapter
+        applyCategoryLockState()
     }
 
     companion object {
@@ -480,13 +483,14 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
 
     private fun inflateMedicineDetail(inflater: LayoutInflater) {
         val detailBinding = LayoutEventDetailMedicineBinding.inflate(inflater, binding.containerDetail, true)
+        val defaultUnit = StringUtils.getString(R.string.unit_ml_abbr)
 
         detailBinding.etMedicineName.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val name = detailBinding.etMedicineName.text.toString()
                 val dosage = detailBinding.etDosage.text.toString()
                 if (name.isNotBlank()) {
-                    vm.setExtraData(MedicineData(name, dosage, "ml"))
+                    vm.setExtraData(MedicineData(name, dosage, defaultUnit))
                 }
             }
         }
@@ -692,7 +696,8 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
                 val unitView = root.findViewById<Spinner>(com.zero.babycare.R.id.spinnerUnit)
                 val name = nameView?.text?.toString()?.trim().orEmpty()
                 val dosage = dosageView?.text?.toString()?.trim().orEmpty()
-                val unit = unitView?.selectedItem?.toString()?.ifBlank { "ml" } ?: "ml"
+                val defaultUnit = StringUtils.getString(R.string.unit_ml_abbr)
+                val unit = unitView?.selectedItem?.toString()?.ifBlank { defaultUnit } ?: defaultUnit
                 if (name.isNotBlank()) {
                     vm.setExtraData(MedicineData(name, dosage, unit))
                 } else {
@@ -719,5 +724,15 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>() {
 
     private fun handleBack() {
         mainVm.navigateTo(getReturnTarget())
+    }
+
+    private fun applyCategoryLockState() {
+        if (!::categoryAdapter.isInitialized || !::subtypeAdapter.isInitialized) {
+            return
+        }
+        categoryAdapter.setLocked(isCategoryLocked)
+        subtypeAdapter.setLocked(isCategoryLocked)
+        binding.rvCategory.isEnabled = !isCategoryLocked
+        binding.rvSubtype.isEnabled = !isCategoryLocked
     }
 }

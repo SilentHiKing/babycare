@@ -24,7 +24,7 @@ open class BaseFragment<VB : ViewBinding> : BaseBindingFragment<VB>() {
 
 
 
-    protected fun showLoading(title: String? = "loading") {
+    protected fun showLoading(title: String? = null) {
         if (loadingPop == null) {
             loadingPop = DialogHelper.generateLoadingDialog(requireContext(), title)
         }

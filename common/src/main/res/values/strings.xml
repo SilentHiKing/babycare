@@ -3,6 +3,9 @@
     <!-- 通用 -->
     <string name="back">返回</string>
     <string name="menu">菜单</string>
+    <string name="loading">加载中</string>
+    <string name="number_zero">0</string>
+    <string name="number_decimal_zero">0.00</string>
     
     <string name="babyName">姓名</string>
     <string name="babyBirthday">生日</string>
@@ -26,6 +29,7 @@
     <string name="boy">男</string>
     <string name="girl">女</string>
     <string name="unit_g">克</string>
+    <string name="unit_g_abbr">g</string>
     <string name="unit_cm">厘米</string>
     <string name="updateSuccess">更新成功</string>
     <string name="nameIsNullTip">请给孩子取个名字吧</string>
@@ -126,6 +130,8 @@
     <string name="solid_rice_cracker">米饼</string>
     <string name="feeding_amount_hint">可选</string>
     <string name="unit_ml">毫升</string>
+    <string name="unit_ml_abbr">ml</string>
+    <string name="unit_drop">滴</string>
     <string name="left_breast">左侧</string>
     <string name="right_breast">右侧</string>
     <string name="left_breast_duration">左侧时长</string>
@@ -153,6 +159,7 @@
     <string name="end_time_will_be_cleared">继续计时将清空已填写的结束时间，确定继续吗？</string>
     <string name="continue_timing">继续计时</string>
     <string name="tip">提示</string>
+    <string name="record_timer_default">00:00</string>
     <string name="tap_to_start">点击开始计时</string>
     <string name="tap_to_pause">点击暂停</string>
     <string name="tap_to_continue">点击继续</string>
@@ -256,6 +263,7 @@
     <string name="event_health_symptom">症状</string>
     <string name="temperature_value">体温值</string>
     <string name="temperature_unit">℃</string>
+    <string name="temperature_value_hint">36.5</string>
     <string name="temperature_normal">正常</string>
     <string name="temperature_low_fever">低烧</string>
     <string name="temperature_high_fever">高烧</string>

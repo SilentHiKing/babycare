@@ -18,6 +18,8 @@ class EventSubtypeAdapter(
 ) : BaseQuickAdapter<EventSubtype, EventSubtypeAdapter.VH>() {
 
     private var selectedType: Int? = null
+    private var isLocked = false
+    private val lockedAlpha = 0.4f
 
     inner class VH(
         parent: ViewGroup,
@@ -78,12 +80,17 @@ class EventSubtypeAdapter(
             }
 
             cardRoot.setOnClickListener {
+                if (isLocked) {
+                    return@setOnClickListener
+                }
                 if (item.type != selectedType) {
                     selectedType = item.type
                     notifyDataSetChanged()
                     onSubtypeSelected(item)
                 }
             }
+            cardRoot.isEnabled = !isLocked
+            cardRoot.alpha = if (isLocked) lockedAlpha else 1f
         }
     }
 
@@ -101,4 +108,11 @@ class EventSubtypeAdapter(
      * 获取选中的子类型
      */
     fun getSelectedType(): Int? = selectedType
+
+    fun setLocked(locked: Boolean) {
+        if (isLocked != locked) {
+            isLocked = locked
+            notifyDataSetChanged()
+        }
+    }
 }
