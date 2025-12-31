@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/bg_r12_secondary_bg_default"
+    android:orientation="vertical"
+    android:padding="@dimen/dp_16">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/custom_event_name"
+        android:textColor="?attr/primary90"
+        android:textSize="@dimen/sp_14"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/etCustomEventName"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_44"
+        android:layout_marginTop="@dimen/dp_8"
+        android:background="?attr/bg_r6_block_gridview"
+        android:hint="@string/custom_event_hint"
+        android:inputType="text"
+        android:paddingHorizontal="@dimen/dp_12"
+        android:textColor="?attr/primary90"
+        android:textColorHint="?attr/weaken40"
+        android:textSize="@dimen/sp_14" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_16"
+        android:text="@string/custom_event_description"
+        android:textColor="?attr/primary90"
+        android:textSize="@dimen/sp_14"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/etCustomEventDescription"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_80"
+        android:layout_marginTop="@dimen/dp_8"
+        android:background="?attr/bg_r6_block_gridview"
+        android:gravity="start|top"
+        android:hint="@string/custom_event_description_hint"
+        android:inputType="textMultiLine"
+        android:padding="@dimen/dp_12"
+        android:textColor="?attr/primary90"
+        android:textColorHint="?attr/weaken40"
+        android:textSize="@dimen/sp_14" />
+
+</LinearLayout>

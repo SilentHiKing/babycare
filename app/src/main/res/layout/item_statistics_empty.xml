@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/llEmptyState"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/dp_16"
+    android:background="@drawable/bg_r12_bottom_secondary_bg_default"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingTop="@dimen/dp_60"
+    android:paddingBottom="@dimen/dp_12"
+    android:paddingHorizontal="@dimen/dp_12"
+    tools:visibility="visible">
+
+    <ImageView
+        android:layout_width="@dimen/dp_80"
+        android:layout_height="@dimen/dp_80"
+        android:alpha="0.5"
+        android:src="@drawable/ic_record"
+        app:tint="?attr/weaken40" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_16"
+        android:text="@string/no_records_today"
+        android:textColor="?attr/weaken40"
+        android:textSize="@dimen/sp_14" />
+
+    <TextView
+        android:id="@+id/tvAddRecord"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_12"
+        android:background="?attr/bg_r999_brand_color"
+        android:paddingHorizontal="@dimen/dp_20"
+        android:paddingVertical="@dimen/dp_10"
+        android:text="@string/add_record"
+        android:textColor="@color/White100"
+        android:textSize="@dimen/sp_14" />
+
+</LinearLayout>

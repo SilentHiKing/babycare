@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/flBabyAge"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/dp_16"
+    android:background="?attr/secondary_bg_default"
+    android:paddingHorizontal="@dimen/dp_50"
+    android:paddingTop="@dimen/dp_10"
+    android:paddingBottom="@dimen/dp_10">
+
+    <LinearLayout
+        android:id="@+id/llBabyAge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/bg_r999_block_gridview"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="@dimen/dp_10"
+        android:paddingVertical="@dimen/dp_4"
+        tools:visibility="visible">
+
+        <ImageView
+            android:layout_width="@dimen/dp_20"
+            android:layout_height="@dimen/dp_20"
+            android:layout_marginEnd="@dimen/dp_6"
+            android:src="@drawable/ic_baby_default" />
+
+        <TextView
+            android:id="@+id/tvBabyDays"
+            style="@style/BoldTextAppearance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/semantics_blue"
+            android:textSize="@dimen/sp_13"
+            tools:text="已出生 180 天" />
+
+    </LinearLayout>
+
+</FrameLayout>

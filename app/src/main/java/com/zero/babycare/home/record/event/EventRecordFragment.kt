@@ -40,7 +40,9 @@ import com.zero.babydata.entity.TemperatureData
 import com.zero.babydata.entity.VaccineData
 import com.zero.common.R
 import com.zero.common.ext.launchInLifecycle
+import com.zero.common.util.DateUtils
 import com.zero.components.base.BaseFragment
+import com.zero.components.base.util.DialogHelper
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -61,6 +63,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private var isEditMode = false
     private var isCategoryLocked = false
     private var pendingExtraData: com.zero.babydata.entity.EventExtraData? = null
+    private var pausedEndTimestamp = 0L
 
     private val dateFormat = SimpleDateFormat("M月d日 E", Locale.CHINESE)
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -257,6 +260,10 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                         calendar.set(Calendar.HOUR_OF_DAY, hour)
                         calendar.set(Calendar.MINUTE, minute)
                         vm.setEventTime(calendar.timeInMillis)
+                        val subtype = vm.selectedSubtype.value
+                        if (subtype != null && EventType.hasDuration(subtype.type)) {
+                            syncActivityStartTime(calendar.timeInMillis)
+                        }
                     },
                     calendar.get(Calendar.HOUR_OF_DAY),
                     calendar.get(Calendar.MINUTE),
@@ -267,6 +274,18 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         ).show()
+    }
+
+    private fun syncActivityStartTime(timestamp: Long) {
+        val root = binding.containerDetail
+        if (root.childCount == 0) return
+        val detailBinding = LayoutEventDetailActivityBinding.bind(root.getChildAt(0))
+        if (detailBinding.etStartTime.getTimestamp() == timestamp) return
+
+        detailBinding.etStartTime.setTimestamp(timestamp)
+        detailBinding.etEndTime.clear()
+        detailBinding.etEndTime.setReferenceTimestamp(timestamp)
+        detailBinding.rvTimer.reset()
     }
 
     private fun updateDetailView(subtype: EventSubtype?) {
@@ -425,7 +444,9 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             val endTime = vm.endTime.value
             if (endTime != null && endTime > 0L) {
                 val detailBinding = LayoutEventDetailActivityBinding.bind(root.getChildAt(0))
-                detailBinding.tvEndTime.text = timeFormat.format(endTime)
+                detailBinding.etStartTime.setTimestamp(vm.eventTime.value)
+                detailBinding.etEndTime.setTimestamp(endTime)
+                detailBinding.etEndTime.setReferenceTimestamp(vm.eventTime.value)
                 updateDuration(detailBinding)
             }
         }
@@ -714,60 +735,174 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private fun inflateActivityDetail(inflater: LayoutInflater) {
         val detailBinding = LayoutEventDetailActivityBinding.inflate(inflater, binding.containerDetail, true)
 
-        // 初始化时间
-        val startTime = vm.eventTime.value
-        detailBinding.tvStartTime.text = timeFormat.format(startTime)
+        fun clearEndTime() {
+            vm.setEndTime(null)
+            detailBinding.etEndTime.clear()
+            pausedEndTimestamp = 0L
+        }
 
-        detailBinding.tvStartTime.setOnClickListener {
-            showTimePicker { hour, minute ->
-                val calendar = Calendar.getInstance().apply {
-                    timeInMillis = vm.eventTime.value
-                    set(Calendar.HOUR_OF_DAY, hour)
-                    set(Calendar.MINUTE, minute)
-                }
-                vm.setEventTime(calendar.timeInMillis)
-                detailBinding.tvStartTime.text = timeFormat.format(calendar.time)
-                updateDuration(detailBinding)
+        fun updateStartTime(timestamp: Long) {
+            vm.setEventTime(timestamp)
+            detailBinding.etStartTime.setTimestamp(timestamp)
+        }
+
+        fun updateEndTimeReference() {
+            if (detailBinding.etStartTime.hasValidTime()) {
+                detailBinding.etEndTime.setReferenceTimestamp(detailBinding.etStartTime.getTimestamp())
+            } else {
+                detailBinding.etEndTime.clearReferenceTimestamp()
             }
         }
 
-        detailBinding.tvEndTime.setOnClickListener {
-            showTimePicker { hour, minute ->
-                val calendar = Calendar.getInstance().apply {
-                    timeInMillis = vm.eventTime.value
-                    set(Calendar.HOUR_OF_DAY, hour)
-                    set(Calendar.MINUTE, minute)
+        fun onStartTimeChanged(timestamp: Long) {
+            updateStartTime(timestamp)
+            clearEndTime()
+            detailBinding.rvTimer.reset()
+            updateEndTimeReference()
+        }
+
+        fun onEndTimeManuallyEntered(timestamp: Long) {
+            vm.setEndTime(timestamp)
+            detailBinding.etEndTime.setTimestamp(timestamp)
+
+            if (detailBinding.rvTimer.currentShowState == com.zero.components.widget.RecordView.RecordState.RECORDING) {
+                detailBinding.rvTimer.forcePause()
+            }
+
+            if (!DateUtils.isEndAfterStart(vm.eventTime.value, timestamp)) {
+                ToastUtils.showShort(R.string.event_end_time_invalid)
+                return
+            }
+
+            updateDuration(detailBinding)
+        }
+
+        fun isEndTimeManuallyModified(): Boolean {
+            val currentEndTime = detailBinding.etEndTime.getTimestamp()
+            if (currentEndTime <= 0L) return false
+            if (pausedEndTimestamp == 0L) return true
+            return currentEndTime != pausedEndTimestamp
+        }
+
+        fun handleTimerResume() {
+            clearEndTime()
+        }
+
+        fun showResumeTimerConfirmDialog() {
+            DialogHelper.showConfirmDialog(
+                context = requireContext(),
+                title = StringUtils.getString(R.string.continue_timing),
+                content = StringUtils.getString(R.string.end_time_will_be_cleared),
+                confirmText = StringUtils.getString(R.string.confirm),
+                cancelText = StringUtils.getString(R.string.cancel),
+                onConfirm = {
+                    handleTimerResume()
+                    detailBinding.rvTimer.resumeFromPause()
                 }
-                // 如果结束时间早于开始时间，设为第二天
-                if (calendar.timeInMillis <= vm.eventTime.value) {
-                    calendar.add(Calendar.DAY_OF_MONTH, 1)
+            )
+        }
+
+        fun handleTimerStart() {
+            val startTimestamp = detailBinding.etStartTime.getTimestamp()
+            if (startTimestamp > 0L) {
+                val offset = System.currentTimeMillis() - startTimestamp
+                if (offset > 0) {
+                    detailBinding.rvTimer.setPauseOffset(offset)
                 }
-                vm.setEndTime(calendar.timeInMillis)
-                detailBinding.tvEndTime.text = timeFormat.format(calendar.time)
-                updateDuration(detailBinding)
+            }
+
+            clearEndTime()
+
+            detailBinding.rvTimer.post {
+                val timerStartTime = detailBinding.rvTimer.getStartTimestamp()
+                if (timerStartTime > 0) {
+                    updateStartTime(timerStartTime)
+                    updateEndTimeReference()
+                }
+            }
+        }
+
+        fun handleTimerPause() {
+            val currentTime = System.currentTimeMillis()
+            vm.setEndTime(currentTime)
+            detailBinding.etEndTime.setTimestamp(currentTime)
+            pausedEndTimestamp = currentTime
+        }
+
+        // 初始化时间
+        val startTime = vm.eventTime.value
+        detailBinding.etStartTime.setTimestamp(startTime)
+        updateEndTimeReference()
+
+        vm.endTime.value?.takeIf { it > 0L }?.let { endTime ->
+            detailBinding.etEndTime.setTimestamp(endTime)
+            updateDuration(detailBinding)
+        }
+
+        detailBinding.etStartTime.setOnTimeEnteredListener { _, _ ->
+            if (detailBinding.etStartTime.hasValidTime()) {
+                onStartTimeChanged(detailBinding.etStartTime.getTimestamp())
+            }
+        }
+
+        detailBinding.etEndTime.setOnTimeEnteredListener { _, _ ->
+            if (detailBinding.etEndTime.hasValidTime()) {
+                onEndTimeManuallyEntered(detailBinding.etEndTime.getTimestamp())
+            }
+        }
+
+        detailBinding.ivStartTime.setOnClickListener {
+            showTimePickerWithDefault(detailBinding.etStartTime.getTimestamp()) { hour, minute ->
+                val timestamp = calculateSmartTimestampForStartTime(hour, minute)
+                onStartTimeChanged(timestamp)
+            }
+        }
+
+        detailBinding.ivEndTime.setOnClickListener {
+            updateEndTimeReference()
+            showTimePickerWithDefault(detailBinding.etEndTime.getTimestamp()) { hour, minute ->
+                val timestamp = calculateSmartTimestampForEndTime(
+                    hour,
+                    minute,
+                    detailBinding.etStartTime.getTimestamp()
+                )
+                onEndTimeManuallyEntered(timestamp)
             }
         }
 
         // 计时器
         detailBinding.rvTimer.statusChange = { current, next ->
-            when (next) {
-                com.zero.components.widget.RecordView.RecordState.RECORDING -> {
-                    // 开始计时
-                    detailBinding.rvTimer.showState(next)
+            when {
+                current == com.zero.components.widget.RecordView.RecordState.INIT &&
+                    next == com.zero.components.widget.RecordView.RecordState.RECORDING -> {
+                    handleTimerStart()
                 }
-                com.zero.components.widget.RecordView.RecordState.PAUSE -> {
-                    // 暂停时设置结束时间
-                    vm.setEndTime(System.currentTimeMillis())
-                    detailBinding.tvEndTime.text = timeFormat.format(System.currentTimeMillis())
-                    updateDuration(detailBinding)
+                current == com.zero.components.widget.RecordView.RecordState.PAUSE &&
+                    next == com.zero.components.widget.RecordView.RecordState.RECORDING -> {
+                    if (isEndTimeManuallyModified()) {
+                        showResumeTimerConfirmDialog()
+                    } else {
+                        handleTimerResume()
+                        detailBinding.rvTimer.resumeFromPause()
+                    }
                 }
-                else -> {}
+                next == com.zero.components.widget.RecordView.RecordState.PAUSE -> {
+                    handleTimerPause()
+                }
             }
         }
     }
 
-    private fun showTimePicker(onTimeSet: (Int, Int) -> Unit) {
-        val calendar = Calendar.getInstance()
+    private fun showTimePickerWithDefault(
+        defaultTimestamp: Long,
+        onTimeSet: (Int, Int) -> Unit
+    ) {
+        val calendar = if (defaultTimestamp > 0L) {
+            Calendar.getInstance().apply { timeInMillis = defaultTimestamp }
+        } else {
+            Calendar.getInstance()
+        }
+
         TimePickerDialog(
             requireContext(),
             { _, hour, minute -> onTimeSet(hour, minute) },
@@ -777,20 +912,68 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         ).show()
     }
 
-    private fun updateDuration(detailBinding: LayoutEventDetailActivityBinding) {
-        val startTime = vm.eventTime.value
-        val endTime = vm.endTime.value ?: return
-
-        val durationMinutes = (endTime - startTime) / 60000
-        if (durationMinutes > 0) {
-            detailBinding.tvDuration.text =
-                StringUtils.getString(R.string.event_duration) +
-                    "：" +
-                    StringUtils.getString(R.string.min_format, durationMinutes.toInt())
-            detailBinding.tvDuration.visibility = View.VISIBLE
-        } else {
-            detailBinding.tvDuration.visibility = View.GONE
+    private fun calculateSmartTimestampForStartTime(hour: Int, minute: Int): Long {
+        val now = Calendar.getInstance()
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
         }
+
+        if (calendar.timeInMillis > now.timeInMillis) {
+            calendar.add(Calendar.DAY_OF_MONTH, -1)
+        }
+
+        return calendar.timeInMillis
+    }
+
+    private fun calculateSmartTimestampForEndTime(
+        hour: Int,
+        minute: Int,
+        startTimestamp: Long
+    ): Long {
+        val now = Calendar.getInstance()
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        if (startTimestamp > 0L) {
+            val startCalendar = Calendar.getInstance().apply { timeInMillis = startTimestamp }
+            val startHour = startCalendar.get(Calendar.HOUR_OF_DAY)
+            val startMinute = startCalendar.get(Calendar.MINUTE)
+
+            calendar.set(Calendar.YEAR, startCalendar.get(Calendar.YEAR))
+            calendar.set(Calendar.MONTH, startCalendar.get(Calendar.MONTH))
+            calendar.set(Calendar.DAY_OF_MONTH, startCalendar.get(Calendar.DAY_OF_MONTH))
+
+            if (hour < startHour || (hour == startHour && minute < startMinute)) {
+                calendar.add(Calendar.DAY_OF_MONTH, 1)
+                if (calendar.timeInMillis > now.timeInMillis) {
+                    calendar.add(Calendar.DAY_OF_MONTH, -1)
+                }
+            }
+        }
+
+        if (calendar.timeInMillis > now.timeInMillis) {
+            calendar.add(Calendar.DAY_OF_MONTH, -1)
+        }
+
+        return calendar.timeInMillis
+    }
+
+    private fun updateDuration(detailBinding: LayoutEventDetailActivityBinding) {
+        val startTime = detailBinding.etStartTime.getTimestamp()
+        val endTime = detailBinding.etEndTime.getTimestamp()
+        if (startTime <= 0L || endTime <= 0L) {
+            return
+        }
+
+        val duration = DateUtils.calculateDuration(startTime, endTime)
+        detailBinding.rvTimer.showDurationWithoutTimer(duration)
     }
 
     private fun updateUIVisibility(hasSubtype: Boolean) {

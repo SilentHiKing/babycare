@@ -440,10 +440,11 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 检查结束时间是否被手动修改过
      */
     private fun isEndTimeManuallyModified(): Boolean {
-        if (pausedEndTimestamp == 0L) return false
         val currentEndTime = binding.etEndTime.getTimestamp()
+        if (currentEndTime <= 0L) return false
+        if (pausedEndTimestamp == 0L) return true
         // 如果当前结束时间与暂停时记录的不同，说明被修改过
-        return currentEndTime != pausedEndTimestamp && currentEndTime > 0
+        return currentEndTime != pausedEndTimestamp
     }
 
     /**

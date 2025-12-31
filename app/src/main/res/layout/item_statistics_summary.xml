@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/llSummary"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/dp_16"
+    android:background="?attr/secondary_bg_default"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/dp_45"
+    android:paddingVertical="@dimen/dp_12">
+
+    <LinearLayout
+        android:id="@+id/llSummaryContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/bg_r8_block_gridview"
+        android:orientation="horizontal"
+        android:paddingVertical="@dimen/dp_20">
+
+        <!-- 喂养统计 -->
+        <LinearLayout
+            android:id="@+id/llFeedingSummary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="@dimen/dp_24"
+                android:layout_height="@dimen/dp_24"
+                android:src="@drawable/ic_feeding"
+                app:tint="@color/feeding_primary" />
+
+            <TextView
+                android:id="@+id/tvFeedingCount"
+                style="@style/BoldTextAppearance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_4"
+                android:textColor="@color/feeding_primary"
+                android:textSize="@dimen/sp_16"
+                tools:text="5次" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/feeding"
+                android:textColor="?attr/weaken40"
+                android:textSize="@dimen/sp_11" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginVertical="@dimen/dp_8"
+            android:background="?attr/line10" />
+
+        <!-- 睡眠统计 -->
+        <LinearLayout
+            android:id="@+id/llSleepSummary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="@dimen/dp_24"
+                android:layout_height="@dimen/dp_24"
+                android:src="@drawable/ic_sleep"
+                app:tint="@color/sleep_primary" />
+
+            <TextView
+                android:id="@+id/tvSleepDuration"
+                style="@style/BoldTextAppearance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_4"
+                android:textColor="@color/sleep_primary"
+                android:textSize="@dimen/sp_16"
+                tools:text="4h30m" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/sleeping"
+                android:textColor="?attr/weaken40"
+                android:textSize="@dimen/sp_11" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginVertical="@dimen/dp_8"
+            android:background="?attr/line10" />
+
+        <!-- 尿布统计 -->
+        <LinearLayout
+            android:id="@+id/llDiaperSummary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="@dimen/dp_24"
+                android:layout_height="@dimen/dp_24"
+                android:src="@drawable/ic_event_diaper"
+                app:tint="@color/event_diaper" />
+
+            <TextView
+                android:id="@+id/tvDiaperCount"
+                style="@style/BoldTextAppearance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_4"
+                android:textColor="@color/event_diaper"
+                android:textSize="@dimen/sp_16"
+                tools:text="8次" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/diaper"
+                android:textColor="?attr/weaken40"
+                android:textSize="@dimen/sp_11" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginVertical="@dimen/dp_8"
+            android:background="?attr/line10" />
+
+        <!-- 其他事件统计 -->
+        <LinearLayout
+            android:id="@+id/llOtherSummary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="@dimen/dp_24"
+                android:layout_height="@dimen/dp_24"
+                android:src="@drawable/ic_event_other"
+                app:tint="@color/event_other" />
+
+            <TextView
+                android:id="@+id/tvOtherCount"
+                style="@style/BoldTextAppearance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_4"
+                android:textColor="@color/event_other"
+                android:textSize="@dimen/sp_16"
+                tools:text="3次" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/other"
+                android:textColor="?attr/weaken40"
+                android:textSize="@dimen/sp_11" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>
