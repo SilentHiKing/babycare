@@ -14,10 +14,18 @@ import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babycare.statistics.adapter.StatisticsBabyAgeAdapter
 import com.zero.babycare.statistics.adapter.StatisticsCalendarAdapter
 import com.zero.babycare.statistics.adapter.StatisticsEmptyAdapter
+import com.zero.babycare.statistics.adapter.StatisticsGrowthPercentileAdapter
+import com.zero.babycare.statistics.adapter.StatisticsGrowthAdapter
+import com.zero.babycare.statistics.adapter.StatisticsHealthAdapter
+import com.zero.babycare.statistics.adapter.StatisticsStructureAdapter
 import com.zero.babycare.statistics.adapter.StatisticsSummaryAdapter
+import com.zero.babycare.statistics.adapter.StatisticsTrendAdapter
 import com.zero.babycare.statistics.adapter.TimelineAdapter
 import com.zero.babycare.statistics.model.DaySummary
+import com.zero.babycare.statistics.model.GrowthTrend
+import com.zero.babycare.statistics.model.StructureOverview
 import com.zero.babycare.statistics.model.TimelineItem
+import com.zero.babycare.statistics.model.TrendOverview
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.ext.launchInLifecycle
 import com.zero.components.base.BaseFragment
@@ -45,6 +53,11 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
 
     private lateinit var calendarAdapter: StatisticsCalendarAdapter
     private lateinit var summaryAdapter: StatisticsSummaryAdapter
+    private lateinit var trendAdapter: StatisticsTrendAdapter
+    private lateinit var structureAdapter: StatisticsStructureAdapter
+    private lateinit var growthAdapter: StatisticsGrowthAdapter
+    private lateinit var growthPercentileAdapter: StatisticsGrowthPercentileAdapter
+    private lateinit var healthAdapter: StatisticsHealthAdapter
     private lateinit var babyAgeAdapter: StatisticsBabyAgeAdapter
     private lateinit var emptyAdapter: StatisticsEmptyAdapter
     private lateinit var concatAdapter: ConcatAdapter
@@ -107,6 +120,11 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
             onTodayClick = { vm.goToToday() }
         )
         summaryAdapter = StatisticsSummaryAdapter()
+        trendAdapter = StatisticsTrendAdapter()
+        structureAdapter = StatisticsStructureAdapter()
+        growthAdapter = StatisticsGrowthAdapter()
+        growthPercentileAdapter = StatisticsGrowthPercentileAdapter()
+        healthAdapter = StatisticsHealthAdapter()
         babyAgeAdapter = StatisticsBabyAgeAdapter()
         timelineAdapter = TimelineAdapter { item ->
             handleTimelineItemClick(item)
@@ -121,6 +139,11 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
         concatAdapter = ConcatAdapter(
             calendarAdapter,
             summaryAdapter,
+            trendAdapter,
+            structureAdapter,
+            growthAdapter,
+            growthPercentileAdapter,
+            healthAdapter,
             babyAgeAdapter,
             timelineAdapter
         )
@@ -219,6 +242,74 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
             }
         }
 
+        // 观察生长趋势
+        launchInLifecycle {
+            vm.growthTrend.collect { state ->
+                when (state) {
+                    is UiState.None -> {
+                        // 初始状态
+                    }
+                    is UiState.Loading -> {
+                        // 可以显示加载状态
+                    }
+                    is UiState.Success -> {
+                        updateGrowthTrendUI(state.data)
+                    }
+                    is UiState.Error -> {
+                        // 显示错误状态
+                    }
+                }
+            }
+        }
+
+        // 观察趋势概览
+        launchInLifecycle {
+            vm.trendOverview.collect { state ->
+                when (state) {
+                    is UiState.None -> Unit
+                    is UiState.Loading -> Unit
+                    is UiState.Success -> trendAdapter.updateTrend(state.data ?: TrendOverview(emptyList()))
+                    is UiState.Error -> Unit
+                }
+            }
+        }
+
+        // 观察结构图
+        launchInLifecycle {
+            vm.structureOverview.collect { state ->
+                when (state) {
+                    is UiState.None -> Unit
+                    is UiState.Loading -> Unit
+                    is UiState.Success -> structureAdapter.updateStructure(state.data ?: StructureOverview(emptyList()))
+                    is UiState.Error -> Unit
+                }
+            }
+        }
+
+        // 观察生长百分位
+        launchInLifecycle {
+            vm.growthPercentile.collect { state ->
+                when (state) {
+                    is UiState.None -> Unit
+                    is UiState.Loading -> Unit
+                    is UiState.Success -> growthPercentileAdapter.updatePercentile(state.data)
+                    is UiState.Error -> Unit
+                }
+            }
+        }
+
+        // 观察健康/疫苗统计
+        launchInLifecycle {
+            vm.healthStats.collect { state ->
+                when (state) {
+                    is UiState.None -> Unit
+                    is UiState.Loading -> Unit
+                    is UiState.Success -> healthAdapter.updateHealth(state.data)
+                    is UiState.Error -> Unit
+                }
+            }
+        }
+
         // 观察有记录的日期
         launchInLifecycle {
             vm.datesWithRecords.collect { dates ->
@@ -240,6 +331,13 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
      */
     private fun updateSummaryUI(summary: DaySummary) {
         summaryAdapter.updateSummary(summary)
+    }
+
+    /**
+     * 更新生长趋势 UI
+     */
+    private fun updateGrowthTrendUI(trend: GrowthTrend?) {
+        growthAdapter.updateTrend(trend)
     }
 
     /**

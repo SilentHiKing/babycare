@@ -20,6 +20,8 @@ import com.zero.babycare.home.record.SleepRecordFragment
 import com.zero.babycare.home.record.event.EventRecordFragment
 import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babycare.navigation.NavTarget
+import com.zero.babycare.settings.SettingsFragment
+import com.zero.babycare.settings.backup.BackupFragment
 import com.zero.babycare.statistics.StatisticsFragment
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.ext.launchInLifecycle
@@ -102,6 +104,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         fragments.add(AllChildrenFragment.create())
         fragments.add(EventRecordFragment.create())
         fragments.add(StatisticsFragment.create())
+        fragments.add(SettingsFragment.create())
+        fragments.add(BackupFragment.create())
 
         fragments.forEach {
             FragmentUtils.add(supportFragmentManager, it, R.id.flContainer, true)
@@ -146,7 +150,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // 设置
         drawerBinding.llSettings.setOnClickListener {
             closeDrawer()
-            // TODO: 进入设置页面
+            vm.navigateTo(NavTarget.Settings())
         }
     }
 

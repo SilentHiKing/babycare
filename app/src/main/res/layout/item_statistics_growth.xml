@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/llGrowth"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/dp_16"
+    android:background="?attr/secondary_bg_default"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/dp_45"
+    android:paddingVertical="@dimen/dp_12">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/bg_r8_block_gridview"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/dp_12"
+        android:paddingVertical="@dimen/dp_12">
+
+        <TextView
+            android:id="@+id/tvGrowthTitle"
+            style="@style/BoldTextAppearance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/statistics_growth_title"
+            android:textColor="?attr/primary90"
+            android:textSize="@dimen/sp_14" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_10"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvWeightLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/statistics_growth_weight"
+                    android:textColor="?attr/weaken40"
+                    android:textSize="@dimen/sp_11" />
+
+                <TextView
+                    android:id="@+id/tvWeightValue"
+                    style="@style/BoldTextAppearance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp_4"
+                    android:textColor="?attr/primary90"
+                    android:textSize="@dimen/sp_16"
+                    tools:text="6.2kg" />
+
+                <TextView
+                    android:id="@+id/tvWeightDiff"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp_2"
+                    android:textColor="?attr/weaken40"
+                    android:textSize="@dimen/sp_11"
+                    tools:text="较上次 +0.2kg" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:layout_marginVertical="@dimen/dp_6"
+                android:background="?attr/line10" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvHeightLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/statistics_growth_height"
+                    android:textColor="?attr/weaken40"
+                    android:textSize="@dimen/sp_11" />
+
+                <TextView
+                    android:id="@+id/tvHeightValue"
+                    style="@style/BoldTextAppearance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp_4"
+                    android:textColor="?attr/primary90"
+                    android:textSize="@dimen/sp_16"
+                    tools:text="62.4cm" />
+
+                <TextView
+                    android:id="@+id/tvHeightDiff"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp_2"
+                    android:textColor="?attr/weaken40"
+                    android:textSize="@dimen/sp_11"
+                    tools:text="较上次 +1.2cm" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:layout_marginVertical="@dimen/dp_6"
+                android:background="?attr/line10" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvHeadLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/statistics_growth_head"
+                    android:textColor="?attr/weaken40"
+                    android:textSize="@dimen/sp_11" />
+
+                <TextView
+                    android:id="@+id/tvHeadValue"
+                    style="@style/BoldTextAppearance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp_4"
+                    android:textColor="?attr/primary90"
+                    android:textSize="@dimen/sp_16"
+                    tools:text="41.2cm" />
+
+                <TextView
+                    android:id="@+id/tvHeadDiff"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp_2"
+                    android:textColor="?attr/weaken40"
+                    android:textSize="@dimen/sp_11"
+                    tools:text="较上次 +0.8cm" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

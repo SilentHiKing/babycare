@@ -7,6 +7,8 @@ import com.zero.babycare.home.DashboardFragment
 import com.zero.babycare.home.record.FeedingRecordFragment
 import com.zero.babycare.home.record.SleepRecordFragment
 import com.zero.babycare.home.record.event.EventRecordFragment
+import com.zero.babycare.settings.SettingsFragment
+import com.zero.babycare.settings.backup.BackupFragment
 import com.zero.babycare.statistics.StatisticsFragment
 
 /**
@@ -61,6 +63,26 @@ sealed class NavTarget {
         val returnTarget: NavTarget? = null
     ) : NavTarget() {
         override val fragmentClass = EventRecordFragment::class.java
+    }
+
+    /**
+     * 设置页
+     * @param returnTarget 返回目标页面（默认 Dashboard）
+     */
+    data class Settings(
+        val returnTarget: NavTarget? = null
+    ) : NavTarget() {
+        override val fragmentClass = SettingsFragment::class.java
+    }
+
+    /**
+     * 数据备份页
+     * @param returnTarget 返回目标页面（默认 Settings）
+     */
+    data class Backup(
+        val returnTarget: NavTarget? = null
+    ) : NavTarget() {
+        override val fragmentClass = BackupFragment::class.java
     }
 
     /**

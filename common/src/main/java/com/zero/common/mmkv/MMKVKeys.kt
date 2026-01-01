@@ -15,6 +15,13 @@ object MMKVKeys {
     const val APP_THEME = "app_theme"
     const val LANGUAGE = "language"
     const val GUIDE_SHOWN = "guide_shown"
+    const val SETTINGS_REMINDER_ENABLED = "settings_reminder_enabled"
+    const val SETTINGS_FEEDING_UNIT = "settings_feeding_unit"
+    const val SETTINGS_WEIGHT_UNIT = "settings_weight_unit"
+    const val SETTINGS_HEIGHT_UNIT = "settings_height_unit"
+    const val SETTINGS_BACKUP_DEDUP_MINUTES = "settings_backup_dedup_minutes"
+    const val SETTINGS_FEEDING_REMINDER_LAST_PREFIX = "settings_feeding_reminder_last_"
+    const val SETTINGS_SLEEP_REMINDER_LAST_PREFIX = "settings_sleep_reminder_last_"
 
     // --- 业务数据 ---
     const val BABY_INFO = "BABY_INFO"

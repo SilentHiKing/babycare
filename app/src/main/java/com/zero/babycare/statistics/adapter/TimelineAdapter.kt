@@ -23,6 +23,8 @@ import com.zero.babydata.entity.SymptomData
 import com.zero.babydata.entity.TemperatureData
 import com.zero.babydata.entity.VaccineData
 import com.zero.common.ext.getThemeColor
+import com.zero.common.util.UnitConfig
+import com.zero.common.util.UnitConverter
 import com.zero.common.R as CommonR
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
@@ -175,8 +177,11 @@ class TimelineAdapter(
                 FeedingType.FORMULA, FeedingType.MIXED -> {
                     record.feedingAmount?.let { amount ->
                         if (amount > 0) {
-                            val unit = context.getString(CommonR.string.unit_ml_abbr)
-                            parts.add(context.getString(CommonR.string.feeding_amount_unit_format, amount, unit))
+                            val unitValue = UnitConfig.getFeedingUnit()
+                            val unitLabel = context.getString(UnitConfig.getFeedingUnitLabelResId())
+                            val displayValue = UnitConverter.feedingToDisplay(amount, unitValue)
+                            val displayText = UnitConverter.formatFeedingAmount(displayValue, unitValue)
+                            parts.add(context.getString(CommonR.string.feeding_amount_unit_format, displayText, unitLabel))
                         }
                     }
                     val totalMin = TimeUnit.MILLISECONDS.toMinutes(record.feedingDuration)
@@ -551,11 +556,31 @@ class TimelineAdapter(
                     mapTemperatureLocation(context, extraData.location)?.let { parts.add(it) }
                 }
                 is GrowthData -> {
-                    val unit = extraData.unit.ifBlank { getGrowthUnit(context, event.type) }
-                    if (unit.isNotBlank()) {
-                        parts.add(formatDecimal(extraData.value) + unit)
+                    val targetUnit = when (event.type) {
+                        EventType.GROWTH_WEIGHT -> UnitConfig.getWeightUnit()
+                        EventType.GROWTH_HEIGHT, EventType.GROWTH_HEAD -> UnitConfig.getHeightUnit()
+                        else -> UnitConfig.getHeightUnit()
+                    }
+                    val targetUnitLabel = when (event.type) {
+                        EventType.GROWTH_WEIGHT -> context.getString(UnitConfig.getWeightUnitLabelResId())
+                        EventType.GROWTH_HEIGHT, EventType.GROWTH_HEAD -> {
+                            context.getString(UnitConfig.getHeightUnitLabelResId())
+                        }
+                        else -> ""
+                    }
+                    val displayValue = when (event.type) {
+                        EventType.GROWTH_WEIGHT -> {
+                            UnitConverter.weightToDisplay(extraData.value, extraData.unit, targetUnit)
+                        }
+                        EventType.GROWTH_HEIGHT, EventType.GROWTH_HEAD -> {
+                            UnitConverter.heightToDisplay(extraData.value, extraData.unit, targetUnit)
+                        }
+                        else -> extraData.value
+                    }
+                    if (targetUnitLabel.isNotBlank()) {
+                        parts.add(UnitConverter.formatDecimal(displayValue) + targetUnitLabel)
                     } else {
-                        parts.add(formatDecimal(extraData.value))
+                        parts.add(UnitConverter.formatDecimal(displayValue))
                     }
                 }
                 is DiaperData -> {

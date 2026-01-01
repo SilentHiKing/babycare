@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/llTrend"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/dp_16"
+    android:layout_marginTop="@dimen/dp_12"
+    android:background="?attr/secondary_bg_default"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/dp_12"
+    android:paddingVertical="@dimen/dp_12">
+
+    <TextView
+        android:id="@+id/tvTrendTitle"
+        style="@style/BoldTextAppearance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/statistics_trend_title"
+        android:textColor="?attr/primary90"
+        android:textSize="@dimen/sp_14" />
+
+    <include
+        android:id="@+id/cardTrendWeek"
+        layout="@layout/item_statistics_trend_card"
+        android:layout_marginTop="@dimen/dp_8" />
+
+    <include
+        android:id="@+id/cardTrendMonth"
+        layout="@layout/item_statistics_trend_card"
+        android:layout_marginTop="@dimen/dp_8" />
+
+    <include
+        android:id="@+id/cardTrendYear"
+        layout="@layout/item_statistics_trend_card"
+        android:layout_marginTop="@dimen/dp_8" />
+
+</LinearLayout>

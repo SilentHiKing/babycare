@@ -1,8 +1,8 @@
 package com.zero.babycare.home.record
 
-import android.app.TimePickerDialog
-import com.zero.components.base.util.DialogHelper
 import android.os.Bundle
+import android.text.InputFilter
+import android.text.InputType
 import android.view.View
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -21,10 +21,12 @@ import com.zero.common.R
 import com.zero.common.ext.launchInLifecycle
 import com.zero.common.util.DateUtils
 import com.zero.common.util.DateUtils.timestampToMMddHHmm
+import com.zero.common.util.UnitConfig
+import com.zero.common.util.UnitConverter
 import com.zero.components.base.BaseFragment
+import com.zero.components.base.util.DialogHelper
 import com.zero.components.base.vm.UiState
 import com.zero.components.widget.RecordView.RecordState
-import java.util.Calendar
 
 /**
  * 喂养记录页面
@@ -87,20 +89,18 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
     // 标记是否是程序设置时间（避免循环触发）
     private var isProgrammaticChange = false
 
-    // 记录暂停时的结束时间戳（用于检测是否被手动修改）
-    private var pausedEndTimestamp = 0L
+    private lateinit var timerController: RecordTimerController
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
         binding.btn.title = StringUtils.getString(R.string.feeding)
 
         setupFeedingTypeSelector()
-        setupTimeInputs()
-        setupTimerCounter()
+        setupTimerController()
         setupToolbar()
-        setupTimePickerButtons()
         setupSaveButton()
         setupFirstTimeCheckbox()
+        updateFeedingUnitDisplay()
         
         // 初始化时重置页面数据
         resolveEditMode()
@@ -113,7 +113,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
     override fun onDestroyView() {
         super.onDestroyView()
         // 释放计时器资源
-        binding.rvCounter.release()
+        binding.timerPanel.timerView.release()
     }
 
     /**
@@ -246,6 +246,29 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         val subtype = selectedSolidSubtype ?: return
         binding.tvSolidUnit.text = SolidFoodType.getDefaultUnit(subtype)
     }
+
+    /**
+     * 更新喂养单位展示
+     */
+    private fun updateFeedingUnitDisplay() {
+        val unit = UnitConfig.getFeedingUnit()
+        binding.tvFeedingAmountUnit.text = StringUtils.getString(UnitConfig.getFeedingUnitLabelResId())
+        updateFeedingAmountInput(unit)
+    }
+
+    /**
+     * 根据单位调整输入框类型，保证 oz 支持小数
+     */
+    private fun updateFeedingAmountInput(unit: String) {
+        val inputType = if (unit == UnitConfig.FEEDING_UNIT_OZ) {
+            InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+        } else {
+            InputType.TYPE_CLASS_NUMBER
+        }
+        val maxLength = if (unit == UnitConfig.FEEDING_UNIT_OZ) 5 else 4
+        binding.etFeedingAmount.inputType = inputType
+        binding.etFeedingAmount.filters = arrayOf(InputFilter.LengthFilter(maxLength))
+    }
     
     /**
      * 更新过敏风险提示
@@ -323,337 +346,30 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         }
     }
 
-    /**
-     * 设置时间输入监听
-     */
-    private fun setupTimeInputs() {
-        // ==================== 开始时间监听 ====================
-        binding.etStartTime.setOnTimeEnteredListener { _, _ ->
-            if (isProgrammaticChange) return@setOnTimeEnteredListener
-            
-            // 开始时间变化时：清空结束时间、重置计时器
-            onStartTimeChanged()
-        }
-
-        // ==================== 结束时间监听 ====================
-        binding.etEndTime.setOnTimeEnteredListener { _, _ ->
-            if (isProgrammaticChange) return@setOnTimeEnteredListener
-            
-            // 结束时间手动输入后：暂停计时器，计算并显示时长
-            onEndTimeManuallyEntered()
-        }
-    }
-
-    /**
-     * 开始时间变化时的处理
-     */
-    private fun onStartTimeChanged() {
-        LogUtils.d("onStartTimeChanged: ${binding.etStartTime.getTimestamp()}")
-        
-        // 清空结束时间
-        binding.etEndTime.clear()
-        pausedEndTimestamp = 0L
-        
-        // 重置计时器
-        binding.rvCounter.reset()
-        
-        // 更新结束时间的参考时间戳（用于跨天判断）
-        updateEndTimeReference()
-        
-        markAsUnsaved()
-    }
-
-    /**
-     * 结束时间手动输入后的处理
-     */
-    private fun onEndTimeManuallyEntered() {
-        LogUtils.d("onEndTimeManuallyEntered: ${binding.etEndTime.getTimestamp()}")
-        
-        // 暂停计时器
-        if (binding.rvCounter.currentShowState == RecordState.RECORDING) {
-            binding.rvCounter.forcePause()
-        }
-        
-        markAsUnsaved()
-
-        // 即时校验时间范围并更新时长显示
-        if (binding.etStartTime.hasValidTime() && binding.etEndTime.hasValidTime()) {
-            val startTime = binding.etStartTime.getTimestamp()
-            val endTime = binding.etEndTime.getTimestamp()
-            
-            if (!DateUtils.isEndAfterStart(startTime, endTime)) {
-                // 即时提示错误
-                ToastUtils.showShort(R.string.end_time_must_after_start)
-            } else {
-                // 更新时长显示
-                updateDurationFromTimeRange()
-            }
-        }
-    }
-
-    /**
-     * 更新结束时间的参考时间戳（用于智能跨天判断）
-     */
-    private fun updateEndTimeReference() {
-        if (binding.etStartTime.hasValidTime()) {
-            binding.etEndTime.setReferenceTimestamp(binding.etStartTime.getTimestamp())
-        } else {
-            binding.etEndTime.clearReferenceTimestamp()
-        }
-    }
-
-    /**
-     * 设置计时器状态变化监听
-     */
-    private fun setupTimerCounter() {
-        binding.rvCounter.statusChange = { current, next ->
-            LogUtils.d("Timer state change: $current -> $next")
-            
-            when {
-                // 从初始状态开始计时
-                current == RecordState.INIT && next == RecordState.RECORDING -> {
-                    handleTimerStart()
-                }
-                
-                // 从暂停状态继续计时
-                current == RecordState.PAUSE && next == RecordState.RECORDING -> {
-                    // 检查结束时间是否被手动修改过
-                    if (isEndTimeManuallyModified()) {
-                        // 显示确认对话框，用户确认后才真正继续计时
-                        showResumeTimerConfirmDialog()
-                    } else {
-                        // 直接继续计时
-                        handleTimerResume()
-                        binding.rvCounter.resumeFromPause()
-                    }
-                }
-                
-                // 暂停计时
-                next == RecordState.PAUSE -> {
-                    handleTimerPause()
-                }
-            }
-        }
-    }
-
-    /**
-     * 检查结束时间是否被手动修改过
-     */
-    private fun isEndTimeManuallyModified(): Boolean {
-        val currentEndTime = binding.etEndTime.getTimestamp()
-        if (currentEndTime <= 0L) return false
-        if (pausedEndTimestamp == 0L) return true
-        // 如果当前结束时间与暂停时记录的不同，说明被修改过
-        return currentEndTime != pausedEndTimestamp
-    }
-
-    /**
-     * 显示继续计时确认对话框
-     */
-    private fun showResumeTimerConfirmDialog() {
-        DialogHelper.showConfirmDialog(
+    private fun setupTimerController() {
+        timerController = RecordTimerController(
             context = requireContext(),
-            title = StringUtils.getString(R.string.continue_timing),
-            content = StringUtils.getString(R.string.end_time_will_be_cleared),
-            confirmText = StringUtils.getString(R.string.confirm),
-            cancelText = StringUtils.getString(R.string.cancel),
-            onConfirm = {
-                // 用户确认继续计时
-                handleTimerResume()
-                binding.rvCounter.resumeFromPause()
-            }
+            timerView = binding.timerPanel.timerView,
+            startInput = binding.timerPanel.startInput,
+            endInput = binding.timerPanel.endInput,
+            startPicker = binding.timerPanel.startPicker,
+            endPicker = binding.timerPanel.endPicker,
+            config = RecordTimerController.Config(
+                invalidEndTimeMessageRes = R.string.end_time_must_after_start,
+                shouldIgnoreInput = { isProgrammaticChange }
+            ),
+            callbacks = RecordTimerController.Callbacks(
+                onStartTimeChanged = { markAsUnsaved() },
+                onEndTimeChanged = { markAsUnsaved() },
+                onTimerStart = {
+                    mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
+                        OngoingRecordManager.startFeeding(babyId, selectedFeedingType.type)
+                    }
+                },
+                onTimerResume = { markAsUnsaved() },
+                onDirty = { markAsUnsaved() }
+            )
         )
-    }
-
-    /**
-     * 处理计时器开始（从 INIT 状态）
-     */
-    private fun handleTimerStart() {
-        isProgrammaticChange = true
-        
-        // 如果开始时间已填写，计算从那个时间到现在的偏移量
-        if (binding.etStartTime.hasValidTime()) {
-            val startTimestamp = binding.etStartTime.getTimestamp()
-            val offset = System.currentTimeMillis() - startTimestamp
-            if (offset > 0) {
-                binding.rvCounter.setPauseOffset(offset)
-            }
-        }
-        
-        // 清空结束时间
-        binding.etEndTime.clear()
-        pausedEndTimestamp = 0L
-        
-        // 延迟更新开始时间显示（等待计时器启动后）
-        binding.rvCounter.post {
-            val timerStartTime = binding.rvCounter.getStartTimestamp()
-            if (timerStartTime > 0) {
-                binding.etStartTime.setTimestamp(timerStartTime)
-                // 同步更新结束时间的参考时间戳
-                updateEndTimeReference()
-                
-                // 记录进行中状态到 MMKV
-                mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
-                    OngoingRecordManager.startFeeding(babyId, selectedFeedingType.type)
-                }
-            }
-            isProgrammaticChange = false
-        }
-        
-        markAsUnsaved()
-    }
-
-    /**
-     * 处理计时器继续（从 PAUSE 状态）
-     */
-    private fun handleTimerResume() {
-        isProgrammaticChange = true
-        
-        // 清空结束时间
-        binding.etEndTime.clear()
-        pausedEndTimestamp = 0L
-        
-        isProgrammaticChange = false
-        markAsUnsaved()
-    }
-
-    /**
-     * 处理计时器暂停
-     */
-    private fun handleTimerPause() {
-        isProgrammaticChange = true
-        
-        // 自动填入结束时间为当前时间
-        val currentTime = System.currentTimeMillis()
-        binding.etEndTime.setTimestamp(currentTime)
-        // 记录暂停时的结束时间，用于检测是否被修改
-        pausedEndTimestamp = currentTime
-        
-        isProgrammaticChange = false
-    }
-
-    /**
-     * 设置时间选择器按钮
-     */
-    private fun setupTimePickerButtons() {
-        // 开始时间选择器
-        binding.ivStartTime.setOnClickListener {
-            showTimePickerWithDefault(binding.etStartTime.getTimestamp()) { hour, minute ->
-                val timestamp = calculateSmartTimestampForStartTime(hour, minute)
-                
-                isProgrammaticChange = true
-                binding.etStartTime.setTimestamp(timestamp)
-                isProgrammaticChange = false
-                
-                // 手动触发开始时间变化处理
-                onStartTimeChanged()
-            }
-        }
-
-        // 结束时间选择器
-        binding.ivEndTime.setOnClickListener {
-            // 先更新参考时间
-            updateEndTimeReference()
-            
-            showTimePickerWithDefault(binding.etEndTime.getTimestamp()) { hour, minute ->
-                val timestamp = calculateSmartTimestampForEndTime(hour, minute)
-                
-                isProgrammaticChange = true
-                binding.etEndTime.setTimestamp(timestamp)
-                isProgrammaticChange = false
-                
-                // 手动触发结束时间变化处理
-                onEndTimeManuallyEntered()
-            }
-        }
-    }
-
-    /**
-     * 计算开始时间的智能时间戳
-     */
-    private fun calculateSmartTimestampForStartTime(hour: Int, minute: Int): Long {
-        val now = Calendar.getInstance()
-        val calendar = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-        
-        // 如果选择的时间是未来时间，设为昨天
-        if (calendar.timeInMillis > now.timeInMillis) {
-            calendar.add(Calendar.DAY_OF_MONTH, -1)
-        }
-        
-        return calendar.timeInMillis
-    }
-
-    /**
-     * 计算结束时间的智能时间戳
-     */
-    private fun calculateSmartTimestampForEndTime(hour: Int, minute: Int): Long {
-        val now = Calendar.getInstance()
-        val calendar = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-
-        // 如果有开始时间，基于开始时间判断
-        if (binding.etStartTime.hasValidTime()) {
-            val startTimestamp = binding.etStartTime.getTimestamp()
-            val startCalendar = Calendar.getInstance().apply { timeInMillis = startTimestamp }
-            
-            val startHour = startCalendar.get(Calendar.HOUR_OF_DAY)
-            val startMinute = startCalendar.get(Calendar.MINUTE)
-            
-            // 设置结束时间为开始时间的同一天
-            calendar.set(Calendar.YEAR, startCalendar.get(Calendar.YEAR))
-            calendar.set(Calendar.MONTH, startCalendar.get(Calendar.MONTH))
-            calendar.set(Calendar.DAY_OF_MONTH, startCalendar.get(Calendar.DAY_OF_MONTH))
-            
-            // 如果结束时间的时分小于开始时间，说明跨天了
-            if (hour < startHour || (hour == startHour && minute < startMinute)) {
-                calendar.add(Calendar.DAY_OF_MONTH, 1)
-                // 但不能超过当前时间
-                if (calendar.timeInMillis > now.timeInMillis) {
-                    calendar.add(Calendar.DAY_OF_MONTH, -1)
-                }
-            }
-        }
-        
-        // 最终检查：不能超过当前时间
-        if (calendar.timeInMillis > now.timeInMillis) {
-            calendar.add(Calendar.DAY_OF_MONTH, -1)
-        }
-        
-        return calendar.timeInMillis
-    }
-
-    /**
-     * 显示时间选择器（带默认值）
-     * @param defaultTimestamp 默认显示的时间戳，如果为0则使用当前时间
-     */
-    private fun showTimePickerWithDefault(
-        defaultTimestamp: Long,
-        onTimeSelected: (hour: Int, minute: Int) -> Unit
-    ) {
-        val calendar = if (defaultTimestamp > 0) {
-            Calendar.getInstance().apply { timeInMillis = defaultTimestamp }
-        } else {
-            Calendar.getInstance()
-        }
-        
-        TimePickerDialog(
-            requireContext(),
-            { _, hourOfDay, minute ->
-                onTimeSelected(hourOfDay, minute)
-            },
-            calendar.get(Calendar.HOUR_OF_DAY),
-            calendar.get(Calendar.MINUTE),
-            true
-        ).show()
     }
 
 
@@ -692,11 +408,11 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 校验开始时间
      */
     private fun validateStartTime(): Boolean {
-        if (!binding.etStartTime.hasValidTime()) {
+        if (!binding.timerPanel.startInput.hasValidTime()) {
             return false
         }
 
-        if (binding.etStartTime.isFutureTime()) {
+        if (binding.timerPanel.startInput.isFutureTime()) {
             ToastUtils.showShort(R.string.time_cannot_be_future)
             return false
         }
@@ -708,11 +424,11 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 校验结束时间
      */
     private fun validateEndTime(): Boolean {
-        if (!binding.etEndTime.hasValidTime()) {
+        if (!binding.timerPanel.endInput.hasValidTime()) {
             return false
         }
 
-        if (binding.etEndTime.isFutureTime()) {
+        if (binding.timerPanel.endInput.isFutureTime()) {
             ToastUtils.showShort(R.string.time_cannot_be_future)
             return false
         }
@@ -724,12 +440,12 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 校验时间范围（结束时间必须晚于开始时间）
      */
     private fun validateTimeRange(): Boolean {
-        if (!binding.etStartTime.hasValidTime() || !binding.etEndTime.hasValidTime()) {
+        if (!binding.timerPanel.startInput.hasValidTime() || !binding.timerPanel.endInput.hasValidTime()) {
             return false
         }
 
-        val startTime = binding.etStartTime.getTimestamp()
-        val endTime = binding.etEndTime.getTimestamp()
+        val startTime = binding.timerPanel.startInput.getTimestamp()
+        val endTime = binding.timerPanel.endInput.getTimestamp()
 
         if (!DateUtils.isEndAfterStart(startTime, endTime)) {
             ToastUtils.showShort(R.string.end_time_must_after_start)
@@ -762,16 +478,6 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         return true
     }
 
-    /**
-     * 从时间范围计算并更新时长显示
-     */
-    private fun updateDurationFromTimeRange() {
-        val startTime = binding.etStartTime.getTimestamp()
-        val endTime = binding.etEndTime.getTimestamp()
-        val duration = DateUtils.calculateDuration(startTime, endTime)
-        binding.rvCounter.showDurationWithoutTimer(duration)
-    }
-
     private fun resolveEditMode() {
         val navTarget = mainVm.navTarget.value as? NavTarget.FeedingRecord
         editRecordId = navTarget?.editRecordId
@@ -785,9 +491,9 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
     private fun applyTimerLockState() {
         val returnTarget = (mainVm.navTarget.value as? NavTarget.FeedingRecord)?.returnTarget
         val locked = isEditMode && returnTarget is NavTarget.Statistics
-        binding.rvCounter.isEnabled = !locked
-        binding.rvCounter.isClickable = !locked
-        binding.rvCounter.alpha = if (locked) 0.4f else 1f
+        binding.timerPanel.timerView.isEnabled = !locked
+        binding.timerPanel.timerView.isClickable = !locked
+        binding.timerPanel.timerView.alpha = if (locked) 0.4f else 1f
     }
 
     private fun loadEditRecord() {
@@ -815,12 +521,12 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         }
         updateFeedingTypeVisibility()
 
-        binding.etStartTime.setTimestamp(record.feedingStart)
-        updateEndTimeReference()
+        timerController.setStartTime(record.feedingStart, notify = false)
         if (record.feedingEnd > 0L) {
-            binding.etEndTime.setTimestamp(record.feedingEnd)
+            timerController.setEndTime(record.feedingEnd, notify = false, updateDuration = true)
+        } else {
+            timerController.clearEndTime(notify = false)
         }
-        updateDurationFromTimeRange()
 
         val leftMinutes = DateUtils.millisecondsToMinutes(record.feedingDurationBreastLeft)
         val rightMinutes = DateUtils.millisecondsToMinutes(record.feedingDurationBreastRight)
@@ -829,7 +535,14 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
 
         when (selectedFeedingType) {
             FeedingType.FORMULA, FeedingType.MIXED -> {
-                binding.etFeedingAmount.setText(record.feedingAmount?.toString().orEmpty())
+                val amount = record.feedingAmount
+                if (amount != null) {
+                    val unit = UnitConfig.getFeedingUnit()
+                    val displayValue = UnitConverter.feedingToDisplay(amount, unit)
+                    binding.etFeedingAmount.setText(UnitConverter.formatFeedingAmount(displayValue, unit))
+                } else {
+                    binding.etFeedingAmount.setText("")
+                }
             }
             FeedingType.SOLID_FOOD -> {
                 val solidType = record.solidFoodType
@@ -887,19 +600,19 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      */
     private fun saveRecord() {
         // 如果正在计时，先暂停
-        if (binding.rvCounter.currentShowState == RecordState.RECORDING) {
-            binding.rvCounter.forcePause()
+        if (binding.timerPanel.timerView.currentShowState == RecordState.RECORDING) {
+            binding.timerPanel.timerView.forcePause()
             // 更新结束时间
-            binding.etEndTime.setTimestamp(System.currentTimeMillis())
+            binding.timerPanel.endInput.setTimestamp(System.currentTimeMillis())
         }
 
         // 校验必填项
-        if (!binding.etStartTime.hasValidTime()) {
+        if (!binding.timerPanel.startInput.hasValidTime()) {
             ToastUtils.showShort(R.string.start_time_required)
             return
         }
 
-        if (!binding.etEndTime.hasValidTime()) {
+        if (!binding.timerPanel.endInput.hasValidTime()) {
             ToastUtils.showShort(R.string.end_time_required)
             return
         }
@@ -920,11 +633,11 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             return
         }
 
-        val startTime = binding.etStartTime.getTimestamp()
-        val endTime = binding.etEndTime.getTimestamp()
+        val startTime = binding.timerPanel.startInput.getTimestamp()
+        val endTime = binding.timerPanel.endInput.getTimestamp()
 
         // 计算时长：优先使用计时器时长，如果没有则使用时间差
-        var duration = binding.rvCounter.getDuration()
+        var duration = binding.timerPanel.timerView.getDuration()
         val timeRangeDuration = DateUtils.calculateDuration(startTime, endTime)
 
         // 如果计时器时长为0或超过时间范围，使用时间范围计算的时长
@@ -1021,7 +734,9 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         // 获取喂奶量（配方奶/混合喂养时）
         val feedingAmount = when (selectedFeedingType) {
             FeedingType.FORMULA, FeedingType.MIXED -> {
-                binding.etFeedingAmount.text.toString().toIntOrNull()
+                binding.etFeedingAmount.text.toString().toDoubleOrNull()?.let { value ->
+                    UnitConverter.feedingToStorage(value, UnitConfig.getFeedingUnit())
+                }
             }
             else -> null
         }
@@ -1141,14 +856,8 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         // 重置其他类型
         binding.etOtherFoodName.setText("")
         
-        // 清空时间输入
-        binding.etStartTime.clear()
-        binding.etEndTime.clear()
-        binding.etEndTime.clearReferenceTimestamp()
-        pausedEndTimestamp = 0L
-        
-        // 重置计时器
-        binding.rvCounter.reset()
+        // 清空时间输入与计时器
+        timerController.reset()
         
         // 清空左右乳房时长
         binding.etLeftBreastDuration.setText("")
@@ -1174,6 +883,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         if (hidden) {
             // 隐藏时不重置计时器（保留进行中状态）
         } else {
+            updateFeedingUnitDisplay()
             resolveEditMode()
             if (isEditMode) {
                 loadEditRecord()
@@ -1211,12 +921,11 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         updateFeedingTypeVisibility()
         
         // 设置开始时间
-        binding.etStartTime.setTimestamp(startTime)
-        updateEndTimeReference()
+        timerController.syncStartTime(startTime, clearEnd = true, resetTimer = false, notify = false)
         
         // 计算已经过的时间，恢复计时器状态
         val elapsed = System.currentTimeMillis() - startTime
-        binding.rvCounter.startFromOffset(elapsed)
+        binding.timerPanel.timerView.startFromOffset(elapsed)
         
         hasUnsavedChanges = true
         isProgrammaticChange = false

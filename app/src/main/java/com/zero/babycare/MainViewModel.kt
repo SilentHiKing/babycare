@@ -35,6 +35,12 @@ class MainViewModel : BaseViewModel() {
             is NavTarget.EventRecord -> target.copy(
                 returnTarget = resolveReturnTarget(target.returnTarget, current, (current as? NavTarget.EventRecord)?.returnTarget)
             )
+            is NavTarget.Settings -> target.copy(
+                returnTarget = resolveReturnTarget(target.returnTarget, current, (current as? NavTarget.Settings)?.returnTarget)
+            )
+            is NavTarget.Backup -> target.copy(
+                returnTarget = resolveReturnTarget(target.returnTarget, current, (current as? NavTarget.Backup)?.returnTarget)
+            )
             else -> target
         }
     }

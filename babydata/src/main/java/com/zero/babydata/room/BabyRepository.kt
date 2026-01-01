@@ -57,6 +57,13 @@ class BabyRepository(context: Context) {
         return MutableLiveData(babyInfoDao.getBabyInfo(babyId))
     }
 
+    /**
+     * 同步获取宝宝信息（统计/算法使用）
+     */
+    fun getBabyInfoSync(babyId: Int): BabyInfo? {
+        return babyInfoDao.getBabyInfo(babyId)
+    }
+
     fun getAllBabyInfo(): List<BabyInfo> {
         return babyInfoDao.getAllBabyInfo()
     }
@@ -83,8 +90,19 @@ class BabyRepository(context: Context) {
         return MutableLiveData(feedingRecordDao.getAllFeedingRecords(babyId))
     }
 
+    /**
+     * 同步获取喂养记录列表（备份使用）
+     */
+    fun getAllFeedingRecordsSync(babyId: Int): List<FeedingRecord> {
+        return feedingRecordDao.getAllFeedingRecords(babyId)
+    }
+
     fun getFeedingRecordsForDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<FeedingRecord> {
         return feedingRecordDao.getFeedingRecordsForDay(babyId, startOfDay, endOfDay)
+    }
+
+    fun getFeedingRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<FeedingRecord> {
+        return feedingRecordDao.getFeedingRecordsBetween(babyId, startTime, endTime)
     }
 
     fun getLastFeedingRecord(babyId: Int): FeedingRecord? {
@@ -117,8 +135,19 @@ class BabyRepository(context: Context) {
         return MutableLiveData(sleepRecordDao.getAllSleepRecords(babyId))
     }
 
+    /**
+     * 同步获取睡眠记录列表（备份使用）
+     */
+    fun getAllSleepRecordsSync(babyId: Int): List<SleepRecord> {
+        return sleepRecordDao.getAllSleepRecords(babyId)
+    }
+
     fun getSleepRecordsForDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<SleepRecord> {
         return sleepRecordDao.getSleepRecordsForDay(babyId, startOfDay, endOfDay)
+    }
+
+    fun getSleepRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<SleepRecord> {
+        return sleepRecordDao.getSleepRecordsBetween(babyId, startTime, endTime)
     }
 
     fun getLastSleepRecord(babyId: Int): SleepRecord? {
@@ -137,6 +166,13 @@ class BabyRepository(context: Context) {
 
     fun updateChildDailyRecord(record: ChildDailyRecord, callback: Runnable? = null) {
         run({ childDailyRecordDao.updateChildDailyRecord(record) }, callback)
+    }
+
+    /**
+     * 同步获取日常成长记录列表（备份使用）
+     */
+    fun getAllChildDailyRecordsSync(babyId: Int): List<ChildDailyRecord> {
+        return childDailyRecordDao.getAllRecordsByBabyIdSync(babyId)
     }
 
     fun deleteChildDailyRecord(record: ChildDailyRecord, callback: Runnable? = null) {
@@ -206,8 +242,16 @@ class BabyRepository(context: Context) {
         return eventRecordDao.getAllEventRecordByType(babyId, type)
     }
 
+    fun getLatestEventRecordsByType(babyId: Int, type: Int, limit: Int): List<EventRecord> {
+        return eventRecordDao.getLatestEventRecordsByType(babyId, type, limit)
+    }
+
     fun getEventRecordsForDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<EventRecord> {
         return eventRecordDao.getEventRecordsForDay(babyId, startOfDay, endOfDay)
+    }
+
+    fun getEventRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<EventRecord> {
+        return eventRecordDao.getEventRecordsBetween(babyId, startTime, endTime)
     }
 
     fun deleteEventRecordById(eventId: Int, callback: Runnable? = null) {

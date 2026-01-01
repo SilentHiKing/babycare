@@ -40,4 +40,13 @@ interface ChildDailyRecordDao {
 
     @Query("SELECT * FROM ChildDailyRecord WHERE babyId = :babyId ORDER BY recordDate DESC")
     fun getAllRecordsByBabyId(babyId: Int): LiveData<List<ChildDailyRecord>>
+
+    /**
+     * 同步查询成长记录（备份使用）
+     */
+    @Query("SELECT * FROM ChildDailyRecord WHERE babyId = :babyId ORDER BY recordDate DESC")
+    fun getAllRecordsByBabyIdSync(babyId: Int): List<ChildDailyRecord>
+
+    @Query("DELETE FROM ChildDailyRecord")
+    fun deleteAllChildDailyRecords()
 }

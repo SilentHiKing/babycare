@@ -28,6 +28,9 @@ interface FeedingRecordDao {
     @Query("SELECT * FROM Feeding_Records WHERE babyId = :babyId AND feedingStart BETWEEN :startOfDay AND :endOfDay ORDER BY feedingStart DESC")
     fun getFeedingRecordsForDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<FeedingRecord>
 
+    @Query("SELECT * FROM Feeding_Records WHERE babyId = :babyId AND feedingStart BETWEEN :startTime AND :endTime ORDER BY feedingStart ASC")
+    fun getFeedingRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<FeedingRecord>
+
     @Query("SELECT * FROM Feeding_Records WHERE babyId = :babyId ORDER BY feedingEnd DESC LIMIT 1")
     fun getLastFeedingRecord(babyId: Int): FeedingRecord?
 
@@ -39,4 +42,7 @@ interface FeedingRecordDao {
 
     @Query("SELECT * FROM Feeding_Records WHERE feedingId = :feedingId")
     fun getFeedingRecordById(feedingId: Int): FeedingRecord?
+
+    @Query("DELETE FROM Feeding_Records")
+    fun deleteAllFeedingRecords()
 }

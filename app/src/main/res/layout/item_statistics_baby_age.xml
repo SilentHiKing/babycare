@@ -37,4 +37,30 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/llBirthHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/bg_r8_block_gridview"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="@dimen/dp_10"
+        android:paddingVertical="@dimen/dp_6"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="@dimen/dp_20"
+            android:layout_height="@dimen/dp_20"
+            android:layout_marginEnd="@dimen/dp_6"
+            android:src="@drawable/ic_baby_default" />
+
+        <TextView
+            android:id="@+id/tvBirthHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/statistics_add_birthdate_hint"
+            android:textColor="?attr/semantics_blue"
+            android:textSize="@dimen/sp_12" />
+
+    </LinearLayout>
+
 </FrameLayout>

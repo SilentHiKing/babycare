@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/llStructure"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/dp_16"
+    android:layout_marginTop="@dimen/dp_12"
+    android:background="?attr/secondary_bg_default"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/dp_12"
+    android:paddingVertical="@dimen/dp_12">
+
+    <TextView
+        android:id="@+id/tvStructureTitle"
+        style="@style/BoldTextAppearance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/statistics_structure_title"
+        android:textColor="?attr/primary90"
+        android:textSize="@dimen/sp_14" />
+
+    <LinearLayout
+        android:id="@+id/llStructureContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_8"
+        android:orientation="vertical" />
+
+    <TextView
+        android:id="@+id/tvStructureEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_6"
+        android:text="@string/statistics_structure_empty"
+        android:textColor="?attr/weaken40"
+        android:textSize="@dimen/sp_11"
+        android:visibility="gone" />
+
+</LinearLayout>

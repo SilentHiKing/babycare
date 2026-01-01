@@ -35,9 +35,13 @@ class StatisticsBabyAgeAdapter :
 
     private fun applyText(binding: ItemStatisticsBabyAgeBinding, text: String?) {
         if (text.isNullOrBlank()) {
-            binding.flBabyAge.visibility = View.GONE
+            binding.flBabyAge.visibility = View.VISIBLE
+            binding.llBabyAge.visibility = View.GONE
+            binding.llBirthHint.visibility = View.VISIBLE
         } else {
             binding.flBabyAge.visibility = View.VISIBLE
+            binding.llBirthHint.visibility = View.GONE
+            binding.llBabyAge.visibility = View.VISIBLE
             binding.tvBabyDays.text = text
         }
     }

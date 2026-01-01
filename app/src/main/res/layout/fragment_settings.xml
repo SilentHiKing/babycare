@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/primary_bg_default">
+
+    <com.zero.components.widget.BaseToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/dp_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/dp_16">
+
+            <TextView
+                android:id="@+id/tvGeneralTitle"
+                style="@style/BoldTextAppearance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_16"
+                android:text="@string/settings_general"
+                android:textColor="?attr/primary90"
+                android:textSize="@dimen/sp_16" />
+
+            <LinearLayout
+                android:id="@+id/cardGeneral"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_8"
+                android:background="@drawable/bg_r12_secondary_bg_default"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/rowFeedingUnit"
+                    layout="@layout/item_setting_row" />
+
+                <View
+                    style="@style/divide_horizontal_line"
+                    android:layout_marginStart="@dimen/dp_16" />
+
+                <include
+                    android:id="@+id/rowWeightUnit"
+                    layout="@layout/item_setting_row" />
+
+                <View
+                    style="@style/divide_horizontal_line"
+                    android:layout_marginStart="@dimen/dp_16" />
+
+                <include
+                    android:id="@+id/rowHeightUnit"
+                    layout="@layout/item_setting_row" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvReminderTitle"
+                style="@style/BoldTextAppearance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_20"
+                android:text="@string/settings_reminder"
+                android:textColor="?attr/primary90"
+                android:textSize="@dimen/sp_16" />
+
+            <LinearLayout
+                android:id="@+id/cardReminder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_8"
+                android:background="@drawable/bg_r12_secondary_bg_default"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/rowReminder"
+                    layout="@layout/item_setting_switch" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvAboutTitle"
+                style="@style/BoldTextAppearance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_20"
+                android:text="@string/settings_about"
+                android:textColor="?attr/primary90"
+                android:textSize="@dimen/sp_16" />
+
+            <LinearLayout
+                android:id="@+id/cardAbout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_8"
+                android:background="@drawable/bg_r12_secondary_bg_default"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/rowVersion"
+                    layout="@layout/item_setting_row" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvMoreTitle"
+                style="@style/BoldTextAppearance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_20"
+                android:text="@string/settings_more"
+                android:textColor="?attr/primary90"
+                android:textSize="@dimen/sp_16" />
+
+            <LinearLayout
+                android:id="@+id/cardMore"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_8"
+                android:background="@drawable/bg_r12_secondary_bg_default"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/rowLanguage"
+                    layout="@layout/item_setting_row" />
+
+                <View
+                    style="@style/divide_horizontal_line"
+                    android:layout_marginStart="@dimen/dp_16" />
+
+                <include
+                    android:id="@+id/rowBackup"
+                    layout="@layout/item_setting_row" />
+
+                <View
+                    style="@style/divide_horizontal_line"
+                    android:layout_marginStart="@dimen/dp_16" />
+
+                <include
+                    android:id="@+id/rowFamily"
+                    layout="@layout/item_setting_row" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -28,6 +28,9 @@ interface SleepRecordDao {
     @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId AND sleepStart BETWEEN :startOfDay AND :endOfDay ORDER BY sleepStart DESC")
     fun getSleepRecordsForDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<SleepRecord>
 
+    @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId AND sleepStart BETWEEN :startTime AND :endTime ORDER BY sleepStart ASC")
+    fun getSleepRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<SleepRecord>
+
     @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId ORDER BY sleepEnd DESC LIMIT 1")
     fun getLastSleepRecord(babyId: Int): SleepRecord?
 
@@ -39,4 +42,7 @@ interface SleepRecordDao {
 
     @Query("SELECT * FROM Sleep_Records WHERE sleepId = :sleepId")
     fun getSleepRecordById(sleepId: Int): SleepRecord?
+
+    @Query("DELETE FROM Sleep_Records")
+    fun deleteAllSleepRecords()
 }

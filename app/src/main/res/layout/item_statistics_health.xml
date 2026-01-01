@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/llHealth"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="@dimen/dp_16"
+    android:layout_marginTop="@dimen/dp_12"
+    android:background="?attr/secondary_bg_default"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/dp_12"
+    android:paddingVertical="@dimen/dp_12">
+
+    <TextView
+        android:id="@+id/tvHealthTitle"
+        style="@style/BoldTextAppearance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/statistics_health_title"
+        android:textColor="?attr/primary90"
+        android:textSize="@dimen/sp_14" />
+
+    <TextView
+        android:id="@+id/tvHealthRange"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_4"
+        android:textColor="?attr/weaken40"
+        android:textSize="@dimen/sp_11" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dp_8"
+        android:background="?attr/bg_r8_block_gridview"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/dp_12"
+        android:paddingVertical="@dimen/dp_10">
+
+        <TextView
+            android:id="@+id/tvHealthTotal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/primary90"
+            android:textSize="@dimen/sp_13"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_6"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvHealthTemperature"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="?attr/weaken40"
+                android:textSize="@dimen/sp_11" />
+
+            <TextView
+                android:id="@+id/tvHealthMedicine"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="?attr/weaken40"
+                android:textSize="@dimen/sp_11" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_4"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvHealthDoctor"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="?attr/weaken40"
+                android:textSize="@dimen/sp_11" />
+
+            <TextView
+                android:id="@+id/tvHealthSymptom"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="?attr/weaken40"
+                android:textSize="@dimen/sp_11" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="@dimen/dp_8"
+            android:background="?attr/line10" />
+
+        <TextView
+            android:id="@+id/tvHealthVaccine"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_8"
+            android:textColor="?attr/primary90"
+            android:textSize="@dimen/sp_12" />
+
+        <TextView
+            android:id="@+id/tvHealthLastVaccine"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_4"
+            android:textColor="?attr/weaken40"
+            android:textSize="@dimen/sp_11" />
+    </LinearLayout>
+
+</LinearLayout>

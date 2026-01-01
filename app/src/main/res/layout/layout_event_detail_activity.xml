@@ -8,139 +8,14 @@
     android:orientation="vertical"
     android:padding="@dimen/dp_16">
 
-    <com.zero.components.widget.RecordView
-        android:id="@+id/rvTimer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal" />
-
-    <!-- 开始时间和结束时间 -->
-    <LinearLayout
+    <com.zero.components.widget.RecordTimerPanelView
+        android:id="@+id/timerPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_16"
-        android:orientation="horizontal">
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1">
-
-            <TextView
-                android:id="@+id/tvStartTime"
-                style="@style/BoldTextAppearance"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="@dimen/dp_10"
-                android:text="@string/startTime"
-                android:textColor="?attr/primary90"
-                android:textSize="@dimen/sp_16"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/dp_44"
-                android:layout_marginTop="@dimen/dp_10"
-                android:background="?attr/bg_r6_block_gridview"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="@dimen/dp_10"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tvStartTime">
-
-                <com.zero.components.widget.TimeEditText
-                    android:id="@+id/etStartTime"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="@null"
-                    android:ellipsize="end"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:hint="@string/startTime"
-                    android:includeFontPadding="false"
-                    android:maxLines="1"
-                    android:scrollHorizontally="true"
-                    android:textColor="?attr/primary90"
-                    android:textColorHint="?attr/weaken40"
-                    android:textSize="@dimen/sp_16" />
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/ivStartTime"
-                    android:layout_width="@dimen/dp_22"
-                    android:layout_height="@dimen/dp_22"
-                    android:src="?attr/ic_color_add" />
-
-            </LinearLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <View
-            android:layout_width="@dimen/dp_10"
-            android:layout_height="1dp" />
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1">
-
-            <TextView
-                android:id="@+id/tvEndTime"
-                style="@style/BoldTextAppearance"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical|end"
-                android:paddingHorizontal="@dimen/dp_10"
-                android:text="@string/endTime"
-                android:textColor="?attr/primary90"
-                android:textSize="@dimen/sp_16"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/dp_44"
-                android:layout_marginTop="@dimen/dp_10"
-                android:background="?attr/bg_r6_block_gridview"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="@dimen/dp_10"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tvEndTime">
-
-                <com.zero.components.widget.TimeEditText
-                    android:id="@+id/etEndTime"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="@null"
-                    android:ellipsize="end"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:hint="@string/endTime"
-                    android:includeFontPadding="false"
-                    android:maxLines="1"
-                    android:scrollHorizontally="true"
-                    android:textColor="?attr/primary90"
-                    android:textColorHint="?attr/weaken40"
-                    android:textSize="@dimen/sp_16" />
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/ivEndTime"
-                    android:layout_width="@dimen/dp_22"
-                    android:layout_height="@dimen/dp_22"
-                    android:src="?attr/ic_color_add" />
-
-            </LinearLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </LinearLayout>
+        app:startLabelText="@string/startTime"
+        app:endLabelText="@string/endTime"
+        app:startHintText="@string/startTime"
+        app:endHintText="@string/endTime"
+        app:timeRowMarginTop="@dimen/dp_16" />
 
 </LinearLayout>

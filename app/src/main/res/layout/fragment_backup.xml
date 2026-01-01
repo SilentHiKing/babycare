@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/primary_bg_default">
+
+    <com.zero.components.widget.BaseToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/dp_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/dp_16">
+
+            <TextView
+                android:id="@+id/tvBackupTitle"
+                style="@style/BoldTextAppearance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_16"
+                android:text="@string/settings_backup"
+                android:textColor="?attr/primary90"
+                android:textSize="@dimen/sp_16" />
+
+            <LinearLayout
+                android:id="@+id/cardBackup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_8"
+                android:background="@drawable/bg_r12_secondary_bg_default"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/rowBackupExport"
+                    layout="@layout/item_setting_row" />
+
+                <View
+                    style="@style/divide_horizontal_line"
+                    android:layout_marginStart="@dimen/dp_16" />
+
+                <include
+                    android:id="@+id/rowBackupImport"
+                    layout="@layout/item_setting_row" />
+
+                <View
+                    style="@style/divide_horizontal_line"
+                    android:layout_marginStart="@dimen/dp_16" />
+
+                <include
+                    android:id="@+id/rowBackupDedup"
+                    layout="@layout/item_setting_row" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvBackupNote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_10"
+                android:text="@string/backup_note"
+                android:textColor="?attr/weaken40"
+                android:textSize="@dimen/sp_12" />
+
+            <TextView
+                android:id="@+id/tvReportTitle"
+                style="@style/BoldTextAppearance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_20"
+                android:text="@string/backup_import_report_title_section"
+                android:textColor="?attr/primary90"
+                android:textSize="@dimen/sp_16" />
+
+            <LinearLayout
+                android:id="@+id/cardReportList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/dp_8"
+                android:background="@drawable/bg_r12_secondary_bg_default"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/rowBackupReportClear"
+                    layout="@layout/item_setting_row" />
+
+                <View
+                    style="@style/divide_horizontal_line"
+                    android:layout_marginStart="@dimen/dp_16" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvBackupReports"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:paddingVertical="@dimen/dp_4" />
+
+                <TextView
+                    android:id="@+id/tvReportEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="@dimen/dp_16"
+                    android:paddingVertical="@dimen/dp_12"
+                    android:text="@string/backup_report_empty"
+                    android:textColor="?attr/weaken40"
+                    android:textSize="@dimen/sp_12"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

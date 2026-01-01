@@ -11,7 +11,7 @@ import com.zero.babydata.entity.BabyInfo
 interface BabyInfoDao {
 
     @Insert
-    fun insertBabyInfo(babyInfo: BabyInfo)
+    fun insertBabyInfo(babyInfo: BabyInfo): Long
 
     @Update
     fun updateBabyInfo(babyInfo: BabyInfo)
@@ -22,9 +22,15 @@ interface BabyInfoDao {
     @Query("SELECT * FROM Baby_Info WHERE babyId = :babyId LIMIT 1")
     fun getBabyInfo(babyId: Int): BabyInfo?
 
+    @Query("SELECT * FROM Baby_Info WHERE name = :name AND gender = :gender AND birthDate = :birthDate LIMIT 1")
+    fun findBabyByIdentity(name: String, gender: String, birthDate: Long): BabyInfo?
+
     @Query("SELECT * FROM Baby_Info ORDER BY babyId DESC")
     fun getAllBabyInfo(): List<BabyInfo>
 
     @Query("UPDATE Baby_Info SET bloodType = :bloodType WHERE babyId = :babyId")
     fun updateBloodType(babyId: Int, bloodType: String?)
+
+    @Query("DELETE FROM Baby_Info")
+    fun deleteAllBabyInfo()
 }

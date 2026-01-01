@@ -15,5 +15,15 @@
         <attr name="actionText" format="string" />
     </declare-styleable>
 
-</resources>
+    <declare-styleable name="RecordTimerPanelView">
+        <attr name="startLabelText" format="string" />
+        <attr name="endLabelText" format="string" />
+        <attr name="startHintText" format="string" />
+        <attr name="endHintText" format="string" />
+        <attr name="timeRowMarginTop" format="dimension" />
+        <attr name="showTimer" format="boolean" />
+        <attr name="startIcon" format="reference" />
+        <attr name="endIcon" format="reference" />
+    </declare-styleable>
 
+</resources>
