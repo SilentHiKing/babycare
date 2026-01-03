@@ -297,7 +297,7 @@
     <string name="predict_feeding_with_range">下次喂奶 %1$s~%2$s</string>
     <string name="predict_sleep">下次睡觉 约 %1$s</string>
     <string name="predict_sleep_with_range">下次睡觉 %1$s~%2$s</string>
-    <string name="remain_time">还有%1$s</string>
+    <string name="remain_time">最晚还有%1$s</string>
     <string name="confidence_high">准确度高</string>
     <string name="confidence_medium">准确度中</string>
     <string name="confidence_low">准确度低</string>

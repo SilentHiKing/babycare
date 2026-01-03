@@ -148,7 +148,14 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
                 shouldIgnoreInput = { isProgrammaticChange }
             ),
             callbacks = RecordTimerController.Callbacks(
-                onStartTimeChanged = { markAsUnsaved() },
+                onStartTimeChanged = { startTime ->
+                    markAsUnsaved()
+                    val babyId = mainVm.getCurrentBabyInfo()?.babyId
+                    if (!isEditMode && babyId != null && OngoingRecordManager.isSleeping(babyId)) {
+                        // 同步进行中的开始时间，避免恢复与状态卡不一致
+                        OngoingRecordManager.updateSleepStart(babyId, startTime)
+                    }
+                },
                 onEndTimeChanged = { markAsUnsaved() },
                 onTimerStart = {
                     mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
@@ -254,12 +261,19 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
             return
         }
 
+        // 计算时长：优先使用计时器时长，如果没有则使用时间差
+        var duration = binding.timerPanel.timerView.getDuration()
+        val timeRangeDuration = DateUtils.calculateDuration(startTime, endTime)
+        if (duration <= 0 || duration > timeRangeDuration) {
+            duration = timeRangeDuration
+        }
+
         val sleepRecord = SleepRecord(
             sleepId = editingRecord?.sleepId ?: 0,
             babyId = babyId,
             sleepStart = startTime,
             sleepEnd = endTime,
-            sleepDuration = endTime - startTime,
+            sleepDuration = duration,
             note = binding.etNote.text.toString(),
             createdAt = editingRecord?.createdAt ?: System.currentTimeMillis()
         )

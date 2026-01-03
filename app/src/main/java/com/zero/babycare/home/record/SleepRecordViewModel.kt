@@ -33,7 +33,8 @@ class SleepRecordViewModel : BaseViewModel() {
     }
 
     fun loadLastSleepRecord(babyId: Int) {
-        safeLaunch {
+        // 查询走 IO，避免主线程阻塞
+        viewModelScope.launch(Dispatchers.IO) {
             val record = repository.getLastSleepRecord(babyId)
             _lastSleepRecord.postValue(record)
         }

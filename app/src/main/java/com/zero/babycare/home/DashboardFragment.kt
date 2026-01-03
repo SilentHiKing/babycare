@@ -16,6 +16,7 @@ import com.zero.babycare.home.bean.DashboardData
 import com.zero.babycare.home.OngoingRecordManager
 import com.zero.babycare.navigation.NavTarget
 import com.zero.common.ext.launchInLifecycle
+import com.zero.common.util.DateUtils
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.vm.UiState
 import java.text.SimpleDateFormat
@@ -240,11 +241,12 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
      */
     private fun updateStatusCardTime() {
         val data = vm.dashboardData.value ?: return
+        val now = System.currentTimeMillis()
         
         when (data.currentStatus) {
             DashboardData.BabyStatus.SLEEPING -> {
                 data.ongoingSleepStart?.let { startTime ->
-                    val duration = System.currentTimeMillis() - startTime
+                    val duration = getSafeElapsedMillis(startTime, now)
                     binding.tvStatusTime.text = StringUtils.getString(
                         com.zero.common.R.string.sleeping_duration,
                         formatDuration(duration)
@@ -253,7 +255,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             }
             DashboardData.BabyStatus.FEEDING -> {
                 data.ongoingFeedingStart?.let { startTime ->
-                    val duration = System.currentTimeMillis() - startTime
+                    val duration = getSafeElapsedMillis(startTime, now)
                     binding.tvStatusTime.text = StringUtils.getString(
                         com.zero.common.R.string.feeding_duration,
                         formatDuration(duration)
@@ -263,7 +265,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             DashboardData.BabyStatus.AWAKE -> {
                 // 醒着的情况下显示距上次睡觉的时间（实时计算）
                 data.lastSleepEndTime?.let { endTime ->
-                    val awakeTime = System.currentTimeMillis() - endTime
+                    val awakeTime = getSafeElapsedMillis(endTime, now)
                     binding.tvStatusTime.text = StringUtils.getString(
                         com.zero.common.R.string.awake_duration,
                         formatDuration(awakeTime)
@@ -298,6 +300,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
      */
     private fun updatePredictionRemainTime() {
         val data = vm.dashboardData.value ?: return
+        var shouldRefresh = false
 
         // 喂养预测剩余时间
         val feedingPrediction = data.feedingPrediction
@@ -312,7 +315,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         } else if (feedingPrediction != null && feedingPrediction.isExpired()) {
             // 预测已过期，刷新数据重新预测
             binding.tvPredictFeedingRemain.text = ""
-            refreshData()
+            shouldRefresh = true
         }
 
         // 睡眠预测剩余时间
@@ -328,6 +331,11 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         } else if (sleepPrediction != null && sleepPrediction.isExpired()) {
             // 预测已过期，刷新数据重新预测
             binding.tvPredictSleepRemain.text = ""
+            shouldRefresh = true
+        }
+
+        // 避免喂养/睡眠同时过期触发多次刷新
+        if (shouldRefresh) {
             refreshData()
         }
     }
@@ -337,11 +345,15 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
      */
     private fun updateOngoingTodayStats() {
         val data = vm.dashboardData.value ?: return
+        val now = System.currentTimeMillis()
+        val startOfDay = getStartOfTodayMillis(now)
 
         // 如果正在喂养，更新今日喂养总时长
         if (data.currentStatus == DashboardData.BabyStatus.FEEDING && data.ongoingFeedingStart != null) {
+            // 只统计当天部分，避免跨天时长被计入“今日”
+            val effectiveStart = maxOf(data.ongoingFeedingStart, startOfDay)
             val ongoingMinutes = TimeUnit.MILLISECONDS.toMinutes(
-                System.currentTimeMillis() - data.ongoingFeedingStart
+                getSafeElapsedMillis(effectiveStart, now)
             )
             val totalMinutes = data.totalFeedingMinutes + ongoingMinutes
             binding.tvFeedingTodayDuration.text = StringUtils.getString(
@@ -352,8 +364,10 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
 
         // 如果正在睡觉，更新今日睡眠总时长
         if (data.currentStatus == DashboardData.BabyStatus.SLEEPING && data.ongoingSleepStart != null) {
+            // 只统计当天部分，避免跨天时长被计入“今日”
+            val effectiveStart = maxOf(data.ongoingSleepStart, startOfDay)
             val ongoingMinutes = TimeUnit.MILLISECONDS.toMinutes(
-                System.currentTimeMillis() - data.ongoingSleepStart
+                getSafeElapsedMillis(effectiveStart, now)
             )
             val totalMinutes = data.totalSleepMinutes + ongoingMinutes
             binding.tvSleepTodayDuration.text = StringUtils.getString(
@@ -410,6 +424,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
     }
 
     private fun updateStatusCard(data: DashboardData) {
+        val now = System.currentTimeMillis()
         when (data.currentStatus) {
             DashboardData.BabyStatus.AWAKE -> {
                 binding.cardStatus.setBackgroundResource(com.zero.common.R.drawable.bg_status_card_awake)
@@ -419,7 +434,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
                 
                 // 醒着时长（实时计算）
                 data.lastSleepEndTime?.let { endTime ->
-                    val awakeTime = System.currentTimeMillis() - endTime
+                    val awakeTime = getSafeElapsedMillis(endTime, now)
                     binding.tvStatusTime.text = StringUtils.getString(
                         com.zero.common.R.string.awake_duration,
                         formatDuration(awakeTime)
@@ -437,7 +452,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
                 binding.tvStatusAction.text = StringUtils.getString(com.zero.common.R.string.end_record)
                 
                 data.ongoingSleepStart?.let { startTime ->
-                    val duration = System.currentTimeMillis() - startTime
+                    val duration = getSafeElapsedMillis(startTime, now)
                     binding.tvStatusTime.text = StringUtils.getString(
                         com.zero.common.R.string.sleeping_duration,
                         formatDuration(duration)
@@ -452,7 +467,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
                 binding.tvStatusAction.text = StringUtils.getString(com.zero.common.R.string.end_record)
                 
                 data.ongoingFeedingStart?.let { startTime ->
-                    val duration = System.currentTimeMillis() - startTime
+                    val duration = getSafeElapsedMillis(startTime, now)
                     binding.tvStatusTime.text = StringUtils.getString(
                         com.zero.common.R.string.feeding_duration,
                         formatDuration(duration)
@@ -532,6 +547,20 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         } else {
             StringUtils.getString(com.zero.common.R.string.min_format, mins.toInt())
         }
+    }
+
+    /**
+     * 计算从指定开始时间到现在的时长，避免时间回拨导致负值
+     */
+    private fun getSafeElapsedMillis(startTime: Long, now: Long): Long {
+        return (now - startTime).coerceAtLeast(0)
+    }
+
+    /**
+     * 获取当天零点时间戳，用于跨天统计截断
+     */
+    private fun getStartOfTodayMillis(now: Long): Long {
+        return DateUtils.getDayRange(Date(now)).first
     }
 
     /**

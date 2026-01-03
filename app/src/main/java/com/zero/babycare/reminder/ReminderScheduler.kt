@@ -35,6 +35,8 @@ object ReminderScheduler {
     fun schedule(context: Context) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
         val pendingIntent = buildPendingIntent(context)
+        // 先取消旧调度，避免重复或参数更新不生效
+        alarmManager.cancel(pendingIntent)
         val triggerAt = System.currentTimeMillis() + initialDelayMillis
         alarmManager.setInexactRepeating(
             AlarmManager.RTC_WAKEUP,

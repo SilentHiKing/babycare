@@ -45,8 +45,11 @@ object PredictionManager {
         feedingRecords: List<FeedingRecord>,
         sleepRecords: List<SleepRecord>? = null
     ): PredictionResult? {
+        // 统一按开始时间升序，避免调用方传入 DESC 导致间隔计算异常
+        val sortedFeedingRecords = feedingRecords.sortedBy { it.feedingStart }
+        val sortedSleepRecords = sleepRecords?.sortedBy { it.sleepStart }
         return try {
-            currentPredictor.predictNextFeeding(babyAgeMonths, feedingRecords, sleepRecords)?.also {
+            currentPredictor.predictNextFeeding(babyAgeMonths, sortedFeedingRecords, sortedSleepRecords)?.also {
                 LogUtils.d("PredictionManager: Feeding prediction - " +
                     "time=${it.predictedTime}, confidence=${it.confidence}, source=${it.source}")
             }
@@ -64,8 +67,11 @@ object PredictionManager {
         sleepRecords: List<SleepRecord>,
         feedingRecords: List<FeedingRecord>? = null
     ): PredictionResult? {
+        // 统一按开始时间升序，避免调用方传入 DESC 导致间隔计算异常
+        val sortedSleepRecords = sleepRecords.sortedBy { it.sleepStart }
+        val sortedFeedingRecords = feedingRecords?.sortedBy { it.feedingStart }
         return try {
-            currentPredictor.predictNextSleep(babyAgeMonths, sleepRecords, feedingRecords)?.also {
+            currentPredictor.predictNextSleep(babyAgeMonths, sortedSleepRecords, sortedFeedingRecords)?.also {
                 LogUtils.d("PredictionManager: Sleep prediction - " +
                     "time=${it.predictedTime}, confidence=${it.confidence}, source=${it.source}")
             }

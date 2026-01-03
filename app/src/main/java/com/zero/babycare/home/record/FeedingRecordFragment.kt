@@ -124,6 +124,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         updateFeedingTypeVisibility()
 
         binding.rgFeedingType.setOnCheckedChangeListener { _, checkedId ->
+            if (isProgrammaticChange) return@setOnCheckedChangeListener
             selectedFeedingType = when (checkedId) {
                 com.zero.babycare.R.id.rbBreast -> FeedingType.BREAST
                 com.zero.babycare.R.id.rbFormula -> FeedingType.FORMULA
@@ -134,6 +135,12 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             }
             updateFeedingTypeVisibility()
             markAsUnsaved()
+
+            val babyId = mainVm.getCurrentBabyInfo()?.babyId
+            if (!isEditMode && babyId != null && OngoingRecordManager.isFeeding(babyId)) {
+                // 同步进行中的喂养类型，避免恢复与状态卡不一致
+                OngoingRecordManager.updateFeedingType(babyId, selectedFeedingType.type)
+            }
         }
         
         // 设置辅食分类选择器
@@ -359,7 +366,14 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
                 shouldIgnoreInput = { isProgrammaticChange }
             ),
             callbacks = RecordTimerController.Callbacks(
-                onStartTimeChanged = { markAsUnsaved() },
+                onStartTimeChanged = { startTime ->
+                    markAsUnsaved()
+                    val babyId = mainVm.getCurrentBabyInfo()?.babyId
+                    if (!isEditMode && babyId != null && OngoingRecordManager.isFeeding(babyId)) {
+                        // 同步进行中的开始时间，避免恢复与状态卡不一致
+                        OngoingRecordManager.updateFeedingStart(babyId, startTime)
+                    }
+                },
                 onEndTimeChanged = { markAsUnsaved() },
                 onTimerStart = {
                     mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->

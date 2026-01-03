@@ -31,7 +31,8 @@ class FeedingRecordViewModel : BaseViewModel() {
     }
 
     fun loadLastFeedingRecord(babyId: Int) {
-        safeLaunch {
+        // 查询走 IO，避免主线程阻塞
+        viewModelScope.launch(Dispatchers.IO) {
             val record = repository.getLastFeedingRecord(babyId)
             _lastFeedingRecord.postValue(record)
         }

@@ -28,6 +28,12 @@ interface FeedingRecordDao {
     @Query("SELECT * FROM Feeding_Records WHERE babyId = :babyId AND feedingStart BETWEEN :startOfDay AND :endOfDay ORDER BY feedingStart DESC")
     fun getFeedingRecordsForDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<FeedingRecord>
 
+    /**
+     * 获取与当天有重叠的喂养记录（用于跨天时长统计）
+     */
+    @Query("SELECT * FROM Feeding_Records WHERE babyId = :babyId AND feedingStart <= :endOfDay AND feedingEnd >= :startOfDay ORDER BY feedingStart DESC")
+    fun getFeedingRecordsIntersectingDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<FeedingRecord>
+
     @Query("SELECT * FROM Feeding_Records WHERE babyId = :babyId AND feedingStart BETWEEN :startTime AND :endTime ORDER BY feedingStart ASC")
     fun getFeedingRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<FeedingRecord>
 

@@ -99,8 +99,14 @@ object ReminderNotifier {
             return false
         }
 
-        val dueTime = predictedLatestTime
-            ?: lastRecordEndTime?.let { it + fallbackMillis }
+        val validLastEndTime = lastRecordEndTime?.takeIf { it > 0L }
+        val validPredictedTime = predictedLatestTime
+            ?.takeIf { it > 0L }
+            // 预测时间早于上次结束，视为无效，避免误触发提醒
+            ?.takeIf { predicted -> validLastEndTime == null || predicted > validLastEndTime }
+
+        val dueTime = validPredictedTime
+            ?: validLastEndTime?.let { it + fallbackMillis }
             ?: return false
 
         return now >= dueTime
@@ -196,7 +202,19 @@ object ReminderNotifier {
 
     private fun getTargetBabyInfo(): BabyInfo? {
         val cached = MMKVStore.get(MMKVKeys.BABY_INFO, BabyInfo::class.java)
-        return cached ?: repository.getAllBabyInfo().firstOrNull()
+        if (cached != null) {
+            // 校验缓存是否仍然存在，避免删除后仍触发提醒
+            val existsInDb = repository.getAllBabyInfo().any { it.babyId == cached.babyId }
+            if (existsInDb) {
+                return cached
+            }
+            MMKVStore.remove(MMKVKeys.BABY_INFO)
+        }
+
+        // 回退为数据库中的第一个宝宝，并写回缓存
+        return repository.getAllBabyInfo().firstOrNull()?.also {
+            MMKVStore.put(MMKVKeys.BABY_INFO, it)
+        }
     }
 
     /**

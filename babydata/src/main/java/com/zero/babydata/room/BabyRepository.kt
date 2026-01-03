@@ -101,6 +101,13 @@ class BabyRepository(context: Context) {
         return feedingRecordDao.getFeedingRecordsForDay(babyId, startOfDay, endOfDay)
     }
 
+    /**
+     * 获取与当天有重叠的喂养记录（用于跨天时长统计）
+     */
+    fun getFeedingRecordsIntersectingDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<FeedingRecord> {
+        return feedingRecordDao.getFeedingRecordsIntersectingDay(babyId, startOfDay, endOfDay)
+    }
+
     fun getFeedingRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<FeedingRecord> {
         return feedingRecordDao.getFeedingRecordsBetween(babyId, startTime, endTime)
     }
@@ -144,6 +151,13 @@ class BabyRepository(context: Context) {
 
     fun getSleepRecordsForDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<SleepRecord> {
         return sleepRecordDao.getSleepRecordsForDay(babyId, startOfDay, endOfDay)
+    }
+
+    /**
+     * 获取与当天有重叠的睡眠记录（用于跨天时长统计）
+     */
+    fun getSleepRecordsIntersectingDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<SleepRecord> {
+        return sleepRecordDao.getSleepRecordsIntersectingDay(babyId, startOfDay, endOfDay)
     }
 
     fun getSleepRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<SleepRecord> {
