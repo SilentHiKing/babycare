@@ -23,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/dp_25">
+            android:paddingHorizontal="25dp">
 
             <!-- 姓名 -->
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -36,22 +36,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:paddingHorizontal="10dp"
                     android:text="@string/babyName"
                     android:textColor="?attr/primary90"
-                    android:textSize="@dimen/sp_16"
+                    android:textSize="16sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/dp_44"
-                    android:layout_marginTop="@dimen/dp_10"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="10dp"
                     android:background="?attr/bg_r6_block_gridview"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:paddingHorizontal="10dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tvName">
@@ -70,7 +70,7 @@
                         android:singleLine="true"
                         android:textColor="?attr/primary90"
                         android:textColorHint="?attr/weaken40"
-                        android:textSize="@dimen/sp_16" />
+                        android:textSize="16sp" />
 
                 </LinearLayout>
 
@@ -80,7 +80,7 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_12">
+                android:layout_marginTop="12dp">
 
                 <TextView
                     android:id="@+id/tvBirthday"
@@ -88,22 +88,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:paddingHorizontal="10dp"
                     android:text="@string/babyBirthday"
                     android:textColor="?attr/primary90"
-                    android:textSize="@dimen/sp_16"
+                    android:textSize="16sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/dp_44"
-                    android:layout_marginTop="@dimen/dp_10"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="10dp"
                     android:background="?attr/bg_r6_block_gridview"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:paddingHorizontal="10dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tvBirthday">
@@ -123,7 +123,7 @@
                         android:singleLine="true"
                         android:textColor="?attr/primary90"
                         android:textColorHint="?attr/weaken40"
-                        android:textSize="@dimen/sp_16" />
+                        android:textSize="16sp" />
 
                 </LinearLayout>
 
@@ -133,7 +133,7 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_12">
+                android:layout_marginTop="12dp">
 
                 <TextView
                     android:id="@+id/tvGender"
@@ -141,22 +141,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:paddingHorizontal="10dp"
                     android:text="@string/babyGender"
                     android:textColor="?attr/primary90"
-                    android:textSize="@dimen/sp_16"
+                    android:textSize="16sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/dp_44"
-                    android:layout_marginTop="@dimen/dp_10"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="10dp"
                     android:background="?attr/bg_r6_block_gridview"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:paddingHorizontal="10dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tvGender">
@@ -176,7 +176,7 @@
                         android:singleLine="true"
                         android:textColor="?attr/primary90"
                         android:textColorHint="?attr/weaken40"
-                        android:textSize="@dimen/sp_16" />
+                        android:textSize="16sp" />
 
                 </LinearLayout>
 
@@ -192,24 +192,24 @@
                     style="@style/BoldTextAppearance"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dp_10"
+                    android:layout_marginTop="10dp"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:paddingHorizontal="10dp"
                     android:text="@string/babyWeight"
                     android:textColor="?attr/primary100"
-                    android:textSize="@dimen/sp_16"
+                    android:textSize="16sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/dp_44"
-                    android:layout_marginTop="@dimen/dp_10"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="10dp"
                     android:background="?attr/bg_r6_block_gridview"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:paddingHorizontal="10dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tvWeight">
@@ -228,7 +228,7 @@
                         android:singleLine="true"
                         android:textColor="?attr/primary90"
                         android:textColorHint="?attr/weaken40"
-                        android:textSize="@dimen/sp_16" />
+                        android:textSize="16sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -236,7 +236,7 @@
                         android:includeFontPadding="false"
                         android:text="@string/unit_g"
                         android:textColor="?attr/primary90"
-                        android:textSize="@dimen/sp_16" />
+                        android:textSize="16sp" />
 
                 </LinearLayout>
 
@@ -252,24 +252,24 @@
                     style="@style/BoldTextAppearance"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dp_10"
+                    android:layout_marginTop="10dp"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:paddingHorizontal="10dp"
                     android:text="@string/babyHeight"
                     android:textColor="?attr/primary100"
-                    android:textSize="@dimen/sp_16"
+                    android:textSize="16sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/dp_44"
-                    android:layout_marginTop="@dimen/dp_10"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="10dp"
                     android:background="?attr/bg_r6_block_gridview"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:paddingHorizontal="10dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tvHeight">
@@ -288,7 +288,7 @@
                         android:singleLine="true"
                         android:textColor="?attr/primary90"
                         android:textColorHint="?attr/weaken40"
-                        android:textSize="@dimen/sp_16" />
+                        android:textSize="16sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -296,7 +296,7 @@
                         android:includeFontPadding="false"
                         android:text="@string/unit_cm"
                         android:textColor="?attr/primary90"
-                        android:textSize="@dimen/sp_16" />
+                        android:textSize="16sp" />
 
                 </LinearLayout>
 
@@ -306,7 +306,7 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_12">
+                android:layout_marginTop="12dp">
 
                 <TextView
                     android:id="@+id/tvBloodType"
@@ -314,22 +314,22 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:paddingHorizontal="10dp"
                     android:text="@string/babyBloodType"
                     android:textColor="?attr/primary90"
-                    android:textSize="@dimen/sp_16"
+                    android:textSize="16sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/dp_44"
-                    android:layout_marginTop="@dimen/dp_10"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="10dp"
                     android:background="?attr/bg_r6_block_gridview"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:paddingHorizontal="10dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/tvBloodType">
@@ -349,7 +349,7 @@
                         android:singleLine="true"
                         android:textColor="?attr/primary90"
                         android:textColorHint="?attr/weaken40"
-                        android:textSize="@dimen/sp_16" />
+                        android:textSize="16sp" />
 
                 </LinearLayout>
 
@@ -359,17 +359,19 @@
             <TextView
                 android:id="@+id/tvDelete"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/dp_48"
-                android:layout_marginTop="@dimen/dp_40"
-                android:layout_marginBottom="@dimen/dp_20"
+                android:layout_height="48dp"
+                android:layout_marginTop="40dp"
+                android:layout_marginBottom="20dp"
                 android:background="?attr/bg_r6_block_gridview"
                 android:gravity="center"
                 android:text="@string/delete_baby"
                 android:textColor="?attr/semantics_warning_red"
-                android:textSize="@dimen/sp_16"
+                android:textSize="16sp"
                 android:visibility="gone" />
 
         </LinearLayout>
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

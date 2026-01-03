@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Mode Theme Implementation -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- ==================== UI TOKENS MAPPING (DARK) ==================== -->
+        
+        <!-- Brand (Mapped to same colors for now, but could be adjusted for contrast) -->
+        <item name="colorBrand">@color/boy_brand</item>
+        <item name="colorBrandLight">@color/boy_brand_light</item>
+        <item name="colorBrandDark">@color/boy_brand_dark</item> 
+        <item name="colorOnBrand">@color/White100</item>
+
+        <!-- Surface/Background (Dark Palette) -->
+        <item name="colorSurface">#1E1E1E</item>            <!-- Dark Gray Card -->
+        <item name="colorSurfaceVariant">#2C2C2E</item>     <!-- Slightly Lighter -->
+        <item name="colorBackground">#121212</item>         <!-- Deep Background -->
+        
+        <!-- Functional (Adjusted for Dark Mode - softer) -->
+        <item name="colorSuccess">#66BB6A</item> <!-- Green 400 -->
+        <item name="colorWarning">#FFA726</item> <!-- Orange 400 -->
+        <item name="colorError">#EF5350</item>   <!-- Red 400 -->
+
+        <!-- Text (High Contrast Light) -->
+        <item name="colorTextPrimary">#E6E1E5</item>   <!-- White 90% -->
+        <item name="colorTextSecondary">#CAC4D0</item> <!-- White 70% -->
+        <item name="colorTextHint">#939094</item>      <!-- White 40% -->
+
+        <!-- Shapes (Shared with Light Mode - defined in attrs, values can be same) -->
+        <item name="shapeCornerSmall">8dp</item>
+        <item name="shapeCornerMedium">16dp</item>
+        <item name="shapeCornerLarge">24dp</item> 
+        <item name="shapeCornerExtraLarge">32dp</item>
+
+        <!-- Elevation (Less visible in Dark Mode, but kept for layout consistency) -->
+        <item name="elevationSmall">4dp</item>
+        <item name="elevationMedium">8dp</item>
+
+        <!-- ==================== COMPATIBILITY / LEGACY ==================== -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item> <!-- White text on status bar -->
+        
+        <!-- Map Legacy colors to Dark equivalents -->
+        <item name="primary_bg_default">#121212</item>
+        <item name="secondary_bg_default">#1E1E1E</item>
+        <item name="brand_color">@color/darkblue</item> <!-- Legacy fallback -->
+
+    </style>
+</resources>

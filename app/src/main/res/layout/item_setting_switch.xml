@@ -4,27 +4,27 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
-    android:minHeight="@dimen/dp_50"
-    android:paddingHorizontal="@dimen/dp_16"
-    android:paddingVertical="@dimen/dp_12">
+    android:minHeight="50dp"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="12dp">
 
     <TextView
         android:id="@+id/tvTitle"
+        style="@style/TextAppearance.BabyCare.Body1"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_15"
+        android:textColor="?attr/colorTextPrimary"
         app:layout_constraintEnd_toStartOf="@id/switchToggle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tvSummary"
+        style="@style/TextAppearance.BabyCare.Label"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_4"
-        android:textColor="?attr/weaken40"
-        android:textSize="@dimen/sp_12"
+        android:layout_marginTop="4dp"
+        android:textColor="?attr/colorTextSecondary"
         app:layout_constraintEnd_toStartOf="@id/switchToggle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvTitle" />
@@ -41,3 +41,4 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

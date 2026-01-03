@@ -68,9 +68,7 @@ class EventSubtypeAdapter(
 
             // 卡片边框（选中时）
             if (isSelected) {
-                cardRoot.strokeWidth = context.resources.getDimensionPixelSize(
-                    com.zero.common.R.dimen.dp_2
-                )
+                cardRoot.strokeWidth = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 2f, context.resources.displayMetrics).toInt()
                 cardRoot.strokeColor = ContextCompat.getColor(
                     context,
                     com.zero.common.R.color.darkblue

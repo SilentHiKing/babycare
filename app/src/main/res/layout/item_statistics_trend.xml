@@ -3,12 +3,12 @@
     android:id="@+id/llTrend"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="@dimen/dp_16"
-    android:layout_marginTop="@dimen/dp_12"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginTop="12dp"
     android:background="?attr/secondary_bg_default"
     android:orientation="vertical"
-    android:paddingHorizontal="@dimen/dp_12"
-    android:paddingVertical="@dimen/dp_12">
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="12dp">
 
     <TextView
         android:id="@+id/tvTrendTitle"
@@ -17,21 +17,23 @@
         android:layout_height="wrap_content"
         android:text="@string/statistics_trend_title"
         android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_14" />
+        android:textSize="14sp" />
 
     <include
         android:id="@+id/cardTrendWeek"
         layout="@layout/item_statistics_trend_card"
-        android:layout_marginTop="@dimen/dp_8" />
+        android:layout_marginTop="8dp" />
 
     <include
         android:id="@+id/cardTrendMonth"
         layout="@layout/item_statistics_trend_card"
-        android:layout_marginTop="@dimen/dp_8" />
+        android:layout_marginTop="8dp" />
 
     <include
         android:id="@+id/cardTrendYear"
         layout="@layout/item_statistics_trend_card"
-        android:layout_marginTop="@dimen/dp_8" />
+        android:layout_marginTop="8dp" />
 
 </LinearLayout>
+
+

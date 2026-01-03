@@ -67,9 +67,7 @@ class StatisticsStructureAdapter :
                             LinearLayout.LayoutParams.MATCH_PARENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT
                         )
-                    params.topMargin = binding.root.resources.getDimensionPixelSize(
-                        com.zero.common.R.dimen.dp_8
-                    )
+                    params.topMargin = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 8f, binding.root.resources.displayMetrics).toInt()
                     sectionBinding.root.layoutParams = params
                 }
                 binding.llStructureContainer.addView(sectionBinding.root)

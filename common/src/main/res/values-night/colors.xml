@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Mode Functional Colors Overrides -->
+    
+    <!-- Status Card Text (Light on Dark) -->
+    <color name="status_text_primary">#E0E0E0</color>
+    <color name="status_text_secondary">#B0B0B0</color>
+
+    <!-- Status Card Gradients (Darkened for Night Mode) -->
+    <!-- Original Awake (Yellow): FFFCF5 -> FFE8B6. Dark: Deep Gold/Brown -->
+    <color name="status_awake_start">#3D3425</color>
+    <color name="status_awake_end">#4E4632</color>
+    
+    <!-- Original Sleep (Lavender): F3F1FA -> D6CDEA. Dark: Deep Purple -->
+    <color name="status_sleeping_start">#2A2636</color>
+    <color name="status_sleeping_end">#363245</color>
+    
+    <!-- Original Feeding (Cyan): F2FAFA -> C2E8E4. Dark: Deep Teal -->
+    <color name="status_feeding_start">#1E2C2E</color>
+    <color name="status_feeding_end">#28383B</color>
+
+    <!-- Feeding Card Colors -->
+    <!-- In Light: Primary=5C9EAD, Bg=F2FAFA. Dark: Primary=LightCyan, Bg=DarkTeal -->
+    <color name="feeding_primary">#80DEEA</color> <!-- Lighter for text/icon -->
+    <color name="feeding_primary_dark">#B2EBF2</color> 
+    <color name="feeding_secondary">#4DD0E1</color>
+    <color name="feeding_divider">#006064</color>
+    <color name="feeding_bg">#1E2C2E</color>
+
+    <!-- Sleep Card Colors -->
+    <!-- In Light: Primary=887BB0, Bg=F7F5FC. Dark: Primary=LightLavender, Bg=DeepPurple -->
+    <color name="sleep_primary">#B39DDB</color> <!-- Lighter for text/icon -->
+    <color name="sleep_primary_dark">#D1C4E9</color>
+    <color name="sleep_secondary">#9575CD</color>
+    <color name="sleep_divider">#4527A0</color>
+    <color name="sleep_bg">#2A2636</color>
+
+    <!-- Event Colors (Pastel in Light, Brighter in Dark?) - Adjusting for visibility -->
+    <color name="event_diaper">#FFCC80</color>
+    <color name="event_health">#EF9A9A</color>
+    <color name="event_growth">#A5D6A7</color>
+    <color name="event_milestone">#FFF59D</color>
+    <color name="event_care">#90CAF9</color>
+    <color name="event_activity">#CE93D8</color>
+    <color name="event_other">#B0BEC5</color>
+
+</resources>

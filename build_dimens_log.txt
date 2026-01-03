@@ -1,0 +1,72 @@
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :baby_recyclerview:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :baby_recyclerview:preBuild UP-TO-DATE
+> Task :baby_recyclerview:preDebugBuild UP-TO-DATE
+> Task :baby_recyclerview:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :baby_recyclerview:generateDebugResValues UP-TO-DATE
+> Task :baby_recyclerview:generateDebugResources UP-TO-DATE
+> Task :baby_recyclerview:packageDebugResources UP-TO-DATE
+> Task :baby_recyclerview:processDebugNavigationResources UP-TO-DATE
+> Task :baby_recyclerview:parseDebugLocalResources UP-TO-DATE
+> Task :baby_recyclerview:dataBindingGenBaseClassesDebug UP-TO-DATE
+> Task :baby_recyclerview:dataBindingTriggerDebug UP-TO-DATE
+> Task :baby_recyclerview:generateDebugRFile UP-TO-DATE
+> Task :baby_recyclerview:compileDebugKotlin UP-TO-DATE
+> Task :baby_recyclerview:javaPreCompileDebug UP-TO-DATE
+> Task :baby_recyclerview:compileDebugJavaWithJavac UP-TO-DATE
+> Task :common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :common:preBuild UP-TO-DATE
+> Task :common:preDebugBuild UP-TO-DATE
+> Task :common:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :common:generateDebugResValues UP-TO-DATE
+> Task :common:generateDebugResources UP-TO-DATE
+> Task :common:packageDebugResources UP-TO-DATE
+> Task :common:processDebugNavigationResources UP-TO-DATE
+> Task :common:parseDebugLocalResources UP-TO-DATE
+> Task :common:dataBindingGenBaseClassesDebug UP-TO-DATE
+> Task :common:dataBindingTriggerDebug UP-TO-DATE
+> Task :common:generateDebugRFile UP-TO-DATE
+> Task :common:javaPreCompileDebug UP-TO-DATE
+> Task :components:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :components:preBuild UP-TO-DATE
+> Task :components:preDebugBuild UP-TO-DATE
+> Task :components:generateDebugResValues UP-TO-DATE
+> Task :components:generateDebugResources UP-TO-DATE
+> Task :components:packageDebugResources UP-TO-DATE
+> Task :components:processDebugNavigationResources UP-TO-DATE
+> Task :components:parseDebugLocalResources UP-TO-DATE
+> Task :components:dataBindingTriggerDebug UP-TO-DATE
+> Task :components:generateDebugRFile UP-TO-DATE
+> Task :components:javaPreCompileDebug UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :babydata:preBuild UP-TO-DATE
+> Task :babydata:preDebugBuild UP-TO-DATE
+> Task :babydata:generateDebugResValues UP-TO-DATE
+> Task :babydata:generateDebugResources UP-TO-DATE
+> Task :babydata:packageDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+
+> Task :common:compileDebugKotlin FAILED
+e: file:///E:/Code/Android/babycare/common/src/main/java/com/zero/common/ext/ResourceExt.kt:78:52 Unresolved reference 'dimen'.
+
+> Task :app:packageDebugResources
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':common:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 3s
+38 actionable tasks: 2 executed, 36 up-to-date

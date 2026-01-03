@@ -20,9 +20,9 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:paddingHorizontal="@dimen/dp_16"
-        android:paddingTop="@dimen/dp_8"
-        android:paddingBottom="@dimen/dp_80"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="80dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
@@ -43,31 +43,33 @@
         tools:visibility="visible">
 
         <ImageView
-            android:layout_width="@dimen/dp_80"
-            android:layout_height="@dimen/dp_80"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:src="@drawable/ic_baby_default"
             android:tint="?attr/weaken40" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dp_16"
+            android:layout_marginTop="16dp"
             android:text="@string/no_baby_yet"
             android:textColor="?attr/weaken40"
-            android:textSize="@dimen/sp_16" />
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/tvAddBaby"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dp_12"
+            android:layout_marginTop="12dp"
             android:background="?attr/bg_r999_brand_color"
-            android:paddingHorizontal="@dimen/dp_24"
-            android:paddingVertical="@dimen/dp_10"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="10dp"
             android:text="@string/add_baby"
             android:textColor="@color/White100"
-            android:textSize="@dimen/sp_14" />
+            android:textSize="14sp" />
 
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

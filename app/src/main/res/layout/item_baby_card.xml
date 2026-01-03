@@ -4,15 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="@dimen/dp_6"
+    android:layout_marginVertical="6dp"
     android:background="?attr/bg_r12_secondary_bg_default"
-    android:padding="@dimen/dp_16">
+    android:padding="16dp">
 
     <!-- 当前选中标识 -->
     <ImageView
         android:id="@+id/ivSelected"
-        android:layout_width="@dimen/dp_20"
-        android:layout_height="@dimen/dp_20"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
         android:src="@drawable/ic_check"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
@@ -23,10 +23,10 @@
     <!-- 宝宝头像 -->
     <ImageView
         android:id="@+id/ivAvatar"
-        android:layout_width="@dimen/dp_56"
-        android:layout_height="@dimen/dp_56"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:background="?attr/bg_r999_block_gridview"
-        android:padding="@dimen/dp_10"
+        android:padding="10dp"
         android:src="@drawable/ic_baby_default"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -37,12 +37,12 @@
         style="@style/BoldTextAppearance"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/dp_12"
-        android:layout_marginEnd="@dimen/dp_8"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_17"
+        android:textSize="17sp"
         app:layout_constraintEnd_toStartOf="@id/ivSelected"
         app:layout_constraintStart_toEndOf="@id/ivAvatar"
         app:layout_constraintTop_toTopOf="@id/ivAvatar"
@@ -53,10 +53,10 @@
         android:id="@+id/tvInfo"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/dp_12"
-        android:layout_marginTop="@dimen/dp_4"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="4dp"
         android:textColor="?attr/weaken40"
-        android:textSize="@dimen/sp_14"
+        android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/ivAvatar"
         app:layout_constraintTop_toBottomOf="@id/tvName"
@@ -67,10 +67,10 @@
         android:id="@+id/tvBirthDate"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/dp_12"
-        android:layout_marginTop="@dimen/dp_2"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="2dp"
         android:textColor="?attr/weaken40"
-        android:textSize="@dimen/sp_12"
+        android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/ivAvatar"
         app:layout_constraintTop_toBottomOf="@id/tvInfo"
@@ -81,15 +81,17 @@
         android:id="@+id/tvEdit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_12"
+        android:layout_marginTop="12dp"
         android:background="?attr/bg_r6_block_gridview"
-        android:paddingHorizontal="@dimen/dp_16"
-        android:paddingVertical="@dimen/dp_6"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="6dp"
         android:text="@string/edit"
         android:textColor="?attr/semantics_blue"
-        android:textSize="@dimen/sp_13"
+        android:textSize="13sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/ivAvatar" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 

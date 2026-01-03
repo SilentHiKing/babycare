@@ -5,27 +5,27 @@
     android:layout_height="wrap_content"
     android:background="?attr/bg_r8_block_gridview"
     android:orientation="vertical"
-    android:paddingHorizontal="@dimen/dp_12"
-    android:paddingVertical="@dimen/dp_10">
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="10dp">
 
     <TextView
         android:id="@+id/tvGrowthPercentileLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_12"
+        android:textSize="12sp"
         android:textStyle="bold" />
 
     <com.zero.babycare.statistics.widget.PercentileChartView
         android:id="@+id/chartGrowthPercentile"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dp_56"
-        android:layout_marginTop="@dimen/dp_6" />
+        android:layout_height="56dp"
+        android:layout_marginTop="6dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_6"
+        android:layout_marginTop="6dp"
         android:orientation="horizontal">
 
         <TextView
@@ -34,14 +34,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textColor="?attr/primary90"
-            android:textSize="@dimen/sp_12" />
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/tvGrowthPercentileRank"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="?attr/weaken40"
-            android:textSize="@dimen/sp_11" />
+            android:textSize="11sp" />
     </LinearLayout>
 
 </LinearLayout>
+
+

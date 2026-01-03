@@ -140,6 +140,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
     private fun setupQuickActions() {
         val actions = buildQuickActions()
         binding.rvQuickActions.apply {
+            visibility = View.GONE
             adapter = quickActionAdapter
             layoutManager = GridLayoutManager(context, actions.size.coerceAtLeast(1))
             setHasFixedSize(true)

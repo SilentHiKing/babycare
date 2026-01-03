@@ -6,21 +6,23 @@
     android:layout_height="wrap_content"
     android:gravity="center"
     android:orientation="vertical"
-    android:paddingVertical="@dimen/dp_16">
+    android:paddingVertical="16dp">
 
     <ImageView
         android:id="@+id/ivIcon"
-        android:layout_width="@dimen/dp_32"
-        android:layout_height="@dimen/dp_32"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         tools:src="@drawable/ic_event_diaper" />
 
     <TextView
         android:id="@+id/tvName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_8"
-        android:textSize="@dimen/sp_12"
+        android:layout_marginTop="8dp"
+        android:textSize="12sp"
         tools:text="排泄" />
 
 </LinearLayout>
+
+
 

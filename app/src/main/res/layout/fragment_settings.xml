@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/primary_bg_default">
+    android:background="?attr/colorBackground">
 
     <com.zero.components.widget.BaseToolbar
         android:id="@+id/toolbar"
@@ -15,7 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:paddingBottom="@dimen/dp_24"
+        android:paddingBottom="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
 
@@ -23,23 +23,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/dp_16">
+            android:paddingHorizontal="16dp">
 
             <TextView
                 android:id="@+id/tvGeneralTitle"
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_16"
-                android:text="@string/settings_general"
-                android:textColor="?attr/primary90"
-                android:textSize="@dimen/sp_16" />
+                android:layout_marginTop="16dp"
+                android:text="@string/settings_general" />
 
             <LinearLayout
                 android:id="@+id/cardGeneral"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_8"
+                android:layout_marginTop="8dp"
                 android:background="@drawable/bg_r12_secondary_bg_default"
                 android:orientation="vertical">
 
@@ -49,7 +47,7 @@
 
                 <View
                     style="@style/divide_horizontal_line"
-                    android:layout_marginStart="@dimen/dp_16" />
+                    android:layout_marginStart="16dp" />
 
                 <include
                     android:id="@+id/rowWeightUnit"
@@ -57,7 +55,7 @@
 
                 <View
                     style="@style/divide_horizontal_line"
-                    android:layout_marginStart="@dimen/dp_16" />
+                    android:layout_marginStart="16dp" />
 
                 <include
                     android:id="@+id/rowHeightUnit"
@@ -66,19 +64,17 @@
 
             <TextView
                 android:id="@+id/tvReminderTitle"
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_20"
-                android:text="@string/settings_reminder"
-                android:textColor="?attr/primary90"
-                android:textSize="@dimen/sp_16" />
+                android:layout_marginTop="20dp"
+                android:text="@string/settings_reminder" />
 
             <LinearLayout
                 android:id="@+id/cardReminder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_8"
+                android:layout_marginTop="8dp"
                 android:background="@drawable/bg_r12_secondary_bg_default"
                 android:orientation="vertical">
 
@@ -89,19 +85,17 @@
 
             <TextView
                 android:id="@+id/tvAboutTitle"
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_20"
-                android:text="@string/settings_about"
-                android:textColor="?attr/primary90"
-                android:textSize="@dimen/sp_16" />
+                android:layout_marginTop="20dp"
+                android:text="@string/settings_about" />
 
             <LinearLayout
                 android:id="@+id/cardAbout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_8"
+                android:layout_marginTop="8dp"
                 android:background="@drawable/bg_r12_secondary_bg_default"
                 android:orientation="vertical">
 
@@ -112,19 +106,17 @@
 
             <TextView
                 android:id="@+id/tvMoreTitle"
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_20"
-                android:text="@string/settings_more"
-                android:textColor="?attr/primary90"
-                android:textSize="@dimen/sp_16" />
+                android:layout_marginTop="20dp"
+                android:text="@string/settings_more" />
 
             <LinearLayout
                 android:id="@+id/cardMore"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_8"
+                android:layout_marginTop="8dp"
                 android:background="@drawable/bg_r12_secondary_bg_default"
                 android:orientation="vertical">
 
@@ -134,7 +126,7 @@
 
                 <View
                     style="@style/divide_horizontal_line"
-                    android:layout_marginStart="@dimen/dp_16" />
+                    android:layout_marginStart="16dp" />
 
                 <include
                     android:id="@+id/rowBackup"
@@ -142,7 +134,7 @@
 
                 <View
                     style="@style/divide_horizontal_line"
-                    android:layout_marginStart="@dimen/dp_16" />
+                    android:layout_marginStart="16dp" />
 
                 <include
                     android:id="@+id/rowFamily"
@@ -152,3 +144,4 @@
     </androidx.core.widget.NestedScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

@@ -4,14 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="@dimen/dp_16"
-    android:background="?attr/secondary_bg_default"
-    android:paddingHorizontal="@dimen/dp_50">
+    android:layout_marginHorizontal="16dp"
+    android:background="?attr/colorSurface"
+    android:paddingHorizontal="50dp">
 
     <Space
         android:id="@+id/spaceTop"
         android:layout_width="0dp"
-        android:layout_height="@dimen/dp_12"
+        android:layout_height="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -19,13 +19,12 @@
     <!-- 开始时间 -->
     <TextView
         android:id="@+id/tvStartTime"
-        style="@style/BoldTextAppearance"
-        android:layout_width="@dimen/dp_56"
-        android:layout_height="@dimen/dp_32"
+        style="@style/TextAppearance.BabyCare.Body2"
+        android:layout_width="56dp"
+        android:layout_height="32dp"
         android:gravity="center_vertical"
         android:includeFontPadding="false"
-        android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_14"
+        android:textColor="?attr/colorTextPrimary"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/spaceTop"
         tools:text="09:30" />
@@ -33,7 +32,7 @@
     <!-- 时间轴线（上） -->
     <View
         android:id="@+id/vTimelineLineTop"
-        android:layout_width="@dimen/dp_1"
+        android:layout_width="1dp"
         android:layout_height="0dp"
         android:background="?attr/weaken40"
         app:layout_constraintBottom_toTopOf="@id/vTimelineDot"
@@ -44,9 +43,9 @@
     <!-- 时间轴点 -->
     <View
         android:id="@+id/vTimelineDot"
-        android:layout_width="@dimen/dp_6"
-        android:layout_height="@dimen/dp_6"
-        android:layout_marginStart="@dimen/dp_6"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_marginStart="6dp"
         android:background="@drawable/circle_white"
         android:backgroundTint="@color/sleep_primary"
         app:layout_constraintBottom_toBottomOf="@id/tvStartTime"
@@ -56,7 +55,7 @@
     <!-- 时间轴线（下） -->
     <View
         android:id="@+id/vTimelineLineBottom"
-        android:layout_width="@dimen/dp_1"
+        android:layout_width="1dp"
         android:layout_height="0dp"
         android:background="?attr/weaken40"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -67,10 +66,10 @@
     <!-- 图标 -->
     <ImageView
         android:id="@+id/ivIcon"
-        android:layout_width="@dimen/dp_32"
-        android:layout_height="@dimen/dp_32"
-        android:layout_marginStart="@dimen/dp_12"
-        android:padding="@dimen/dp_4"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="12dp"
+        android:padding="4dp"
         android:background="@drawable/bg_event_icon_circle"
         android:backgroundTint="@color/sleep_bg"
         android:src="@drawable/ic_sleep"
@@ -82,16 +81,15 @@
     <!-- 标题：与时间同一水平线（居中对齐） -->
     <TextView
         android:id="@+id/tvTitle"
-        style="@style/BoldTextAppearance"
+        style="@style/TextAppearance.BabyCare.Heading3"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/dp_10"
+        android:layout_marginStart="10dp"
         android:ellipsize="end"
         android:maxLines="1"
         android:includeFontPadding="false"
         android:text="@string/sleeping"
-        android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_15"
+        android:textColor="?attr/colorTextPrimary"
         app:layout_constraintBottom_toBottomOf="@id/tvStartTime"
         app:layout_constraintEnd_toStartOf="@id/tvDuration"
         app:layout_constraintStart_toEndOf="@id/ivIcon"
@@ -100,12 +98,11 @@
     <!-- 时长：同一水平线（居中对齐） -->
     <TextView
         android:id="@+id/tvDuration"
-        style="@style/BoldTextAppearance"
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:includeFontPadding="false"
         android:textColor="@color/sleep_primary"
-        android:textSize="@dimen/sp_14"
         app:layout_constraintBottom_toBottomOf="@id/tvStartTime"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/tvStartTime"
@@ -116,9 +113,9 @@
         android:id="@+id/tvEndTime"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_6"
+        android:layout_marginTop="6dp"
         android:textColor="?attr/weaken40"
-        android:textSize="@dimen/sp_13"
+        android:textSize="13sp"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/ivIcon"
@@ -139,11 +136,11 @@
         android:id="@+id/tvNote"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_6"
+        android:layout_marginTop="6dp"
         android:ellipsize="end"
         android:maxLines="2"
         android:textColor="?attr/weaken40"
-        android:textSize="@dimen/sp_12"
+        android:textSize="12sp"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/ivIcon"
@@ -162,10 +159,12 @@
     <Space
         android:id="@+id/spaceBottom"
         android:layout_width="0dp"
-        android:layout_height="@dimen/dp_10"
+        android:layout_height="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/barContentBottom" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

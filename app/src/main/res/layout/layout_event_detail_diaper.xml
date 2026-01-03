@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="?attr/bg_r12_secondary_bg_default"
-    android:padding="@dimen/dp_16">
+    android:padding="16dp">
 
     <!-- 大便性状（仅大便/混合时显示） -->
     <LinearLayout
@@ -21,14 +21,14 @@
             android:layout_height="wrap_content"
             android:text="@string/stool_consistency"
             android:textColor="?attr/primary90"
-            android:textSize="@dimen/sp_14"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <RadioGroup
             android:id="@+id/rgStoolConsistency"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dp_8"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
             <RadioButton
@@ -52,17 +52,17 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dp_16"
+            android:layout_marginTop="16dp"
             android:text="@string/stool_color"
             android:textColor="?attr/primary90"
-            android:textSize="@dimen/sp_14"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <RadioGroup
             android:id="@+id/rgStoolColor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dp_8"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
             <RadioButton
@@ -107,14 +107,14 @@
             android:layout_height="wrap_content"
             android:text="@string/urine_amount"
             android:textColor="?attr/primary90"
-            android:textSize="@dimen/sp_14"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <RadioGroup
             android:id="@+id/rgUrineAmount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dp_8"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
             <RadioButton
@@ -137,4 +137,6 @@
     </LinearLayout>
 
 </LinearLayout>
+
+
 

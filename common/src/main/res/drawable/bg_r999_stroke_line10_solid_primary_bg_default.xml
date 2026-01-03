@@ -4,6 +4,7 @@
     <solid android:color="?attr/primary_bg_default" />
     <corners android:radius="999dp" />
     <stroke
-        android:width="@dimen/dp_0_5"
+        android:width="0.5dp"
         android:color="?attr/line10" />
 </shape>
+

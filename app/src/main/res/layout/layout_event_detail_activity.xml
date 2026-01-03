@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:background="?attr/bg_r12_secondary_bg_default"
     android:orientation="vertical"
-    android:padding="@dimen/dp_16">
+    android:padding="16dp">
 
     <com.zero.components.widget.RecordTimerPanelView
         android:id="@+id/timerPanel"
@@ -16,6 +16,7 @@
         app:endLabelText="@string/endTime"
         app:startHintText="@string/startTime"
         app:endHintText="@string/endTime"
-        app:timeRowMarginTop="@dimen/dp_16" />
+        app:timeRowMarginTop="16dp" />
 
 </LinearLayout>
+

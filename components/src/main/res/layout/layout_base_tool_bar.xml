@@ -10,11 +10,11 @@
     <!-- 左侧返回按钮 -->
     <ImageView
         android:id="@+id/ivBack"
-        android:layout_width="@dimen/dp_48"
-        android:layout_height="@dimen/dp_48"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/back"
-        android:padding="@dimen/dp_12"
+        android:padding="12dp"
         android:src="@drawable/ic_back"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -24,11 +24,11 @@
     <!-- 左侧菜单按钮（可替代返回按钮） -->
     <ImageView
         android:id="@+id/ivMenu"
-        android:layout_width="@dimen/dp_48"
-        android:layout_height="@dimen/dp_48"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/menu"
-        android:padding="@dimen/dp_12"
+        android:padding="12dp"
         android:src="@drawable/ic_menu"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -45,10 +45,10 @@
         android:layout_height="wrap_content"
         android:ellipsize="end"
         android:gravity="center"
-        android:paddingVertical="@dimen/dp_14"
+        android:paddingVertical="14dp"
         android:singleLine="true"
         android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_18"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -62,7 +62,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingEnd="@dimen/dp_8"
+        android:paddingEnd="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -71,12 +71,12 @@
         <TextView
             android:id="@+id/tvAction"
             android:layout_width="wrap_content"
-            android:layout_height="@dimen/dp_36"
+            android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:gravity="center"
-            android:paddingHorizontal="@dimen/dp_12"
+            android:paddingHorizontal="12dp"
             android:textColor="?attr/brand_color"
-            android:textSize="@dimen/sp_15"
+            android:textSize="15sp"
             android:visibility="gone"
             tools:text="保存"
             tools:visibility="visible" />
@@ -84,10 +84,10 @@
         <!-- 右侧图标按钮 -->
         <ImageView
             android:id="@+id/ivAction"
-            android:layout_width="@dimen/dp_40"
-            android:layout_height="@dimen/dp_40"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="@dimen/dp_8"
+            android:padding="8dp"
             android:visibility="gone"
             app:tint="?attr/icon_brand"
             tools:src="@drawable/ic_add"
@@ -96,3 +96,5 @@
     </LinearLayout>
 
 </merge>
+
+

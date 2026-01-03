@@ -2,5 +2,7 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <corners android:radius="999dp" />
     <solid android:color="?attr/primary_btn_bg_normal" />
-    <stroke android:width="@dimen/dp_0_5" android:color="?attr/line10"/>
+    <stroke android:width="0.5dp" android:color="?attr/line10"/>
 </shape>
+
+

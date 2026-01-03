@@ -2,19 +2,19 @@
     <item android:id="@android:id/background">
         <shape android:shape="rectangle">
             <solid android:color="?attr/shape_bg_normal" /> <!-- 外圆始终为白色 -->
-            <corners android:radius="@dimen/dp_55"/>
+            <corners android:radius="55dp"/>
             <padding android:left="0dp" android:top="0dp" android:right="0dp" android:bottom="0dp" />
         </shape>
     </item>
     <item android:id="@android:id/secondaryProgress"
-        android:bottom="@dimen/dp_2"
-        android:left="@dimen/dp_2"
-        android:right="@dimen/dp_2"
-        android:top="@dimen/dp_2"
+        android:bottom="2dp"
+        android:left="2dp"
+        android:right="2dp"
+        android:top="2dp"
         >
         <shape android:shape="rectangle">
             <solid android:color="?attr/shape_bg_normal" />
-            <corners android:radius="@dimen/dp_55"/>
+            <corners android:radius="55dp"/>
             <padding android:left="0dp" android:top="0dp" android:right="0dp" android:bottom="0dp" />
         </shape>
     </item>

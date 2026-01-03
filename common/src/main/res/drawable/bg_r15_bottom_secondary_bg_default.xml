@@ -3,6 +3,6 @@
     android:shape="rectangle">
     <solid android:color="?attr/secondary_bg_default" />
     <corners
-        android:bottomLeftRadius="@dimen/dp_15"
-        android:bottomRightRadius="@dimen/dp_15" />
+        android:bottomLeftRadius="15dp"
+        android:bottomRightRadius="15dp" />
 </shape>

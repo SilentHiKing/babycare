@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:background="?attr/bg_r12_secondary_bg_default"
     android:orientation="vertical"
-    android:padding="@dimen/dp_16">
+    android:padding="16dp">
 
     <!-- 体温输入 -->
     <LinearLayout
@@ -17,7 +17,7 @@
         <EditText
             android:id="@+id/etTemperature"
             android:layout_width="0dp"
-            android:layout_height="@dimen/dp_56"
+            android:layout_height="56dp"
             android:layout_weight="1"
             android:background="?attr/bg_r6_block_gridview"
             android:gravity="center"
@@ -26,16 +26,16 @@
             android:maxLength="4"
             android:textColor="?attr/primary90"
             android:textColorHint="?attr/weaken40"
-            android:textSize="@dimen/sp_28"
+            android:textSize="28sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/dp_12"
+            android:layout_marginStart="12dp"
             android:text="@string/temperature_unit"
             android:textColor="?attr/primary90"
-            android:textSize="@dimen/sp_20" />
+            android:textSize="20sp" />
 
     </LinearLayout>
 
@@ -44,16 +44,16 @@
         android:id="@+id/llTemperatureStatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_16"
+        android:layout_marginTop="16dp"
         android:background="?attr/bg_r6_block_gridview"
         android:gravity="center"
         android:orientation="horizontal"
-        android:padding="@dimen/dp_12">
+        android:padding="12dp">
 
         <ImageView
             android:id="@+id/ivStatusIcon"
-            android:layout_width="@dimen/dp_20"
-            android:layout_height="@dimen/dp_20"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:contentDescription="@null"
             tools:src="@drawable/ic_check" />
 
@@ -61,8 +61,8 @@
             android:id="@+id/tvStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/dp_8"
-            android:textSize="@dimen/sp_14"
+            android:layout_marginStart="8dp"
+            android:textSize="14sp"
             tools:text="@string/temperature_normal"
             tools:textColor="@color/temp_normal" />
 
@@ -72,17 +72,17 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_16"
+        android:layout_marginTop="16dp"
         android:text="@string/temperature_location_label"
         android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_14"
+        android:textSize="14sp"
         android:textStyle="bold" />
 
     <RadioGroup
         android:id="@+id/rgTemperatureLocation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_8"
+        android:layout_marginTop="8dp"
         android:orientation="horizontal">
 
         <RadioButton
@@ -117,11 +117,13 @@
         android:id="@+id/tvWarning"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_12"
+        android:layout_marginTop="12dp"
         android:gravity="center"
         android:text="@string/temperature_danger"
         android:textColor="@color/temp_danger"
-        android:textSize="@dimen/sp_13"
+        android:textSize="13sp"
         android:visibility="gone" />
 
 </LinearLayout>
+
+

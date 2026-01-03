@@ -4,14 +4,15 @@
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
             <solid android:color="#0366D6" />
-            <corners android:radius="@dimen/dp_10" />
+            <corners android:radius="10dp" />
         </shape>
     </item>
     <!-- 默认状态 -->
     <item>
         <shape android:shape="rectangle">
             <solid android:color="?attr/brand_color" />
-            <corners android:radius="@dimen/dp_10" />
+            <corners android:radius="10dp" />
         </shape>
     </item>
 </selector>
+

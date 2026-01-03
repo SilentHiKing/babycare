@@ -24,7 +24,44 @@
         <attr name="Width" format="dimension" />
     </declare-styleable>
 
-    <!--Brand Color-->
+    <!-- ========================================================================================= -->
+    <!-- NEW UI TOKEN SYSTEM (2026 Semantic Framework) -->
+    <!-- ========================================================================================= -->
+
+    <!-- 1. Color Tokens (Semantic) -->
+    <!-- Brand Colors -->
+    <attr name="colorBrand" format="color"/>           <!-- Brand Primary -->
+    <attr name="colorBrandLight" format="color"/>      <!-- Brand Light/Pastel variant -->
+    <attr name="colorBrandDark" format="color"/>       <!-- Brand Dark/Contrast variant -->
+    <attr name="colorOnBrand" format="color"/>         <!-- Text/Icon color on top of Brand bg -->
+
+    <!-- Background/Surface Colors -->
+    <attr name="colorSurface" format="color"/>         <!-- Cards, Sheets, Dialogs -->
+    <attr name="colorSurfaceVariant" format="color"/>  <!-- Secondary surface -->
+    <attr name="colorBackground" format="color"/>      <!-- App Background -->
+    
+    <!-- Functional Colors -->
+    <attr name="colorSuccess" format="color"/>
+    <attr name="colorWarning" format="color"/>
+    <attr name="colorError" format="color"/>
+
+    <!-- Text Colors -->
+    <attr name="colorTextPrimary" format="color"/>
+    <attr name="colorTextSecondary" format="color"/>
+    <attr name="colorTextHint" format="color"/>
+
+    <!-- 2. Shape Tokens -->
+    <attr name="shapeCornerSmall" format="dimension"/>  <!-- 8dp - Tags, Small Buttons -->
+    <attr name="shapeCornerMedium" format="dimension"/> <!-- 16dp - Cards, Dialogs -->
+    <attr name="shapeCornerLarge" format="dimension"/>  <!-- 24dp - Large Sheets, HERO cards -->
+    <attr name="shapeCornerExtraLarge" format="dimension"/> <!-- 32dp+ or Circle -->
+
+    <!-- 3. Shadow/Elevation Tokens -->
+    <attr name="elevationSmall" format="dimension"/>
+    <attr name="elevationMedium" format="dimension"/>
+
+    <!-- ========================================================================================= -->
+    <!-- LEGACY ATTRIBUTES (To be refactored/removed eventually) -->
     <attr name="brand_color" format="color"/>
 
     <!--Container-Bg 应用于不同类型容器背景填充-->

@@ -4,7 +4,7 @@
     <item android:state_checked="true">
         <shape android:shape="rectangle">
             <solid android:color="?attr/semantics_blue" />
-            <corners android:radius="@dimen/dp_14" />
+            <corners android:radius="14dp" />
         </shape>
     </item>
     <!-- 未选中状态 -->
@@ -14,8 +14,9 @@
                 android:width="1dp"
                 android:color="?attr/line20" />
             <solid android:color="@android:color/transparent" />
-            <corners android:radius="@dimen/dp_14" />
+            <corners android:radius="14dp" />
         </shape>
     </item>
 </selector>
+
 

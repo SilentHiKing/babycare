@@ -4,15 +4,16 @@
     <item android:state_selected="true">
         <shape android:shape="rectangle">
             <solid android:color="?attr/semantics_blue" />
-            <corners android:radius="@dimen/dp_20" />
+            <corners android:radius="20dp" />
         </shape>
     </item>
     <!-- 默认状态 -->
     <item>
         <shape android:shape="rectangle">
             <solid android:color="?attr/block_gridview" />
-            <corners android:radius="@dimen/dp_20" />
+            <corners android:radius="20dp" />
         </shape>
     </item>
 </selector>
+
 

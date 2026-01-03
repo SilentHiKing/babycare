@@ -15,6 +15,38 @@
         <!--  seak bar 颜色覆盖不上来直接现这样来-->
         <item name="colorAccent">@color/colorPrimary</item>
 
+        <!-- ==================== UI TOKENS MAPPING (BASE) ==================== -->
+        <!-- Brand (Defaulting to Blue/Boy if not overridden) -->
+        <item name="colorBrand">@color/boy_brand</item>
+        <item name="colorBrandLight">@color/boy_brand_light</item>
+        <item name="colorBrandDark">@color/boy_brand_dark</item>
+        <item name="colorOnBrand">@color/White100</item>
+
+        <!-- Surface/Background -->
+        <item name="colorSurface">@color/White100</item>
+        <item name="colorSurfaceVariant">@color/boy_bg_brand</item>
+        <item name="colorBackground">@color/opacity_F2F2F7</item>
+
+        <!-- Functional -->
+        <item name="colorSuccess">@color/event_growth</item>
+        <item name="colorWarning">@color/event_diaper</item>
+        <item name="colorError">@color/event_health</item>
+
+        <!-- Text -->
+        <item name="colorTextPrimary">@color/Black100</item>
+        <item name="colorTextSecondary">@color/Black70</item>
+        <item name="colorTextHint">@color/Black40</item>
+
+        <!-- Shapes (2026 Layered Depth Standards) -->
+        <item name="shapeCornerSmall">8dp</item>
+        <item name="shapeCornerMedium">16dp</item>
+        <item name="shapeCornerLarge">24dp</item> <!-- The new standard -->
+        <item name="shapeCornerExtraLarge">32dp</item>
+
+        <!-- Elevation -->
+        <item name="elevationSmall">4dp</item>
+        <item name="elevationMedium">8dp</item>
+
         <!-- The most prominent text color.  -->
         <item name="android:textColorPrimary">@color/textColorPrimary</item>
         <!-- Secondary text color. -->
@@ -455,54 +487,121 @@
     <!-- 辅食分类选择按钮样式 -->
     <style name="SolidCategoryRadioButton">
         <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">@dimen/dp_32</item>
-        <item name="android:layout_marginEnd">@dimen/dp_8</item>
-        <item name="android:paddingHorizontal">@dimen/dp_12</item>
+        <item name="android:layout_height">32dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:paddingHorizontal">12dp</item>
         <item name="android:background">@drawable/selector_solid_category_bg</item>
         <item name="android:button">@null</item>
         <item name="android:gravity">center</item>
         <item name="android:textColor">@color/selector_radio_text_color</item>
-        <item name="android:textSize">@dimen/sp_13</item>
+        <item name="android:textSize">13sp</item>
     </style>
 
     <!-- 辅食子类选择按钮样式 -->
     <style name="SolidSubtypeRadioButton">
         <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">@dimen/dp_28</item>
-        <item name="android:layout_marginEnd">@dimen/dp_6</item>
-        <item name="android:paddingHorizontal">@dimen/dp_10</item>
+        <item name="android:layout_height">28dp</item>
+        <item name="android:layout_marginEnd">6dp</item>
+        <item name="android:paddingHorizontal">10dp</item>
         <item name="android:background">@drawable/selector_solid_subtype_bg</item>
         <item name="android:button">@null</item>
         <item name="android:gravity">center</item>
         <item name="android:textColor">@color/selector_radio_text_color</item>
-        <item name="android:textSize">@dimen/sp_12</item>
+        <item name="android:textSize">12sp</item>
     </style>
 
     <!-- 事件详情 RadioButton 样式 -->
     <style name="EventDetailRadioButton">
         <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">@dimen/dp_40</item>
+        <item name="android:layout_height">40dp</item>
         <item name="android:layout_weight">1</item>
-        <item name="android:layout_marginEnd">@dimen/dp_8</item>
+        <item name="android:layout_marginEnd">8dp</item>
         <item name="android:background">@drawable/selector_radio_bg</item>
         <item name="android:button">@null</item>
         <item name="android:gravity">center</item>
         <item name="android:textColor">@color/selector_radio_text_color</item>
-        <item name="android:textSize">@dimen/sp_14</item>
+        <item name="android:textSize">14sp</item>
     </style>
 
     <!-- 事件颜色选择 RadioButton 样式 -->
     <style name="EventColorRadioButton">
         <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">@dimen/dp_40</item>
+        <item name="android:layout_height">40dp</item>
         <item name="android:layout_weight">1</item>
-        <item name="android:layout_marginEnd">@dimen/dp_8</item>
+        <item name="android:layout_marginEnd">8dp</item>
         <item name="android:background">@drawable/selector_radio_bg</item>
         <item name="android:button">@null</item>
         <item name="android:gravity">center</item>
         <item name="android:textColor">@color/selector_radio_text_color</item>
-        <item name="android:textSize">@dimen/sp_13</item>
+        <item name="android:textSize">13sp</item>
     </style>
 
 
+    <!-- ========================================================================================= -->
+    <!-- TYPOGRAPHY SYSTEM (2026 Semantic Framework) -->
+    <!-- ========================================================================================= -->
+
+    <!-- Base Text Style -->
+    <style name="TextAppearance.BabyCare" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <!-- Display (Hero numbers, Large greetings) -->
+    <style name="TextAppearance.BabyCare.Display1" parent="TextAppearance.BabyCare">
+        <item name="android:textSize">32sp</item>
+        <item name="android:textColor">?attr/colorTextPrimary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">-0.02</item>
+    </style>
+    
+    <style name="TextAppearance.BabyCare.Display2" parent="TextAppearance.BabyCare">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textColor">?attr/colorTextPrimary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Headings (Section Titles, Card Headers) -->
+    <style name="TextAppearance.BabyCare.Heading1" parent="TextAppearance.BabyCare">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">?attr/colorTextPrimary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.BabyCare.Heading2" parent="TextAppearance.BabyCare">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">?attr/colorTextPrimary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.BabyCare.Heading3" parent="TextAppearance.BabyCare">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">?attr/colorTextPrimary</item>
+        <item name="android:textStyle">normal</item> <!-- Medium implies bold in basic sans-serif usually, stick to normal/bold for XML simplicity -->
+    </style>
+
+    <!-- Body (Content, Descriptions) -->
+    <style name="TextAppearance.BabyCare.Body1" parent="TextAppearance.BabyCare">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">?attr/colorTextPrimary</item>
+        <item name="android:lineSpacingExtra">4dp</item>
+    </style>
+
+    <style name="TextAppearance.BabyCare.Body2" parent="TextAppearance.BabyCare">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">?attr/colorTextSecondary</item>
+    </style>
+
+    <!-- Label (Buttons, Tags, Captions) -->
+    <style name="TextAppearance.BabyCare.Label" parent="TextAppearance.BabyCare">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">?attr/colorTextSecondary</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+    
+    <style name="TextAppearance.BabyCare.Label.Inverse" parent="TextAppearance.BabyCare.Label">
+        <item name="android:textColor">?attr/colorOnBrand</item>
+    </style>
+
 </resources>
+
+

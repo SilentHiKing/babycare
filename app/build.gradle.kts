@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
 
     implementation(libs.androidx.recyclerview)
+    implementation("me.jessyan:autosize:1.2.1")
 //    implementation(libs.baserecyclerviewadapterhelper)
     implementation(libs.material)
     implementation(libs.xpopup)

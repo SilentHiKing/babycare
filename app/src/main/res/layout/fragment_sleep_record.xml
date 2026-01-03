@@ -22,8 +22,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/dp_25"
-            android:paddingBottom="@dimen/dp_20">
+            android:paddingHorizontal="25dp"
+            android:paddingBottom="20dp">
 
             <com.zero.components.widget.RecordTimerPanelView
                 android:id="@+id/timerPanel"
@@ -39,10 +39,10 @@
                 android:id="@+id/tvLastSleep"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_16"
-                android:paddingHorizontal="@dimen/dp_10"
+                android:layout_marginTop="16dp"
+                android:paddingHorizontal="10dp"
                 android:textColor="?attr/weaken40"
-                android:textSize="@dimen/sp_14"
+                android:textSize="14sp"
                 android:visibility="gone"
                 tools:text="上次: 12-24 06:30"
                 tools:visibility="visible" />
@@ -52,25 +52,25 @@
                 style="@style/BoldTextAppearance"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_20"
-                android:paddingHorizontal="@dimen/dp_10"
+                android:layout_marginTop="20dp"
+                android:paddingHorizontal="10dp"
                 android:text="@string/note"
                 android:textColor="?attr/primary90"
-                android:textSize="@dimen/sp_16" />
+                android:textSize="16sp" />
 
             <EditText
                 android:id="@+id/etNote"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/dp_80"
-                android:layout_marginTop="@dimen/dp_10"
+                android:layout_height="80dp"
+                android:layout_marginTop="10dp"
                 android:background="?attr/bg_r6_block_gridview"
                 android:gravity="start|top"
                 android:hint="@string/note_hint"
                 android:inputType="textMultiLine"
-                android:padding="@dimen/dp_12"
+                android:padding="12dp"
                 android:textColor="?attr/primary90"
                 android:textColorHint="?attr/weaken40"
-                android:textSize="@dimen/sp_14" />
+                android:textSize="14sp" />
 
         </LinearLayout>
     </ScrollView>
@@ -79,14 +79,16 @@
     <TextView
         android:id="@+id/tvSave"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dp_48"
-        android:layout_marginHorizontal="@dimen/dp_25"
-        android:layout_marginBottom="@dimen/dp_20"
+        android:layout_height="48dp"
+        android:layout_marginHorizontal="25dp"
+        android:layout_marginBottom="20dp"
         android:background="?attr/bg_r999_brand_color"
         android:gravity="center"
         android:text="@string/save"
-        android:textColor="@color/White100"
-        android:textSize="@dimen/sp_16"
+        android:textColor="?attr/colorOnBrand"
+        android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

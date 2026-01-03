@@ -5,9 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_popup_dialog"
-    android:paddingHorizontal="@dimen/dp_24"
-    android:paddingTop="@dimen/dp_28"
-    android:paddingBottom="@dimen/dp_24">
+    android:paddingHorizontal="24dp"
+    android:paddingTop="28dp"
+    android:paddingBottom="24dp">
 
     <!-- 标题 -->
     <TextView
@@ -17,7 +17,7 @@
         android:gravity="center"
         android:textAlignment="center"
         android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_17"
+        android:textSize="17sp"
         android:textStyle="bold"
         android:letterSpacing="0.01"
         app:layout_constraintEnd_toEndOf="parent"
@@ -30,11 +30,11 @@
         android:id="@+id/tv_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_16"
+        android:layout_marginTop="16dp"
         android:gravity="center"
-        android:lineSpacingExtra="@dimen/dp_4"
+        android:lineSpacingExtra="4dp"
         android:textColor="?attr/tertiary60"
-        android:textSize="@dimen/sp_14"
+        android:textSize="14sp"
         app:layout_constraintTop_toBottomOf="@+id/tv_title"
         tools:text="确定要执行此操作吗？" />
 
@@ -42,7 +42,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_28"
+        android:layout_marginTop="28dp"
         android:orientation="horizontal"
         android:gravity="center"
         app:layout_constraintTop_toBottomOf="@+id/tv_content">
@@ -51,13 +51,13 @@
         <TextView
             android:id="@+id/tv_cancel"
             android:layout_width="0dp"
-            android:layout_height="@dimen/dp_44"
+            android:layout_height="44dp"
             android:layout_weight="1"
-            android:layout_marginEnd="@dimen/dp_12"
+            android:layout_marginEnd="12dp"
             android:gravity="center"
             android:text="@string/cancel"
             android:textColor="?attr/tertiary60"
-            android:textSize="@dimen/sp_15"
+            android:textSize="15sp"
             android:background="@drawable/bg_btn_cancel"
             android:stateListAnimator="@null" />
 
@@ -65,12 +65,12 @@
         <TextView
             android:id="@+id/tv_confirm"
             android:layout_width="0dp"
-            android:layout_height="@dimen/dp_44"
+            android:layout_height="44dp"
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/confirm"
             android:textColor="@color/White100"
-            android:textSize="@dimen/sp_15"
+            android:textSize="15sp"
             android:textStyle="bold"
             android:background="@drawable/bg_btn_confirm"
             android:stateListAnimator="@null" />
@@ -78,3 +78,5 @@
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

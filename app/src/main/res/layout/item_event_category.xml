@@ -5,17 +5,17 @@
     android:id="@+id/rootLayout"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_marginEnd="@dimen/dp_8"
+    android:layout_marginEnd="8dp"
     android:background="@drawable/selector_event_category_bg"
     android:gravity="center"
     android:orientation="horizontal"
-    android:paddingHorizontal="@dimen/dp_14"
-    android:paddingVertical="@dimen/dp_10">
+    android:paddingHorizontal="14dp"
+    android:paddingVertical="10dp">
 
     <ImageView
         android:id="@+id/ivIcon"
-        android:layout_width="@dimen/dp_20"
-        android:layout_height="@dimen/dp_20"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
         android:contentDescription="@null"
         tools:src="@drawable/ic_event_diaper" />
 
@@ -23,10 +23,12 @@
         android:id="@+id/tvName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/dp_6"
+        android:layout_marginStart="6dp"
         android:textColor="@color/selector_event_category_text"
-        android:textSize="@dimen/sp_14"
+        android:textSize="14sp"
         tools:text="排泄" />
 
 </LinearLayout>
+
+
 

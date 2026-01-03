@@ -4,50 +4,52 @@
     android:layout_height="wrap_content"
     android:background="?attr/bg_r12_secondary_bg_default"
     android:orientation="vertical"
-    android:padding="@dimen/dp_16">
+    android:padding="16dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/custom_event_name"
         android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_14"
+        android:textSize="14sp"
         android:textStyle="bold" />
 
     <EditText
         android:id="@+id/etCustomEventName"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dp_44"
-        android:layout_marginTop="@dimen/dp_8"
+        android:layout_height="44dp"
+        android:layout_marginTop="8dp"
         android:background="?attr/bg_r6_block_gridview"
         android:hint="@string/custom_event_hint"
         android:inputType="text"
-        android:paddingHorizontal="@dimen/dp_12"
+        android:paddingHorizontal="12dp"
         android:textColor="?attr/primary90"
         android:textColorHint="?attr/weaken40"
-        android:textSize="@dimen/sp_14" />
+        android:textSize="14sp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_16"
+        android:layout_marginTop="16dp"
         android:text="@string/custom_event_description"
         android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_14"
+        android:textSize="14sp"
         android:textStyle="bold" />
 
     <EditText
         android:id="@+id/etCustomEventDescription"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dp_80"
-        android:layout_marginTop="@dimen/dp_8"
+        android:layout_height="80dp"
+        android:layout_marginTop="8dp"
         android:background="?attr/bg_r6_block_gridview"
         android:gravity="start|top"
         android:hint="@string/custom_event_description_hint"
         android:inputType="textMultiLine"
-        android:padding="@dimen/dp_12"
+        android:padding="12dp"
         android:textColor="?attr/primary90"
         android:textColorHint="?attr/weaken40"
-        android:textSize="@dimen/sp_14" />
+        android:textSize="14sp" />
 
 </LinearLayout>
+
+

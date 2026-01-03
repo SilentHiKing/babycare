@@ -3,12 +3,12 @@
     android:id="@+id/llStructure"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="@dimen/dp_16"
-    android:layout_marginTop="@dimen/dp_12"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginTop="12dp"
     android:background="?attr/secondary_bg_default"
     android:orientation="vertical"
-    android:paddingHorizontal="@dimen/dp_12"
-    android:paddingVertical="@dimen/dp_12">
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="12dp">
 
     <TextView
         android:id="@+id/tvStructureTitle"
@@ -17,23 +17,25 @@
         android:layout_height="wrap_content"
         android:text="@string/statistics_structure_title"
         android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_14" />
+        android:textSize="14sp" />
 
     <LinearLayout
         android:id="@+id/llStructureContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_8"
+        android:layout_marginTop="8dp"
         android:orientation="vertical" />
 
     <TextView
         android:id="@+id/tvStructureEmpty"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_6"
+        android:layout_marginTop="6dp"
         android:text="@string/statistics_structure_empty"
         android:textColor="?attr/weaken40"
-        android:textSize="@dimen/sp_11"
+        android:textSize="11sp"
         android:visibility="gone" />
 
 </LinearLayout>
+
+

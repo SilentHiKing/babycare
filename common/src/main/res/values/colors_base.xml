@@ -191,37 +191,37 @@
     <color name="opacity_shadow_66">#55000000</color> <!--深色模式阴影-->
 
     <!-- ==================== Dashboard 功能性颜色 ==================== -->
-    <!-- 喂养卡片 (蓝色系) -->
-    <color name="feeding_primary">#1976D2</color>
-    <color name="feeding_primary_dark">#1565C0</color>
-    <color name="feeding_secondary">#64B5F6</color>
-    <color name="feeding_divider">#BBDEFB</color>
-    <color name="feeding_bg">#E3F2FD</color>
+    <!-- 喂养卡片 (Sage Blue theme) -->
+    <color name="feeding_primary">#5C9EAD</color>
+    <color name="feeding_primary_dark">#40707A</color>
+    <color name="feeding_secondary">#85B8C5</color>
+    <color name="feeding_divider">#C2E8E4</color>
+    <color name="feeding_bg">#F2FAFA</color>
 
-    <!-- 睡眠卡片 (紫色系) -->
-    <color name="sleep_primary">#7B1FA2</color>
-    <color name="sleep_primary_dark">#6A1B9A</color>
-    <color name="sleep_secondary">#CE93D8</color>
-    <color name="sleep_divider">#E1BEE7</color>
-    <color name="sleep_bg">#F3E5F5</color>
+    <!-- 睡眠卡片 (Muted Lavender theme) -->
+    <color name="sleep_primary">#887BB0</color>
+    <color name="sleep_primary_dark">#655885</color>
+    <color name="sleep_secondary">#A89CC8</color>
+    <color name="sleep_divider">#D6CDEA</color>
+    <color name="sleep_bg">#F7F5FC</color>
 
     <!-- 统计入口 (青绿色系) -->
     <color name="statistics_primary">#2A9D8F</color>
 
-    <!-- 状态卡片文字 (棕色系，在渐变背景上易读) -->
-    <color name="status_text_primary">#5D4037</color>
-    <color name="status_text_secondary">#8D6E63</color>
+    <!-- 状态卡片文字 (Soft Charcoal/Brown) -->
+    <color name="status_text_primary">#4A4A4A</color>
+    <color name="status_text_secondary">#757575</color>
 
     <!-- 状态卡片背景渐变色 -->
-    <!-- 醒着状态 (橙色系) -->
-    <color name="status_awake_start">#FFE0B2</color>
-    <color name="status_awake_end">#FFCC80</color>
-    <!-- 睡眠状态 (紫色系) -->
-    <color name="status_sleeping_start">#D1C4E9</color>
-    <color name="status_sleeping_end">#B39DDB</color>
-    <!-- 喂奶状态 (浅蓝色系) -->
-    <color name="status_feeding_start">#B3E5FC</color>
-    <color name="status_feeding_end">#81D4FA</color>
+    <!-- 醒着状态 (Soft Sunshine) -->
+    <color name="status_awake_start">#FFFCF5</color>
+    <color name="status_awake_end">#FFE8B6</color>
+    <!-- 睡眠状态 (Soft Moon) -->
+    <color name="status_sleeping_start">#F3F1FA</color>
+    <color name="status_sleeping_end">#D6CDEA</color>
+    <!-- 喂奶状态 (Soft Water) -->
+    <color name="status_feeding_start">#F2FAFA</color>
+    <color name="status_feeding_end">#C2E8E4</color>
 
     <!-- ==================== 事件类型颜色 ==================== -->
     <!-- 排泄 (橙色系) -->

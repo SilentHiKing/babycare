@@ -3,12 +3,12 @@
     android:id="@+id/llHealth"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="@dimen/dp_16"
-    android:layout_marginTop="@dimen/dp_12"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginTop="12dp"
     android:background="?attr/secondary_bg_default"
     android:orientation="vertical"
-    android:paddingHorizontal="@dimen/dp_12"
-    android:paddingVertical="@dimen/dp_12">
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="12dp">
 
     <TextView
         android:id="@+id/tvHealthTitle"
@@ -17,37 +17,37 @@
         android:layout_height="wrap_content"
         android:text="@string/statistics_health_title"
         android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_14" />
+        android:textSize="14sp" />
 
     <TextView
         android:id="@+id/tvHealthRange"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_4"
+        android:layout_marginTop="4dp"
         android:textColor="?attr/weaken40"
-        android:textSize="@dimen/sp_11" />
+        android:textSize="11sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_8"
+        android:layout_marginTop="8dp"
         android:background="?attr/bg_r8_block_gridview"
         android:orientation="vertical"
-        android:paddingHorizontal="@dimen/dp_12"
-        android:paddingVertical="@dimen/dp_10">
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="10dp">
 
         <TextView
             android:id="@+id/tvHealthTotal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="?attr/primary90"
-            android:textSize="@dimen/sp_13"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dp_6"
+            android:layout_marginTop="6dp"
             android:orientation="horizontal">
 
             <TextView
@@ -56,7 +56,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textColor="?attr/weaken40"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/tvHealthMedicine"
@@ -64,13 +64,13 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textColor="?attr/weaken40"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="11sp" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dp_4"
+            android:layout_marginTop="4dp"
             android:orientation="horizontal">
 
             <TextView
@@ -79,7 +79,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textColor="?attr/weaken40"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/tvHealthSymptom"
@@ -87,30 +87,32 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textColor="?attr/weaken40"
-                android:textSize="@dimen/sp_11" />
+                android:textSize="11sp" />
         </LinearLayout>
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginTop="@dimen/dp_8"
+            android:layout_marginTop="8dp"
             android:background="?attr/line10" />
 
         <TextView
             android:id="@+id/tvHealthVaccine"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dp_8"
+            android:layout_marginTop="8dp"
             android:textColor="?attr/primary90"
-            android:textSize="@dimen/sp_12" />
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/tvHealthLastVaccine"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dp_4"
+            android:layout_marginTop="4dp"
             android:textColor="?attr/weaken40"
-            android:textSize="@dimen/sp_11" />
+            android:textSize="11sp" />
     </LinearLayout>
 
 </LinearLayout>
+
+

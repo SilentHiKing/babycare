@@ -19,7 +19,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import com.blankj.utilcode.util.ActivityUtils
 import com.blankj.utilcode.util.Utils
-import com.zero.common.R
+
 
 fun stringOf(@StringRes id: Int, vararg formatArgs: Any): String = getString(id, *formatArgs)
 
@@ -75,7 +75,7 @@ fun Context.getThemeDrawable(@AttrRes attrRes: Int): Drawable? {
 }
 fun Context.dp(resId: Int) = this.resources.getDimensionPixelSize(resId)
 fun Context.bgForCorner(corner: CornerType, @ColorInt color: Int = Color.WHITE): Drawable {
-    val r = this.resources.getDimensionPixelSize(R.dimen.dp_10).toFloat()
+    val r = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, this.resources.displayMetrics)
     val d = GradientDrawable().apply { setColor(color) }
     val all = floatArrayOf(r, r, r, r, r, r, r, r)
     val top = floatArrayOf(r, r, r, r, 0f, 0f, 0f, 0f)

@@ -3,15 +3,16 @@
     <item android:id="@android:id/background">
         <shape>
             <solid android:color="#DCDCDC" />
-            <size android:height="@dimen/dp_2" />
+            <size android:height="2dp" />
         </shape>
     </item>
     <item android:id="@android:id/progress">
         <clip>
             <shape>
                 <solid android:color="?attr/brand_color" />
-                <size android:height="@dimen/dp_2" />
+                <size android:height="2dp" />
             </shape>
         </clip>
     </item>
 </layer-list>
+

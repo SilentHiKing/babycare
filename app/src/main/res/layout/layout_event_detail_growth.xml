@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:background="?attr/bg_r12_secondary_bg_default"
     android:orientation="vertical"
-    android:padding="@dimen/dp_16">
+    android:padding="16dp">
 
     <!-- 数值输入 -->
     <LinearLayout
@@ -17,7 +17,7 @@
         <EditText
             android:id="@+id/etValue"
             android:layout_width="0dp"
-            android:layout_height="@dimen/dp_56"
+            android:layout_height="56dp"
             android:layout_weight="1"
             android:background="?attr/bg_r6_block_gridview"
             android:gravity="center"
@@ -26,16 +26,16 @@
             android:maxLength="6"
             android:textColor="?attr/primary90"
             android:textColorHint="?attr/weaken40"
-            android:textSize="@dimen/sp_28"
+            android:textSize="28sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvUnit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/dp_12"
+            android:layout_marginStart="12dp"
             android:textColor="?attr/primary90"
-            android:textSize="@dimen/sp_20"
+            android:textSize="20sp"
             tools:text="kg" />
 
     </LinearLayout>
@@ -45,7 +45,7 @@
         android:id="@+id/llLastRecord"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_16"
+        android:layout_marginTop="16dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:visibility="gone"
@@ -56,15 +56,15 @@
             android:layout_height="wrap_content"
             android:text="@string/last_record"
             android:textColor="?attr/weaken40"
-            android:textSize="@dimen/sp_13" />
+            android:textSize="13sp" />
 
         <TextView
             android:id="@+id/tvLastValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/dp_8"
+            android:layout_marginStart="8dp"
             android:textColor="?attr/primary90"
-            android:textSize="@dimen/sp_13"
+            android:textSize="13sp"
             tools:text="5.32 kg (12月18日)" />
 
         <View
@@ -77,10 +77,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/event_growth"
-            android:textSize="@dimen/sp_13"
+            android:textSize="13sp"
             android:textStyle="bold"
             tools:text="+0.18 kg ↑" />
 
     </LinearLayout>
 
 </LinearLayout>
+
+

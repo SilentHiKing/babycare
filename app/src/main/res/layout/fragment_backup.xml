@@ -15,7 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:paddingBottom="@dimen/dp_24"
+        android:paddingBottom="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
 
@@ -23,23 +23,23 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/dp_16">
+            android:paddingHorizontal="16dp">
 
             <TextView
                 android:id="@+id/tvBackupTitle"
                 style="@style/BoldTextAppearance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_16"
+                android:layout_marginTop="16dp"
                 android:text="@string/settings_backup"
                 android:textColor="?attr/primary90"
-                android:textSize="@dimen/sp_16" />
+                android:textSize="16sp" />
 
             <LinearLayout
                 android:id="@+id/cardBackup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_8"
+                android:layout_marginTop="8dp"
                 android:background="@drawable/bg_r12_secondary_bg_default"
                 android:orientation="vertical">
 
@@ -49,7 +49,7 @@
 
                 <View
                     style="@style/divide_horizontal_line"
-                    android:layout_marginStart="@dimen/dp_16" />
+                    android:layout_marginStart="16dp" />
 
                 <include
                     android:id="@+id/rowBackupImport"
@@ -57,7 +57,7 @@
 
                 <View
                     style="@style/divide_horizontal_line"
-                    android:layout_marginStart="@dimen/dp_16" />
+                    android:layout_marginStart="16dp" />
 
                 <include
                     android:id="@+id/rowBackupDedup"
@@ -68,26 +68,26 @@
                 android:id="@+id/tvBackupNote"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_10"
+                android:layout_marginTop="10dp"
                 android:text="@string/backup_note"
                 android:textColor="?attr/weaken40"
-                android:textSize="@dimen/sp_12" />
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/tvReportTitle"
                 style="@style/BoldTextAppearance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_20"
+                android:layout_marginTop="20dp"
                 android:text="@string/backup_import_report_title_section"
                 android:textColor="?attr/primary90"
-                android:textSize="@dimen/sp_16" />
+                android:textSize="16sp" />
 
             <LinearLayout
                 android:id="@+id/cardReportList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_8"
+                android:layout_marginTop="8dp"
                 android:background="@drawable/bg_r12_secondary_bg_default"
                 android:orientation="vertical">
 
@@ -97,24 +97,24 @@
 
                 <View
                     style="@style/divide_horizontal_line"
-                    android:layout_marginStart="@dimen/dp_16" />
+                    android:layout_marginStart="16dp" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvBackupReports"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:clipToPadding="false"
-                    android:paddingVertical="@dimen/dp_4" />
+                    android:paddingVertical="4dp" />
 
                 <TextView
                     android:id="@+id/tvReportEmpty"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="@dimen/dp_16"
-                    android:paddingVertical="@dimen/dp_12"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp"
                     android:text="@string/backup_report_empty"
                     android:textColor="?attr/weaken40"
-                    android:textSize="@dimen/sp_12"
+                    android:textSize="12sp"
                     android:visibility="gone" />
             </LinearLayout>
 
@@ -122,3 +122,5 @@
     </androidx.core.widget.NestedScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

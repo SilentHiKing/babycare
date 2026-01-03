@@ -192,14 +192,14 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
                 text = StringUtils.getString(stringResId)
                 layoutParams = android.widget.RadioGroup.LayoutParams(
                     android.widget.RadioGroup.LayoutParams.WRAP_CONTENT,
-                    resources.getDimensionPixelSize(com.zero.common.R.dimen.dp_28)
+                    android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 28f, resources.displayMetrics).toInt()
                 ).apply {
-                    marginEnd = resources.getDimensionPixelSize(com.zero.common.R.dimen.dp_6)
+                    marginEnd = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 6f, resources.displayMetrics).toInt()
                 }
                 setPadding(
-                    resources.getDimensionPixelSize(com.zero.common.R.dimen.dp_10),
+                    android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 10f, resources.displayMetrics).toInt(),
                     0,
-                    resources.getDimensionPixelSize(com.zero.common.R.dimen.dp_10),
+                    android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 10f, resources.displayMetrics).toInt(),
                     0
                 )
                 setBackgroundResource(com.zero.common.R.drawable.selector_solid_subtype_bg)

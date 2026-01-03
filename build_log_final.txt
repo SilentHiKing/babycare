@@ -1,0 +1,259 @@
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :baby_recyclerview:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :baby_recyclerview:preBuild UP-TO-DATE
+> Task :baby_recyclerview:preDebugBuild UP-TO-DATE
+> Task :baby_recyclerview:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :baby_recyclerview:generateDebugResValues UP-TO-DATE
+> Task :baby_recyclerview:generateDebugResources UP-TO-DATE
+> Task :baby_recyclerview:packageDebugResources UP-TO-DATE
+> Task :baby_recyclerview:processDebugNavigationResources UP-TO-DATE
+> Task :baby_recyclerview:parseDebugLocalResources UP-TO-DATE
+> Task :baby_recyclerview:dataBindingGenBaseClassesDebug UP-TO-DATE
+> Task :baby_recyclerview:dataBindingTriggerDebug UP-TO-DATE
+> Task :baby_recyclerview:generateDebugRFile UP-TO-DATE
+> Task :baby_recyclerview:compileDebugKotlin UP-TO-DATE
+> Task :baby_recyclerview:javaPreCompileDebug UP-TO-DATE
+> Task :baby_recyclerview:compileDebugJavaWithJavac UP-TO-DATE
+> Task :common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :common:preBuild UP-TO-DATE
+> Task :common:preDebugBuild UP-TO-DATE
+> Task :common:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :common:generateDebugResValues UP-TO-DATE
+> Task :common:generateDebugResources UP-TO-DATE
+> Task :common:packageDebugResources UP-TO-DATE
+> Task :common:processDebugNavigationResources UP-TO-DATE
+> Task :common:parseDebugLocalResources UP-TO-DATE
+> Task :common:dataBindingGenBaseClassesDebug UP-TO-DATE
+> Task :common:dataBindingTriggerDebug UP-TO-DATE
+> Task :common:generateDebugRFile UP-TO-DATE
+> Task :common:compileDebugKotlin UP-TO-DATE
+> Task :common:javaPreCompileDebug UP-TO-DATE
+> Task :common:compileDebugJavaWithJavac UP-TO-DATE
+> Task :common:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :components:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :components:preBuild UP-TO-DATE
+> Task :components:preDebugBuild UP-TO-DATE
+> Task :components:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :components:generateDebugResValues UP-TO-DATE
+> Task :components:generateDebugResources UP-TO-DATE
+> Task :components:packageDebugResources UP-TO-DATE
+> Task :components:processDebugNavigationResources UP-TO-DATE
+> Task :components:parseDebugLocalResources UP-TO-DATE
+> Task :components:dataBindingGenBaseClassesDebug UP-TO-DATE
+> Task :components:dataBindingTriggerDebug UP-TO-DATE
+> Task :components:generateDebugRFile UP-TO-DATE
+> Task :components:compileDebugKotlin UP-TO-DATE
+> Task :components:javaPreCompileDebug UP-TO-DATE
+> Task :components:compileDebugJavaWithJavac UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :babydata:preBuild UP-TO-DATE
+> Task :babydata:preDebugBuild UP-TO-DATE
+> Task :babydata:generateDebugResValues UP-TO-DATE
+> Task :babydata:generateDebugResources UP-TO-DATE
+> Task :babydata:packageDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :babydata:processDebugNavigationResources UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :babydata:parseDebugLocalResources UP-TO-DATE
+> Task :babydata:generateDebugRFile UP-TO-DATE
+> Task :app:dataBindingTriggerDebug UP-TO-DATE
+> Task :baby_recyclerview:writeDebugAarMetadata UP-TO-DATE
+> Task :babydata:writeDebugAarMetadata UP-TO-DATE
+> Task :common:writeDebugAarMetadata UP-TO-DATE
+> Task :components:writeDebugAarMetadata UP-TO-DATE
+> Task :app:dataBindingMergeDependencyArtifactsDebug
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:dataBindingGenBaseClassesDebug
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :baby_recyclerview:extractDeepLinksDebug UP-TO-DATE
+> Task :baby_recyclerview:processDebugManifest UP-TO-DATE
+> Task :babydata:extractDeepLinksDebug UP-TO-DATE
+> Task :babydata:processDebugManifest UP-TO-DATE
+> Task :common:extractDeepLinksDebug UP-TO-DATE
+> Task :common:processDebugManifest UP-TO-DATE
+> Task :components:extractDeepLinksDebug UP-TO-DATE
+> Task :components:processDebugManifest UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :baby_recyclerview:compileDebugLibraryResources UP-TO-DATE
+> Task :babydata:compileDebugLibraryResources UP-TO-DATE
+> Task :common:compileDebugLibraryResources UP-TO-DATE
+> Task :components:compileDebugLibraryResources UP-TO-DATE
+> Task :baby_recyclerview:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :babydata:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :babydata:kspDebugKotlin UP-TO-DATE
+> Task :babydata:javaPreCompileDebug UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:mergeDebugShaders UP-TO-DATE
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :baby_recyclerview:mergeDebugShaders UP-TO-DATE
+> Task :baby_recyclerview:compileDebugShaders NO-SOURCE
+> Task :baby_recyclerview:generateDebugAssets UP-TO-DATE
+> Task :baby_recyclerview:mergeDebugAssets UP-TO-DATE
+> Task :babydata:mergeDebugShaders UP-TO-DATE
+> Task :babydata:compileDebugShaders NO-SOURCE
+> Task :babydata:generateDebugAssets UP-TO-DATE
+> Task :babydata:mergeDebugAssets UP-TO-DATE
+> Task :common:mergeDebugShaders UP-TO-DATE
+> Task :common:compileDebugShaders NO-SOURCE
+> Task :common:generateDebugAssets UP-TO-DATE
+> Task :common:mergeDebugAssets UP-TO-DATE
+> Task :components:mergeDebugShaders UP-TO-DATE
+> Task :components:compileDebugShaders NO-SOURCE
+> Task :components:generateDebugAssets UP-TO-DATE
+> Task :components:mergeDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets UP-TO-DATE
+> Task :app:compressDebugAssets UP-TO-DATE
+> Task :baby_recyclerview:processDebugJavaRes UP-TO-DATE
+> Task :common:processDebugJavaRes UP-TO-DATE
+> Task :components:bundleLibCompileToJarDebug
+> Task :components:processDebugJavaRes
+> Task :app:checkDebugDuplicateClasses UP-TO-DATE
+> Task :app:desugarDebugFileDependencies UP-TO-DATE
+> Task :app:mergeExtDexDebug UP-TO-DATE
+> Task :common:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :baby_recyclerview:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :app:mergeDebugJniLibFolders UP-TO-DATE
+> Task :baby_recyclerview:mergeDebugJniLibFolders UP-TO-DATE
+> Task :baby_recyclerview:mergeDebugNativeLibs NO-SOURCE
+> Task :baby_recyclerview:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :babydata:mergeDebugJniLibFolders UP-TO-DATE
+> Task :babydata:mergeDebugNativeLibs NO-SOURCE
+> Task :babydata:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :common:mergeDebugJniLibFolders UP-TO-DATE
+> Task :common:mergeDebugNativeLibs NO-SOURCE
+> Task :common:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :components:mergeDebugJniLibFolders UP-TO-DATE
+> Task :components:mergeDebugNativeLibs NO-SOURCE
+> Task :components:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :app:mergeDebugNativeLibs UP-TO-DATE
+> Task :app:stripDebugDebugSymbols UP-TO-DATE
+> Task :app:validateSigningDebug UP-TO-DATE
+> Task :app:writeDebugAppMetadata UP-TO-DATE
+> Task :app:writeDebugSigningConfigVersions UP-TO-DATE
+> Task :baby_recyclerview:checkDebugAarMetadata UP-TO-DATE
+> Task :baby_recyclerview:stripDebugDebugSymbols NO-SOURCE
+> Task :baby_recyclerview:copyDebugJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :baby_recyclerview:extractDebugAnnotations UP-TO-DATE
+> Task :baby_recyclerview:extractDeepLinksForAarDebug UP-TO-DATE
+> Task :baby_recyclerview:mergeDebugGeneratedProguardFiles UP-TO-DATE
+> Task :baby_recyclerview:mergeDebugConsumerProguardFiles UP-TO-DATE
+> Task :baby_recyclerview:prepareDebugArtProfile UP-TO-DATE
+> Task :baby_recyclerview:prepareLintJarForPublish UP-TO-DATE
+> Task :baby_recyclerview:mergeDebugJavaResource UP-TO-DATE
+> Task :baby_recyclerview:syncDebugLibJars UP-TO-DATE
+> Task :baby_recyclerview:bundleDebugAar UP-TO-DATE
+> Task :baby_recyclerview:assembleDebug UP-TO-DATE
+> Task :babydata:checkDebugAarMetadata UP-TO-DATE
+> Task :babydata:stripDebugDebugSymbols NO-SOURCE
+> Task :babydata:copyDebugJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :babydata:extractDeepLinksForAarDebug UP-TO-DATE
+> Task :babydata:prepareDebugArtProfile UP-TO-DATE
+> Task :babydata:prepareLintJarForPublish UP-TO-DATE
+> Task :common:checkDebugAarMetadata UP-TO-DATE
+> Task :common:stripDebugDebugSymbols NO-SOURCE
+> Task :common:copyDebugJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :common:extractDebugAnnotations UP-TO-DATE
+> Task :common:extractDeepLinksForAarDebug UP-TO-DATE
+> Task :common:mergeDebugGeneratedProguardFiles UP-TO-DATE
+> Task :common:mergeDebugConsumerProguardFiles UP-TO-DATE
+> Task :common:prepareDebugArtProfile UP-TO-DATE
+> Task :common:prepareLintJarForPublish UP-TO-DATE
+> Task :common:mergeDebugJavaResource UP-TO-DATE
+> Task :common:syncDebugLibJars UP-TO-DATE
+> Task :common:bundleDebugAar UP-TO-DATE
+> Task :common:assembleDebug UP-TO-DATE
+> Task :components:checkDebugAarMetadata UP-TO-DATE
+> Task :components:stripDebugDebugSymbols NO-SOURCE
+> Task :components:copyDebugJniLibsProjectAndLocalJars UP-TO-DATE
+> Task :components:extractDebugAnnotations
+> Task :components:extractDeepLinksForAarDebug UP-TO-DATE
+> Task :components:mergeDebugGeneratedProguardFiles UP-TO-DATE
+> Task :components:mergeDebugConsumerProguardFiles
+> Task :components:prepareDebugArtProfile UP-TO-DATE
+> Task :components:prepareLintJarForPublish UP-TO-DATE
+> Task :components:mergeDebugJavaResource
+> Task :components:bundleLibRuntimeToDirDebug
+> Task :components:syncDebugLibJars
+> Task :components:bundleDebugAar
+> Task :components:assembleDebug
+> Task :babydata:compileDebugKotlin
+> Task :babydata:compileDebugJavaWithJavac
+> Task :babydata:processDebugJavaRes
+> Task :babydata:bundleLibCompileToJarDebug
+> Task :babydata:extractDebugAnnotations
+> Task :babydata:mergeDebugGeneratedProguardFiles UP-TO-DATE
+> Task :babydata:mergeDebugConsumerProguardFiles
+> Task :babydata:mergeDebugJavaResource
+> Task :babydata:syncDebugLibJars
+> Task :babydata:bundleDebugAar
+> Task :babydata:assembleDebug
+> Task :babydata:bundleLibRuntimeToDirDebug
+> Task :app:processDebugResources FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:processDebugResources'.
+> A failure occurred while executing com.android.build.gradle.internal.res.LinkApplicationAndroidResourcesTask$TaskAction
+   > Android resource linking failed
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\bg_border_line_corner_15.xml:5: AAPT: error: '0dp_5' is incompatible with attribute width (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\bg_btn_corner_90dp.xml:5: AAPT: error: '0dp_5' is incompatible with attribute width (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\bg_card_prediction.xml:7: AAPT: error: '0dp_5' is incompatible with attribute width (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\bg_r6_block_gridview_red_stroke.xml:8: AAPT: error: '0dp_5' is incompatible with attribute width (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\bg_r6_block_gridview_red_stroke_night.xml:9: AAPT: error: '0dp_5' is incompatible with attribute width (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\bg_r6_stroke1_5_semantics_blue.xml:2: AAPT: error: '1dp_5' is incompatible with attribute width (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\bg_r6_stroke1_5_semantics_blue_night.xml:2: AAPT: error: '1dp_5' is incompatible with attribute width (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\bg_r999_stroke_line10_solid_primary_bg_default.xml:8: AAPT: error: '0dp_5' is incompatible with attribute width (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\bg_r999_stroke_line10_solid_primary_bg_default_night.xml:8: AAPT: error: '0dp_5' is incompatible with attribute width (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\border_blue_corner_6dp.xml:2: AAPT: error: '1dp_5' is incompatible with attribute width (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\border_green_corner_6dp.xml:2: AAPT: error: '1dp_5' is incompatible with attribute width (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\border_iceblue_corner_6dp.xml:2: AAPT: error: '1dp_5' is incompatible with attribute width (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\border_pink_corner_6dp.xml:2: AAPT: error: '1dp_5' is incompatible with attribute width (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\border_purple_corner_6dp.xml:2: AAPT: error: '1dp_5' is incompatible with attribute width (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\swtich_thumb.xml:5: AAPT: error: '3dp_5' is incompatible with attribute top (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\swtich_thumb.xml:5: AAPT: error: '3dp_5' is incompatible with attribute bottom (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\swtich_thumb.xml:5: AAPT: error: '3dp_5' is incompatible with attribute right (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\swtich_thumb.xml:15: AAPT: error: '3dp_5' is incompatible with attribute top (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\swtich_thumb.xml:15: AAPT: error: '3dp_5' is incompatible with attribute left (attr) dimension.
+         
+     ERROR: E:\Code\Android\babycare\common\build\intermediates\packaged_res\debug\packageDebugResources\drawable\swtich_thumb.xml:15: AAPT: error: '3dp_5' is incompatible with attribute bottom (attr) dimension.
+         
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 5s
+165 actionable tasks: 21 executed, 144 up-to-date

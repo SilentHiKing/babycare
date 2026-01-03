@@ -5,18 +5,18 @@
     android:id="@+id/llEmptyState"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="@dimen/dp_16"
+    android:layout_marginHorizontal="16dp"
     android:background="@drawable/bg_r12_bottom_secondary_bg_default"
     android:gravity="center"
     android:orientation="vertical"
-    android:paddingTop="@dimen/dp_60"
-    android:paddingBottom="@dimen/dp_12"
-    android:paddingHorizontal="@dimen/dp_12"
+    android:paddingTop="60dp"
+    android:paddingBottom="12dp"
+    android:paddingHorizontal="12dp"
     tools:visibility="visible">
 
     <ImageView
-        android:layout_width="@dimen/dp_80"
-        android:layout_height="@dimen/dp_80"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
         android:alpha="0.5"
         android:src="@drawable/ic_record"
         app:tint="?attr/weaken40" />
@@ -24,21 +24,23 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_16"
+        android:layout_marginTop="16dp"
         android:text="@string/no_records_today"
         android:textColor="?attr/weaken40"
-        android:textSize="@dimen/sp_14" />
+        android:textSize="14sp" />
 
     <TextView
         android:id="@+id/tvAddRecord"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_12"
+        android:layout_marginTop="12dp"
         android:background="?attr/bg_r999_brand_color"
-        android:paddingHorizontal="@dimen/dp_20"
-        android:paddingVertical="@dimen/dp_10"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="10dp"
         android:text="@string/add_record"
-        android:textColor="@color/White100"
-        android:textSize="@dimen/sp_14" />
+        android:textColor="?attr/colorOnBrand"
+        android:textSize="14sp" />
 
 </LinearLayout>
+
+

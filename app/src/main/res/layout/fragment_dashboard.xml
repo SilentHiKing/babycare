@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/primary_bg_default">
+    android:background="?attr/colorBackground">
 
     <com.zero.components.widget.BaseToolbar
         android:id="@+id/toolbar"
@@ -16,7 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:paddingBottom="@dimen/dp_80"
+        android:paddingBottom="80dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
 
@@ -24,33 +24,34 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/dp_16">
+            android:paddingHorizontal="16dp">
 
             <!-- ==================== 实时状态卡片 ==================== -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/cardStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_12"
+                android:layout_marginTop="12dp"
                 android:background="@drawable/bg_status_card_awake"
-                android:padding="@dimen/dp_20">
+                android:elevation="?attr/elevationMedium"
+                android:outlineProvider="background"
+                android:padding="20dp">
 
                 <ImageView
                     android:id="@+id/ivStatusIcon"
-                    android:layout_width="@dimen/dp_56"
-                    android:layout_height="@dimen/dp_56"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
                     android:src="@drawable/ic_baby_awake"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
                     android:id="@+id/tvStatusTitle"
-                    style="@style/BoldTextAppearance"
+                    style="@style/TextAppearance.BabyCare.Heading2"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/dp_16"
-                    android:textColor="@color/status_text_primary"
-                    android:textSize="@dimen/sp_18"
+                    android:layout_marginStart="16dp"
+                    android:textColor="?attr/colorTextPrimary"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@id/ivStatusIcon"
                     app:layout_constraintTop_toTopOf="@id/ivStatusIcon"
@@ -58,13 +59,12 @@
 
                 <TextView
                     android:id="@+id/tvStatusTime"
-                    style="@style/BoldTextAppearance"
+                    style="@style/TextAppearance.BabyCare.Display1"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/dp_16"
-                    android:layout_marginTop="@dimen/dp_4"
-                    android:textColor="@color/status_text_secondary"
-                    android:textSize="@dimen/sp_28"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="4dp"
+                    android:textColor="?attr/colorTextSecondary"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@id/ivStatusIcon"
                     app:layout_constraintTop_toBottomOf="@id/tvStatusTitle"
@@ -74,13 +74,13 @@
                     android:id="@+id/tvStatusAction"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dp_12"
+                    android:layout_marginTop="12dp"
                     android:background="@drawable/bg_r999_white"
-                    android:paddingHorizontal="@dimen/dp_16"
-                    android:paddingVertical="@dimen/dp_8"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
                     android:text="@string/end_record"
                     android:textColor="@color/status_text_primary"
-                    android:textSize="@dimen/sp_14"
+                    android:textSize="14sp"
                     android:visibility="gone"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/ivStatusIcon"
@@ -92,7 +92,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_16"
+                android:layout_marginTop="16dp"
                 android:orientation="horizontal">
 
                 <!-- 喂养卡片 -->
@@ -100,41 +100,41 @@
                     android:id="@+id/cardFeeding"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/dp_8"
+                    android:layout_marginEnd="8dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_card_feeding"
-                    android:padding="@dimen/dp_16">
+                    android:elevation="?attr/elevationMedium"
+                    android:outlineProvider="background"
+                    android:padding="16dp">
 
                     <ImageView
                         android:id="@+id/ivFeedingIcon"
-                        android:layout_width="@dimen/dp_32"
-                        android:layout_height="@dimen/dp_32"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:src="@drawable/ic_feeding"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:tint="@color/feeding_primary" />
+                        app:tint="?attr/colorBrand" />
 
                     <TextView
                         android:id="@+id/tvFeedingLabel"
-                        style="@style/BoldTextAppearance"
+                        style="@style/TextAppearance.BabyCare.Label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/dp_8"
+                        android:layout_marginStart="8dp"
                         android:text="@string/feeding"
                         android:textColor="@color/feeding_primary"
-                        android:textSize="@dimen/sp_14"
                         app:layout_constraintBottom_toBottomOf="@id/ivFeedingIcon"
                         app:layout_constraintStart_toEndOf="@id/ivFeedingIcon"
                         app:layout_constraintTop_toTopOf="@id/ivFeedingIcon" />
 
                     <TextView
                         android:id="@+id/tvFeedingSinceTime"
-                        style="@style/BoldTextAppearance"
+                        style="@style/TextAppearance.BabyCare.Display2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/dp_12"
+                        android:layout_marginTop="12dp"
                         android:textColor="@color/feeding_primary_dark"
-                        android:textSize="@dimen/sp_24"
                         app:layout_constraintTop_toBottomOf="@id/ivFeedingIcon"
                         tools:text="2小时15分" />
 
@@ -144,14 +144,14 @@
                         android:layout_height="wrap_content"
                         android:text="@string/since_last"
                         android:textColor="@color/feeding_secondary"
-                        android:textSize="@dimen/sp_12"
+                        android:textSize="12sp"
                         app:layout_constraintTop_toBottomOf="@id/tvFeedingSinceTime" />
 
                     <View
                         android:id="@+id/dividerFeeding"
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginTop="@dimen/dp_12"
+                        android:layout_marginTop="12dp"
                         android:background="@color/feeding_divider"
                         app:layout_constraintTop_toBottomOf="@id/tvFeedingSinceLabel" />
 
@@ -159,9 +159,9 @@
                         android:id="@+id/tvFeedingTodayCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/dp_8"
+                        android:layout_marginTop="8dp"
                         android:textColor="@color/feeding_primary"
-                        android:textSize="@dimen/sp_12"
+                        android:textSize="12sp"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/dividerFeeding"
                         tools:text="今日 5次" />
@@ -170,9 +170,9 @@
                         android:id="@+id/tvFeedingTodayDuration"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/dp_2"
+                        android:layout_marginTop="2dp"
                         android:textColor="@color/feeding_secondary"
-                        android:textSize="@dimen/sp_12"
+                        android:textSize="12sp"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/tvFeedingTodayCount"
                         tools:text="共 1小时20分" />
@@ -184,41 +184,41 @@
                     android:id="@+id/cardSleep"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/dp_8"
+                    android:layout_marginStart="8dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_card_sleep"
-                    android:padding="@dimen/dp_16">
+                    android:elevation="?attr/elevationMedium"
+                    android:outlineProvider="background"
+                    android:padding="16dp">
 
                     <ImageView
                         android:id="@+id/ivSleepIcon"
-                        android:layout_width="@dimen/dp_32"
-                        android:layout_height="@dimen/dp_32"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:src="@drawable/ic_sleep"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:tint="@color/sleep_primary" />
+                        app:tint="?attr/colorBrand" />
 
                     <TextView
                         android:id="@+id/tvSleepLabel"
-                        style="@style/BoldTextAppearance"
+                        style="@style/TextAppearance.BabyCare.Label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/dp_8"
+                        android:layout_marginStart="8dp"
                         android:text="@string/sleeping"
                         android:textColor="@color/sleep_primary"
-                        android:textSize="@dimen/sp_14"
                         app:layout_constraintBottom_toBottomOf="@id/ivSleepIcon"
                         app:layout_constraintStart_toEndOf="@id/ivSleepIcon"
                         app:layout_constraintTop_toTopOf="@id/ivSleepIcon" />
 
                     <TextView
                         android:id="@+id/tvSleepSinceTime"
-                        style="@style/BoldTextAppearance"
+                        style="@style/TextAppearance.BabyCare.Display2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/dp_12"
+                        android:layout_marginTop="12dp"
                         android:textColor="@color/sleep_primary_dark"
-                        android:textSize="@dimen/sp_24"
                         app:layout_constraintTop_toBottomOf="@id/ivSleepIcon"
                         tools:text="35分钟" />
 
@@ -228,14 +228,14 @@
                         android:layout_height="wrap_content"
                         android:text="@string/since_last"
                         android:textColor="@color/sleep_secondary"
-                        android:textSize="@dimen/sp_12"
+                        android:textSize="12sp"
                         app:layout_constraintTop_toBottomOf="@id/tvSleepSinceTime" />
 
                     <View
                         android:id="@+id/dividerSleep"
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginTop="@dimen/dp_12"
+                        android:layout_marginTop="12dp"
                         android:background="@color/sleep_divider"
                         app:layout_constraintTop_toBottomOf="@id/tvSleepSinceLabel" />
 
@@ -243,9 +243,9 @@
                         android:id="@+id/tvSleepTodayCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/dp_8"
+                        android:layout_marginTop="8dp"
                         android:textColor="@color/sleep_primary"
-                        android:textSize="@dimen/sp_12"
+                        android:textSize="12sp"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/dividerSleep"
                         tools:text="今日 3次" />
@@ -254,9 +254,9 @@
                         android:id="@+id/tvSleepTodayDuration"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/dp_2"
+                        android:layout_marginTop="2dp"
                         android:textColor="@color/sleep_secondary"
-                        android:textSize="@dimen/sp_12"
+                        android:textSize="12sp"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/tvSleepTodayCount"
                         tools:text="共 4小时30分" />
@@ -268,39 +268,40 @@
             <!-- ==================== 下次预测区域 ==================== -->
             <TextView
                 android:id="@+id/tvPredictionTitle"
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Heading1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_24"
+                android:layout_marginTop="24dp"
                 android:text="@string/next_prediction"
-                android:textColor="?attr/primary90"
-                android:textSize="@dimen/sp_16" />
+                android:textColor="?attr/primary90" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/cardPrediction"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_12"
-                android:background="?attr/bg_r12_secondary_bg_default"
-                android:padding="@dimen/dp_16">
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_card_prediction"
+                android:elevation="?attr/elevationMedium"
+                android:outlineProvider="background"
+                android:padding="16dp">
 
                 <!-- 喂养预测 -->
                 <ImageView
                     android:id="@+id/ivPredictFeeding"
-                    android:layout_width="@dimen/dp_24"
-                    android:layout_height="@dimen/dp_24"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:src="@drawable/ic_feeding"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@color/feeding_primary" />
+                    app:tint="?attr/colorBrand" />
 
                 <TextView
                     android:id="@+id/tvPredictFeedingTime"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/dp_12"
+                    android:layout_marginStart="12dp"
                     android:textColor="?attr/primary90"
-                    android:textSize="@dimen/sp_15"
+                    android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@id/ivPredictFeeding"
                     app:layout_constraintEnd_toStartOf="@id/tvPredictFeedingRemain"
                     app:layout_constraintStart_toEndOf="@id/ivPredictFeeding"
@@ -312,7 +313,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="?attr/weaken40"
-                    android:textSize="@dimen/sp_13"
+                    android:textSize="13sp"
                     app:layout_constraintBottom_toBottomOf="@id/ivPredictFeeding"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="@id/ivPredictFeeding"
@@ -322,28 +323,28 @@
                     android:id="@+id/dividerPredict"
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:layout_marginVertical="@dimen/dp_12"
+                    android:layout_marginVertical="12dp"
                     android:background="?attr/line10"
                     app:layout_constraintTop_toBottomOf="@id/ivPredictFeeding" />
 
                 <!-- 睡眠预测 -->
                 <ImageView
                     android:id="@+id/ivPredictSleep"
-                    android:layout_width="@dimen/dp_24"
-                    android:layout_height="@dimen/dp_24"
-                    android:layout_marginTop="@dimen/dp_12"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginTop="12dp"
                     android:src="@drawable/ic_sleep"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/dividerPredict"
-                    app:tint="@color/sleep_primary" />
+                    app:tint="?attr/colorBrand" />
 
                 <TextView
                     android:id="@+id/tvPredictSleepTime"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/dp_12"
+                    android:layout_marginStart="12dp"
                     android:textColor="?attr/primary90"
-                    android:textSize="@dimen/sp_15"
+                    android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@id/ivPredictSleep"
                     app:layout_constraintEnd_toStartOf="@id/tvPredictSleepRemain"
                     app:layout_constraintStart_toEndOf="@id/ivPredictSleep"
@@ -355,7 +356,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="?attr/weaken40"
-                    android:textSize="@dimen/sp_13"
+                    android:textSize="13sp"
                     app:layout_constraintBottom_toBottomOf="@id/ivPredictSleep"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="@id/ivPredictSleep"
@@ -366,20 +367,21 @@
             <!-- ==================== 快速记录区域 ==================== -->
             <TextView
                 android:id="@+id/tvQuickRecordTitle"
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Heading1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_24"
+                android:layout_marginTop="24dp"
                 android:text="@string/quick_record"
-                android:textColor="?attr/primary90"
-                android:textSize="@dimen/sp_16" />
+                android:textColor="?attr/primary90" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvQuickRecord"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_12"
-                android:background="?attr/bg_r12_secondary_bg_default"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_card_prediction"
+                android:elevation="8dp"
+                android:outlineProvider="background"
                 android:clipToPadding="false"
                 android:overScrollMode="never" />
 
@@ -394,9 +396,11 @@
         android:layout_height="wrap_content"
         android:background="?attr/secondary_bg_default"
         android:clipToPadding="false"
-        android:elevation="@dimen/dp_8"
+        android:elevation="8dp"
         android:overScrollMode="never"
-        android:paddingVertical="@dimen/dp_12"
+        android:paddingVertical="12dp"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

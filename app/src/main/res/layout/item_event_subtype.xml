@@ -7,7 +7,7 @@
     android:layout_height="wrap_content"
     android:foreground="?attr/selectableItemBackground"
     app:cardBackgroundColor="?attr/secondary_bg_default"
-    app:cardCornerRadius="@dimen/dp_12"
+    app:cardCornerRadius="12dp"
     app:cardElevation="0dp">
 
     <LinearLayout
@@ -15,19 +15,19 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
-        android:paddingVertical="@dimen/dp_16">
+        android:paddingVertical="16dp">
 
         <!-- 图标背景圆 -->
         <FrameLayout
             android:id="@+id/iconContainer"
-            android:layout_width="@dimen/dp_48"
-            android:layout_height="@dimen/dp_48"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:background="@drawable/bg_event_icon_circle">
 
             <ImageView
                 android:id="@+id/ivIcon"
-                android:layout_width="@dimen/dp_28"
-                android:layout_height="@dimen/dp_28"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:layout_gravity="center"
                 android:contentDescription="@null"
                 tools:src="@drawable/ic_event_diaper_wet" />
@@ -38,10 +38,10 @@
             android:id="@+id/tvName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dp_8"
+            android:layout_marginTop="8dp"
             android:gravity="center"
             android:textColor="?attr/primary90"
-            android:textSize="@dimen/sp_13"
+            android:textSize="13sp"
             tools:text="小便" />
 
     </LinearLayout>
@@ -50,11 +50,13 @@
     <View
         android:id="@+id/selectedIndicator"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dp_3"
+        android:layout_height="3dp"
         android:layout_gravity="bottom"
         android:background="?attr/semantics_blue"
         android:visibility="gone"
         tools:visibility="visible" />
 
 </com.google.android.material.card.MaterialCardView>
+
+
 

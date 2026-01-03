@@ -6,13 +6,13 @@
     android:foreground="?attr/selectableItemBackground"
     android:gravity="center"
     android:orientation="vertical"
-    android:paddingVertical="@dimen/dp_4"
+    android:paddingVertical="4dp"
     tools:ignore="UselessParent">
 
     <ImageView
         android:id="@+id/ivActionIcon"
-        android:layout_width="@dimen/dp_28"
-        android:layout_height="@dimen/dp_28"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
         tools:src="@drawable/ic_statistics"
         tools:tint="@color/colorPrimary" />
 
@@ -20,9 +20,11 @@
         android:id="@+id/tvActionLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/dp_4"
-        android:textSize="@dimen/sp_12"
+        android:layout_marginTop="4dp"
+        android:textSize="12sp"
         tools:text="@string/data_statistics"
         tools:textColor="@color/colorPrimary" />
 
 </LinearLayout>
+
+

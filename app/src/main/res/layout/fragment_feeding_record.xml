@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/primary_bg_default">
+    android:background="?attr/colorBackground">
 
     <com.zero.components.widget.BaseToolbar
         android:id="@+id/btn"
@@ -22,8 +22,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/dp_25"
-            android:paddingBottom="@dimen/dp_20">
+            android:paddingHorizontal="25dp"
+            android:paddingBottom="20dp">
 
             <com.zero.components.widget.RecordTimerPanelView
                 android:id="@+id/timerPanel"
@@ -39,10 +39,10 @@
                 android:id="@+id/tvLastFeeding"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_16"
-                android:paddingHorizontal="@dimen/dp_10"
+                android:layout_marginTop="16dp"
+                android:paddingHorizontal="10dp"
                 android:textColor="?attr/weaken40"
-                android:textSize="@dimen/sp_14"
+                android:textSize="14sp"
                 android:visibility="gone"
                 tools:text="上次: 12-23 08:30"
                 tools:visibility="visible" />
@@ -50,99 +50,97 @@
             <!-- 喂养类型选择 -->
             <TextView
                 android:id="@+id/tvFeedingType"
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_20"
-                android:paddingHorizontal="@dimen/dp_10"
-                android:text="@string/feeding_type"
-                android:textColor="?attr/primary90"
-                android:textSize="@dimen/sp_16" />
+                android:layout_marginTop="20dp"
+                android:paddingHorizontal="10dp"
+                android:text="@string/feeding_type" />
 
             <!-- 第一行：母乳、配方奶、混合 -->
             <RadioGroup
                 android:id="@+id/rgFeedingType"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_10"
+                android:layout_marginTop="10dp"
                 android:orientation="horizontal"
-                android:paddingHorizontal="@dimen/dp_10">
+                android:paddingHorizontal="10dp">
 
                 <RadioButton
                     android:id="@+id/rbBreast"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/dp_40"
+                    android:layout_height="40dp"
                     android:layout_weight="1"
                     android:background="@drawable/selector_radio_bg"
                     android:button="@null"
                     android:gravity="center"
                     android:text="@string/feeding_type_breast"
                     android:textColor="@color/selector_radio_text_color"
-                    android:textSize="@dimen/sp_14" />
+                    android:textSize="14sp" />
 
                 <View
-                    android:layout_width="@dimen/dp_8"
+                    android:layout_width="8dp"
                     android:layout_height="1dp" />
 
                 <RadioButton
                     android:id="@+id/rbFormula"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/dp_40"
+                    android:layout_height="40dp"
                     android:layout_weight="1"
                     android:background="@drawable/selector_radio_bg"
                     android:button="@null"
                     android:gravity="center"
                     android:text="@string/feeding_type_formula"
                     android:textColor="@color/selector_radio_text_color"
-                    android:textSize="@dimen/sp_14" />
+                    android:textSize="14sp" />
 
                 <View
-                    android:layout_width="@dimen/dp_8"
+                    android:layout_width="8dp"
                     android:layout_height="1dp" />
 
                 <RadioButton
                     android:id="@+id/rbMixed"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/dp_40"
+                    android:layout_height="40dp"
                     android:layout_weight="1"
                     android:background="@drawable/selector_radio_bg"
                     android:button="@null"
                     android:gravity="center"
                     android:text="@string/feeding_type_mixed"
                     android:textColor="@color/selector_radio_text_color"
-                    android:textSize="@dimen/sp_14" />
+                    android:textSize="14sp" />
 
                 <View
-                    android:layout_width="@dimen/dp_8"
+                    android:layout_width="8dp"
                     android:layout_height="1dp" />
 
                 <RadioButton
                     android:id="@+id/rbSolid"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/dp_40"
+                    android:layout_height="40dp"
                     android:layout_weight="1"
                     android:background="@drawable/selector_radio_bg"
                     android:button="@null"
                     android:gravity="center"
                     android:text="@string/feeding_type_solid"
                     android:textColor="@color/selector_radio_text_color"
-                    android:textSize="@dimen/sp_14" />
+                    android:textSize="14sp" />
 
                 <View
-                    android:layout_width="@dimen/dp_8"
+                    android:layout_width="8dp"
                     android:layout_height="1dp" />
 
                 <RadioButton
                     android:id="@+id/rbOther"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/dp_40"
+                    android:layout_height="40dp"
                     android:layout_weight="1"
                     android:background="@drawable/selector_radio_bg"
                     android:button="@null"
                     android:gravity="center"
                     android:text="@string/feeding_type_other"
                     android:textColor="@color/selector_radio_text_color"
-                    android:textSize="@dimen/sp_14" />
+                    android:textSize="14sp" />
 
             </RadioGroup>
 
@@ -151,25 +149,24 @@
                 android:id="@+id/llSolidFood"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_16"
+                android:layout_marginTop="16dp"
                 android:orientation="vertical"
                 android:visibility="gone"
                 tools:visibility="visible">
 
                 <!-- 辅食分类选择 -->
                 <TextView
-                    style="@style/BoldTextAppearance"
+                    style="@style/TextAppearance.BabyCare.Heading3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:paddingHorizontal="10dp"
                     android:text="@string/solid_food_type"
-                    android:textColor="?attr/primary90"
-                    android:textSize="@dimen/sp_14" />
+                    android:textColor="?attr/colorTextPrimary" />
 
                 <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dp_8"
+                    android:layout_marginTop="8dp"
                     android:scrollbars="none">
 
                     <RadioGroup
@@ -177,7 +174,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="@dimen/dp_10">
+                        android:paddingHorizontal="10dp">
 
                         <RadioButton
                             android:id="@+id/rbSolidStaple"
@@ -232,7 +229,7 @@
                     android:id="@+id/hsvSolidSubtype"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dp_8"
+                    android:layout_marginTop="8dp"
                     android:scrollbars="none"
                     android:visibility="gone"
                     tools:visibility="visible">
@@ -242,7 +239,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="@dimen/dp_10" />
+                        android:paddingHorizontal="10dp" />
                 </HorizontalScrollView>
 
                 <!-- 食物名称输入（需要时显示） -->
@@ -250,32 +247,31 @@
                     android:id="@+id/llSolidFoodName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dp_12"
+                    android:layout_marginTop="12dp"
                     android:orientation="vertical"
                     android:visibility="gone"
                     tools:visibility="visible">
 
                     <TextView
-                        style="@style/BoldTextAppearance"
+                        style="@style/TextAppearance.BabyCare.Heading3"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingHorizontal="@dimen/dp_10"
+                        android:paddingHorizontal="10dp"
                         android:text="@string/solid_food_name"
-                        android:textColor="?attr/primary90"
-                        android:textSize="@dimen/sp_14" />
+                        android:textColor="?attr/colorTextPrimary" />
 
                     <EditText
                         android:id="@+id/etSolidFoodName"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/dp_44"
-                        android:layout_marginTop="@dimen/dp_8"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="8dp"
                         android:background="?attr/bg_r6_block_gridview"
                         android:hint="@string/solid_food_name_hint"
                         android:inputType="text"
-                        android:paddingHorizontal="@dimen/dp_12"
+                        android:paddingHorizontal="12dp"
                         android:textColor="?attr/primary90"
                         android:textColorHint="?attr/weaken40"
-                        android:textSize="@dimen/sp_14" />
+                        android:textSize="14sp" />
 
                 </LinearLayout>
 
@@ -283,25 +279,24 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dp_12"
+                    android:layout_marginTop="12dp"
                     android:orientation="vertical">
 
                     <TextView
-                        style="@style/BoldTextAppearance"
+                        style="@style/TextAppearance.BabyCare.Heading3"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingHorizontal="@dimen/dp_10"
+                        android:paddingHorizontal="10dp"
                         android:text="@string/solid_food_amount"
-                        android:textColor="?attr/primary90"
-                        android:textSize="@dimen/sp_14" />
+                        android:textColor="?attr/colorTextPrimary" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/dp_44"
-                        android:layout_marginTop="@dimen/dp_8"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="8dp"
                         android:background="?attr/bg_r6_block_gridview"
                         android:gravity="center_vertical"
-                        android:paddingHorizontal="@dimen/dp_12">
+                        android:paddingHorizontal="12dp">
 
                         <EditText
                             android:id="@+id/etSolidAmount"
@@ -314,7 +309,7 @@
                             android:maxLength="4"
                             android:textColor="?attr/primary90"
                             android:textColorHint="?attr/weaken40"
-                            android:textSize="@dimen/sp_14" />
+                            android:textSize="14sp" />
 
                     <TextView
                         android:id="@+id/tvSolidUnit"
@@ -322,7 +317,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/unit_g_abbr"
                         android:textColor="?attr/weaken40"
-                        android:textSize="@dimen/sp_14" />
+                        android:textSize="14sp" />
 
                     </LinearLayout>
                 </LinearLayout>
@@ -332,22 +327,22 @@
                     android:id="@+id/cbFirstTime"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dp_12"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:layout_marginTop="12dp"
+                    android:paddingHorizontal="10dp"
                     android:text="@string/solid_food_first_time"
                     android:textColor="?attr/primary90"
-                    android:textSize="@dimen/sp_14" />
+                    android:textSize="14sp" />
 
                 <!-- 过敏风险提示 -->
                 <TextView
                     android:id="@+id/tvAllergenTip"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/dp_8"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:layout_marginTop="8dp"
+                    android:paddingHorizontal="10dp"
                     android:text="@string/solid_food_allergen_tip"
-                    android:textColor="#E65100"
-                    android:textSize="@dimen/sp_12"
+                    android:textColor="?attr/colorError"
+                    android:textSize="12sp"
                     android:visibility="gone" />
 
             </LinearLayout>
@@ -357,7 +352,7 @@
                 android:id="@+id/llOtherFood"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_16"
+                android:layout_marginTop="16dp"
                 android:orientation="vertical"
                 android:visibility="gone">
 
@@ -365,23 +360,23 @@
                     style="@style/BoldTextAppearance"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:paddingHorizontal="10dp"
                     android:text="@string/other_food_name"
                     android:textColor="?attr/primary90"
-                    android:textSize="@dimen/sp_14" />
+                    android:textSize="14sp" />
 
                 <EditText
                     android:id="@+id/etOtherFoodName"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/dp_44"
-                    android:layout_marginTop="@dimen/dp_8"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="8dp"
                     android:background="?attr/bg_r6_block_gridview"
                     android:hint="@string/other_food_name_hint"
                     android:inputType="text"
-                    android:paddingHorizontal="@dimen/dp_12"
+                    android:paddingHorizontal="12dp"
                     android:textColor="?attr/primary90"
                     android:textColorHint="?attr/weaken40"
-                    android:textSize="@dimen/sp_14" />
+                    android:textSize="14sp" />
 
             </LinearLayout>
 
@@ -390,27 +385,26 @@
                 android:id="@+id/llFeedingAmount"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_16"
+                android:layout_marginTop="16dp"
                 android:orientation="vertical"
                 android:visibility="gone"
                 tools:visibility="visible">
 
                 <TextView
-                    style="@style/BoldTextAppearance"
+                    style="@style/TextAppearance.BabyCare.Heading3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="@dimen/dp_10"
+                    android:paddingHorizontal="10dp"
                     android:text="@string/feeding_amount"
-                    android:textColor="?attr/primary90"
-                    android:textSize="@dimen/sp_14" />
+                    android:textColor="?attr/colorTextPrimary" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/dp_44"
-                    android:layout_marginTop="@dimen/dp_8"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="8dp"
                     android:background="?attr/bg_r6_block_gridview"
                     android:gravity="center_vertical"
-                    android:paddingHorizontal="@dimen/dp_10">
+                    android:paddingHorizontal="10dp">
 
                     <EditText
                         android:id="@+id/etFeedingAmount"
@@ -423,7 +417,7 @@
                         android:maxLength="4"
                         android:textColor="?attr/primary90"
                         android:textColorHint="?attr/weaken40"
-                        android:textSize="@dimen/sp_14" />
+                        android:textSize="14sp" />
 
                     <TextView
                         android:id="@+id/tvFeedingAmountUnit"
@@ -431,7 +425,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/unit_ml"
                         android:textColor="?attr/weaken40"
-                        android:textSize="@dimen/sp_14" />
+                        android:textSize="14sp" />
 
                 </LinearLayout>
 
@@ -442,7 +436,7 @@
                 android:id="@+id/llBreastDuration"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_16"
+                android:layout_marginTop="16dp"
                 android:orientation="horizontal"
                 android:visibility="gone"
                 tools:visibility="visible">
@@ -457,18 +451,18 @@
                         style="@style/BoldTextAppearance"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingHorizontal="@dimen/dp_10"
+                        android:paddingHorizontal="10dp"
                         android:text="@string/left_breast_duration"
                         android:textColor="?attr/primary90"
-                        android:textSize="@dimen/sp_14" />
+                        android:textSize="14sp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/dp_40"
-                        android:layout_marginTop="@dimen/dp_8"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="8dp"
                         android:background="?attr/bg_r6_block_gridview"
                         android:gravity="center_vertical"
-                        android:paddingHorizontal="@dimen/dp_10">
+                        android:paddingHorizontal="10dp">
 
                         <EditText
                             android:id="@+id/etLeftBreastDuration"
@@ -481,21 +475,21 @@
                             android:maxLength="3"
                             android:textColor="?attr/primary90"
                             android:textColorHint="?attr/weaken40"
-                            android:textSize="@dimen/sp_14" />
+                            android:textSize="14sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/min"
                             android:textColor="?attr/weaken40"
-                            android:textSize="@dimen/sp_14" />
+                            android:textSize="14sp" />
 
                     </LinearLayout>
 
                 </LinearLayout>
 
                 <View
-                    android:layout_width="@dimen/dp_10"
+                    android:layout_width="10dp"
                     android:layout_height="1dp" />
 
                 <LinearLayout
@@ -509,18 +503,18 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
-                        android:paddingHorizontal="@dimen/dp_10"
+                        android:paddingHorizontal="10dp"
                         android:text="@string/right_breast_duration"
                         android:textColor="?attr/primary90"
-                        android:textSize="@dimen/sp_14" />
+                        android:textSize="14sp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/dp_40"
-                        android:layout_marginTop="@dimen/dp_8"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="8dp"
                         android:background="?attr/bg_r6_block_gridview"
                         android:gravity="center_vertical"
-                        android:paddingHorizontal="@dimen/dp_10">
+                        android:paddingHorizontal="10dp">
 
                         <EditText
                             android:id="@+id/etRightBreastDuration"
@@ -533,14 +527,14 @@
                             android:maxLength="3"
                             android:textColor="?attr/primary90"
                             android:textColorHint="?attr/weaken40"
-                            android:textSize="@dimen/sp_14" />
+                            android:textSize="14sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/min"
                             android:textColor="?attr/weaken40"
-                            android:textSize="@dimen/sp_14" />
+                            android:textSize="14sp" />
 
                     </LinearLayout>
 
@@ -550,28 +544,26 @@
 
             <!-- 备注 -->
             <TextView
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/dp_20"
-                android:paddingHorizontal="@dimen/dp_10"
-                android:text="@string/note"
-                android:textColor="?attr/primary90"
-                android:textSize="@dimen/sp_16" />
+                android:layout_marginTop="20dp"
+                android:paddingHorizontal="10dp"
+                android:text="@string/note" />
 
             <EditText
                 android:id="@+id/etNote"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/dp_80"
-                android:layout_marginTop="@dimen/dp_10"
+                android:layout_height="80dp"
+                android:layout_marginTop="10dp"
                 android:background="?attr/bg_r6_block_gridview"
                 android:gravity="start|top"
                 android:hint="@string/note_hint"
                 android:inputType="textMultiLine"
-                android:padding="@dimen/dp_12"
+                android:padding="12dp"
                 android:textColor="?attr/primary90"
                 android:textColorHint="?attr/weaken40"
-                android:textSize="@dimen/sp_14" />
+                android:textSize="14sp" />
 
         </LinearLayout>
     </ScrollView>
@@ -580,14 +572,16 @@
     <TextView
         android:id="@+id/tvSave"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dp_48"
-        android:layout_marginHorizontal="@dimen/dp_25"
-        android:layout_marginBottom="@dimen/dp_20"
+        android:layout_height="48dp"
+        android:layout_marginHorizontal="25dp"
+        android:layout_marginBottom="20dp"
         android:background="?attr/bg_r999_brand_color"
         android:gravity="center"
         android:text="@string/save"
-        android:textColor="@color/White100"
-        android:textSize="@dimen/sp_16"
+        android:textColor="?attr/colorOnBrand"
+        android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

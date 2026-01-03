@@ -3,9 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:paddingTop="@dimen/dp_28"
-    android:paddingBottom="@dimen/dp_5"
-    android:paddingHorizontal="@dimen/dp_28">
+    android:paddingTop="28dp"
+    android:paddingBottom="5dp"
+    android:paddingHorizontal="28dp">
 
     <TextView
         android:id="@+id/header"
@@ -14,9 +14,11 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:textColor="?attr/primary90"
-        android:textSize="@dimen/sp_20"
+        android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+

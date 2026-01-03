@@ -12,6 +12,12 @@
         <item name="colorPrimaryDark">@color/neutral_brand_dark</item>
         <item name="colorAccent">@color/neutral_accent</item>
 
+        <!-- UI Tokens Override -->
+        <item name="colorBrand">@color/neutral_brand</item>
+        <item name="colorBrandLight">@color/neutral_brand_light</item>
+        <item name="colorBrandDark">@color/neutral_brand_dark</item>
+        <item name="colorSurfaceVariant">@color/neutral_bg_brand</item>
+
         <!-- ========== 按钮 ========== -->
         <item name="primary_btn_normal">@color/neutral_brand</item>
         <item name="primary_btn_pressed">@color/neutral_btn_pressed</item>
