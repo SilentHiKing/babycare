@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
-    android:minHeight="54dp"
+    android:minHeight="56dp"
     android:paddingHorizontal="16dp"
     android:paddingVertical="12dp">
 
@@ -26,7 +26,6 @@
             android:layout_height="wrap_content"
             android:includeFontPadding="false"
             android:textColor="?attr/colorTextPrimary"
-            android:textSize="16sp"
             tools:text="标题" />
 
         <TextView
@@ -37,7 +36,6 @@
             android:layout_marginTop="2dp"
             android:includeFontPadding="false"
             android:textColor="?attr/colorTextSecondary"
-            android:textSize="12sp"
             android:visibility="gone"
             tools:text="摘要内容"
             tools:visibility="visible" />
@@ -54,7 +52,6 @@
         android:includeFontPadding="false"
         android:maxLines="1"
         android:textColor="?attr/colorTextSecondary"
-        android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/ivArrow"
         app:layout_constraintHorizontal_bias="1.0"
@@ -66,6 +63,7 @@
         android:id="@+id/ivArrow"
         android:layout_width="16dp"
         android:layout_height="16dp"
+        android:contentDescription="@null"
         android:src="@drawable/ic_arrow_right"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

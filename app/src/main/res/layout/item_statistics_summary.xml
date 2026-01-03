@@ -8,7 +8,7 @@
     android:layout_marginHorizontal="16dp"
     android:background="?attr/secondary_bg_default"
     android:orientation="vertical"
-    android:paddingHorizontal="45dp"
+    android:paddingHorizontal="16dp"
     android:paddingVertical="12dp">
 
     <LinearLayout
@@ -31,25 +31,25 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
+                android:contentDescription="@null"
                 android:src="@drawable/ic_feeding"
                 app:tint="@color/feeding_primary" />
 
             <TextView
                 android:id="@+id/tvFeedingCount"
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Heading3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textColor="@color/feeding_primary"
-                android:textSize="16sp"
                 tools:text="5次" />
 
             <TextView
+                style="@style/TextAppearance.BabyCare.Label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/feeding"
-                android:textColor="?attr/weaken40"
-                android:textSize="11sp" />
+                android:textColor="?attr/colorTextHint" />
 
         </LinearLayout>
 
@@ -71,25 +71,25 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
+                android:contentDescription="@null"
                 android:src="@drawable/ic_sleep"
                 app:tint="@color/sleep_primary" />
 
             <TextView
                 android:id="@+id/tvSleepDuration"
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Heading3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textColor="@color/sleep_primary"
-                android:textSize="16sp"
                 tools:text="4h30m" />
 
             <TextView
+                style="@style/TextAppearance.BabyCare.Label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/sleeping"
-                android:textColor="?attr/weaken40"
-                android:textSize="11sp" />
+                android:textColor="?attr/colorTextHint" />
 
         </LinearLayout>
 
@@ -111,25 +111,25 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
+                android:contentDescription="@null"
                 android:src="@drawable/ic_event_diaper"
                 app:tint="@color/event_diaper" />
 
             <TextView
                 android:id="@+id/tvDiaperCount"
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Heading3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textColor="@color/event_diaper"
-                android:textSize="16sp"
                 tools:text="8次" />
 
             <TextView
+                style="@style/TextAppearance.BabyCare.Label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/diaper"
-                android:textColor="?attr/weaken40"
-                android:textSize="11sp" />
+                android:textColor="?attr/colorTextHint" />
 
         </LinearLayout>
 
@@ -151,25 +151,25 @@
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
+                android:contentDescription="@null"
                 android:src="@drawable/ic_event_other"
                 app:tint="@color/event_other" />
 
             <TextView
                 android:id="@+id/tvOtherCount"
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Heading3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textColor="@color/event_other"
-                android:textSize="16sp"
                 tools:text="3次" />
 
             <TextView
+                style="@style/TextAppearance.BabyCare.Label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/other"
-                android:textColor="?attr/weaken40"
-                android:textSize="11sp" />
+                android:textColor="?attr/colorTextHint" />
 
         </LinearLayout>
 

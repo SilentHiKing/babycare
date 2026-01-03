@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/primary_bg_default">
+    android:background="?attr/colorBackground">
 
     <com.zero.components.widget.BaseToolbar
         android:id="@+id/btn"
@@ -22,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="25dp"
+            android:paddingHorizontal="16dp"
             android:paddingBottom="20dp">
 
             <com.zero.components.widget.RecordTimerPanelView
@@ -37,29 +37,28 @@
             <!-- 上次睡眠时间 -->
             <TextView
                 android:id="@+id/tvLastSleep"
+                style="@style/TextAppearance.BabyCare.Body2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:paddingHorizontal="10dp"
-                android:textColor="?attr/weaken40"
-                android:textSize="14sp"
+                android:textColor="?attr/colorTextHint"
                 android:visibility="gone"
                 tools:text="上次: 12-24 06:30"
                 tools:visibility="visible" />
 
             <!-- 备注 -->
             <TextView
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:paddingHorizontal="10dp"
-                android:text="@string/note"
-                android:textColor="?attr/primary90"
-                android:textSize="16sp" />
+                android:text="@string/note" />
 
             <EditText
                 android:id="@+id/etNote"
+                style="@style/TextAppearance.BabyCare.Body2"
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
                 android:layout_marginTop="10dp"
@@ -68,9 +67,9 @@
                 android:hint="@string/note_hint"
                 android:inputType="textMultiLine"
                 android:padding="12dp"
-                android:textColor="?attr/primary90"
-                android:textColorHint="?attr/weaken40"
-                android:textSize="14sp" />
+                android:textColor="?attr/colorTextPrimary"
+                android:textColorHint="?attr/colorTextHint"
+                />
 
         </LinearLayout>
     </ScrollView>
@@ -78,15 +77,15 @@
     <!-- 底部保存按钮 -->
     <TextView
         android:id="@+id/tvSave"
+        style="@style/TextAppearance.BabyCare.Body1"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:layout_marginHorizontal="25dp"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="20dp"
         android:background="?attr/bg_r999_brand_color"
         android:gravity="center"
         android:text="@string/save"
         android:textColor="?attr/colorOnBrand"
-        android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

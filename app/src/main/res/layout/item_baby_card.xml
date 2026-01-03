@@ -4,8 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="6dp"
+    android:layout_marginVertical="8dp"
     android:background="?attr/bg_r12_secondary_bg_default"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
     android:padding="16dp">
 
     <!-- 当前选中标识 -->
@@ -17,7 +20,7 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="?attr/icon_brand"
+        app:tint="?attr/colorBrand"
         tools:visibility="visible" />
 
     <!-- 宝宝头像 -->
@@ -26,6 +29,7 @@
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:background="?attr/bg_r999_block_gridview"
+        android:contentDescription="@null"
         android:padding="10dp"
         android:src="@drawable/ic_baby_default"
         app:layout_constraintStart_toStartOf="parent"
@@ -34,62 +38,63 @@
     <!-- 宝宝名字 -->
     <TextView
         android:id="@+id/tvName"
-        style="@style/BoldTextAppearance"
+        style="@style/TextAppearance.BabyCare.Heading3"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="8dp"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textColor="?attr/primary90"
-        android:textSize="17sp"
+        android:textColor="?attr/colorTextPrimary"
         app:layout_constraintEnd_toStartOf="@id/ivSelected"
         app:layout_constraintStart_toEndOf="@id/ivAvatar"
+        app:layout_constraintBottom_toTopOf="@id/tvInfo"
         app:layout_constraintTop_toTopOf="@id/ivAvatar"
+        app:layout_constraintVertical_chainStyle="packed"
         tools:text="小明" />
 
     <!-- 性别和天数 -->
     <TextView
         android:id="@+id/tvInfo"
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginTop="4dp"
-        android:textColor="?attr/weaken40"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textColor="?attr/colorTextHint"
+        app:layout_constraintEnd_toStartOf="@id/ivSelected"
         app:layout_constraintStart_toEndOf="@id/ivAvatar"
+        app:layout_constraintBottom_toTopOf="@id/tvBirthDate"
         app:layout_constraintTop_toBottomOf="@id/tvName"
         tools:text="♂ 男孩 · 180天" />
 
     <!-- 出生日期 -->
     <TextView
         android:id="@+id/tvBirthDate"
+        style="@style/TextAppearance.BabyCare.Label"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginTop="2dp"
-        android:textColor="?attr/weaken40"
-        android:textSize="12sp"
+        android:textColor="?attr/colorTextHint"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/ivAvatar"
+        app:layout_constraintBottom_toBottomOf="@id/ivAvatar"
         app:layout_constraintTop_toBottomOf="@id/tvInfo"
         tools:text="出生: 2024-06-28" />
 
-    <!-- 编辑按钮 -->
-    <TextView
-        android:id="@+id/tvEdit"
-        android:layout_width="wrap_content"
+    <!-- 操作区分隔线 -->
+    <include
+        android:id="@+id/actionRow"
+        layout="@layout/view_card_action_row"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:background="?attr/bg_r6_block_gridview"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="6dp"
-        android:text="@string/edit"
-        android:textColor="?attr/semantics_blue"
-        android:textSize="13sp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/ivAvatar" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvBirthDate" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -2,32 +2,32 @@
 <resources>
 
     <!-- System theme override. -->
-    <color name="colorPrimary">#047AFF</color>
+    <color name="colorPrimary">#2FB7C8</color>
     <color name="colorPrimarySecondary">#EDEBEB</color>
     <color name="colorPrimary3">#2E302F</color>
 
 
-    <color name="textColorPrimary">#047AFF</color>
-    <color name="textColorSecondary">#000000</color>
+    <color name="textColorPrimary">#2FB7C8</color>
+    <color name="textColorSecondary">#3E5B63</color>
 
-    <color name="textColorTertiary">#ABABAB</color>
+    <color name="textColorTertiary">#7C98A1</color>
     <color name="textColorRed">#FF0000</color>
     <color name="textColorPrimaryGray">#999999</color>
 
     <color name="pageLineColorRed">#FE3B32</color>
 
-    <color name="windowBackground">#F1F1F1</color>
+    <color name="windowBackground">#F5FBFC</color>
     <color name="viewBackground">#1D1D1E</color>
 
 
-    <color name="colorBlue">#047AFF</color>
+    <color name="colorBlue">#2FB7C8</color>
 <!--    <color name="colorBlueFade">#82A3C8</color>-->
-    <color name="colorDotGray">#D9D9D9</color>
+    <color name="colorDotGray">#DDE9ED</color>
 
-    <color name="dividerVertical">#333333</color>
-    <color name="dividerHorizontal">#333333</color>
-    <color name="colorDivider">#D6D6D6</color>
-    <color name="colorBorder">#CECECE</color>
+    <color name="dividerVertical">#2D3C42</color>
+    <color name="dividerHorizontal">#2D3C42</color>
+    <color name="colorDivider">#D4E4E8</color>
+    <color name="colorBorder">#CFE2E7</color>
     <color name="colorPicBar">#393a3e</color>
     <color name="colorVersion">#AAAAAA</color>
     <color name="colorYellow">#EADC63</color>

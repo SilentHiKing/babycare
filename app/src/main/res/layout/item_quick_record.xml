@@ -12,14 +12,16 @@
         android:id="@+id/ivIcon"
         android:layout_width="32dp"
         android:layout_height="32dp"
+        android:contentDescription="@null"
         tools:src="@drawable/ic_event_diaper" />
 
     <TextView
         android:id="@+id/tvName"
+        style="@style/TextAppearance.BabyCare.Label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:textSize="12sp"
+        android:textColor="?attr/colorTextSecondary"
         tools:text="排泄" />
 
 </LinearLayout>

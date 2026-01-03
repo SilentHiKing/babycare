@@ -12,12 +12,10 @@
 
     <TextView
         android:id="@+id/tvStructureTitle"
-        style="@style/BoldTextAppearance"
+        style="@style/TextAppearance.BabyCare.Heading3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/statistics_structure_title"
-        android:textColor="?attr/primary90"
-        android:textSize="14sp" />
+        android:text="@string/statistics_structure_title" />
 
     <LinearLayout
         android:id="@+id/llStructureContainer"
@@ -28,12 +26,12 @@
 
     <TextView
         android:id="@+id/tvStructureEmpty"
+        style="@style/TextAppearance.BabyCare.Label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
         android:text="@string/statistics_structure_empty"
-        android:textColor="?attr/weaken40"
-        android:textSize="11sp"
+        android:textColor="?attr/colorTextHint"
         android:visibility="gone" />
 
 </LinearLayout>

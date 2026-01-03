@@ -15,22 +15,21 @@
         android:id="@+id/ivPrevious"
         android:layout_width="32dp"
         android:layout_height="32dp"
+        android:contentDescription="@string/calendar_previous"
         android:padding="4dp"
         android:rotation="0"
         android:src="@drawable/ic_back"
         app:layout_constraintBottom_toBottomOf="@id/tvCalendarTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/tvCalendarTitle"
-        app:tint="?attr/weaken40" />
+        app:tint="?attr/colorTextHint" />
 
     <TextView
         android:id="@+id/tvCalendarTitle"
-        style="@style/BoldTextAppearance"
+        style="@style/TextAppearance.BabyCare.Heading3"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:textColor="?attr/primary90"
-        android:textSize="16sp"
         app:layout_constraintEnd_toStartOf="@id/ivNext"
         app:layout_constraintStart_toEndOf="@id/ivPrevious"
         app:layout_constraintTop_toTopOf="parent"
@@ -40,24 +39,25 @@
         android:id="@+id/ivNext"
         android:layout_width="32dp"
         android:layout_height="32dp"
+        android:contentDescription="@string/calendar_next"
         android:padding="4dp"
         android:rotation="180"
         android:src="@drawable/ic_back"
         app:layout_constraintBottom_toBottomOf="@id/tvCalendarTitle"
         app:layout_constraintEnd_toStartOf="@id/tvToday"
         app:layout_constraintTop_toTopOf="@id/tvCalendarTitle"
-        app:tint="?attr/weaken40" />
+        app:tint="?attr/colorTextHint" />
 
     <TextView
         android:id="@+id/tvToday"
+        style="@style/TextAppearance.BabyCare.Label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="?attr/bg_r999_stroke1_line1"
         android:paddingHorizontal="12dp"
         android:paddingVertical="4dp"
         android:text="@string/today"
-        android:textColor="?attr/weaken40"
-        android:textSize="12sp"
+        android:textColor="?attr/colorTextSecondary"
         app:layout_constraintBottom_toBottomOf="@id/tvCalendarTitle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/tvCalendarTitle" />
@@ -76,12 +76,13 @@
         android:layout_width="24dp"
         android:layout_height="16dp"
         android:layout_marginTop="6dp"
+        android:contentDescription="@null"
         android:rotation="90"
         android:src="@drawable/ic_arrow_right"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/calendarView"
-        app:tint="?attr/weaken40" />
+        app:tint="?attr/colorTextHint" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

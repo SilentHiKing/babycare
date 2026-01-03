@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
-    android:minHeight="54dp"
+    android:minHeight="56dp"
     android:paddingHorizontal="16dp"
     android:paddingVertical="12dp">
 
@@ -26,7 +26,6 @@
             android:layout_height="wrap_content"
             android:includeFontPadding="false"
             android:textColor="?attr/colorTextPrimary"
-            android:textSize="16sp"
             tools:text="提醒开关" />
 
         <TextView
@@ -37,7 +36,6 @@
             android:layout_marginTop="2dp"
             android:includeFontPadding="false"
             android:textColor="?attr/colorTextSecondary"
-            android:textSize="12sp"
             android:visibility="gone"
             tools:text="摘要说明"
             tools:visibility="visible" />

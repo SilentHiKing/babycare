@@ -32,7 +32,7 @@
             android:includeFontPadding="false"
             android:letterSpacing="0.03"
             android:text="@string/record_timer_default"
-            android:textColor="?attr/primary90"
+            android:textColor="?attr/colorTextPrimary"
             android:textSize="20sp"
             android:visibility="invisible"
             app:layout_constraintEnd_toEndOf="parent"
@@ -43,12 +43,12 @@
         <!-- 点击提示文字 -->
         <TextView
             android:id="@+id/tv_hint"
+            style="@style/TextAppearance.BabyCare.Label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="@string/tap_to_start"
-            android:textColor="?attr/weaken40"
-            android:textSize="11sp"
+            android:textColor="?attr/colorTextHint"
             android:visibility="visible"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

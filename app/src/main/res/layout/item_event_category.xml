@@ -8,9 +8,10 @@
     android:layout_marginEnd="8dp"
     android:background="@drawable/selector_event_category_bg"
     android:gravity="center"
+    android:minHeight="40dp"
     android:orientation="horizontal"
-    android:paddingHorizontal="14dp"
-    android:paddingVertical="10dp">
+    android:paddingHorizontal="18dp"
+    android:paddingVertical="6dp">
 
     <ImageView
         android:id="@+id/ivIcon"
@@ -21,11 +22,11 @@
 
     <TextView
         android:id="@+id/tvName"
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="6dp"
+        android:layout_marginStart="8dp"
         android:textColor="@color/selector_event_category_text"
-        android:textSize="14sp"
         tools:text="排泄" />
 
 </LinearLayout>

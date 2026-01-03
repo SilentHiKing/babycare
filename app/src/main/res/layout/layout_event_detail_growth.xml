@@ -16,6 +16,7 @@
 
         <EditText
             android:id="@+id/etValue"
+            style="@style/TextAppearance.BabyCare.Display2"
             android:layout_width="0dp"
             android:layout_height="56dp"
             android:layout_weight="1"
@@ -24,18 +25,17 @@
             android:hint="@string/number_decimal_zero"
             android:inputType="numberDecimal"
             android:maxLength="6"
-            android:textColor="?attr/primary90"
-            android:textColorHint="?attr/weaken40"
-            android:textSize="28sp"
+            android:textColor="?attr/colorTextPrimary"
+            android:textColorHint="?attr/colorTextHint"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvUnit"
+            style="@style/TextAppearance.BabyCare.Heading1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:textColor="?attr/primary90"
-            android:textSize="20sp"
+            android:textColor="?attr/colorTextPrimary"
             tools:text="kg" />
 
     </LinearLayout>
@@ -52,19 +52,20 @@
         tools:visibility="visible">
 
         <TextView
+            style="@style/TextAppearance.BabyCare.Label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/last_record"
-            android:textColor="?attr/weaken40"
-            android:textSize="13sp" />
+            android:textColor="?attr/colorTextHint"
+            />
 
         <TextView
             android:id="@+id/tvLastValue"
+            style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:textColor="?attr/primary90"
-            android:textSize="13sp"
+            android:textColor="?attr/colorTextPrimary"
             tools:text="5.32 kg (12月18日)" />
 
         <View
@@ -74,10 +75,10 @@
 
         <TextView
             android:id="@+id/tvChange"
+            style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/event_growth"
-            android:textSize="13sp"
             android:textStyle="bold"
             tools:text="+0.18 kg ↑" />
 

@@ -12,12 +12,10 @@
 
     <TextView
         android:id="@+id/tvTrendTitle"
-        style="@style/BoldTextAppearance"
+        style="@style/TextAppearance.BabyCare.Heading3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/statistics_trend_title"
-        android:textColor="?attr/primary90"
-        android:textSize="14sp" />
+        android:text="@string/statistics_trend_title" />
 
     <include
         android:id="@+id/cardTrendWeek"

@@ -1,27 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:foreground="?attr/selectableItemBackground"
     android:gravity="center"
+    android:minHeight="64dp"
     android:orientation="vertical"
-    android:paddingVertical="4dp"
+    android:paddingVertical="8dp"
     tools:ignore="UselessParent">
 
     <ImageView
         android:id="@+id/ivActionIcon"
         android:layout_width="28dp"
         android:layout_height="28dp"
+        android:contentDescription="@null"
+        app:tint="?attr/colorBrand"
         tools:src="@drawable/ic_statistics"
         tools:tint="@color/colorPrimary" />
 
     <TextView
         android:id="@+id/tvActionLabel"
+        style="@style/TextAppearance.BabyCare.Label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:textSize="12sp"
+        android:textColor="?attr/colorTextSecondary"
         tools:text="@string/data_statistics"
         tools:textColor="@color/colorPrimary" />
 

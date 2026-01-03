@@ -7,15 +7,16 @@
     android:padding="16dp">
 
     <TextView
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/symptom_description"
-        android:textColor="?attr/primary90"
-        android:textSize="14sp"
+        android:textColor="?attr/colorTextPrimary"
         android:textStyle="bold" />
 
     <EditText
         android:id="@+id/etSymptomDescription"
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:layout_marginTop="8dp"
@@ -24,9 +25,9 @@
         android:hint="@string/symptom_hint"
         android:inputType="textMultiLine"
         android:padding="12dp"
-        android:textColor="?attr/primary90"
-        android:textColorHint="?attr/weaken40"
-        android:textSize="14sp" />
+        android:textColor="?attr/colorTextPrimary"
+        android:textColorHint="?attr/colorTextHint"
+        />
 
 </LinearLayout>
 

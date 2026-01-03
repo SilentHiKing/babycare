@@ -31,7 +31,6 @@
                 style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
                 android:text="@string/settings_backup"
                 android:textColor="?attr/colorTextPrimary" />
 
@@ -68,20 +67,19 @@
 
             <TextView
                 android:id="@+id/tvBackupNote"
+                style="@style/TextAppearance.BabyCare.Label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:paddingHorizontal="4dp"
                 android:text="@string/backup_note"
-                android:textColor="?attr/colorTextSecondary"
-                android:textSize="12sp" />
+                android:textColor="?attr/colorTextHint" />
 
             <TextView
                 android:id="@+id/tvReportTitle"
                 style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
                 android:layout_marginTop="24dp"
                 android:text="@string/backup_import_report_title_section"
                 android:textColor="?attr/colorTextPrimary" />
@@ -113,13 +111,13 @@
 
                 <TextView
                     android:id="@+id/tvReportEmpty"
+                    style="@style/TextAppearance.BabyCare.Label"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingHorizontal="16dp"
                     android:paddingVertical="12dp"
                     android:text="@string/backup_report_empty"
                     android:textColor="?attr/colorTextHint"
-                    android:textSize="12sp"
                     android:visibility="gone" />
             </LinearLayout>
 

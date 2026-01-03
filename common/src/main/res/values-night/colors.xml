@@ -1,47 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Dark Mode Functional Colors Overrides -->
+
+    <color name="text_primary_default">#E6F5F7</color>
+    <color name="text_secondary_default">#B6D0D6</color>
+    <color name="text_hint_default">#7F9AA1</color>
+    <color name="bg_app_default">#0E1619</color>
+    <color name="surface_default">#162227</color>
+    <color name="surface_variant_default">#1E2F35</color>
+
+    <color name="colorPrimary">#46D1E2</color>
+    <color name="colorBlue">#46D1E2</color>
     
     <!-- Status Card Text (Light on Dark) -->
     <color name="status_text_primary">#E0E0E0</color>
     <color name="status_text_secondary">#B0B0B0</color>
 
-    <!-- Status Card Gradients (Darkened for Night Mode) -->
-    <!-- Original Awake (Yellow): FFFCF5 -> FFE8B6. Dark: Deep Gold/Brown -->
-    <color name="status_awake_start">#3D3425</color>
-    <color name="status_awake_end">#4E4632</color>
+    <!-- Status card gradients (night, aligned with feeding/sleep palette) -->
+    <color name="status_awake_start">#2B2318</color>
+    <color name="status_awake_end">#3A2F1E</color>
     
-    <!-- Original Sleep (Lavender): F3F1FA -> D6CDEA. Dark: Deep Purple -->
-    <color name="status_sleeping_start">#2A2636</color>
-    <color name="status_sleeping_end">#363245</color>
+    <color name="status_sleeping_start">#241F35</color>
+    <color name="status_sleeping_end">#302744</color>
     
-    <!-- Original Feeding (Cyan): F2FAFA -> C2E8E4. Dark: Deep Teal -->
-    <color name="status_feeding_start">#1E2C2E</color>
-    <color name="status_feeding_end">#28383B</color>
+    <color name="status_feeding_start">#142B31</color>
+    <color name="status_feeding_end">#1E3940</color>
 
-    <!-- Feeding Card Colors -->
-    <!-- In Light: Primary=5C9EAD, Bg=F2FAFA. Dark: Primary=LightCyan, Bg=DarkTeal -->
-    <color name="feeding_primary">#80DEEA</color> <!-- Lighter for text/icon -->
-    <color name="feeding_primary_dark">#B2EBF2</color> 
-    <color name="feeding_secondary">#4DD0E1</color>
-    <color name="feeding_divider">#006064</color>
-    <color name="feeding_bg">#1E2C2E</color>
+    <!-- Feeding card colors (night, aligned with primary) -->
+    <color name="feeding_primary">#6FE6F5</color> <!-- Lighter for text/icon -->
+    <color name="feeding_primary_dark">#36B7C4</color> 
+    <color name="feeding_secondary">#5CD4E4</color>
+    <color name="feeding_divider">#0F3C44</color>
+    <color name="feeding_bg">#12272C</color>
 
-    <!-- Sleep Card Colors -->
-    <!-- In Light: Primary=887BB0, Bg=F7F5FC. Dark: Primary=LightLavender, Bg=DeepPurple -->
-    <color name="sleep_primary">#B39DDB</color> <!-- Lighter for text/icon -->
-    <color name="sleep_primary_dark">#D1C4E9</color>
-    <color name="sleep_secondary">#9575CD</color>
-    <color name="sleep_divider">#4527A0</color>
-    <color name="sleep_bg">#2A2636</color>
+    <!-- Sleep card colors (night, aligned with primary) -->
+    <color name="sleep_primary">#C7B4FF</color> <!-- Lighter for text/icon -->
+    <color name="sleep_primary_dark">#9A82E6</color>
+    <color name="sleep_secondary">#B59CF2</color>
+    <color name="sleep_divider">#2B2148</color>
+    <color name="sleep_bg">#231E33</color>
 
     <!-- Event Colors (Pastel in Light, Brighter in Dark?) - Adjusting for visibility -->
     <color name="event_diaper">#FFCC80</color>
-    <color name="event_health">#EF9A9A</color>
+    <color name="event_health">#6ADBC7</color>
     <color name="event_growth">#A5D6A7</color>
-    <color name="event_milestone">#FFF59D</color>
+    <color name="event_milestone">#FF8A96</color>
     <color name="event_care">#90CAF9</color>
     <color name="event_activity">#CE93D8</color>
     <color name="event_other">#B0BEC5</color>
+    <!-- 事件图标底色（夜间弱化对比，避免刺眼） -->
+    <color name="event_diaper_light">#4A3724</color>
+    <color name="event_health_light">#1C3D36</color>
+    <color name="event_growth_light">#2E3B2F</color>
+    <color name="event_milestone_light">#4A1E24</color>
+    <color name="event_care_light">#2B3C4C</color>
+    <color name="event_activity_light">#3B2A45</color>
+    <color name="event_other_light">#2F3A3F</color>
 
 </resources>

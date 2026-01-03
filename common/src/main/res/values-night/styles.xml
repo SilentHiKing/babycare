@@ -1,48 +1,281 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Dark Mode Theme Implementation -->
+    <!-- 夜间主题：补齐所有 Token，避免 Night 模式缺失 -->
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:forceDarkAllowed">false</item>
+
+        <!-- System theme override. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimary</item>
+        <item name="colorAccent">@color/colorPrimary</item>
+
         <!-- ==================== UI TOKENS MAPPING (DARK) ==================== -->
-        
-        <!-- Brand (Mapped to same colors for now, but could be adjusted for contrast) -->
+        <!-- Brand -->
         <item name="colorBrand">@color/boy_brand</item>
         <item name="colorBrandLight">@color/boy_brand_light</item>
-        <item name="colorBrandDark">@color/boy_brand_dark</item> 
+        <item name="colorBrandDark">@color/boy_brand_dark</item>
         <item name="colorOnBrand">@color/White100</item>
 
-        <!-- Surface/Background (Dark Palette) -->
-        <item name="colorSurface">#1E1E1E</item>            <!-- Dark Gray Card -->
-        <item name="colorSurfaceVariant">#2C2C2E</item>     <!-- Slightly Lighter -->
-        <item name="colorBackground">#121212</item>         <!-- Deep Background -->
-        
-        <!-- Functional (Adjusted for Dark Mode - softer) -->
-        <item name="colorSuccess">#66BB6A</item> <!-- Green 400 -->
-        <item name="colorWarning">#FFA726</item> <!-- Orange 400 -->
-        <item name="colorError">#EF5350</item>   <!-- Red 400 -->
+        <!-- Surface/Background -->
+        <item name="colorSurface">@color/surface_default</item>
+        <item name="colorSurfaceVariant">@color/surface_variant_default</item>
+        <item name="colorBackground">@color/bg_app_default</item>
 
-        <!-- Text (High Contrast Light) -->
-        <item name="colorTextPrimary">#E6E1E5</item>   <!-- White 90% -->
-        <item name="colorTextSecondary">#CAC4D0</item> <!-- White 70% -->
-        <item name="colorTextHint">#939094</item>      <!-- White 40% -->
+        <!-- Functional -->
+        <item name="colorSuccess">#66BB6A</item>
+        <item name="colorWarning">#FFA726</item>
+        <item name="colorError">#EF5350</item>
 
-        <!-- Shapes (Shared with Light Mode - defined in attrs, values can be same) -->
+        <!-- Text -->
+        <item name="colorTextPrimary">@color/text_primary_default</item>
+        <item name="colorTextSecondary">@color/text_secondary_default</item>
+        <item name="colorTextHint">@color/text_hint_default</item>
+        <item name="colorStatusTextPrimary">@color/status_text_primary</item>
+        <item name="colorStatusTextSecondary">@color/status_text_secondary</item>
+
+        <!-- Shapes -->
         <item name="shapeCornerSmall">8dp</item>
         <item name="shapeCornerMedium">16dp</item>
-        <item name="shapeCornerLarge">24dp</item> 
+        <item name="shapeCornerLarge">24dp</item>
         <item name="shapeCornerExtraLarge">32dp</item>
 
-        <!-- Elevation (Less visible in Dark Mode, but kept for layout consistency) -->
+        <!-- Elevation -->
         <item name="elevationSmall">4dp</item>
         <item name="elevationMedium">8dp</item>
 
-        <!-- ==================== COMPATIBILITY / LEGACY ==================== -->
+        <!-- System UI -->
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">false</item> <!-- White text on status bar -->
-        
-        <!-- Map Legacy colors to Dark equivalents -->
-        <item name="primary_bg_default">#121212</item>
-        <item name="secondary_bg_default">#1E1E1E</item>
-        <item name="brand_color">@color/darkblue</item> <!-- Legacy fallback -->
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
 
+        <!-- 默认文本色走语义化 Token -->
+        <item name="android:textColorPrimary">?attr/colorTextPrimary</item>
+        <item name="android:textColorSecondary">?attr/colorTextSecondary</item>
+        <item name="android:textColorTertiary">?attr/colorTextHint</item>
+
+        <!-- Drawable to use for generic vertical/horizontal dividers. -->
+        <item name="android:dividerVertical">@color/opacity_333333</item>
+        <item name="android:dividerHorizontal">@color/opacity_333333</item>
+
+        <!-- Drawable to use as the overall window background. -->
+        <item name="android:windowBackground">?attr/colorBackground</item>
+
+        <!-- scrollbar 不要删除 -->
+        <item name="android:scrollbarThumbVertical">@drawable/scrollbar_thumb_vertical</item>
+        <item name="android:scrollbarSize">3dp</item>
+
+        <!-- ==================== LEGACY TOKEN MAPPING (DARK) ==================== -->
+        <item name="brand_color">@color/darkblue</item>
+
+        <item name="primary_bg_default">?attr/colorBackground</item>
+        <item name="secondary_bg_default">?attr/colorSurface</item>
+        <item name="secondary_bg_brand">?attr/colorSurface</item>
+        <item name="primary_bg_brand">?attr/colorSurfaceVariant</item>
+        <item name="primary_btn_normal">?attr/colorBrand</item>
+        <item name="primary_btn_pressed">?attr/colorBrandDark</item>
+        <item name="primary_btn_disable">@color/White10</item>
+        <item name="secondary_btn_normal">?attr/colorSurfaceVariant</item>
+
+        <item name="block_default">?attr/colorSurface</item>
+        <item name="block_gridview">?attr/colorSurfaceVariant</item>
+
+        <item name="primary100">?attr/colorTextPrimary</item>
+        <item name="primary90">?attr/colorTextPrimary</item>
+        <item name="secondary80">?attr/colorTextSecondary</item>
+        <item name="third70">?attr/colorTextSecondary</item>
+        <item name="tertiary60">?attr/colorTextHint</item>
+        <item name="semantics_blue">@color/darkblue</item>
+        <item name="weaken40">?attr/colorTextHint</item>
+        <item name="semantics_warning_red">@color/Red50</item>
+        <item name="semantics_brand">?attr/colorTextPrimary</item>
+        <item name="semantics_brand60">?attr/colorTextSecondary</item>
+        <item name="semantics_brand50">?attr/colorTextSecondary</item>
+        <item name="semantics_brand40">?attr/colorTextHint</item>
+
+        <item name="divider_secondary">@color/White10</item>
+        <item name="white_primary90">@color/White90</item>
+        <item name="primary_black100_white90">@color/White90</item>
+        <item name="shape_bg_e9e9e9_white6">@color/opacity_2A2A2C</item>
+        <item name="c_999999_white80">@color/White80</item>
+
+        <item name="icon_primary">?attr/colorTextPrimary</item>
+        <item name="icon_secondary">?attr/colorTextSecondary</item>
+        <item name="icon_third">?attr/colorTextSecondary</item>
+        <item name="icon_forth">?attr/colorTextHint</item>
+        <item name="icon_fifty">?attr/colorTextHint</item>
+        <item name="icon_brand">?attr/colorBrand</item>
+        <item name="icon_brandHigh">?attr/colorBrandLight</item>
+        <item name="icon_tipsblue">@color/darkblue</item>
+        <item name="icon_tipsred">@color/Red50</item>
+        <item name="icon_tipsgreen">?attr/colorOnBrand</item>
+        <item name="icon_theme_brand">?attr/colorTextPrimary</item>
+        <item name="icon_brand_background">?attr/colorSurfaceVariant</item>
+
+        <!--自定义的-->
+        <item name="shape_bg_default">?attr/colorSurfaceVariant</item>
+        <item name="shape_bg_normal">?attr/colorSurfaceVariant</item>
+        <item name="shape_bg_enable">?attr/colorSurfaceVariant</item>
+        <item name="ic_more_bg">?attr/colorSurfaceVariant</item>
+
+        <item name="line10">@color/White10</item>
+        <item name="line20">@color/White20</item>
+        <item name="line30">@color/White30</item>
+        <item name="line50">@color/White50</item>
+        <item name="line1">@color/opacity_333333</item>
+        <item name="line3">@color/White30</item>
+        <item name="line_brand">@color/darkblue</item>
+        <item name="line_border">@color/White10</item>
+        <item name="line_border_with_theme">@color/White10</item>
+
+        <!--自定义-->
+        <item name="windowBackground">?attr/colorBackground</item>
+        <item name="bg_f9f9f9">?attr/colorBackground</item>
+        <item name="colorPopupBg">?attr/colorSurface</item>
+
+        <item name="ruler_rotation_text">?attr/colorTextHint</item>
+        <item name="ruler_rotation_disc_bg">?attr/colorSurface</item>
+        <item name="ruler_bg">?attr/colorSurfaceVariant</item>
+        <item name="ruler_scale_1">?attr/colorTextHint</item>
+        <item name="ruler_scale_2">?attr/colorTextHint</item>
+
+        <item name="customShadowColor">@color/opacity_shadow_66</item>
+        <item name="expand_page_bg">@color/opacity_2C2C2E</item>
+        <item name="colorThumbBg">?attr/colorSurface</item>
+
+        <item name="textColorGray">?attr/colorTextHint</item>
+
+        <item name="switchTrackOff">@color/opacity_2C2C2E</item>
+
+        <item name="colorBlueFade">@color/opacity_698C93</item>
+        <item name="note_dir_pressed">@color/White100</item>
+        <item name="icon_note_dir_pressed">@color/White100</item>
+        <item name="ic_adjust_no">@color/opacity_698C93</item>
+        <item name="bg_add_web_title">@color/blue_1A007AFF</item>
+
+        <item name="ic_canvas_enable">?attr/colorBrand</item>
+        <item name="ic_canvas_enable1">?attr/colorBrandLight</item>
+
+        <item name="bg_align_selected">@color/opacity_2A2A2C</item>
+        <item name="lasso_line">@color/opacity_33b5e5</item>
+        <item name="item_sub_text">?attr/colorTextHint</item>
+        <item name="item_tab_text">?attr/colorTextPrimary</item>
+        <item name="item_tab_text_bg">@color/opacity_2A2A2C</item>
+        <item name="theme_thumb_bg">?attr/colorSurfaceVariant</item>
+        <item name="theme_thumb_text_bg">?attr/colorSurface</item>
+        <item name="drawer_item_select_bg">@color/blue_1A007AFF</item>
+        <item name="bg_canvas">?attr/colorBackground</item>
+        <item name="white100_black100">@color/Black100</item>
+        <item name="primary_btn_bg_normal">?attr/colorSurface</item>
+
+        <item name="drag_cover">@color/opacity_0F047AFF</item>
+        <item name="line_drag_insert">@color/opacity_C7E1FF</item>
+        <item name="drag_item_select_bg">?attr/colorSurface</item>
+        <item name="drag_item_merge_bg">@color/blue_1A007AFF</item>
+        <item name="drag_insert_line">@color/opacity_C7E1FF</item>
+        <item name="feedback_option_bg">?attr/colorSurfaceVariant</item>
+        <item name="feedback_button_no_click">@color/opacity_9BCAFF</item>
+        <item name="evaluate_text">?attr/colorTextSecondary</item>
+        <item name="bg_lock_flag">@color/opacity_F2FFFFFF</item>
+
+        <!--图标-->
+        <item name="bg_note_manager">@drawable/bg_note_manager_light</item>
+        <item name="bg_note_dir_select">@drawable/bg_rounder_blue_5</item>
+        <item name="bg_promotion_text">@drawable/bg_promotion_light</item>
+
+        <item name="lasso_shape_normal">@drawable/lasso_shape_normal</item>
+        <item name="lasso_shape_select">@drawable/lasso_shape_select</item>
+
+        <item name="ic_canvas_setting_normal">@drawable/ic_normal_enable</item>
+        <item name="ic_canvas_setting_canvas">@drawable/ic_canvas_enable</item>
+        <item name="ic_canvas_setting_write">@drawable/ic_write_enable</item>
+        <item name="ic_canvas_setting_more">@drawable/ic_more_enable</item>
+
+        <!--RTToolbar-->
+        <item name="ic_algin_left_selected">@drawable/ic_algin_left_selected</item>
+        <item name="ic_align_center_selected">@drawable/ic_align_center_selected</item>
+        <item name="ic_align_right_selected">@drawable/ic_align_right_selected</item>
+        <item name="ic_toolbar_bold_checked">@drawable/ic_toolbar_bold_checked</item>
+        <item name="ic_toolbar_italic_checked">@drawable/ic_toolbar_italic_checked</item>
+        <item name="ic_toolbar_strikethrough_checked">@drawable/ic_toolbar_strikethrough_checked</item>
+        <item name="ic_toolbar_underline_checked">@drawable/ic_toolbar_underline_checked</item>
+
+        <item name="switch_track">@drawable/swtich_track</item>
+        <item name="cursor">@drawable/cursor</item>
+        <item name="text_box_drag">@drawable/text_box_drag</item>
+        <item name="text_box_rotation">@drawable/text_box_rotation</item>
+        <item name="browser_progress">@drawable/browser_progress</item>
+        <item name="seekbar_background">@drawable/seekbar_background</item>
+        <item name="ic_color_add">@drawable/ic_color_add</item>
+
+        <!-- 大纲拖拽排序 -->
+        <item name="bg_outline">@drawable/bg_outline</item>
+        <item name="bg_outline_item_eee_5">@drawable/bg_outline_item_eee_5</item>
+        <item name="bg_outline_item_move">@drawable/bg_outline_item_move</item>
+
+        <!--secondary_bg_default-->
+        <item name="bg_r4_top_secondary_bg_default">@drawable/bg_r4_top_secondary_bg_default</item>
+        <item name="bg_r5_secondary_bg_default">@drawable/bg_r5_secondary_bg_default</item>
+        <item name="bg_r6_secondary_bg_default">@drawable/bg_r6_secondary_bg_default</item>
+        <item name="bg_r8_top_secondary_bg_default">@drawable/bg_r8_top_secondary_bg_default</item>
+        <item name="bg_r10_secondary_bg_default">@drawable/bg_r10_secondary_bg_default</item>
+        <item name="bg_r12_secondary_bg_default">@drawable/bg_r12_secondary_bg_default</item>
+        <item name="bg_r12_bottom_secondary_bg_default">@drawable/bg_r12_bottom_secondary_bg_default</item>
+        <item name="bg_r15_bottom_secondary_bg_default">@drawable/bg_r15_bottom_secondary_bg_default</item>
+        <item name="bg_r999_secondary_bg_default">@drawable/bg_r999_secondary_bg_default</item>
+
+        <!--primary_bg_default-->
+        <item name="bg_r4_primary_bg_default">@drawable/bg_r4_primary_bg_default</item>
+        <item name="bg_r6_primary_bg_default">@drawable/bg_r6_primary_bg_default</item>
+        <item name="bg_r8_primary_bg_default">@drawable/bg_r8_primary_bg_default</item>
+        <item name="bg_r10_primary_bg_default">@drawable/bg_r10_primary_bg_default</item>
+        <item name="bg_r12_primary_bg_default">@drawable/bg_r12_primary_bg_default</item>
+        <item name="bg_r15_primary_bg_default">@drawable/bg_r15_primary_bg_default</item>
+        <item name="bg_r15_top_primary_bg_default">@drawable/bg_r15_top_primary_bg_default</item>
+        <item name="bg_r999_primary_bg_default">@drawable/bg_r999_primary_bg_default</item>
+        <item name="bg_r999_stroke_line10_solid_primary_bg_default">@drawable/bg_r999_stroke_line10_solid_primary_bg_default</item>
+
+        <!--block_gridview-->
+        <item name="bg_r4_block_gridview">@drawable/bg_r4_block_gridview</item>
+        <item name="bg_r6_block_gridview">@drawable/bg_r6_block_gridview</item>
+        <item name="bg_r8_block_gridview">@drawable/bg_r8_block_gridview</item>
+        <item name="bg_r10_block_gridview">@drawable/bg_r10_block_gridview</item>
+        <item name="bg_r999_block_gridview">@drawable/bg_r999_block_gridview</item>
+        <item name="bg_r6_block_gridview_red_stroke">@drawable/bg_r6_block_gridview_red_stroke</item>
+
+        <!--semantics_blue-->
+        <item name="bg_r6_semantics_blue">@drawable/bg_r6_semantics_blue</item>
+        <item name="bg_r6_stroke1_5_semantics_blue">@drawable/bg_r6_stroke1_5_semantics_blue</item>
+        <item name="bg_r10_left_semantics_blue">@drawable/bg_r10_left_semantics_blue</item>
+        <item name="bg_r10_right_semantics_blue">@drawable/bg_r10_right_semantics_blue</item>
+        <item name="bg_r999_stroke1_line1_solid_semantics_blue">@drawable/bg_r999_stroke1_line1_solid_semantics_blue</item>
+
+        <!--text_color_gray-->
+        <item name="bg_r6_text_color_gray">@drawable/bg_r6_text_color_gray</item>
+
+        <!--brand_color-->
+        <item name="bg_stroke2_brand_color">@drawable/bg_stroke2_brand_color</item>
+        <item name="bg_r2_brand_color">@drawable/bg_r2_brand_color</item>
+        <item name="bg_r5_brand_color">@drawable/bg_r5_brand_color</item>
+        <item name="bg_r999_brand_color">@drawable/bg_r999_brand_color</item>
+
+        <!--line_brand-->
+        <item name="bg_r999_stroke1_line_brand">@drawable/bg_r999_stroke1_line_brand</item>
+
+        <!--primary_btn_normal-->
+        <item name="bg_r8_primary_btn_normal">@drawable/bg_r8_primary_btn_normal</item>
+
+        <!--primary_bg_brand-->
+        <item name="bg_r999_primary_bg_brand">@drawable/bg_r999_primary_bg_brand</item>
+
+        <!--icon_brand_background-->
+        <item name="bg_r999_icon_brand_background">@drawable/bg_r999_icon_brand_background</item>
+
+        <!--line1-->
+        <item name="bg_r999_stroke1_line1">@drawable/bg_r999_stroke1_line1</item>
+
+        <!-- shape_bg_e9e9e9_white6 -->
+        <item name="bg_r8_shape_bg_e9e9e9_white6">@drawable/bg_r8_shape_bg_e9e9e9_white6</item>
+
+        <item name="ic_name_clear">@drawable/ic_name_clear</item>
     </style>
 </resources>

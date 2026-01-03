@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
     android:background="?attr/secondary_bg_default"
-    android:paddingHorizontal="50dp"
+    android:paddingHorizontal="16dp"
     android:paddingTop="10dp"
     android:paddingBottom="10dp">
 
@@ -24,15 +24,16 @@
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:layout_marginEnd="6dp"
+            android:contentDescription="@null"
             android:src="@drawable/ic_baby_default" />
 
         <TextView
             android:id="@+id/tvBabyDays"
-            style="@style/BoldTextAppearance"
+            style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="?attr/semantics_blue"
-            android:textSize="13sp"
+            android:textStyle="bold"
             tools:text="已出生 180 天" />
 
     </LinearLayout>
@@ -51,15 +52,16 @@
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:layout_marginEnd="6dp"
+            android:contentDescription="@null"
             android:src="@drawable/ic_baby_default" />
 
         <TextView
             android:id="@+id/tvBirthHint"
+            style="@style/TextAppearance.BabyCare.Label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/statistics_add_birthdate_hint"
-            android:textColor="?attr/semantics_blue"
-            android:textSize="12sp" />
+            android:textColor="?attr/semantics_blue" />
 
     </LinearLayout>
 

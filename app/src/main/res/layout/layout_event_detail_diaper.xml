@@ -17,11 +17,11 @@
         tools:visibility="visible">
 
         <TextView
+            style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/stool_consistency"
-            android:textColor="?attr/primary90"
-            android:textSize="14sp"
+            android:textColor="?attr/colorTextPrimary"
             android:textStyle="bold" />
 
         <RadioGroup
@@ -50,12 +50,12 @@
 
         <!-- 大便颜色 -->
         <TextView
+            style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="@string/stool_color"
-            android:textColor="?attr/primary90"
-            android:textSize="14sp"
+            android:textColor="?attr/colorTextPrimary"
             android:textStyle="bold" />
 
         <RadioGroup
@@ -103,11 +103,11 @@
         tools:visibility="visible">
 
         <TextView
+            style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/urine_amount"
-            android:textColor="?attr/primary90"
-            android:textSize="14sp"
+            android:textColor="?attr/colorTextPrimary"
             android:textStyle="bold" />
 
         <RadioGroup

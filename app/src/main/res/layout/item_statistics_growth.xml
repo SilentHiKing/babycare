@@ -7,7 +7,7 @@
     android:layout_marginHorizontal="16dp"
     android:background="?attr/secondary_bg_default"
     android:orientation="vertical"
-    android:paddingHorizontal="45dp"
+    android:paddingHorizontal="16dp"
     android:paddingVertical="12dp">
 
     <LinearLayout
@@ -20,12 +20,10 @@
 
         <TextView
             android:id="@+id/tvGrowthTitle"
-            style="@style/BoldTextAppearance"
+            style="@style/TextAppearance.BabyCare.Heading3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/statistics_growth_title"
-            android:textColor="?attr/primary90"
-            android:textSize="14sp" />
+            android:text="@string/statistics_growth_title" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -42,29 +40,28 @@
 
                 <TextView
                     android:id="@+id/tvWeightLabel"
+                    style="@style/TextAppearance.BabyCare.Label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/statistics_growth_weight"
-                    android:textColor="?attr/weaken40"
-                    android:textSize="11sp" />
+                    android:textColor="?attr/colorTextHint" />
 
                 <TextView
                     android:id="@+id/tvWeightValue"
-                    style="@style/BoldTextAppearance"
+                    style="@style/TextAppearance.BabyCare.Heading3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:textColor="?attr/primary90"
-                    android:textSize="16sp"
+                    android:textColor="?attr/colorTextPrimary"
                     tools:text="6.2kg" />
 
                 <TextView
                     android:id="@+id/tvWeightDiff"
+                    style="@style/TextAppearance.BabyCare.Label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:textColor="?attr/weaken40"
-                    android:textSize="11sp"
+                    android:textColor="?attr/colorTextHint"
                     tools:text="较上次 +0.2kg" />
 
             </LinearLayout>
@@ -84,29 +81,28 @@
 
                 <TextView
                     android:id="@+id/tvHeightLabel"
+                    style="@style/TextAppearance.BabyCare.Label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/statistics_growth_height"
-                    android:textColor="?attr/weaken40"
-                    android:textSize="11sp" />
+                    android:textColor="?attr/colorTextHint" />
 
                 <TextView
                     android:id="@+id/tvHeightValue"
-                    style="@style/BoldTextAppearance"
+                    style="@style/TextAppearance.BabyCare.Heading3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:textColor="?attr/primary90"
-                    android:textSize="16sp"
+                    android:textColor="?attr/colorTextPrimary"
                     tools:text="62.4cm" />
 
                 <TextView
                     android:id="@+id/tvHeightDiff"
+                    style="@style/TextAppearance.BabyCare.Label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:textColor="?attr/weaken40"
-                    android:textSize="11sp"
+                    android:textColor="?attr/colorTextHint"
                     tools:text="较上次 +1.2cm" />
 
             </LinearLayout>
@@ -126,29 +122,28 @@
 
                 <TextView
                     android:id="@+id/tvHeadLabel"
+                    style="@style/TextAppearance.BabyCare.Label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/statistics_growth_head"
-                    android:textColor="?attr/weaken40"
-                    android:textSize="11sp" />
+                    android:textColor="?attr/colorTextHint" />
 
                 <TextView
                     android:id="@+id/tvHeadValue"
-                    style="@style/BoldTextAppearance"
+                    style="@style/TextAppearance.BabyCare.Heading3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:textColor="?attr/primary90"
-                    android:textSize="16sp"
+                    android:textColor="?attr/colorTextPrimary"
                     tools:text="41.2cm" />
 
                 <TextView
                     android:id="@+id/tvHeadDiff"
+                    style="@style/TextAppearance.BabyCare.Label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:textColor="?attr/weaken40"
-                    android:textSize="11sp"
+                    android:textColor="?attr/colorTextHint"
                     tools:text="较上次 +0.8cm" />
 
             </LinearLayout>

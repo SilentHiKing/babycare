@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/primary_bg_default">
+    android:background="?attr/colorBackground">
 
     <!-- 使用通用 Toolbar -->
     <com.zero.components.widget.BaseToolbar
@@ -46,27 +46,33 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:src="@drawable/ic_baby_default"
-            android:tint="?attr/weaken40" />
+            android:contentDescription="@null"
+            android:tint="?attr/colorTextHint" />
 
         <TextView
+            style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="@string/no_baby_yet"
-            android:textColor="?attr/weaken40"
-            android:textSize="16sp" />
+            android:textColor="?attr/colorTextHint" />
 
         <TextView
             android:id="@+id/tvAddBaby"
+            style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:background="?attr/bg_r999_brand_color"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:minHeight="40dp"
             android:paddingHorizontal="24dp"
             android:paddingVertical="10dp"
             android:text="@string/add_baby"
-            android:textColor="@color/White100"
-            android:textSize="14sp" />
+            android:textColor="?attr/colorOnBrand" />
 
     </LinearLayout>
 

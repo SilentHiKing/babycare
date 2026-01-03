@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!--
-        女孩主题 - 粉色系
-        继承 AppTheme，只覆盖需要变化的品牌色相关属性
-    -->
+    <!-- 女孩主题（夜间）：仅覆盖品牌相关 Token -->
     <style name="AppTheme.Girl" parent="AppTheme">
         <!-- ========== 系统品牌色 ========== -->
         <item name="brand_color">@color/girl_brand</item>
@@ -21,17 +18,6 @@
         <item name="primary_btn_normal">@color/girl_brand</item>
         <item name="primary_btn_pressed">@color/girl_btn_pressed</item>
 
-        <!-- ========== 背景 ========== -->
-        <item name="primary_bg_brand">@color/girl_bg_brand</item>
-        <item name="secondary_bg_brand">@color/girl_bg_brand</item>
-        <item name="shape_bg_enable">@color/girl_brand_10</item>
-        <item name="drawer_item_select_bg">@color/girl_brand_10</item>
-        <item name="bg_add_web_title">@color/girl_brand_10</item>
-        <item name="drag_item_merge_bg">@color/girl_brand_10</item>
-        <item name="drag_cover">@color/girl_brand_10</item>
-        <item name="feedback_option_bg">@color/girl_bg_brand</item>
-        <item name="bg_canvas">@color/girl_bg_brand</item>
-
         <!-- ========== 文本/语义色 ========== -->
         <item name="semantics_blue">@color/girl_accent</item>
         <item name="colorStatusTextPrimary">@color/girl_accent</item>
@@ -46,8 +32,6 @@
 
         <!-- ========== 线条 ========== -->
         <item name="line_brand">@color/girl_accent</item>
-        <item name="line_drag_insert">@color/girl_brand_20</item>
-        <item name="drag_insert_line">@color/girl_brand_20</item>
 
         <!-- ========== 其他 ========== -->
         <item name="colorBlueFade">@color/girl_brand_50</item>

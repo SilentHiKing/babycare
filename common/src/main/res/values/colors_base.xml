@@ -27,6 +27,14 @@
     <color name="White20">#1FFFFFFF</color>  <!-- 12% 白 -->
     <color name="White10">#0FFFFFFF</color>  <!-- 6% 白 -->
 
+    <!-- Brand-driven default text/background tokens -->
+    <color name="text_primary_default">#12323A</color>
+    <color name="text_secondary_default">#3E5B63</color>
+    <color name="text_hint_default">#7C98A1</color>
+    <color name="bg_app_default">#F5FBFC</color>
+    <color name="surface_default">#FFFFFF</color>
+    <color name="surface_variant_default">#E7F6F8</color>
+
     <color name="Red50">#FF293B</color>      <!--50 红-->
     <color name="Red60">#CC1827</color>      <!--50 红-->
     <color name="Red6">#0FF54545</color>      <!--50 红-->
@@ -80,8 +88,8 @@
     <color name="ice_blue70">#B308368B</color>
     <color name="ice_blue80">#CC08368B</color>
     <color name="ice_blue90">#08368B</color>
-    <color name="blue_BEDCFF">#BEDCFF</color>
-    <color name="blue_CCDEFF">#CCDEFF</color>
+    <color name="blue_BEDCFF">#BFEFF4</color>
+    <color name="blue_CCDEFF">#D7F6F9</color>
     <color name="blue_1A08368B">#1A08368B</color>
 
 
@@ -110,7 +118,7 @@
 
     <color name="opacity_F7F8FA">#FFF7F8FA</color>
     <color name="opacity_F7F7F8">#FFF7F7F8</color>
-    <color name="opacity_F2F2F7">#FFF2F2F7</color>
+    <color name="opacity_F2F2F7">#FFF5FBFC</color>
     <color name="opacity_1F1F1F">#FF1F1F1F</color>
     <color name="opacity_1C1C1E">#FF1C1C1E</color>
     <color name="opacity_DEE2E8">#FFDEE2E8</color>
@@ -125,7 +133,7 @@
     <color name="opacity_2C2C2E">#FF2C2C2E</color>
     <color name="opacity_F5F5F5">#FFF5F5F5</color>
     <color name="opacity_E7E7E7">#E7E7E7</color>
-    <color name="opacity_007AFF">#007AFF</color>
+    <color name="opacity_007AFF">#2FB7C8</color>
     <color name="opacity_ECECEC">#ECECEC</color>
     <color name="opacity_48484A">#48484A</color>
     <color name="opacity_e5e5e5">#E5E5E5</color>
@@ -153,7 +161,7 @@
     <color name="opacity_222327">#222327</color>
     <color name="opacity_F1F5FF">#F1F5FF</color>
     <color name="opacity_C6C6C6">#C6C6C6</color>
-    <color name="opacity_0F047AFF">#0F047AFF</color>
+    <color name="opacity_0F047AFF">#0F2FB7C8</color>
     <color name="opacity_1AFFFFFF">#1AFFFFFF</color>
     <color name="opacity_C7E1FF">#C7E1FF</color>
     <color name="opacity_EBFFFFFF">#EBFFFFFF</color>
@@ -178,32 +186,32 @@
 
 
 
-    <color name="darkblue">#047AFF</color>
-    <color name="darkblue70">#FF047AFF</color> <!-- 不透明 -->
-    <color name="darkblue50">#B8047AFF</color> <!-- 72% 透明度 (Alpha = B8) -->
-    <color name="blue_AFD5FF">#AFD5FF</color>
-    <color name="blue_1A007AFF">#1A007AFF</color> <!-- 透明度10% -->
+    <color name="darkblue">#2FB7C8</color>
+    <color name="darkblue70">#FF2FB7C8</color> <!-- 不透明 -->
+    <color name="darkblue50">#B82FB7C8</color> <!-- 72% 透明度 (Alpha = B8) -->
+    <color name="blue_AFD5FF">#BFEFF4</color>
+    <color name="blue_1A007AFF">#1A2FB7C8</color> <!-- 透明度10% -->
     <color name="opacity_F1F1F1">#F1F1F1</color>
     <color name="opacity_82A3C8">#82A3C8</color>
-    <color name="opacity_1A047AFF">#1A047AFF</color>
+    <color name="opacity_1A047AFF">#1A2FB7C8</color>
 
     <color name="opacity_shadow_2A">#2A000000</color> <!--浅色模式阴影-->
     <color name="opacity_shadow_66">#55000000</color> <!--深色模式阴影-->
 
     <!-- ==================== Dashboard 功能性颜色 ==================== -->
-    <!-- 喂养卡片 (Sage Blue theme) -->
-    <color name="feeding_primary">#5C9EAD</color>
-    <color name="feeding_primary_dark">#40707A</color>
-    <color name="feeding_secondary">#85B8C5</color>
-    <color name="feeding_divider">#C2E8E4</color>
-    <color name="feeding_bg">#F2FAFA</color>
+    <!-- 喂养卡片（清爽蓝绿，提升活力与识别度） -->
+    <color name="feeding_primary">#00A1BD</color>
+    <color name="feeding_primary_dark">#007C93</color>
+    <color name="feeding_secondary">#5CCFE1</color>
+    <color name="feeding_divider">#BFEFF6</color>
+    <color name="feeding_bg">#E6F8FB</color>
 
-    <!-- 睡眠卡片 (Muted Lavender theme) -->
-    <color name="sleep_primary">#887BB0</color>
-    <color name="sleep_primary_dark">#655885</color>
-    <color name="sleep_secondary">#A89CC8</color>
-    <color name="sleep_divider">#D6CDEA</color>
-    <color name="sleep_bg">#F7F5FC</color>
+    <!-- 睡眠卡片（柔和紫调，保持温和氛围） -->
+    <color name="sleep_primary">#8C6ED6</color>
+    <color name="sleep_primary_dark">#6444B0</color>
+    <color name="sleep_secondary">#B69CF2</color>
+    <color name="sleep_divider">#E4DDF7</color>
+    <color name="sleep_bg">#F3EEFF</color>
 
     <!-- 统计入口 (青绿色系) -->
     <color name="statistics_primary">#2A9D8F</color>
@@ -212,30 +220,30 @@
     <color name="status_text_primary">#4A4A4A</color>
     <color name="status_text_secondary">#757575</color>
 
-    <!-- 状态卡片背景渐变色 -->
-    <!-- 醒着状态 (Soft Sunshine) -->
-    <color name="status_awake_start">#FFFCF5</color>
-    <color name="status_awake_end">#FFE8B6</color>
-    <!-- 睡眠状态 (Soft Moon) -->
-    <color name="status_sleeping_start">#F3F1FA</color>
-    <color name="status_sleeping_end">#D6CDEA</color>
-    <!-- 喂奶状态 (Soft Water) -->
-    <color name="status_feeding_start">#F2FAFA</color>
-    <color name="status_feeding_end">#C2E8E4</color>
+    <!-- 状态卡片背景渐变色（与喂养/睡眠色系保持一致） -->
+    <!-- 醒着状态（暖阳黄） -->
+    <color name="status_awake_start">#FFF7E8</color>
+    <color name="status_awake_end">#FFE1B3</color>
+    <!-- 睡眠状态（柔紫） -->
+    <color name="status_sleeping_start">#F5F1FF</color>
+    <color name="status_sleeping_end">#E2DBF6</color>
+    <!-- 喂奶状态（清爽蓝绿） -->
+    <color name="status_feeding_start">#EFFBFE</color>
+    <color name="status_feeding_end">#D3F2F8</color>
 
     <!-- ==================== 事件类型颜色 ==================== -->
     <!-- 排泄 (橙色系) -->
     <color name="event_diaper">#FFA726</color>
     <color name="event_diaper_light">#FFE0B2</color>
-    <!-- 健康 (红色系) -->
-    <color name="event_health">#EF5350</color>
-    <color name="event_health_light">#FFCDD2</color>
+    <!-- 健康（薄荷青绿色） -->
+    <color name="event_health">#2EC4B6</color>
+    <color name="event_health_light">#BFF3EC</color>
     <!-- 生长 (绿色系) -->
     <color name="event_growth">#66BB6A</color>
     <color name="event_growth_light">#C8E6C9</color>
-    <!-- 里程碑 (金色系) -->
-    <color name="event_milestone">#FFD54F</color>
-    <color name="event_milestone_light">#FFF9C4</color>
+    <!-- 里程碑（温暖红色，提升对比与辨识度） -->
+    <color name="event_milestone">#F45B69</color>
+    <color name="event_milestone_light">#FFD6DC</color>
     <!-- 护理 (蓝色系) -->
     <color name="event_care">#42A5F5</color>
     <color name="event_care_light">#BBDEFB</color>

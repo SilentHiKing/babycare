@@ -60,6 +60,7 @@
 
                     <EditText
                         android:id="@+id/etName"
+                        style="@style/TextAppearance.BabyCare.Body2"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="@null"
@@ -68,8 +69,7 @@
                         android:maxLines="1"
                         android:singleLine="true"
                         android:textColor="?attr/colorTextPrimary"
-                        android:textColorHint="?attr/colorTextHint"
-                        android:textSize="16sp" />
+                        android:textColorHint="?attr/colorTextHint" />
                 </LinearLayout>
 
                 <!-- 生日 -->
@@ -97,6 +97,7 @@
 
                     <EditText
                         android:id="@+id/etBirthday"
+                        style="@style/TextAppearance.BabyCare.Body2"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="@null"
@@ -107,8 +108,7 @@
                         android:inputType="text"
                         android:singleLine="true"
                         android:textColor="?attr/colorTextPrimary"
-                        android:textColorHint="?attr/colorTextHint"
-                        android:textSize="16sp" />
+                        android:textColorHint="?attr/colorTextHint" />
                 </LinearLayout>
 
                 <!-- 性别 -->
@@ -136,6 +136,7 @@
 
                     <EditText
                         android:id="@+id/etGender"
+                        style="@style/TextAppearance.BabyCare.Body2"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="@null"
@@ -146,8 +147,7 @@
                         android:inputType="text"
                         android:singleLine="true"
                         android:textColor="?attr/colorTextPrimary"
-                        android:textColorHint="?attr/colorTextHint"
-                        android:textSize="16sp" />
+                        android:textColorHint="?attr/colorTextHint" />
                 </LinearLayout>
 
                 <!-- 体重 -->
@@ -175,6 +175,7 @@
 
                     <EditText
                         android:id="@+id/etWeight"
+                        style="@style/TextAppearance.BabyCare.Body2"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
@@ -185,15 +186,14 @@
                         android:maxLines="1"
                         android:singleLine="true"
                         android:textColor="?attr/colorTextPrimary"
-                        android:textColorHint="?attr/colorTextHint"
-                        android:textSize="16sp" />
+                        android:textColorHint="?attr/colorTextHint" />
 
                     <TextView
+                        style="@style/TextAppearance.BabyCare.Label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/unit_g"
-                        android:textColor="?attr/colorTextSecondary"
-                        android:textSize="14sp" />
+                        android:textColor="?attr/colorTextSecondary" />
                 </LinearLayout>
 
                 <!-- 身高 -->
@@ -221,6 +221,7 @@
 
                     <EditText
                         android:id="@+id/etHeight"
+                        style="@style/TextAppearance.BabyCare.Body2"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
@@ -231,15 +232,14 @@
                         android:maxLines="1"
                         android:singleLine="true"
                         android:textColor="?attr/colorTextPrimary"
-                        android:textColorHint="?attr/colorTextHint"
-                        android:textSize="16sp" />
+                        android:textColorHint="?attr/colorTextHint" />
 
                     <TextView
+                        style="@style/TextAppearance.BabyCare.Label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/unit_cm"
-                        android:textColor="?attr/colorTextSecondary"
-                        android:textSize="14sp" />
+                        android:textColor="?attr/colorTextSecondary" />
                 </LinearLayout>
 
                 <!-- 血型 -->
@@ -267,6 +267,7 @@
 
                     <EditText
                         android:id="@+id/etBloodType"
+                        style="@style/TextAppearance.BabyCare.Body2"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="@null"
@@ -277,8 +278,7 @@
                         android:inputType="text"
                         android:singleLine="true"
                         android:textColor="?attr/colorTextPrimary"
-                        android:textColorHint="?attr/colorTextHint"
-                        android:textSize="16sp" />
+                        android:textColorHint="?attr/colorTextHint" />
                 </LinearLayout>
                 
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -286,19 +286,17 @@
             <!-- 删除按钮 -->
             <TextView
                 android:id="@+id/tvDelete"
+                style="@style/TextAppearance.BabyCare.Body1"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="24dp"
-                android:background="@drawable/bg_r6_block_gridview"
+                android:background="?attr/bg_r6_block_gridview"
                 android:gravity="center"
                 android:text="@string/delete_baby"
                 android:textColor="?attr/semantics_warning_red"
-                android:textSize="16sp"
                 android:visibility="gone" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-
-

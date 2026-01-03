@@ -9,21 +9,21 @@
 
     <TextView
         android:id="@+id/tvReportName"
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textColor="?attr/primary90"
-        android:textSize="14sp"
+        android:textColor="?attr/colorTextPrimary"
         app:layout_constraintEnd_toStartOf="@id/ivArrow"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tvReportTime"
+        style="@style/TextAppearance.BabyCare.Label"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:textColor="?attr/weaken40"
-        android:textSize="12sp"
+        android:textColor="?attr/colorTextHint"
         app:layout_constraintEnd_toStartOf="@id/ivArrow"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvReportName" />
@@ -32,8 +32,9 @@
         android:id="@+id/ivArrow"
         android:layout_width="16dp"
         android:layout_height="16dp"
+        android:contentDescription="@null"
         android:src="@drawable/ic_arrow_right"
-        android:tint="?attr/weaken40"
+        android:tint="?attr/colorTextHint"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

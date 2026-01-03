@@ -7,15 +7,16 @@
     android:padding="16dp">
 
     <TextView
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/vaccine_name"
-        android:textColor="?attr/primary90"
-        android:textSize="14sp"
+        android:textColor="?attr/colorTextPrimary"
         android:textStyle="bold" />
 
     <EditText
         android:id="@+id/etVaccineName"
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:layout_marginTop="8dp"
@@ -23,21 +24,22 @@
         android:hint="@string/vaccine_name_hint"
         android:inputType="text"
         android:paddingHorizontal="12dp"
-        android:textColor="?attr/primary90"
-        android:textColorHint="?attr/weaken40"
-        android:textSize="14sp" />
+        android:textColor="?attr/colorTextPrimary"
+        android:textColorHint="?attr/colorTextHint"
+        />
 
     <TextView
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/vaccine_dose"
-        android:textColor="?attr/primary90"
-        android:textSize="14sp"
+        android:textColor="?attr/colorTextPrimary"
         android:textStyle="bold" />
 
     <EditText
         android:id="@+id/etVaccineDose"
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:layout_marginTop="8dp"
@@ -45,21 +47,22 @@
         android:hint="@string/vaccine_dose_hint"
         android:inputType="number"
         android:paddingHorizontal="12dp"
-        android:textColor="?attr/primary90"
-        android:textColorHint="?attr/weaken40"
-        android:textSize="14sp" />
+        android:textColor="?attr/colorTextPrimary"
+        android:textColorHint="?attr/colorTextHint"
+        />
 
     <TextView
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/vaccine_site"
-        android:textColor="?attr/primary90"
-        android:textSize="14sp"
+        android:textColor="?attr/colorTextPrimary"
         android:textStyle="bold" />
 
     <EditText
         android:id="@+id/etVaccineSite"
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:layout_marginTop="8dp"
@@ -67,21 +70,22 @@
         android:hint="@string/vaccine_site_hint"
         android:inputType="text"
         android:paddingHorizontal="12dp"
-        android:textColor="?attr/primary90"
-        android:textColorHint="?attr/weaken40"
-        android:textSize="14sp" />
+        android:textColor="?attr/colorTextPrimary"
+        android:textColorHint="?attr/colorTextHint"
+        />
 
     <TextView
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/vaccine_clinic"
-        android:textColor="?attr/primary90"
-        android:textSize="14sp"
+        android:textColor="?attr/colorTextPrimary"
         android:textStyle="bold" />
 
     <EditText
         android:id="@+id/etVaccineClinic"
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:layout_marginTop="8dp"
@@ -89,21 +93,22 @@
         android:hint="@string/vaccine_clinic_hint"
         android:inputType="text"
         android:paddingHorizontal="12dp"
-        android:textColor="?attr/primary90"
-        android:textColorHint="?attr/weaken40"
-        android:textSize="14sp" />
+        android:textColor="?attr/colorTextPrimary"
+        android:textColorHint="?attr/colorTextHint"
+        />
 
     <TextView
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/vaccine_batch"
-        android:textColor="?attr/primary90"
-        android:textSize="14sp"
+        android:textColor="?attr/colorTextPrimary"
         android:textStyle="bold" />
 
     <EditText
         android:id="@+id/etVaccineBatch"
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:layout_marginTop="8dp"
@@ -111,9 +116,9 @@
         android:hint="@string/vaccine_batch_hint"
         android:inputType="text"
         android:paddingHorizontal="12dp"
-        android:textColor="?attr/primary90"
-        android:textColorHint="?attr/weaken40"
-        android:textSize="14sp" />
+        android:textColor="?attr/colorTextPrimary"
+        android:textColorHint="?attr/colorTextHint"
+        />
 
 </LinearLayout>
 

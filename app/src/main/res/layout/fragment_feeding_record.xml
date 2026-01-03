@@ -22,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="25dp"
+            android:paddingHorizontal="16dp"
             android:paddingBottom="20dp">
 
             <com.zero.components.widget.RecordTimerPanelView
@@ -37,12 +37,12 @@
             <!-- 上次喂奶时间 -->
             <TextView
                 android:id="@+id/tvLastFeeding"
+                style="@style/TextAppearance.BabyCare.Body2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:paddingHorizontal="10dp"
-                android:textColor="?attr/weaken40"
-                android:textSize="14sp"
+                android:textColor="?attr/colorTextHint"
                 android:visibility="gone"
                 tools:text="上次: 12-23 08:30"
                 tools:visibility="visible" />
@@ -68,6 +68,7 @@
 
                 <RadioButton
                     android:id="@+id/rbBreast"
+                    android:textAppearance="@style/TextAppearance.BabyCare.Body2"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_weight="1"
@@ -75,8 +76,7 @@
                     android:button="@null"
                     android:gravity="center"
                     android:text="@string/feeding_type_breast"
-                    android:textColor="@color/selector_radio_text_color"
-                    android:textSize="14sp" />
+                    android:textColor="@color/selector_radio_text_color" />
 
                 <View
                     android:layout_width="8dp"
@@ -84,6 +84,7 @@
 
                 <RadioButton
                     android:id="@+id/rbFormula"
+                    android:textAppearance="@style/TextAppearance.BabyCare.Body2"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_weight="1"
@@ -91,8 +92,7 @@
                     android:button="@null"
                     android:gravity="center"
                     android:text="@string/feeding_type_formula"
-                    android:textColor="@color/selector_radio_text_color"
-                    android:textSize="14sp" />
+                    android:textColor="@color/selector_radio_text_color" />
 
                 <View
                     android:layout_width="8dp"
@@ -100,6 +100,7 @@
 
                 <RadioButton
                     android:id="@+id/rbMixed"
+                    android:textAppearance="@style/TextAppearance.BabyCare.Body2"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_weight="1"
@@ -107,8 +108,7 @@
                     android:button="@null"
                     android:gravity="center"
                     android:text="@string/feeding_type_mixed"
-                    android:textColor="@color/selector_radio_text_color"
-                    android:textSize="14sp" />
+                    android:textColor="@color/selector_radio_text_color" />
 
                 <View
                     android:layout_width="8dp"
@@ -116,6 +116,7 @@
 
                 <RadioButton
                     android:id="@+id/rbSolid"
+                    android:textAppearance="@style/TextAppearance.BabyCare.Body2"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_weight="1"
@@ -123,8 +124,7 @@
                     android:button="@null"
                     android:gravity="center"
                     android:text="@string/feeding_type_solid"
-                    android:textColor="@color/selector_radio_text_color"
-                    android:textSize="14sp" />
+                    android:textColor="@color/selector_radio_text_color" />
 
                 <View
                     android:layout_width="8dp"
@@ -132,6 +132,7 @@
 
                 <RadioButton
                     android:id="@+id/rbOther"
+                    android:textAppearance="@style/TextAppearance.BabyCare.Body2"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_weight="1"
@@ -139,8 +140,7 @@
                     android:button="@null"
                     android:gravity="center"
                     android:text="@string/feeding_type_other"
-                    android:textColor="@color/selector_radio_text_color"
-                    android:textSize="14sp" />
+                    android:textColor="@color/selector_radio_text_color" />
 
             </RadioGroup>
 
@@ -262,6 +262,7 @@
 
                     <EditText
                         android:id="@+id/etSolidFoodName"
+                        style="@style/TextAppearance.BabyCare.Body2"
                         android:layout_width="match_parent"
                         android:layout_height="44dp"
                         android:layout_marginTop="8dp"
@@ -269,9 +270,9 @@
                         android:hint="@string/solid_food_name_hint"
                         android:inputType="text"
                         android:paddingHorizontal="12dp"
-                        android:textColor="?attr/primary90"
-                        android:textColorHint="?attr/weaken40"
-                        android:textSize="14sp" />
+                        android:textColor="?attr/colorTextPrimary"
+                        android:textColorHint="?attr/colorTextHint"
+                        />
 
                 </LinearLayout>
 
@@ -300,6 +301,7 @@
 
                         <EditText
                             android:id="@+id/etSolidAmount"
+                            style="@style/TextAppearance.BabyCare.Body2"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
@@ -307,42 +309,42 @@
                             android:hint="@string/feeding_amount_hint"
                             android:inputType="number"
                             android:maxLength="4"
-                            android:textColor="?attr/primary90"
-                            android:textColorHint="?attr/weaken40"
-                            android:textSize="14sp" />
+                            android:textColor="?attr/colorTextPrimary"
+                            android:textColorHint="?attr/colorTextHint"
+                            />
 
                     <TextView
                         android:id="@+id/tvSolidUnit"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/unit_g_abbr"
-                        android:textColor="?attr/weaken40"
-                        android:textSize="14sp" />
+                        style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/unit_g_abbr"
+                    android:textColor="?attr/colorTextHint" />
 
                     </LinearLayout>
                 </LinearLayout>
 
                 <!-- 首次尝试勾选 -->
                 <CheckBox
-                    android:id="@+id/cbFirstTime"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:paddingHorizontal="10dp"
-                    android:text="@string/solid_food_first_time"
-                    android:textColor="?attr/primary90"
-                    android:textSize="14sp" />
+                android:id="@+id/cbFirstTime"
+                style="@style/TextAppearance.BabyCare.Body2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:paddingHorizontal="10dp"
+                android:text="@string/solid_food_first_time"
+                android:textColor="?attr/colorTextPrimary" />
 
                 <!-- 过敏风险提示 -->
                 <TextView
                     android:id="@+id/tvAllergenTip"
+                    style="@style/TextAppearance.BabyCare.Label"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:paddingHorizontal="10dp"
                     android:text="@string/solid_food_allergen_tip"
                     android:textColor="?attr/colorError"
-                    android:textSize="12sp"
                     android:visibility="gone" />
 
             </LinearLayout>
@@ -357,16 +359,16 @@
                 android:visibility="gone">
 
                 <TextView
-                    style="@style/BoldTextAppearance"
+                    style="@style/TextAppearance.BabyCare.Heading3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingHorizontal="10dp"
                     android:text="@string/other_food_name"
-                    android:textColor="?attr/primary90"
-                    android:textSize="14sp" />
+                    android:textColor="?attr/colorTextPrimary" />
 
                 <EditText
                     android:id="@+id/etOtherFoodName"
+                    style="@style/TextAppearance.BabyCare.Body2"
                     android:layout_width="match_parent"
                     android:layout_height="44dp"
                     android:layout_marginTop="8dp"
@@ -374,9 +376,9 @@
                     android:hint="@string/other_food_name_hint"
                     android:inputType="text"
                     android:paddingHorizontal="12dp"
-                    android:textColor="?attr/primary90"
-                    android:textColorHint="?attr/weaken40"
-                    android:textSize="14sp" />
+                    android:textColor="?attr/colorTextPrimary"
+                    android:textColorHint="?attr/colorTextHint"
+                    />
 
             </LinearLayout>
 
@@ -408,6 +410,7 @@
 
                     <EditText
                         android:id="@+id/etFeedingAmount"
+                        style="@style/TextAppearance.BabyCare.Body2"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
@@ -415,17 +418,17 @@
                         android:hint="@string/feeding_amount_hint"
                         android:inputType="number"
                         android:maxLength="4"
-                        android:textColor="?attr/primary90"
-                        android:textColorHint="?attr/weaken40"
-                        android:textSize="14sp" />
+                        android:textColor="?attr/colorTextPrimary"
+                        android:textColorHint="?attr/colorTextHint"
+                        />
 
                     <TextView
                         android:id="@+id/tvFeedingAmountUnit"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/unit_ml"
-                        android:textColor="?attr/weaken40"
-                        android:textSize="14sp" />
+                        style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/unit_ml"
+                    android:textColor="?attr/colorTextHint" />
 
                 </LinearLayout>
 
@@ -448,41 +451,42 @@
                     android:orientation="vertical">
 
                     <TextView
-                        style="@style/BoldTextAppearance"
+                        style="@style/TextAppearance.BabyCare.Body2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingHorizontal="10dp"
                         android:text="@string/left_breast_duration"
-                        android:textColor="?attr/primary90"
-                        android:textSize="14sp" />
+                        android:textColor="?attr/colorTextPrimary"
+                        android:textStyle="bold" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:layout_marginTop="8dp"
-                        android:background="?attr/bg_r6_block_gridview"
-                        android:gravity="center_vertical"
-                        android:paddingHorizontal="10dp">
+                    android:layout_height="40dp"
+                    android:layout_marginTop="8dp"
+                    android:background="?attr/bg_r6_block_gridview"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="10dp">
 
                         <EditText
                             android:id="@+id/etLeftBreastDuration"
+                            style="@style/TextAppearance.BabyCare.Body2"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
-                            android:background="@null"
-                            android:hint="@string/number_zero"
-                            android:inputType="number"
-                            android:maxLength="3"
-                            android:textColor="?attr/primary90"
-                            android:textColorHint="?attr/weaken40"
-                            android:textSize="14sp" />
+                        android:background="@null"
+                        android:hint="@string/number_zero"
+                        android:inputType="number"
+                        android:maxLength="3"
+                        android:textColor="?attr/colorTextPrimary"
+                        android:textColorHint="?attr/colorTextHint"
+                        />
 
                         <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/min"
-                            android:textColor="?attr/weaken40"
-                            android:textSize="14sp" />
+                    style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/min"
+                    android:textColor="?attr/colorTextHint" />
 
                     </LinearLayout>
 
@@ -499,42 +503,43 @@
                     android:orientation="vertical">
 
                     <TextView
-                        style="@style/BoldTextAppearance"
+                        style="@style/TextAppearance.BabyCare.Body2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:paddingHorizontal="10dp"
                         android:text="@string/right_breast_duration"
-                        android:textColor="?attr/primary90"
-                        android:textSize="14sp" />
+                        android:textColor="?attr/colorTextPrimary"
+                        android:textStyle="bold" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:layout_marginTop="8dp"
-                        android:background="?attr/bg_r6_block_gridview"
-                        android:gravity="center_vertical"
-                        android:paddingHorizontal="10dp">
+                    android:layout_height="40dp"
+                    android:layout_marginTop="8dp"
+                    android:background="?attr/bg_r6_block_gridview"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="10dp">
 
                         <EditText
                             android:id="@+id/etRightBreastDuration"
+                            style="@style/TextAppearance.BabyCare.Body2"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
-                            android:background="@null"
-                            android:hint="@string/number_zero"
-                            android:inputType="number"
-                            android:maxLength="3"
-                            android:textColor="?attr/primary90"
-                            android:textColorHint="?attr/weaken40"
-                            android:textSize="14sp" />
+                        android:background="@null"
+                        android:hint="@string/number_zero"
+                        android:inputType="number"
+                        android:maxLength="3"
+                        android:textColor="?attr/colorTextPrimary"
+                        android:textColorHint="?attr/colorTextHint"
+                        />
 
                         <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/min"
-                            android:textColor="?attr/weaken40"
-                            android:textSize="14sp" />
+                    style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/min"
+                    android:textColor="?attr/colorTextHint" />
 
                     </LinearLayout>
 
@@ -553,6 +558,7 @@
 
             <EditText
                 android:id="@+id/etNote"
+                style="@style/TextAppearance.BabyCare.Body2"
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
                 android:layout_marginTop="10dp"
@@ -561,9 +567,9 @@
                 android:hint="@string/note_hint"
                 android:inputType="textMultiLine"
                 android:padding="12dp"
-                android:textColor="?attr/primary90"
-                android:textColorHint="?attr/weaken40"
-                android:textSize="14sp" />
+                android:textColor="?attr/colorTextPrimary"
+                android:textColorHint="?attr/colorTextHint"
+                />
 
         </LinearLayout>
     </ScrollView>
@@ -571,15 +577,15 @@
     <!-- 底部保存按钮 -->
     <TextView
         android:id="@+id/tvSave"
+        style="@style/TextAppearance.BabyCare.Body1"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:layout_marginHorizontal="25dp"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="20dp"
         android:background="?attr/bg_r999_brand_color"
         android:gravity="center"
         android:text="@string/save"
         android:textColor="?attr/colorOnBrand"
-        android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

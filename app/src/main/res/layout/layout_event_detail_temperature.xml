@@ -16,6 +16,7 @@
 
         <EditText
             android:id="@+id/etTemperature"
+            style="@style/TextAppearance.BabyCare.Display2"
             android:layout_width="0dp"
             android:layout_height="56dp"
             android:layout_weight="1"
@@ -24,18 +25,18 @@
             android:hint="@string/temperature_value_hint"
             android:inputType="numberDecimal"
             android:maxLength="4"
-            android:textColor="?attr/primary90"
-            android:textColorHint="?attr/weaken40"
-            android:textSize="28sp"
+            android:textColor="?attr/colorTextPrimary"
+            android:textColorHint="?attr/colorTextHint"
             android:textStyle="bold" />
 
         <TextView
+            style="@style/TextAppearance.BabyCare.Heading1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:text="@string/temperature_unit"
-            android:textColor="?attr/primary90"
-            android:textSize="20sp" />
+            android:textColor="?attr/colorTextPrimary"
+            />
 
     </LinearLayout>
 
@@ -59,10 +60,10 @@
 
         <TextView
             android:id="@+id/tvStatus"
+            style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:textSize="14sp"
             tools:text="@string/temperature_normal"
             tools:textColor="@color/temp_normal" />
 
@@ -70,12 +71,12 @@
 
     <!-- 测量部位 -->
     <TextView
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/temperature_location_label"
-        android:textColor="?attr/primary90"
-        android:textSize="14sp"
+        android:textColor="?attr/colorTextPrimary"
         android:textStyle="bold" />
 
     <RadioGroup
@@ -115,13 +116,13 @@
     <!-- 高温警告 -->
     <TextView
         android:id="@+id/tvWarning"
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:gravity="center"
         android:text="@string/temperature_danger"
-        android:textColor="@color/temp_danger"
-        android:textSize="13sp"
+        android:textColor="?attr/colorError"
         android:visibility="gone" />
 
 </LinearLayout>

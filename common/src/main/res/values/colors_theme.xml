@@ -5,42 +5,41 @@
         用于 AppTheme.Boy / AppTheme.Girl / AppTheme.Neutral 主题
     -->
 
-    <!-- ==================== 男孩主题色 (Sage Green / Soft Blue) ==================== -->
-    <color name="boy_brand">#81B29A</color> <!-- Sage Green -->
-    <color name="boy_brand_dark">#6B9B82</color>
-    <color name="boy_brand_light">#A8D1BF</color>
-    <color name="boy_accent">#3D405B</color> <!-- Deep Blue Slate for contrast -->
-    <color name="boy_bg_brand">#F4F9F6</color> <!-- Very light sage tint -->
-    <color name="boy_btn_pressed">#608A74</color>
+    <!-- ==================== 男孩主题色（糖果感、柔和、青春） ==================== -->
+    <color name="boy_brand">#5ED2F2</color>
+    <color name="boy_brand_dark">#289FBD</color>
+    <color name="boy_brand_light">#D5F2FF</color>
+    <color name="boy_accent">#38BDE2</color>
+    <color name="boy_bg_brand">#E6FBFF</color>
+    <color name="boy_btn_pressed">#289FBD</color>
     <!-- 带透明度 -->
-    <color name="boy_brand_10">#1A81B29A</color>
-    <color name="boy_brand_20">#3381B29A</color>
-    <color name="boy_brand_50">#8081B29A</color>
+    <color name="boy_brand_10">#1A5ED2F2</color>
+    <color name="boy_brand_20">#335ED2F2</color>
+    <color name="boy_brand_50">#805ED2F2</color>
 
-    <!-- Let's use Warm Pink/Coral -->
-    <color name="girl_brand">#F4ACB7</color> <!-- Dusty Rose -->
-    <color name="girl_brand_dark">#D88C9A</color>
-    <color name="girl_brand_light">#FFD9E0</color>
-    <color name="girl_accent">#9D8189</color> <!-- Muted Mauve -->
-    <color name="girl_bg_brand">#FFF5F6</color>
-    <color name="girl_btn_pressed">#C07A88</color>
+    <!-- ==================== 女孩主题色（糖果感、柔和、青春） ==================== -->
+    <color name="girl_brand">#FF8FBE</color>
+    <color name="girl_brand_dark">#D95A8C</color>
+    <color name="girl_brand_light">#FFD8EA</color>
+    <color name="girl_accent">#D76292</color>
+    <color name="girl_bg_brand">#FFF0F8</color>
+    <color name="girl_btn_pressed">#D95A8C</color>
     <!-- 带透明度 -->
-    <color name="girl_brand_10">#1AF4ACB7</color>
-    <color name="girl_brand_20">#33F4ACB7</color>
-    <color name="girl_brand_50">#80F4ACB7</color>
+    <color name="girl_brand_10">#1AFF8FBE</color>
+    <color name="girl_brand_20">#33FF8FBE</color>
+    <color name="girl_brand_50">#80FF8FBE</color>
 
-    <!-- ==================== 中性主题色 (Warm Sand / Oatmeal) ==================== -->
-    <color name="neutral_brand">#DDB892</color> <!-- Warm Sand -->
-    <color name="neutral_brand_dark">#B08968</color>
-    <color name="neutral_brand_light">#E6CCB2</color>
-    <color name="neutral_accent">#7F5539</color> <!-- Earthy Brown -->
-    <color name="neutral_bg_brand">#FAF6F0</color> <!-- Creamy White -->
-    <color name="neutral_btn_pressed">#9C7756</color>
+    <!-- ==================== 中性主题色（糖果感、柔和、青春） ==================== -->
+    <color name="neutral_brand">#FFB973</color>
+    <color name="neutral_brand_dark">#D3812A</color>
+    <color name="neutral_brand_light">#FFE4C7</color>
+    <color name="neutral_accent">#C66E22</color>
+    <color name="neutral_bg_brand">#FFF2E4</color>
+    <color name="neutral_btn_pressed">#D3812A</color>
     <!-- 带透明度 -->
-    <!-- 带透明度 -->
-    <color name="neutral_brand_10">#1ADDB892</color>
-    <color name="neutral_brand_20">#33DDB892</color>
-    <color name="neutral_brand_50">#80DDB892</color>
+    <color name="neutral_brand_10">#1AFFB973</color>
+    <color name="neutral_brand_20">#33FFB973</color>
+    <color name="neutral_brand_50">#80FFB973</color>
 
 </resources>
 

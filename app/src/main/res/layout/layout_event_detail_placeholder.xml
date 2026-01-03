@@ -3,17 +3,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="?attr/bg_r12_secondary_bg_default"
+    android:padding="16dp"
     android:orientation="vertical">
 
     <!-- 占位布局，实际内容会动态替换 -->
     <TextView
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:padding="20dp"
         android:text="@string/event_detail"
-        android:textColor="?attr/weaken40"
-        android:textSize="14sp"
         tools:visibility="visible" />
 
 </LinearLayout>

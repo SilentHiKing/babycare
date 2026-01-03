@@ -16,19 +16,19 @@
 
         <TextView
             android:id="@+id/tvTrendPeriod"
-            style="@style/BoldTextAppearance"
+            style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="?attr/primary90"
-            android:textSize="13sp" />
+            android:textColor="?attr/colorTextPrimary"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvTrendRange"
+            style="@style/TextAppearance.BabyCare.Label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:textColor="?attr/weaken40"
-            android:textSize="11sp" />
+            android:textColor="?attr/colorTextHint" />
 
     </LinearLayout>
 
@@ -46,19 +46,19 @@
 
             <TextView
                 android:id="@+id/tvTrendFeedingLabel"
+                style="@style/TextAppearance.BabyCare.Label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/statistics_trend_metric_feeding"
-                android:textColor="?attr/weaken40"
-                android:textSize="11sp" />
+                android:textColor="?attr/colorTextHint" />
 
             <TextView
                 android:id="@+id/tvTrendFeedingValue"
+                style="@style/TextAppearance.BabyCare.Body2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textColor="?attr/primary90"
-                android:textSize="14sp" />
+                android:textColor="?attr/colorTextPrimary" />
         </LinearLayout>
 
         <LinearLayout
@@ -69,19 +69,19 @@
 
             <TextView
                 android:id="@+id/tvTrendSleepLabel"
+                style="@style/TextAppearance.BabyCare.Label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/statistics_trend_metric_sleep"
-                android:textColor="?attr/weaken40"
-                android:textSize="11sp" />
+                android:textColor="?attr/colorTextHint" />
 
             <TextView
                 android:id="@+id/tvTrendSleepValue"
+                style="@style/TextAppearance.BabyCare.Body2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textColor="?attr/primary90"
-                android:textSize="14sp" />
+                android:textColor="?attr/colorTextPrimary" />
         </LinearLayout>
 
     </LinearLayout>
@@ -100,19 +100,19 @@
 
             <TextView
                 android:id="@+id/tvTrendDiaperLabel"
+                style="@style/TextAppearance.BabyCare.Label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/statistics_trend_metric_diaper"
-                android:textColor="?attr/weaken40"
-                android:textSize="11sp" />
+                android:textColor="?attr/colorTextHint" />
 
             <TextView
                 android:id="@+id/tvTrendDiaperValue"
+                style="@style/TextAppearance.BabyCare.Body2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textColor="?attr/primary90"
-                android:textSize="14sp" />
+                android:textColor="?attr/colorTextPrimary" />
         </LinearLayout>
 
         <LinearLayout
@@ -123,19 +123,19 @@
 
             <TextView
                 android:id="@+id/tvTrendEventLabel"
+                style="@style/TextAppearance.BabyCare.Label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/statistics_trend_metric_event"
-                android:textColor="?attr/weaken40"
-                android:textSize="11sp" />
+                android:textColor="?attr/colorTextHint" />
 
             <TextView
                 android:id="@+id/tvTrendEventValue"
+                style="@style/TextAppearance.BabyCare.Body2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textColor="?attr/primary90"
-                android:textSize="14sp" />
+                android:textColor="?attr/colorTextPrimary" />
         </LinearLayout>
 
     </LinearLayout>

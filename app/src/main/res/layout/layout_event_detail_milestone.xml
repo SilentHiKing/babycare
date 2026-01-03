@@ -9,12 +9,12 @@
 
     <!-- 恭喜提示 -->
     <TextView
+        style="@style/TextAppearance.BabyCare.Heading2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/milestone_congratulation"
         android:textColor="@color/event_milestone"
-        android:textSize="18sp"
         android:textStyle="bold" />
 
     <!-- 自定义里程碑名称（仅自定义时显示） -->
@@ -28,15 +28,16 @@
         tools:visibility="visible">
 
         <TextView
+            style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/milestone_name"
-            android:textColor="?attr/primary90"
-            android:textSize="14sp"
+            android:textColor="?attr/colorTextPrimary"
             android:textStyle="bold" />
 
         <EditText
             android:id="@+id/etMilestoneName"
+            style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="match_parent"
             android:layout_height="44dp"
             android:layout_marginTop="8dp"
@@ -44,24 +45,25 @@
             android:hint="@string/milestone_name_hint"
             android:inputType="text"
             android:paddingHorizontal="12dp"
-            android:textColor="?attr/primary90"
-            android:textColorHint="?attr/weaken40"
-            android:textSize="14sp" />
+            android:textColor="?attr/colorTextPrimary"
+            android:textColorHint="?attr/colorTextHint"
+            />
 
     </LinearLayout>
 
     <!-- 描述 -->
     <TextView
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/milestone_description"
-        android:textColor="?attr/primary90"
-        android:textSize="14sp"
+        android:textColor="?attr/colorTextPrimary"
         android:textStyle="bold" />
 
     <EditText
         android:id="@+id/etDescription"
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -71,9 +73,9 @@
         android:inputType="textMultiLine"
         android:minHeight="80dp"
         android:padding="12dp"
-        android:textColor="?attr/primary90"
-        android:textColorHint="?attr/weaken40"
-        android:textSize="14sp" />
+        android:textColor="?attr/colorTextPrimary"
+        android:textColorHint="?attr/colorTextHint"
+        />
 
 </LinearLayout>
 

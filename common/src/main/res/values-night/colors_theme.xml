@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 夜间主题色：用于 AppTheme.Boy / AppTheme.Girl / AppTheme.Neutral -->
+
+    <!-- ==================== 男孩主题色（夜间，糖果感、柔和、青春） ==================== -->
+    <color name="boy_brand">#69DDF2</color>
+    <color name="boy_brand_dark">#2EB1C8</color>
+    <color name="boy_brand_light">#B0F3FF</color>
+    <color name="boy_accent">#41C9E2</color>
+    <color name="boy_bg_brand">#15292E</color>
+    <color name="boy_btn_pressed">#2EB1C8</color>
+    <!-- 带透明度 -->
+    <color name="boy_brand_10">#1A69DDF2</color>
+    <color name="boy_brand_20">#3369DDF2</color>
+    <color name="boy_brand_50">#8069DDF2</color>
+
+    <!-- ==================== 女孩主题色（夜间，糖果感、柔和、青春） ==================== -->
+    <color name="girl_brand">#FFA2CB</color>
+    <color name="girl_brand_dark">#DB6A9A</color>
+    <color name="girl_brand_light">#FFD8EC</color>
+    <color name="girl_accent">#D472A1</color>
+    <color name="girl_bg_brand">#2B1D25</color>
+    <color name="girl_btn_pressed">#DB6A9A</color>
+    <!-- 带透明度 -->
+    <color name="girl_brand_10">#1AFFA2CB</color>
+    <color name="girl_brand_20">#33FFA2CB</color>
+    <color name="girl_brand_50">#80FFA2CB</color>
+
+    <!-- ==================== 中性主题色（夜间，糖果感、柔和、青春） ==================== -->
+    <color name="neutral_brand">#FFC985</color>
+    <color name="neutral_brand_dark">#C68232</color>
+    <color name="neutral_brand_light">#FFE6C9</color>
+    <color name="neutral_accent">#BE6F28</color>
+    <color name="neutral_bg_brand">#2A2118</color>
+    <color name="neutral_btn_pressed">#C68232</color>
+    <!-- 带透明度 -->
+    <color name="neutral_brand_10">#1AFFC985</color>
+    <color name="neutral_brand_20">#33FFC985</color>
+    <color name="neutral_brand_50">#80FFC985</color>
+</resources>

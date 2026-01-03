@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- 选中状态 - 白色文字 -->
-    <item android:state_checked="true" android:color="@android:color/white" />
-    <!-- 未选中状态 - 主色文字 (Black90) -->
-    <item android:color="@color/Black90" />
+    <item android:state_checked="true" android:color="?attr/colorOnBrand" />
+    <!-- 未选中状态 - 主文案色 -->
+    <item android:color="?attr/colorTextPrimary" />
 </selector>

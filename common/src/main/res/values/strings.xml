@@ -61,6 +61,8 @@
     <string name="last_sleep">上次睡眠</string>
     <string name="last_sleep_time">上次: %1$s</string>
     <string name="today">今天</string>
+    <string name="calendar_previous">上一周期</string>
+    <string name="calendar_next">下一周期</string>
     <string name="next">下一次</string>
     <string name="countAndTotalTime">次数:%1$s,总时长:%2$s分钟（白天:%3$s;夜里:%4$s）</string>
     <string name="avgTime">平均每次时长:%1$s</string>

@@ -23,9 +23,9 @@
         <item name="colorOnBrand">@color/White100</item>
 
         <!-- Surface/Background -->
-        <item name="colorSurface">@color/White100</item>
-        <item name="colorSurfaceVariant">@color/boy_bg_brand</item>
-        <item name="colorBackground">@color/opacity_F2F2F7</item>
+        <item name="colorSurface">@color/surface_default</item>
+        <item name="colorSurfaceVariant">@color/surface_variant_default</item>
+        <item name="colorBackground">@color/bg_app_default</item>
 
         <!-- Functional -->
         <item name="colorSuccess">@color/event_growth</item>
@@ -33,9 +33,11 @@
         <item name="colorError">@color/event_health</item>
 
         <!-- Text -->
-        <item name="colorTextPrimary">@color/Black100</item>
-        <item name="colorTextSecondary">@color/Black70</item>
-        <item name="colorTextHint">@color/Black40</item>
+        <item name="colorTextPrimary">@color/text_primary_default</item>
+        <item name="colorTextSecondary">@color/text_secondary_default</item>
+        <item name="colorTextHint">@color/text_hint_default</item>
+        <item name="colorStatusTextPrimary">@color/status_text_primary</item>
+        <item name="colorStatusTextSecondary">@color/status_text_secondary</item>
 
         <!-- Shapes (2026 Layered Depth Standards) -->
         <item name="shapeCornerSmall">8dp</item>
@@ -48,11 +50,11 @@
         <item name="elevationMedium">8dp</item>
 
         <!-- The most prominent text color.  -->
-        <item name="android:textColorPrimary">@color/textColorPrimary</item>
+        <item name="android:textColorPrimary">?attr/colorTextPrimary</item>
         <!-- Secondary text color. -->
-        <item name="android:textColorSecondary">@color/textColorSecondary</item>
+        <item name="android:textColorSecondary">?attr/colorTextSecondary</item>
         <!-- Tertiary text color. -->
-        <item name="android:textColorTertiary">@color/textColorTertiary</item>
+        <item name="android:textColorTertiary">?attr/colorTextHint</item>
 
         <!-- A drawable to use as the background.  This can be either a reference
              to a full drawable resource (such as a PNG image, 9-patch,
@@ -78,10 +80,10 @@
 
         <item name="brand_color">@color/darkblue</item>
 
-        <item name="primary_bg_default">@color/opacity_F2F2F7</item>
-        <item name="secondary_bg_default">@color/White100</item>
+        <item name="primary_bg_default">@color/bg_app_default</item>
+        <item name="secondary_bg_default">?attr/colorSurface</item>
         <item name="secondary_bg_brand">@color/White100</item>
-        <item name="primary_bg_brand">@color/opacity_F2F2F7</item>
+        <item name="primary_bg_brand">@color/surface_variant_default</item>
         <item name="primary_btn_normal">@color/darkblue</item>
         <item name="primary_btn_pressed">@color/darkblue50</item>
         <item name="primary_btn_disable">@color/Black10</item>
@@ -91,13 +93,13 @@
         <item name="block_default">@color/White100</item>
         <item name="block_gridview">@color/opacity_F7F7F8</item>
 
-        <item name="primary100">@color/Black100</item>
-        <item name="primary90">@color/Black90</item>
-        <item name="secondary80">@color/Black80</item>
-        <item name="third70">@color/Black70</item>
-        <item name="tertiary60">@color/Black50</item>
+        <item name="primary100">?attr/colorTextPrimary</item>
+        <item name="primary90">?attr/colorTextPrimary</item>
+        <item name="secondary80">?attr/colorTextSecondary</item>
+        <item name="third70">?attr/colorTextSecondary</item>
+        <item name="tertiary60">?attr/colorTextHint</item>
         <item name="semantics_blue">@color/darkblue</item>
-        <item name="weaken40">@color/Black40</item>
+        <item name="weaken40">?attr/colorTextHint</item>
         <item name="semantics_warning_red">@color/Red60</item>
         <item name="semantics_brand">@color/Black90</item>
         <item name="semantics_brand60">@color/Black90</item>
@@ -142,7 +144,7 @@
 
 
         <!--自定义-->
-        <item name="windowBackground">@color/opacity_F1F1F1</item>
+        <item name="windowBackground">@color/bg_app_default</item>
         <item name="bg_f9f9f9">@color/opacity_F9F9F9</item>
         <item name="colorPopupBg">@color/opacity_F5F5F5</item>
 
@@ -493,8 +495,8 @@
         <item name="android:background">@drawable/selector_solid_category_bg</item>
         <item name="android:button">@null</item>
         <item name="android:gravity">center</item>
+        <item name="android:textAppearance">@style/TextAppearance.BabyCare.Body2</item>
         <item name="android:textColor">@color/selector_radio_text_color</item>
-        <item name="android:textSize">13sp</item>
     </style>
 
     <!-- 辅食子类选择按钮样式 -->
@@ -506,8 +508,8 @@
         <item name="android:background">@drawable/selector_solid_subtype_bg</item>
         <item name="android:button">@null</item>
         <item name="android:gravity">center</item>
+        <item name="android:textAppearance">@style/TextAppearance.BabyCare.Label</item>
         <item name="android:textColor">@color/selector_radio_text_color</item>
-        <item name="android:textSize">12sp</item>
     </style>
 
     <!-- 事件详情 RadioButton 样式 -->
@@ -519,8 +521,8 @@
         <item name="android:background">@drawable/selector_radio_bg</item>
         <item name="android:button">@null</item>
         <item name="android:gravity">center</item>
+        <item name="android:textAppearance">@style/TextAppearance.BabyCare.Body2</item>
         <item name="android:textColor">@color/selector_radio_text_color</item>
-        <item name="android:textSize">14sp</item>
     </style>
 
     <!-- 事件颜色选择 RadioButton 样式 -->
@@ -532,8 +534,8 @@
         <item name="android:background">@drawable/selector_radio_bg</item>
         <item name="android:button">@null</item>
         <item name="android:gravity">center</item>
+        <item name="android:textAppearance">@style/TextAppearance.BabyCare.Body2</item>
         <item name="android:textColor">@color/selector_radio_text_color</item>
-        <item name="android:textSize">13sp</item>
     </style>
 
 
@@ -603,5 +605,3 @@
     </style>
 
 </resources>
-
-

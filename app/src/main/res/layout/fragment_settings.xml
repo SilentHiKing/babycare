@@ -31,7 +31,6 @@
                 style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
                 android:text="@string/settings_general"
                 android:textColor="?attr/colorTextPrimary" />
 
@@ -72,7 +71,6 @@
                 style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
                 android:layout_marginTop="24dp"
                 android:text="@string/settings_reminder"
                 android:textColor="?attr/colorTextPrimary" />
@@ -98,7 +96,6 @@
                 style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
                 android:layout_marginTop="24dp"
                 android:text="@string/settings_about"
                 android:textColor="?attr/colorTextPrimary" />
@@ -124,7 +121,6 @@
                 style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
                 android:layout_marginTop="24dp"
                 android:text="@string/settings_more"
                 android:textColor="?attr/colorTextPrimary" />

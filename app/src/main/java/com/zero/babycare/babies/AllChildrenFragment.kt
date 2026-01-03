@@ -222,7 +222,7 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
                 }
 
                 // 编辑按钮
-                tvEdit.setOnClickListener {
+                actionRow.tvEdit.setOnClickListener {
                     goToEditBaby(item)
                 }
 

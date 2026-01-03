@@ -24,14 +24,12 @@
 
             <TextView
                 android:id="@+id/tvStartTime"
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Body2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:paddingHorizontal="10dp"
                 android:text="@string/startTime"
-                android:textColor="?attr/primary90"
-                android:textSize="16sp"
+                android:paddingHorizontal="12dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -39,11 +37,11 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="44dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="8dp"
                 android:background="?attr/bg_r6_block_gridview"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="10dp"
+                android:paddingHorizontal="12dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvStartTime">
@@ -57,18 +55,20 @@
                     android:ellipsize="end"
                     android:focusable="true"
                     android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
                     android:hint="@string/startTime"
                     android:includeFontPadding="false"
                     android:maxLines="1"
                     android:scrollHorizontally="true"
-                    android:textColor="?attr/primary90"
-                    android:textColorHint="?attr/weaken40"
+                    android:textColor="?attr/colorTextPrimary"
+                    android:textColorHint="?attr/colorTextHint"
                     android:textSize="16sp" />
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/ivStartTime"
                     android:layout_width="22dp"
                     android:layout_height="22dp"
+                    android:contentDescription="@string/startTime"
                     android:src="?attr/ic_color_add" />
 
             </LinearLayout>
@@ -76,7 +76,7 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <View
-            android:layout_width="10dp"
+            android:layout_width="8dp"
             android:layout_height="1dp" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -86,14 +86,12 @@
 
             <TextView
                 android:id="@+id/tvEndTime"
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Body2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical|end"
-                android:paddingHorizontal="10dp"
                 android:text="@string/endTime"
-                android:textColor="?attr/primary90"
-                android:textSize="16sp"
+                android:paddingHorizontal="12dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -101,11 +99,11 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="44dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="8dp"
                 android:background="?attr/bg_r6_block_gridview"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="10dp"
+                android:paddingHorizontal="12dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvEndTime">
@@ -119,18 +117,20 @@
                     android:ellipsize="end"
                     android:focusable="true"
                     android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
                     android:hint="@string/endTime"
                     android:includeFontPadding="false"
                     android:maxLines="1"
                     android:scrollHorizontally="true"
-                    android:textColor="?attr/primary90"
-                    android:textColorHint="?attr/weaken40"
+                    android:textColor="?attr/colorTextPrimary"
+                    android:textColorHint="?attr/colorTextHint"
                     android:textSize="16sp" />
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/ivEndTime"
                     android:layout_width="22dp"
                     android:layout_height="22dp"
+                    android:contentDescription="@string/endTime"
                     android:src="?attr/ic_color_add" />
 
             </LinearLayout>
