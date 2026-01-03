@@ -23,6 +23,7 @@ import com.zero.common.util.CompatDateUtils
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
 import com.zero.components.base.vm.UiState
+import com.zero.components.widget.ToolbarAction
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -167,7 +168,6 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
      */
     private fun setupToolbar() {
         binding.toolbar.showBackButton { goBack() }
-        binding.toolbar.setOnActionClickListener { saveBabyInfo() }
     }
 
     /**
@@ -177,7 +177,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         // 标题
         binding.toolbar.title = StringUtils.getString(com.zero.common.R.string.create_baby)
         // 右侧按钮
-        binding.toolbar.setActionText(StringUtils.getString(com.zero.common.R.string.finish))
+        setPrimaryAction(StringUtils.getString(com.zero.common.R.string.finish))
         // 隐藏删除按钮
         binding.tvDelete.visibility = View.GONE
         // 返回按钮：首次创建时隐藏
@@ -200,7 +200,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         // 标题
         binding.toolbar.title = StringUtils.getString(com.zero.common.R.string.edit_baby_info)
         // 右侧按钮
-        binding.toolbar.setActionText(StringUtils.getString(com.zero.common.R.string.save))
+        setPrimaryAction(StringUtils.getString(com.zero.common.R.string.save))
         // 显示删除按钮（如果不是唯一的宝宝）
         binding.tvDelete.visibility = if (mainVm.getAllBabies().size > 1) View.VISIBLE else View.GONE
         // 显示返回按钮
@@ -245,6 +245,15 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         if (baby.bloodType.isNotEmpty()) {
             binding.etBloodType.setText(baby.bloodType)
         }
+    }
+
+    /**
+     * 设置工具栏主操作按钮（单动作也统一走列表能力）
+     */
+    private fun setPrimaryAction(text: String) {
+        binding.toolbar.setActions(
+            listOf(ToolbarAction(text = text))
+        ) { saveBabyInfo() }
     }
 
     /**

@@ -7,90 +7,58 @@
     tools:background="?attr/primary_bg_default"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
-    <!-- 左侧返回按钮 -->
-    <ImageView
-        android:id="@+id/ivBack"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/back"
-        android:padding="12dp"
-        android:src="@drawable/ic_back"
+    <!-- 左侧操作区域 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvLeftActions"
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
+        android:overScrollMode="never"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="?attr/icon_brand" />
-
-    <!-- 左侧菜单按钮（可替代返回按钮） -->
-    <ImageView
-        android:id="@+id/ivMenu"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/menu"
-        android:padding="12dp"
-        android:src="@drawable/ic_menu"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="?attr/icon_brand"
+        tools:itemCount="1"
+        tools:listitem="@layout/item_toolbar_left_action"
         tools:visibility="visible" />
 
     <!-- 标题 -->
     <TextView
         android:id="@+id/tvTitle"
-        style="@style/BoldTextAppearance"
+        style="@style/TextAppearance.BabyCare.Heading2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:ellipsize="end"
         android:gravity="center"
-        android:paddingVertical="14dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
         android:singleLine="true"
-        android:textColor="?attr/primary90"
-        android:textSize="18sp"
+        android:textColor="?attr/colorTextPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="标题" />
+        tools:text="页面标题" />
 
     <!-- 右侧操作区域 -->
     <LinearLayout
         android:id="@+id/llRightActions"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="56dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingEnd="8dp"
+        android:paddingEnd="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- 右侧文字按钮 -->
-        <TextView
-            android:id="@+id/tvAction"
+        <!-- 右侧多动作列表（多于一个时使用） -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvActions"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:gravity="center"
-            android:paddingHorizontal="12dp"
-            android:textColor="?attr/brand_color"
-            android:textSize="15sp"
+            android:layout_height="match_parent"
+            android:overScrollMode="never"
             android:visibility="gone"
-            tools:text="保存"
-            tools:visibility="visible" />
-
-        <!-- 右侧图标按钮 -->
-        <ImageView
-            android:id="@+id/ivAction"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="8dp"
-            android:visibility="gone"
-            app:tint="?attr/icon_brand"
-            tools:src="@drawable/ic_add"
+            tools:itemCount="2"
+            tools:listitem="@layout/item_toolbar_action"
             tools:visibility="visible" />
 
     </LinearLayout>

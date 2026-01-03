@@ -39,6 +39,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":baby_recyclerview"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.recyclerview)

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/llActionRoot"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:background="?attr/selectableItemBackgroundBorderless"
+    android:gravity="center_vertical"
+    android:minWidth="48dp"
+    android:orientation="horizontal"
+    android:paddingHorizontal="8dp">
+
+    <!-- 右侧动作图标，按需显示 -->
+    <ImageView
+        android:id="@+id/ivActionIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="4dp"
+        android:contentDescription="@null"
+        android:visibility="gone"
+        app:tint="?attr/colorTextPrimary"
+        tools:src="@drawable/ic_add"
+        tools:visibility="visible" />
+
+    <!-- 右侧动作文字，按需显示 -->
+    <TextView
+        android:id="@+id/tvActionText"
+        style="@style/TextAppearance.BabyCare.Label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textSize="14sp"
+        android:textColor="?attr/colorBrand"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:text="编辑"
+        tools:visibility="visible" />
+
+</LinearLayout>

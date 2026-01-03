@@ -18,6 +18,7 @@ import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babydata.entity.BabyInfo
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
+import com.zero.components.widget.ToolbarAction
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -50,9 +51,14 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
         binding.toolbar.showBackButton {
             mainVm.navigateTo(NavTarget.Dashboard)
         }
-        binding.toolbar.setActionIcon(com.zero.common.R.drawable.ic_add) {
-            goToAddBaby()
-        }
+        binding.toolbar.setActions(
+            listOf(
+                ToolbarAction(
+                    iconRes = com.zero.common.R.drawable.ic_add,
+                    contentDescription = StringUtils.getString(com.zero.common.R.string.add_baby)
+                )
+            )
+        ) { goToAddBaby() }
 
         // 空状态添加按钮
         binding.tvAddBaby.setOnClickListener {

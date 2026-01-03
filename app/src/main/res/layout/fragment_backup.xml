@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/primary_bg_default">
+    android:background="?attr/colorBackground">
 
     <com.zero.components.widget.BaseToolbar
         android:id="@+id/toolbar"
@@ -15,7 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:paddingBottom="24dp"
+        android:paddingBottom="40dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
 
@@ -23,25 +23,27 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="16dp">
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12dp">
 
             <TextView
                 android:id="@+id/tvBackupTitle"
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginStart="4dp"
                 android:text="@string/settings_backup"
-                android:textColor="?attr/primary90"
-                android:textSize="16sp" />
+                android:textColor="?attr/colorTextPrimary" />
 
             <LinearLayout
                 android:id="@+id/cardBackup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_r12_secondary_bg_default"
-                android:orientation="vertical">
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_card_prediction"
+                android:elevation="?attr/elevationMedium"
+                android:orientation="vertical"
+                android:paddingVertical="4dp">
 
                 <include
                     android:id="@+id/rowBackupExport"
@@ -68,28 +70,31 @@
                 android:id="@+id/tvBackupNote"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="12dp"
+                android:paddingHorizontal="4dp"
                 android:text="@string/backup_note"
-                android:textColor="?attr/weaken40"
+                android:textColor="?attr/colorTextSecondary"
                 android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/tvReportTitle"
-                style="@style/BoldTextAppearance"
+                style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="24dp"
                 android:text="@string/backup_import_report_title_section"
-                android:textColor="?attr/primary90"
-                android:textSize="16sp" />
+                android:textColor="?attr/colorTextPrimary" />
 
             <LinearLayout
                 android:id="@+id/cardReportList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_r12_secondary_bg_default"
-                android:orientation="vertical">
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_card_prediction"
+                android:elevation="?attr/elevationMedium"
+                android:orientation="vertical"
+                android:paddingVertical="4dp">
 
                 <include
                     android:id="@+id/rowBackupReportClear"
@@ -113,7 +118,7 @@
                     android:paddingHorizontal="16dp"
                     android:paddingVertical="12dp"
                     android:text="@string/backup_report_empty"
-                    android:textColor="?attr/weaken40"
+                    android:textColor="?attr/colorTextHint"
                     android:textSize="12sp"
                     android:visibility="gone" />
             </LinearLayout>

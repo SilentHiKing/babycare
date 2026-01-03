@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/primary_bg_default">
+    android:background="?attr/colorBackground">
 
     <!-- 使用通用 Toolbar -->
     <com.zero.components.widget.BaseToolbar
@@ -13,7 +13,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:toolbarTitle="@string/babyInfo" />
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -23,196 +23,155 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="25dp">
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="40dp">
 
-            <!-- 姓名 -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:id="@+id/tvName"
-                    style="@style/BoldTextAppearance"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:paddingHorizontal="10dp"
-                    android:text="@string/babyName"
-                    android:textColor="?attr/primary90"
-                    android:textSize="16sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="10dp"
-                    android:background="?attr/bg_r6_block_gridview"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="10dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvName">
-
-                    <EditText
-                        android:id="@+id/etName"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:background="@null"
-                        android:focusable="true"
-                        android:focusableInTouchMode="true"
-                        android:hint="@string/babyNameHint"
-                        android:includeFontPadding="false"
-                        android:inputType="text"
-                        android:singleLine="true"
-                        android:textColor="?attr/primary90"
-                        android:textColorHint="?attr/weaken40"
-                        android:textSize="16sp" />
-
-                </LinearLayout>
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- 生日 -->
+            <!-- 卡片容器 -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
+                android:background="@drawable/bg_card_prediction"
+                android:elevation="?attr/elevationMedium"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="20dp">
 
+                <!-- 姓名 -->
                 <TextView
-                    android:id="@+id/tvBirthday"
-                    style="@style/BoldTextAppearance"
-                    android:layout_width="match_parent"
+                    android:id="@+id/labelName"
+                    style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:paddingHorizontal="10dp"
-                    android:text="@string/babyBirthday"
-                    android:textColor="?attr/primary90"
-                    android:textSize="16sp"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    android:text="@string/babyName"
+                    android:textColor="?attr/colorTextPrimary"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <LinearLayout
+                    android:id="@+id/layoutName"
                     android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
                     android:background="?attr/bg_r6_block_gridview"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="10dp"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    android:paddingHorizontal="12dp"
+                    app:layout_constraintTop_toBottomOf="@id/labelName">
+
+                    <EditText
+                        android:id="@+id/etName"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@null"
+                        android:hint="@string/babyNameHint"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:textColor="?attr/colorTextPrimary"
+                        android:textColorHint="?attr/colorTextHint"
+                        android:textSize="16sp" />
+                </LinearLayout>
+
+                <!-- 生日 -->
+                <TextView
+                    android:id="@+id/labelBirthday"
+                    style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="@string/babyBirthday"
+                    android:textColor="?attr/colorTextPrimary"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvBirthday">
+                    app:layout_constraintTop_toBottomOf="@id/layoutName" />
+
+                <LinearLayout
+                    android:id="@+id/layoutBirthday"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
+                    android:background="?attr/bg_r6_block_gridview"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="12dp"
+                    app:layout_constraintTop_toBottomOf="@id/labelBirthday">
 
                     <EditText
                         android:id="@+id/etBirthday"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_weight="1"
                         android:background="@null"
                         android:cursorVisible="false"
                         android:focusable="false"
                         android:focusableInTouchMode="false"
                         android:hint="@string/babyBirthdayHint"
-                        android:includeFontPadding="false"
                         android:inputType="text"
                         android:singleLine="true"
-                        android:textColor="?attr/primary90"
-                        android:textColorHint="?attr/weaken40"
+                        android:textColor="?attr/colorTextPrimary"
+                        android:textColorHint="?attr/colorTextHint"
                         android:textSize="16sp" />
-
                 </LinearLayout>
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- 性别 -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
-
+                <!-- 性别 -->
                 <TextView
-                    android:id="@+id/tvGender"
-                    style="@style/BoldTextAppearance"
-                    android:layout_width="match_parent"
+                    android:id="@+id/labelGender"
+                    style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:paddingHorizontal="10dp"
+                    android:layout_marginTop="20dp"
                     android:text="@string/babyGender"
-                    android:textColor="?attr/primary90"
-                    android:textSize="16sp"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    android:textColor="?attr/colorTextPrimary"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toBottomOf="@id/layoutBirthday" />
 
                 <LinearLayout
+                    android:id="@+id/layoutGender"
                     android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
                     android:background="?attr/bg_r6_block_gridview"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="10dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvGender">
+                    android:paddingHorizontal="12dp"
+                    app:layout_constraintTop_toBottomOf="@id/labelGender">
 
                     <EditText
                         android:id="@+id/etGender"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_weight="1"
                         android:background="@null"
                         android:cursorVisible="false"
                         android:focusable="false"
                         android:focusableInTouchMode="false"
                         android:hint="@string/babyGenderHint"
-                        android:includeFontPadding="false"
                         android:inputType="text"
                         android:singleLine="true"
-                        android:textColor="?attr/primary90"
-                        android:textColorHint="?attr/weaken40"
+                        android:textColor="?attr/colorTextPrimary"
+                        android:textColorHint="?attr/colorTextHint"
                         android:textSize="16sp" />
-
                 </LinearLayout>
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- 体重 -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
+                <!-- 体重 -->
                 <TextView
-                    android:id="@+id/tvWeight"
-                    style="@style/BoldTextAppearance"
-                    android:layout_width="match_parent"
+                    android:id="@+id/labelWeight"
+                    style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:gravity="center_vertical"
-                    android:paddingHorizontal="10dp"
+                    android:layout_marginTop="20dp"
                     android:text="@string/babyWeight"
-                    android:textColor="?attr/primary100"
-                    android:textSize="16sp"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    android:textColor="?attr/colorTextPrimary"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toBottomOf="@id/layoutGender" />
 
                 <LinearLayout
+                    android:id="@+id/layoutWeight"
                     android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
                     android:background="?attr/bg_r6_block_gridview"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="10dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvWeight">
+                    android:paddingHorizontal="12dp"
+                    app:layout_constraintTop_toBottomOf="@id/labelWeight">
 
                     <EditText
                         android:id="@+id/etWeight"
@@ -221,58 +180,44 @@
                         android:layout_weight="1"
                         android:background="@null"
                         android:digits="0123456789."
-                        android:focusable="true"
-                        android:focusableInTouchMode="true"
                         android:hint="@string/babyWeightHint"
-                        android:includeFontPadding="false"
+                        android:inputType="numberDecimal"
+                        android:maxLines="1"
                         android:singleLine="true"
-                        android:textColor="?attr/primary90"
-                        android:textColorHint="?attr/weaken40"
+                        android:textColor="?attr/colorTextPrimary"
+                        android:textColorHint="?attr/colorTextHint"
                         android:textSize="16sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:includeFontPadding="false"
                         android:text="@string/unit_g"
-                        android:textColor="?attr/primary90"
-                        android:textSize="16sp" />
-
+                        android:textColor="?attr/colorTextSecondary"
+                        android:textSize="14sp" />
                 </LinearLayout>
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- 身高 -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
+                <!-- 身高 -->
                 <TextView
-                    android:id="@+id/tvHeight"
-                    style="@style/BoldTextAppearance"
-                    android:layout_width="match_parent"
+                    android:id="@+id/labelHeight"
+                    style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:gravity="center_vertical"
-                    android:paddingHorizontal="10dp"
+                    android:layout_marginTop="20dp"
                     android:text="@string/babyHeight"
-                    android:textColor="?attr/primary100"
-                    android:textSize="16sp"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    android:textColor="?attr/colorTextPrimary"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toBottomOf="@id/layoutWeight" />
 
                 <LinearLayout
+                    android:id="@+id/layoutHeight"
                     android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
                     android:background="?attr/bg_r6_block_gridview"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="10dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvHeight">
+                    android:paddingHorizontal="12dp"
+                    app:layout_constraintTop_toBottomOf="@id/labelHeight">
 
                     <EditText
                         android:id="@+id/etHeight"
@@ -281,88 +226,70 @@
                         android:layout_weight="1"
                         android:background="@null"
                         android:digits="0123456789."
-                        android:focusable="true"
-                        android:focusableInTouchMode="true"
                         android:hint="@string/babyHeightHint"
-                        android:includeFontPadding="false"
+                        android:inputType="numberDecimal"
+                        android:maxLines="1"
                         android:singleLine="true"
-                        android:textColor="?attr/primary90"
-                        android:textColorHint="?attr/weaken40"
+                        android:textColor="?attr/colorTextPrimary"
+                        android:textColorHint="?attr/colorTextHint"
                         android:textSize="16sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:includeFontPadding="false"
                         android:text="@string/unit_cm"
-                        android:textColor="?attr/primary90"
-                        android:textSize="16sp" />
-
+                        android:textColor="?attr/colorTextSecondary"
+                        android:textSize="14sp" />
                 </LinearLayout>
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- 血型 -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
-
+                <!-- 血型 -->
                 <TextView
-                    android:id="@+id/tvBloodType"
-                    style="@style/BoldTextAppearance"
-                    android:layout_width="match_parent"
+                    android:id="@+id/labelBloodType"
+                    style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:paddingHorizontal="10dp"
+                    android:layout_marginTop="20dp"
                     android:text="@string/babyBloodType"
-                    android:textColor="?attr/primary90"
-                    android:textSize="16sp"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    android:textColor="?attr/colorTextPrimary"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toBottomOf="@id/layoutHeight" />
 
                 <LinearLayout
+                    android:id="@+id/layoutBloodType"
                     android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="8dp"
                     android:background="?attr/bg_r6_block_gridview"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="10dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvBloodType">
+                    android:paddingHorizontal="12dp"
+                    app:layout_constraintTop_toBottomOf="@id/labelBloodType">
 
                     <EditText
                         android:id="@+id/etBloodType"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_weight="1"
                         android:background="@null"
                         android:cursorVisible="false"
                         android:focusable="false"
                         android:focusableInTouchMode="false"
                         android:hint="@string/babyBloodTypeHint"
-                        android:includeFontPadding="false"
                         android:inputType="text"
                         android:singleLine="true"
-                        android:textColor="?attr/primary90"
-                        android:textColorHint="?attr/weaken40"
+                        android:textColor="?attr/colorTextPrimary"
+                        android:textColorHint="?attr/colorTextHint"
                         android:textSize="16sp" />
-
                 </LinearLayout>
-
+                
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- 删除按钮（仅编辑模式显示） -->
+            <!-- 删除按钮 -->
             <TextView
                 android:id="@+id/tvDelete"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:layout_marginTop="40dp"
-                android:layout_marginBottom="20dp"
-                android:background="?attr/bg_r6_block_gridview"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/bg_r6_block_gridview"
                 android:gravity="center"
                 android:text="@string/delete_baby"
                 android:textColor="?attr/semantics_warning_red"
@@ -370,7 +297,7 @@
                 android:visibility="gone" />
 
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -11,8 +11,6 @@
             <enum name="menu" value="1" />
             <enum name="none" value="2" />
         </attr>
-        <!-- 右侧文字按钮文案 -->
-        <attr name="actionText" format="string" />
     </declare-styleable>
 
     <declare-styleable name="RecordTimerPanelView">
