@@ -29,6 +29,11 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         fun create(): DashboardFragment {
             return DashboardFragment()
         }
+        
+        // 最小刷新间隔（毫秒），避免数据库写入与查询竞态
+        private const val MIN_REFRESH_INTERVAL_MS = 100L
+        // 防抖延迟（毫秒）
+        private const val REFRESH_DEBOUNCE_MS = 50L
     }
 
     private val vm by viewModels<DashboardViewModel>()
@@ -45,6 +50,8 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
     private val handler = Handler(Looper.getMainLooper())
     private var secondTimerRunnable: Runnable? = null   // 每秒更新（状态卡片）
     private var minuteTimerRunnable: Runnable? = null   // 每分钟更新（距上次时间）
+    private var refreshRunnable: Runnable? = null       // 防抖刷新
+    private var lastRefreshTime: Long = 0              // 上次刷新时间
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
@@ -132,7 +139,35 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         }
     }
 
+    /**
+     * 刷新数据（带防抖和最小间隔保护）
+     * 确保数据库写入完成后再进行查询，避免竞态条件
+     */
     private fun refreshData() {
+        // 取消之前的待执行刷新
+        refreshRunnable?.let { handler.removeCallbacks(it) }
+        
+        val now = System.currentTimeMillis()
+        val timeSinceLastRefresh = now - lastRefreshTime
+        
+        // 计算需要等待的时间（确保最小间隔 + 防抖延迟）
+        val delay = if (timeSinceLastRefresh < MIN_REFRESH_INTERVAL_MS) {
+            MIN_REFRESH_INTERVAL_MS - timeSinceLastRefresh + REFRESH_DEBOUNCE_MS
+        } else {
+            REFRESH_DEBOUNCE_MS
+        }
+        
+        refreshRunnable = Runnable {
+            doRefreshData()
+            lastRefreshTime = System.currentTimeMillis()
+        }
+        handler.postDelayed(refreshRunnable!!, delay)
+    }
+    
+    /**
+     * 实际执行数据刷新
+     */
+    private fun doRefreshData() {
         val baby = mainVm.getCurrentBabyInfo() ?: return
         val ageMonths = calculateBabyAgeMonths(baby.birthDate)
         vm.loadDashboardData(baby.babyId, ageMonths)
@@ -206,6 +241,8 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         secondTimerRunnable = null
         minuteTimerRunnable?.let { handler.removeCallbacks(it) }
         minuteTimerRunnable = null
+        refreshRunnable?.let { handler.removeCallbacks(it) }
+        refreshRunnable = null
     }
 
     /**

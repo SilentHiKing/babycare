@@ -17,6 +17,15 @@ class LocalRulePredictor : Predictor {
         // 最少需要的记录数
         private const val MIN_RECORDS_FOR_PREDICTION = 3
         
+        // 最少需要的时段记录数（低于此值时合并白天/夜间数据）
+        private const val MIN_PERIOD_RECORDS = 3
+        
+        // 最小区间范围（5分钟，避免标准差为0时区间退化为单点）
+        private const val MIN_INTERVAL_RANGE_MS = 5 * 60 * 1000L
+        
+        // EWMA 平滑系数（0.3 表示最近记录权重更高，越接近1越敏感于新数据）
+        private const val EWMA_ALPHA = 0.3
+        
         // 白天时间段：6:00 - 20:00
         private const val DAY_START_HOUR = 6
         private const val DAY_END_HOUR = 20
@@ -51,51 +60,64 @@ class LocalRulePredictor : Predictor {
         feedingRecords: List<FeedingRecord>,
         sleepRecords: List<SleepRecord>?
     ): PredictionResult? {
+        // 过滤掉进行中/无效记录（feedingEnd 必须大于 feedingStart）
+        val completedRecords = feedingRecords.filter { it.feedingEnd > it.feedingStart }
+        
         // 数据不足时使用默认值
-        if (feedingRecords.size < MIN_RECORDS_FOR_PREDICTION) {
-            return predictWithDefault(babyAgeMonths, feedingRecords.lastOrNull()?.feedingEnd, isFeeding = true)
+        if (completedRecords.size < MIN_RECORDS_FOR_PREDICTION) {
+            return predictWithDefault(babyAgeMonths, completedRecords.lastOrNull()?.feedingEnd, isFeeding = true)
         }
         
         // 按时段分析间隔
-        val intervals = calculateIntervals(feedingRecords.map { it.feedingStart to it.feedingEnd })
+        val intervals = calculateIntervals(completedRecords.map { it.feedingStart to it.feedingEnd })
         val dayIntervals = intervals.filter { it.second }.map { it.first }
         val nightIntervals = intervals.filter { !it.second }.map { it.first }
         
         // 根据当前时间选择使用哪个时段的数据
         val isDay = isCurrentlyDay()
-        val relevantIntervals = if (isDay) {
+        var relevantIntervals = if (isDay) {
             dayIntervals.ifEmpty { nightIntervals }
         } else {
             nightIntervals.ifEmpty { dayIntervals }
         }
         
-        if (relevantIntervals.isEmpty()) {
-            return predictWithDefault(babyAgeMonths, feedingRecords.last().feedingEnd, isFeeding = true)
+        // 时段数据不足时，合并使用所有数据
+        if (relevantIntervals.size < MIN_PERIOD_RECORDS) {
+            val allIntervals = dayIntervals + nightIntervals
+            if (allIntervals.size >= MIN_PERIOD_RECORDS) {
+                relevantIntervals = allIntervals
+            } else if (allIntervals.isEmpty()) {
+                return predictWithDefault(babyAgeMonths, completedRecords.last().feedingEnd, isFeeding = true)
+            }
+            // allIntervals 不为空但少于 MIN_PERIOD_RECORDS，仍使用这些数据但置信度会较低
+            if (relevantIntervals.isEmpty()) {
+                relevantIntervals = allIntervals
+            }
         }
         
-        // 计算统计值
+        // 计算统计值（使用 EWMA 时间衰减）
         val stats = calculateStats(relevantIntervals)
         
         // 月龄修正因子
         val ageFactor = getAgeFactor(babyAgeMonths, isFeeding = true)
         
         // 上次喂奶时长修正
-        val lastRecord = feedingRecords.last()
-        val durationFactor = calculateDurationFactor(lastRecord, feedingRecords)
+        val lastRecord = completedRecords.last()
+        val durationFactor = calculateDurationFactor(lastRecord, completedRecords)
         
-        // 计算预测间隔
-        val predictedInterval = (stats.median * ageFactor * durationFactor).toLong()
+        // 计算预测间隔（使用 EWMA 替代简单中位数，更关注近期规律）
+        val predictedInterval = (stats.ewma * ageFactor * durationFactor).toLong()
         val predictedTime = lastRecord.feedingEnd + predictedInterval
         
         // 计算置信度
         val confidence = calculateConfidence(
-            recordCount = feedingRecords.size,
+            recordCount = completedRecords.size,
             coefficientOfVariation = stats.cv,
             hasEnoughData = relevantIntervals.size >= 5
         )
         
-        // 计算区间（基于标准差）
-        val intervalRange = (stats.stdDev * 0.8).toLong()  // 80%标准差作为区间
+        // 计算区间（基于标准差，设置最小值避免区间为0）
+        val intervalRange = maxOf((stats.stdDev * 0.8).toLong(), MIN_INTERVAL_RANGE_MS)
         val earliestTime = predictedTime - intervalRange
         val latestTime = predictedTime + intervalRange
         
@@ -113,16 +135,19 @@ class LocalRulePredictor : Predictor {
         sleepRecords: List<SleepRecord>,
         feedingRecords: List<FeedingRecord>?
     ): PredictionResult? {
+        // 过滤掉进行中/无效记录（sleepEnd 必须大于 sleepStart）
+        val completedRecords = sleepRecords.filter { it.sleepEnd > it.sleepStart }
+        
         // 数据不足时使用默认清醒窗口
-        if (sleepRecords.size < MIN_RECORDS_FOR_PREDICTION) {
-            return predictWithDefault(babyAgeMonths, sleepRecords.lastOrNull()?.sleepEnd, isFeeding = false)
+        if (completedRecords.size < MIN_RECORDS_FOR_PREDICTION) {
+            return predictWithDefault(babyAgeMonths, completedRecords.lastOrNull()?.sleepEnd, isFeeding = false)
         }
         
         // 按时段分析间隔（上次睡醒到下次入睡的时间）
         val awakeIntervals = mutableListOf<Pair<Long, Boolean>>()  // (interval, isDay)
-        for (i in 0 until sleepRecords.size - 1) {
-            val curr = sleepRecords[i]
-            val next = sleepRecords[i + 1]
+        for (i in 0 until completedRecords.size - 1) {
+            val curr = completedRecords[i]
+            val next = completedRecords[i + 1]
             val interval = next.sleepStart - curr.sleepEnd
             if (interval > 0) {
                 val isDay = isTimeInDay(curr.sleepEnd)
@@ -134,30 +159,44 @@ class LocalRulePredictor : Predictor {
         val nightIntervals = awakeIntervals.filter { !it.second }.map { it.first }
         
         val isDay = isCurrentlyDay()
-        val relevantIntervals = if (isDay) {
+        var relevantIntervals = if (isDay) {
             dayIntervals.ifEmpty { nightIntervals }
         } else {
             nightIntervals.ifEmpty { dayIntervals }
         }
         
-        if (relevantIntervals.isEmpty()) {
-            return predictWithDefault(babyAgeMonths, sleepRecords.last().sleepEnd, isFeeding = false)
+        // 时段数据不足时，合并使用所有数据
+        if (relevantIntervals.size < MIN_PERIOD_RECORDS) {
+            val allIntervals = dayIntervals + nightIntervals
+            if (allIntervals.size >= MIN_PERIOD_RECORDS) {
+                relevantIntervals = allIntervals
+            } else if (allIntervals.isEmpty()) {
+                return predictWithDefault(babyAgeMonths, completedRecords.last().sleepEnd, isFeeding = false)
+            }
+            if (relevantIntervals.isEmpty()) {
+                relevantIntervals = allIntervals
+            }
         }
         
         val stats = calculateStats(relevantIntervals)
         val ageFactor = getAgeFactor(babyAgeMonths, isFeeding = false)
         
-        val predictedInterval = (stats.median * ageFactor).toLong()
-        val lastSleepEnd = sleepRecords.last().sleepEnd
+        // 上次睡眠时长修正（睡得短→清醒窗口短，睡得长→清醒窗口长）
+        val lastRecord = completedRecords.last()
+        val durationFactor = calculateSleepDurationFactor(lastRecord, completedRecords)
+        
+        val predictedInterval = (stats.ewma * ageFactor * durationFactor).toLong()
+        val lastSleepEnd = lastRecord.sleepEnd
         val predictedTime = lastSleepEnd + predictedInterval
         
         val confidence = calculateConfidence(
-            recordCount = sleepRecords.size,
+            recordCount = completedRecords.size,
             coefficientOfVariation = stats.cv,
             hasEnoughData = relevantIntervals.size >= 5
         )
         
-        val intervalRange = (stats.stdDev * 0.8).toLong()
+        // 设置最小区间，避免标准差为0时区间退化为单点
+        val intervalRange = maxOf((stats.stdDev * 0.8).toLong(), MIN_INTERVAL_RANGE_MS)
         
         return PredictionResult(
             predictedTime = Date(predictedTime),
@@ -217,11 +256,11 @@ class LocalRulePredictor : Predictor {
     }
 
     /**
-     * 计算统计值
+     * 计算统计值（包含 EWMA 时间衰减）
      */
     private fun calculateStats(intervals: List<Long>): IntervalStats {
         if (intervals.isEmpty()) {
-            return IntervalStats(0.0, 0.0, 0.0, 1.0)
+            return IntervalStats(0.0, 0.0, 0.0, 0.0, 1.0)
         }
         
         val sorted = intervals.sorted()
@@ -234,9 +273,31 @@ class LocalRulePredictor : Predictor {
         val mean = intervals.average()
         val variance = intervals.map { (it - mean) * (it - mean) }.average()
         val stdDev = sqrt(variance)
-        val cv = if (mean > 0) stdDev / mean else 1.0  // 变异系数
+        // 变异系数：mean <= 0 视为数据异常，返回高CV降低置信度
+        val cv = if (mean > 0) stdDev / mean else Double.MAX_VALUE
         
-        return IntervalStats(median, mean, stdDev, cv)
+        // EWMA 指数加权移动平均（最近记录权重更高）
+        // 按时间顺序，最后一个是最新的
+        val ewma = calculateEwma(intervals)
+        
+        return IntervalStats(median, mean, stdDev, ewma, cv)
+    }
+    
+    /**
+     * 计算指数加权移动平均（EWMA）
+     * 最近的数据权重更高，更能反映当前规律
+     * @param values 按时间顺序排列的值列表（最后一个是最新的）
+     */
+    private fun calculateEwma(values: List<Long>): Double {
+        if (values.isEmpty()) return 0.0
+        if (values.size == 1) return values[0].toDouble()
+        
+        // EWMA: S_t = α * X_t + (1-α) * S_{t-1}
+        var ewma = values[0].toDouble()
+        for (i in 1 until values.size) {
+            ewma = EWMA_ALPHA * values[i] + (1 - EWMA_ALPHA) * ewma
+        }
+        return ewma
     }
 
     /**
@@ -271,12 +332,37 @@ class LocalRulePredictor : Predictor {
     ): Double {
         if (allRecords.size < 3) return 1.0
         
-        val avgDuration = allRecords.takeLast(10).map { it.feedingEnd - it.feedingStart }.average()
-        val lastDuration = lastRecord.feedingEnd - lastRecord.feedingStart
+        // 确保时长为非负值，避免异常数据影响计算
+        val avgDuration = allRecords.takeLast(10)
+            .map { (it.feedingEnd - it.feedingStart).coerceAtLeast(0L) }
+            .average()
+        val lastDuration = (lastRecord.feedingEnd - lastRecord.feedingStart).coerceAtLeast(0L)
         
         return when {
             lastDuration > avgDuration * 1.3 -> 1.08   // 喂得久，间隔延长
             lastDuration < avgDuration * 0.7 -> 0.92   // 喂得短，间隔缩短
+            else -> 1.0
+        }
+    }
+    
+    /**
+     * 根据上次睡眠时长调整清醒窗口（睡得短→清醒窗口短，睡得长→清醒窗口长）
+     */
+    private fun calculateSleepDurationFactor(
+        lastRecord: SleepRecord,
+        allRecords: List<SleepRecord>
+    ): Double {
+        if (allRecords.size < 3) return 1.0
+        
+        // 确保时长为非负值
+        val avgDuration = allRecords.takeLast(10)
+            .map { (it.sleepEnd - it.sleepStart).coerceAtLeast(0L) }
+            .average()
+        val lastDuration = (lastRecord.sleepEnd - lastRecord.sleepStart).coerceAtLeast(0L)
+        
+        return when {
+            lastDuration > avgDuration * 1.3 -> 1.10   // 睡得久，清醒窗口延长
+            lastDuration < avgDuration * 0.7 -> 0.88   // 睡得短，清醒窗口缩短
             else -> 1.0
         }
     }
@@ -332,6 +418,7 @@ class LocalRulePredictor : Predictor {
         val median: Double,    // 中位数
         val mean: Double,      // 平均值
         val stdDev: Double,    // 标准差
+        val ewma: Double,      // 指数加权移动平均（时间衰减）
         val cv: Double         // 变异系数
     )
 }

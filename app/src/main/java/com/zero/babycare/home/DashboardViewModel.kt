@@ -45,11 +45,6 @@ class DashboardViewModel : BaseViewModel() {
                 val recentFeedings = repository.getRecentFeedings(babyId, PREDICTION_RECORD_COUNT)
                 val recentSleeps = repository.getRecentSleeps(babyId, PREDICTION_RECORD_COUNT)
                 
-                // recentFeedings 按 feedingStart DESC 排序，第一个是最新的
-                val lastFeeding = recentFeedings.firstOrNull()
-                // recentSleeps 按 sleepStart DESC 排序，第一个是最新的
-                val lastSleep = recentSleeps.firstOrNull()
-
                 // 计算当前状态（使用 OngoingRecordManager）
                 val currentStatus = determineCurrentStatus(babyId)
                 val ongoingSleepStart = if (currentStatus == DashboardData.BabyStatus.SLEEPING) {
@@ -59,9 +54,17 @@ class DashboardViewModel : BaseViewModel() {
                     OngoingRecordManager.getOngoingFeedingStart(babyId)
                 } else null
 
-                // 上次结束时间（时间戳，用于实时计算）
-                val lastFeedingEndTime = lastFeeding?.feedingEnd
-                val lastSleepEndTime = lastSleep?.sleepEnd
+                // 上次结束时间（用于"距上次"显示）
+                // 1. 过滤进行中记录（feedingEnd <= feedingStart 表示未完成）
+                // 2. 按结束时间排序，取最新的
+                val lastFeedingEndTime = recentFeedings
+                    .filter { it.feedingEnd > it.feedingStart }
+                    .maxByOrNull { it.feedingEnd }
+                    ?.feedingEnd
+                val lastSleepEndTime = recentSleeps
+                    .filter { it.sleepEnd > it.sleepStart }
+                    .maxByOrNull { it.sleepEnd }
+                    ?.sleepEnd
 
                 // 今日统计（只包含已完成的记录，进行中的由 UI 层动态计算）
                 val feedingCount = feedings.size
