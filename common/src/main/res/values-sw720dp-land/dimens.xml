@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 平板横屏 (8-10寸, sw720dp-land) -->
+    
+    <!-- Page Layout - 横屏需要更大边距避免内容过宽 -->
+    <dimen name="page_horizontal_padding">48dp</dimen>
+    <dimen name="page_vertical_padding">16dp</dimen>
+    
+    <!-- Card -->
+    <dimen name="card_padding">24dp</dimen>
+    <dimen name="card_corner_radius">20dp</dimen>
+    
+    <!-- Grid columns - 横屏显示更多列 -->
+    <integer name="quick_action_columns">8</integer>
+    <integer name="dashboard_card_columns">3</integer>
+    <integer name="statistics_columns">2</integer>
+</resources>

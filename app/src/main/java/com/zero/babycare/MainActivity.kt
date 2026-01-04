@@ -1,5 +1,6 @@
 package com.zero.babycare
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.activity.OnBackPressedCallback
@@ -26,8 +27,10 @@ import com.zero.babycare.statistics.StatisticsFragment
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.ext.launchInLifecycle
 import com.zero.common.theme.ThemeManager
+import com.zero.common.util.DeviceUtils
 import com.zero.components.base.BaseActivity
 import kotlinx.coroutines.flow.collectLatest
+import me.jessyan.autosize.AutoSizeConfig
 import java.util.concurrent.TimeUnit
 import kotlin.getValue
 
@@ -47,6 +50,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // 横竖屏切换时重新配置 AutoSize 设计稿宽度
+        val designWidth = DeviceUtils.getDesignWidthInDp(this)
+        AutoSizeConfig.getInstance().setDesignWidthInDp(designWidth)
     }
 
     /**

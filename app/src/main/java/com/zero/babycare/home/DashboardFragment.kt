@@ -17,6 +17,7 @@ import com.zero.babycare.home.OngoingRecordManager
 import com.zero.babycare.navigation.NavTarget
 import com.zero.common.ext.launchInLifecycle
 import com.zero.common.util.DateUtils
+import com.zero.common.util.DeviceUtils
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.vm.UiState
 import java.text.SimpleDateFormat
@@ -142,13 +143,21 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
     /**
      * 刷新数据（带防抖和最小间隔保护）
      * 确保数据库写入完成后再进行查询，避免竞态条件
+     * @param immediate 是否立即执行（首次加载时使用）
      */
-    private fun refreshData() {
+    private fun refreshData(immediate: Boolean = false) {
         // 取消之前的待执行刷新
         refreshRunnable?.let { handler.removeCallbacks(it) }
         
         val now = System.currentTimeMillis()
         val timeSinceLastRefresh = now - lastRefreshTime
+        
+        // 首次加载或明确要求立即执行时，不使用延迟
+        if (immediate || lastRefreshTime == 0L) {
+            doRefreshData()
+            lastRefreshTime = System.currentTimeMillis()
+            return
+        }
         
         // 计算需要等待的时间（确保最小间隔 + 防抖延迟）
         val delay = if (timeSinceLastRefresh < MIN_REFRESH_INTERVAL_MS) {
@@ -178,7 +187,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         binding.rvQuickActions.apply {
             visibility = View.GONE
             adapter = quickActionAdapter
-            layoutManager = GridLayoutManager(context, actions.size.coerceAtLeast(1))
+            layoutManager = GridLayoutManager(context, DeviceUtils.getQuickActionColumns(requireContext()))
             setHasFixedSize(true)
         }
         quickActionAdapter.submitList(actions)
@@ -621,10 +630,8 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         val adapter = QuickRecordAdapter { item ->
             mainVm.navigateTo(NavTarget.EventRecord(item.categoryId))
         }
-        binding.rvQuickRecord.layoutManager = androidx.recyclerview.widget.GridLayoutManager(
-            requireContext(), 
-            QuickRecordItem.getQuickRecordItems().size
-        )
+        val columns = DeviceUtils.getQuickRecordColumns(requireContext())
+        binding.rvQuickRecord.layoutManager = GridLayoutManager(requireContext(), columns)
         binding.rvQuickRecord.adapter = adapter
         adapter.submitList(QuickRecordItem.getQuickRecordItems())
     }

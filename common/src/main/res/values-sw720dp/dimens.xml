@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 平板竖屏 (8-10寸, sw720dp) -->
+    
+    <!-- Page Layout - 更大边距 -->
+    <dimen name="page_horizontal_padding">32dp</dimen>
+    <dimen name="page_vertical_padding">20dp</dimen>
+    
+    <!-- Card -->
+    <dimen name="card_padding">24dp</dimen>
+    <dimen name="card_corner_radius">20dp</dimen>
+    
+    <!-- Grid columns - 更多列 -->
+    <integer name="quick_action_columns">6</integer>
+    <integer name="dashboard_card_columns">2</integer>
+    <integer name="statistics_columns">2</integer>
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Page Layout -->
+    <dimen name="page_horizontal_padding">16dp</dimen>
+    <dimen name="page_vertical_padding">12dp</dimen>
+    
+    <!-- Card -->
+    <dimen name="card_padding">16dp</dimen>
+    <dimen name="card_corner_radius">16dp</dimen>
+    
+    <!-- Grid columns -->
+    <integer name="quick_action_columns">4</integer>
+    <integer name="dashboard_card_columns">1</integer>
+    <integer name="statistics_columns">1</integer>
+</resources>
