@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:text="@string/symptom_description"
         android:textColor="?attr/colorTextPrimary"
-        android:textStyle="bold" />
+        android:fontFamily="sans-serif-medium" />
 
     <EditText
         android:id="@+id/etSymptomDescription"

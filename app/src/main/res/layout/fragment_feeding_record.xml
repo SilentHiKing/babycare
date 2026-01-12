@@ -457,7 +457,7 @@
                         android:paddingHorizontal="10dp"
                         android:text="@string/left_breast_duration"
                         android:textColor="?attr/colorTextPrimary"
-                        android:textStyle="bold" />
+                        android:fontFamily="sans-serif-medium" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -510,7 +510,7 @@
                         android:paddingHorizontal="10dp"
                         android:text="@string/right_breast_duration"
                         android:textColor="?attr/colorTextPrimary"
-                        android:textStyle="bold" />
+                        android:fontFamily="sans-serif-medium" />
 
                     <LinearLayout
                         android:layout_width="match_parent"

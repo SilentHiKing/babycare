@@ -5,41 +5,50 @@
         用于 AppTheme.Boy / AppTheme.Girl / AppTheme.Neutral 主题
     -->
 
-    <!-- ==================== 男孩主题色（糖果感、柔和、青春） ==================== -->
-    <color name="boy_brand">#5ED2F2</color>
-    <color name="boy_brand_dark">#289FBD</color>
-    <color name="boy_brand_light">#D5F2FF</color>
-    <color name="boy_accent">#38BDE2</color>
-    <color name="boy_bg_brand">#E6FBFF</color>
-    <color name="boy_btn_pressed">#289FBD</color>
+    <!-- ==================== 男孩主题色（Ocean & Cloud - 深邃与轻盈） ==================== -->
+    <!-- Primary: Ocean Blue -->
+    <color name="boy_brand">#4A90E2</color>
+    <color name="boy_brand_dark">#357ABD</color>
+    <color name="boy_brand_light">#D1E3F6</color>
+    <!-- Accent: Soft Sky -->
+    <color name="boy_accent">#64B5F6</color>
+    <!-- Background: Cloud White -->
+    <color name="boy_bg_brand">#F5F9FF</color>
+    <color name="boy_btn_pressed">#357ABD</color>
     <!-- 带透明度 -->
-    <color name="boy_brand_10">#1A5ED2F2</color>
-    <color name="boy_brand_20">#335ED2F2</color>
-    <color name="boy_brand_50">#805ED2F2</color>
+    <color name="boy_brand_10">#1A4A90E2</color>
+    <color name="boy_brand_20">#334A90E2</color>
+    <color name="boy_brand_50">#804A90E2</color>
 
-    <!-- ==================== 女孩主题色（糖果感、柔和、青春） ==================== -->
-    <color name="girl_brand">#FF8FBE</color>
-    <color name="girl_brand_dark">#D95A8C</color>
-    <color name="girl_brand_light">#FFD8EA</color>
-    <color name="girl_accent">#D76292</color>
-    <color name="girl_bg_brand">#FFF0F8</color>
-    <color name="girl_btn_pressed">#D95A8C</color>
+    <!-- ==================== 女孩主题色（Blossom & Cream - 花瓣与奶油） ==================== -->
+    <!-- Primary: Blossom Pink -->
+    <color name="girl_brand">#FF9EAA</color>
+    <color name="girl_brand_dark">#E08595</color>
+    <color name="girl_brand_light">#FFD1D8</color>
+    <!-- Accent: Leaf Green (Soft) -->
+    <color name="girl_accent">#A5D6A7</color>
+    <!-- Background: Creamy/Pale Pink -->
+    <color name="girl_bg_brand">#FFF5F7</color>
+    <color name="girl_btn_pressed">#E08595</color>
     <!-- 带透明度 -->
-    <color name="girl_brand_10">#1AFF8FBE</color>
-    <color name="girl_brand_20">#33FF8FBE</color>
-    <color name="girl_brand_50">#80FF8FBE</color>
+    <color name="girl_brand_10">#1AFF9EAA</color>
+    <color name="girl_brand_20">#33FF9EAA</color>
+    <color name="girl_brand_50">#80FF9EAA</color>
 
-    <!-- ==================== 中性主题色（糖果感、柔和、青春） ==================== -->
-    <color name="neutral_brand">#FFB973</color>
-    <color name="neutral_brand_dark">#D3812A</color>
-    <color name="neutral_brand_light">#FFE4C7</color>
-    <color name="neutral_accent">#C66E22</color>
-    <color name="neutral_bg_brand">#FFF2E4</color>
-    <color name="neutral_btn_pressed">#D3812A</color>
+    <!-- ==================== 中性主题色（Sage & Linen - 鼠尾草与亚麻） ==================== -->
+    <!-- Primary: Sage Green -->
+    <color name="neutral_brand">#88B084</color>
+    <color name="neutral_brand_dark">#6E946A</color>
+    <color name="neutral_brand_light">#C8DBC5</color>
+    <!-- Accent: Earth Tan -->
+    <color name="neutral_accent">#D2B48C</color>
+    <!-- Background: Linen/Natural -->
+    <color name="neutral_bg_brand">#F7F7F5</color>
+    <color name="neutral_btn_pressed">#6E946A</color>
     <!-- 带透明度 -->
-    <color name="neutral_brand_10">#1AFFB973</color>
-    <color name="neutral_brand_20">#33FFB973</color>
-    <color name="neutral_brand_50">#80FFB973</color>
+    <color name="neutral_brand_10">#1A88B084</color>
+    <color name="neutral_brand_20">#3388B084</color>
+    <color name="neutral_brand_50">#8088B084</color>
 
 </resources>
 

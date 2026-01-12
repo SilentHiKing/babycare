@@ -13,6 +13,7 @@
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:contentDescription="@null"
+        app:tint="?attr/iconColorBrand"
         tools:src="@drawable/ic_event_diaper" />
 
     <TextView

@@ -4,7 +4,7 @@
     <solid android:color="?attr/secondary_bg_default" />
     <stroke
         android:width="0.5dp"
-        android:color="?attr/line10" />
+        android:color="@color/opacity_shadow_10" />
     <corners android:radius="?attr/shapeCornerLarge" />
 </shape>
 

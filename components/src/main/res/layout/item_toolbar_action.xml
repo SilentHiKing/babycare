@@ -33,7 +33,7 @@
         android:singleLine="true"
         android:textSize="14sp"
         android:textColor="?attr/colorBrand"
-        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium"
         android:visibility="gone"
         tools:text="编辑"
         tools:visibility="visible" />

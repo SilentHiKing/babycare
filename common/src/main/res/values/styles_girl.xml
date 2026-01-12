@@ -43,6 +43,7 @@
         <item name="ic_canvas_enable">@color/girl_accent</item>
         <item name="ic_canvas_enable1">@color/girl_brand_light</item>
         <item name="icon_brandHigh">@color/girl_brand_light</item>
+        <item name="iconColorBrand">@color/girl_accent</item>
 
         <!-- ========== 线条 ========== -->
         <item name="line_brand">@color/girl_accent</item>

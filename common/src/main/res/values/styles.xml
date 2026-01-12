@@ -39,10 +39,17 @@
         <item name="colorStatusTextPrimary">@color/status_text_primary</item>
         <item name="colorStatusTextSecondary">@color/status_text_secondary</item>
 
+        <!-- Icon Colors (Semantic Defaults) -->
+        <item name="iconColorPrimary">?attr/colorTextPrimary</item>
+        <item name="iconColorSecondary">?attr/colorTextSecondary</item>
+        <item name="iconColorBrand">?attr/colorBrand</item>
+        <item name="iconColorOnBrand">?attr/colorOnBrand</item>
+        <item name="iconColorDisabled">@color/text_hint_default</item>
+
         <!-- Shapes (2026 Layered Depth Standards) -->
         <item name="shapeCornerSmall">8dp</item>
         <item name="shapeCornerMedium">16dp</item>
-        <item name="shapeCornerLarge">24dp</item> <!-- The new standard -->
+        <item name="shapeCornerLarge">24dp</item> <!-- Soft Minimalism Standard -->
         <item name="shapeCornerExtraLarge">32dp</item>
 
         <!-- Elevation -->
@@ -436,7 +443,7 @@
         <item name="android:textSize">18sp</item>
         <item name="android:textColor">?attr/primary90</item>
         <item name="android:gravity">center</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
     </style>
 
     <!--笔刷栏滑动条文本-->
@@ -552,27 +559,27 @@
     <style name="TextAppearance.BabyCare.Display1" parent="TextAppearance.BabyCare">
         <item name="android:textSize">32sp</item>
         <item name="android:textColor">?attr/colorTextPrimary</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item> <!-- Medium weight for Soft Minimalism -->
         <item name="android:letterSpacing">-0.02</item>
     </style>
     
     <style name="TextAppearance.BabyCare.Display2" parent="TextAppearance.BabyCare">
         <item name="android:textSize">24sp</item>
         <item name="android:textColor">?attr/colorTextPrimary</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
     </style>
 
     <!-- Headings (Section Titles, Card Headers) -->
     <style name="TextAppearance.BabyCare.Heading1" parent="TextAppearance.BabyCare">
         <item name="android:textSize">20sp</item>
         <item name="android:textColor">?attr/colorTextPrimary</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
     </style>
 
     <style name="TextAppearance.BabyCare.Heading2" parent="TextAppearance.BabyCare">
         <item name="android:textSize">18sp</item>
         <item name="android:textColor">?attr/colorTextPrimary</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
     </style>
 
     <style name="TextAppearance.BabyCare.Heading3" parent="TextAppearance.BabyCare">

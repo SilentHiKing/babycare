@@ -43,6 +43,7 @@
         <item name="ic_canvas_enable">@color/boy_accent</item>
         <item name="ic_canvas_enable1">@color/boy_brand_light</item>
         <item name="icon_brandHigh">@color/boy_brand_light</item>
+        <item name="iconColorBrand">@color/boy_accent</item>
 
         <!-- ========== 线条 ========== -->
         <item name="line_brand">@color/boy_accent</item>

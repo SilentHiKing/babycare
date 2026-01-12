@@ -44,6 +44,7 @@
         <item name="ic_canvas_enable">@color/neutral_accent</item>
         <item name="ic_canvas_enable1">@color/neutral_brand_light</item>
         <item name="icon_brandHigh">@color/neutral_brand_light</item>
+        <item name="iconColorBrand">@color/neutral_accent</item>
 
         <!-- ========== 线条 ========== -->
         <item name="line_brand">@color/neutral_accent</item>

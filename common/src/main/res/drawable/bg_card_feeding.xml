@@ -4,6 +4,6 @@
     <solid android:color="@color/feeding_bg" />
     <stroke
         android:width="0.5dp"
-        android:color="?attr/line10" />
+        android:color="@color/feeding_divider" />
     <corners android:radius="?attr/shapeCornerLarge" />
 </shape>

@@ -53,6 +53,13 @@
     <attr name="colorStatusTextPrimary" format="color"/>
     <attr name="colorStatusTextSecondary" format="color"/>
 
+    <!-- Icon Colors (Semantic Tokens for Theme-Aware Tinting) -->
+    <attr name="iconColorPrimary" format="color"/>      <!-- Primary icons (nav, action) -->
+    <attr name="iconColorSecondary" format="color"/>    <!-- Secondary icons -->
+    <attr name="iconColorBrand" format="color"/>        <!-- Brand-colored icons -->
+    <attr name="iconColorOnBrand" format="color"/>      <!-- Icons on brand background -->
+    <attr name="iconColorDisabled" format="color"/>     <!-- Disabled state icons -->
+
     <!-- 2. Shape Tokens -->
     <attr name="shapeCornerSmall" format="dimension"/>  <!-- 8dp - Tags, Small Buttons -->
     <attr name="shapeCornerMedium" format="dimension"/> <!-- 16dp - Cards, Dialogs -->

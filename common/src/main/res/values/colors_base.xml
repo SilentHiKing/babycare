@@ -196,15 +196,16 @@
     <color name="opacity_1A047AFF">#1A2FB7C8</color>
 
     <color name="opacity_shadow_2A">#2A000000</color> <!--浅色模式阴影-->
+    <color name="opacity_shadow_10">#1A000000</color> <!--10% 阴影/描边-->
     <color name="opacity_shadow_66">#55000000</color> <!--深色模式阴影-->
 
     <!-- ==================== Dashboard 功能性颜色 ==================== -->
-    <!-- 喂养卡片（清爽蓝绿，提升活力与识别度） -->
-    <color name="feeding_primary">#00A1BD</color>
-    <color name="feeding_primary_dark">#007C93</color>
-    <color name="feeding_secondary">#5CCFE1</color>
-    <color name="feeding_divider">#BFEFF6</color>
-    <color name="feeding_bg">#E6F8FB</color>
+    <!-- 喂养卡片（纯净天蓝，Classic Sky - 清晰方案） -->
+    <color name="feeding_primary">#1976D2</color>
+    <color name="feeding_primary_dark">#0D47A1</color>
+    <color name="feeding_secondary">#64B5F6</color>
+    <color name="feeding_divider">#BBDEFB</color>
+    <color name="feeding_bg">#E3F2FD</color>
 
     <!-- 睡眠卡片（柔和紫调，保持温和氛围） -->
     <color name="sleep_primary">#8C6ED6</color>
@@ -220,15 +221,15 @@
     <color name="status_text_primary">#4A4A4A</color>
     <color name="status_text_secondary">#757575</color>
 
-    <!-- 状态卡片背景渐变色（与喂养/睡眠色系保持一致） -->
-    <!-- 醒着状态（暖阳黄） -->
-    <color name="status_awake_start">#FFF7E8</color>
+    <!-- 状态卡片背景色（Saturated Soft - 纯色背景增强） -->
+    <!-- 醒着状态（温暖杏色） -->
+    <color name="status_awake_start">#FFF0D4</color>
     <color name="status_awake_end">#FFE1B3</color>
-    <!-- 睡眠状态（柔紫） -->
-    <color name="status_sleeping_start">#F5F1FF</color>
+    <!-- 睡眠状态（清晰薰衣草紫） -->
+    <color name="status_sleeping_start">#EFE6FD</color>
     <color name="status_sleeping_end">#E2DBF6</color>
-    <!-- 喂奶状态（清爽蓝绿） -->
-    <color name="status_feeding_start">#EFFBFE</color>
+    <!-- 喂奶状态（清爽冰川蓝） -->
+    <color name="status_feeding_start">#E0F4F8</color>
     <color name="status_feeding_end">#D3F2F8</color>
 
     <!-- ==================== 事件类型颜色 ==================== -->

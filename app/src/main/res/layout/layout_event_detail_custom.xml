@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:text="@string/custom_event_name"
         android:textColor="?attr/colorTextPrimary"
-        android:textStyle="bold" />
+        android:fontFamily="sans-serif-medium" />
 
     <EditText
         android:id="@+id/etCustomEventName"
@@ -35,7 +35,7 @@
         android:layout_marginTop="16dp"
         android:text="@string/custom_event_description"
         android:textColor="?attr/colorTextPrimary"
-        android:textStyle="bold" />
+        android:fontFamily="sans-serif-medium" />
 
     <EditText
         android:id="@+id/etCustomEventDescription"

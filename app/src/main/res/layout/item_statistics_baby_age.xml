@@ -33,7 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="?attr/semantics_blue"
-            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
             tools:text="已出生 180 天" />
 
     </LinearLayout>
