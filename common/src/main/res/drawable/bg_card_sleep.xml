@@ -2,8 +2,5 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <solid android:color="@color/sleep_bg" />
-    <stroke
-        android:width="0.5dp"
-        android:color="@color/sleep_divider" />
     <corners android:radius="?attr/shapeCornerLarge" />
 </shape>

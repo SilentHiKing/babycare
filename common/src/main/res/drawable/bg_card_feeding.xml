@@ -2,8 +2,5 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <solid android:color="@color/feeding_bg" />
-    <stroke
-        android:width="0.5dp"
-        android:color="@color/feeding_divider" />
     <corners android:radius="?attr/shapeCornerLarge" />
 </shape>

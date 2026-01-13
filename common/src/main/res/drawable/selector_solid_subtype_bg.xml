@@ -10,9 +10,6 @@
     <!-- 未选中状态 -->
     <item>
         <shape android:shape="rectangle">
-            <stroke
-                android:width="1dp"
-                android:color="?attr/line20" />
             <solid android:color="@android:color/transparent" />
             <corners android:radius="14dp" />
         </shape>
