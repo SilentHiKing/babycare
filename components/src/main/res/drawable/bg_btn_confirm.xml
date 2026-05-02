@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 按下状态 - 稍深的蓝色 -->
+    <!-- 按下状态使用当前宝宝主题深色，避免在女孩主题下出现旧蓝色。 -->
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="#0366D6" />
-            <corners android:radius="10dp" />
+            <solid android:color="?attr/colorBrandDark" />
+            <corners android:radius="12dp" />
         </shape>
     </item>
     <!-- 默认状态 -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="?attr/brand_color" />
-            <corners android:radius="10dp" />
+            <solid android:color="?attr/colorBrand" />
+            <corners android:radius="12dp" />
         </shape>
     </item>
 </selector>

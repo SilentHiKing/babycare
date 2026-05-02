@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.text.InputFilter
 import android.text.InputType
 import android.view.View
+import androidx.core.content.ContextCompat
+import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.blankj.utilcode.util.LogUtils
@@ -192,6 +194,25 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         
         // 动态创建子类型 RadioButton
         binding.rgSolidSubtype.removeAllViews()
+        val subtypeHeight = android.util.TypedValue.applyDimension(
+            android.util.TypedValue.COMPLEX_UNIT_DIP,
+            36f,
+            resources.displayMetrics
+        ).toInt()
+        val subtypeGap = android.util.TypedValue.applyDimension(
+            android.util.TypedValue.COMPLEX_UNIT_DIP,
+            8f,
+            resources.displayMetrics
+        ).toInt()
+        val subtypeHorizontalPadding = android.util.TypedValue.applyDimension(
+            android.util.TypedValue.COMPLEX_UNIT_DIP,
+            14f,
+            resources.displayMetrics
+        ).toInt()
+        val subtypeTextColor = ContextCompat.getColorStateList(
+            requireContext(),
+            com.zero.common.R.color.selector_radio_text_color
+        )
         subtypes.forEach { (type, stringResId) ->
             val radioButton = android.widget.RadioButton(requireContext()).apply {
                 id = View.generateViewId()
@@ -199,21 +220,22 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
                 text = StringUtils.getString(stringResId)
                 layoutParams = android.widget.RadioGroup.LayoutParams(
                     android.widget.RadioGroup.LayoutParams.WRAP_CONTENT,
-                    android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 28f, resources.displayMetrics).toInt()
+                    subtypeHeight
                 ).apply {
-                    marginEnd = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 6f, resources.displayMetrics).toInt()
+                    marginEnd = subtypeGap
                 }
                 setPadding(
-                    android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 10f, resources.displayMetrics).toInt(),
+                    subtypeHorizontalPadding,
                     0,
-                    android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 10f, resources.displayMetrics).toInt(),
+                    subtypeHorizontalPadding,
                     0
                 )
                 setBackgroundResource(com.zero.common.R.drawable.selector_solid_subtype_bg)
                 buttonDrawable = null
                 gravity = android.view.Gravity.CENTER
-                setTextColor(resources.getColorStateList(com.zero.common.R.color.selector_radio_text_color, null))
-                textSize = 12f
+                TextViewCompat.setTextAppearance(this, com.zero.common.R.style.TextAppearance_BabyCare_Label)
+                // selector_radio_text_color 依赖当前主题属性，必须通过 ContextCompat 带主题解析，避免动态控件退成异常粉色。
+                setTextColor(subtypeTextColor)
             }
             binding.rgSolidSubtype.addView(radioButton)
         }

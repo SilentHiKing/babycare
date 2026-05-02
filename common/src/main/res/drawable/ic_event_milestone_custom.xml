@@ -4,15 +4,12 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 自定义里程碑 -->
+    <!-- 线性自定义里程碑图标：星标加短线表示可编辑成长瞬间。 -->
     <path
-        android:fillColor="@color/event_milestone"
-        android:pathData="M12,2L4,5v6.09c0,5.05 3.41,9.76 8,10.91c4.59,-1.15 8,-5.86 8,-10.91V5L12,2zM12,11.99h6c-0.47,3.42 -2.79,6.34 -6,7.41V12H6V6.3l6,-2.12v7.81z"/>
-    <path
-        android:fillColor="@color/event_milestone"
-        android:pathData="M11,7h2v4h-2z"/>
-    <path
-        android:fillColor="@color/event_milestone"
-        android:pathData="M11,13h2v2h-2z"/>
+        android:fillColor="@android:color/transparent"
+        android:pathData="M10,4l1.8,3.6l4,0.6l-2.9,2.8l0.7,4L10,13.1L6.4,15l0.7,-4L4.2,8.2l4,-0.6L10,4zM16,17h4M18,15v4"
+        android:strokeColor="?attr/iconColorPrimary"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
 </vector>
-

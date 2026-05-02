@@ -4,18 +4,12 @@
     android:height="48dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 宝宝喂奶的图标 -->
+    <!-- 宝宝喂养状态：使用功能色线性奶瓶，不再使用硬编码填充插画。 -->
     <path
-        android:fillColor="#4FC3F7"
-        android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2z" />
-    <!-- 奶瓶 -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M11,7 L13,7 L13,8 L14,8 L14,10 L13,10 L13,17 Q13,18 12,18 Q11,18 11,17 L11,10 L10,10 L10,8 L11,8 Z" />
-    <!-- 奶瓶刻度 -->
-    <path
-        android:strokeColor="#4FC3F7"
-        android:strokeWidth="0.5"
-        android:pathData="M11.5,11 L12.5,11 M11.5,13 L12.5,13 M11.5,15 L12.5,15" />
+        android:fillColor="@android:color/transparent"
+        android:pathData="M12,21a9,9 0,1 0,0 -18a9,9 0,0 0,0 18zM10,7h4M11,7v2h2V7M9.5,9h5M10,9v3c-0.8,0.5 -1.3,1.4 -1.3,2.4v2.4c0,1.2 1,2.2 2.2,2.2h2.2c1.2,0 2.2,-1 2.2,-2.2v-2.4c0,-1 -0.5,-1.9 -1.3,-2.4V9M10.5,14h3M10.5,16.5h3"
+        android:strokeColor="@color/feeding_primary"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.8" />
 </vector>
-

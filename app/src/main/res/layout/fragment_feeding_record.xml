@@ -41,7 +41,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:paddingHorizontal="10dp"
                 android:textColor="?attr/colorTextHint"
                 android:visibility="gone"
                 tools:text="上次: 12-23 08:30"
@@ -54,7 +53,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:paddingHorizontal="10dp"
                 android:text="@string/feeding_type" />
 
             <!-- 第一行：母乳、配方奶、混合 -->
@@ -63,8 +61,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:orientation="horizontal"
-                android:paddingHorizontal="10dp">
+                android:orientation="horizontal">
 
                 <RadioButton
                     android:id="@+id/rbBreast"
@@ -159,7 +156,6 @@
                     style="@style/TextAppearance.BabyCare.Heading3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="10dp"
                     android:text="@string/solid_food_type"
                     android:textColor="?attr/colorTextPrimary" />
 
@@ -173,8 +169,7 @@
                         android:id="@+id/rgSolidCategory"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="10dp">
+                        android:orientation="horizontal">
 
                         <RadioButton
                             android:id="@+id/rbSolidStaple"
@@ -238,8 +233,7 @@
                         android:id="@+id/rgSolidSubtype"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="10dp" />
+                        android:orientation="horizontal" />
                 </HorizontalScrollView>
 
                 <!-- 食物名称输入（需要时显示） -->
@@ -256,7 +250,6 @@
                         style="@style/TextAppearance.BabyCare.Heading3"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingHorizontal="10dp"
                         android:text="@string/solid_food_name"
                         android:textColor="?attr/colorTextPrimary" />
 
@@ -287,7 +280,6 @@
                         style="@style/TextAppearance.BabyCare.Heading3"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingHorizontal="10dp"
                         android:text="@string/solid_food_amount"
                         android:textColor="?attr/colorTextPrimary" />
 
@@ -331,7 +323,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:paddingHorizontal="10dp"
                 android:text="@string/solid_food_first_time"
                 android:textColor="?attr/colorTextPrimary" />
 
@@ -342,7 +333,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:paddingHorizontal="10dp"
                     android:text="@string/solid_food_allergen_tip"
                     android:textColor="?attr/colorError"
                     android:visibility="gone" />
@@ -362,7 +352,6 @@
                     style="@style/TextAppearance.BabyCare.Heading3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="10dp"
                     android:text="@string/other_food_name"
                     android:textColor="?attr/colorTextPrimary" />
 
@@ -396,7 +385,6 @@
                     style="@style/TextAppearance.BabyCare.Heading3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="10dp"
                     android:text="@string/feeding_amount"
                     android:textColor="?attr/colorTextPrimary" />
 
@@ -454,10 +442,8 @@
                         style="@style/TextAppearance.BabyCare.Body2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingHorizontal="10dp"
                         android:text="@string/left_breast_duration"
-                        android:textColor="?attr/colorTextPrimary"
-                        android:fontFamily="sans-serif-medium" />
+                        android:textColor="?attr/colorTextPrimary" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -507,10 +493,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="end"
-                        android:paddingHorizontal="10dp"
                         android:text="@string/right_breast_duration"
-                        android:textColor="?attr/colorTextPrimary"
-                        android:fontFamily="sans-serif-medium" />
+                        android:textColor="?attr/colorTextPrimary" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -553,7 +537,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:paddingHorizontal="10dp"
                 android:text="@string/note" />
 
             <EditText

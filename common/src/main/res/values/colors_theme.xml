@@ -2,53 +2,37 @@
 <resources>
     <!--
         主题专用颜色定义
-        用于 AppTheme.Boy / AppTheme.Girl / AppTheme.Neutral 主题
+        用于 AppTheme.Boy / AppTheme.Girl 主题
     -->
 
-    <!-- ==================== 男孩主题色（Ocean & Cloud - 深邃与轻盈） ==================== -->
-    <!-- Primary: Ocean Blue -->
-    <color name="boy_brand">#4A90E2</color>
-    <color name="boy_brand_dark">#357ABD</color>
-    <color name="boy_brand_light">#D1E3F6</color>
-    <!-- Accent: Soft Sky -->
-    <color name="boy_accent">#64B5F6</color>
-    <!-- Background: Cloud White -->
-    <color name="boy_bg_brand">#F5F9FF</color>
-    <color name="boy_btn_pressed">#357ABD</color>
+    <!-- ==================== 男孩主题色（Ocean & Cloud - 清爽且可读） ==================== -->
+    <!-- Primary: 可承载白字的行动蓝，用于主按钮、选中态与关键强调。 -->
+    <color name="boy_brand">#2A74B8</color>
+    <color name="boy_brand_dark">#1F5F99</color>
+    <color name="boy_brand_light">#D9EAF8</color>
+    <!-- Accent: 与行动蓝同源，避免公共组件出现低对比浅蓝文字。 -->
+    <color name="boy_accent">#2A74B8</color>
+    <!-- Background: 只用于浅背景，不承载白字。 -->
+    <color name="boy_bg_brand">#EEF7FE</color>
+    <color name="boy_btn_pressed">#1F5F99</color>
     <!-- 带透明度 -->
-    <color name="boy_brand_10">#1A4A90E2</color>
-    <color name="boy_brand_20">#334A90E2</color>
-    <color name="boy_brand_50">#804A90E2</color>
+    <color name="boy_brand_10">#1A2A74B8</color>
+    <color name="boy_brand_20">#332A74B8</color>
+    <color name="boy_brand_50">#802A74B8</color>
 
-    <!-- ==================== 女孩主题色（Blossom & Cream - 花瓣与奶油） ==================== -->
-    <!-- Primary: Blossom Pink -->
-    <color name="girl_brand">#FF9EAA</color>
-    <color name="girl_brand_dark">#E08595</color>
-    <color name="girl_brand_light">#FFD1D8</color>
-    <!-- Accent: Leaf Green (Soft) -->
-    <color name="girl_accent">#A5D6A7</color>
-    <!-- Background: Creamy/Pale Pink -->
-    <color name="girl_bg_brand">#FFF5F7</color>
-    <color name="girl_btn_pressed">#E08595</color>
+    <!-- ==================== 女孩主题色（Blossom & Cream - 柔和且可读） ==================== -->
+    <!-- Primary: 可承载白字的花瓣玫瑰色，用于主按钮、选中态与关键强调。 -->
+    <color name="girl_brand">#B8526C</color>
+    <color name="girl_brand_dark">#94394F</color>
+    <color name="girl_brand_light">#FADBE1</color>
+    <!-- Accent: 与行动粉同源，避免浅粉作为正文或图标时对比不足。 -->
+    <color name="girl_accent">#B8526C</color>
+    <!-- Background: 只用于浅背景，不承载白字。 -->
+    <color name="girl_bg_brand">#FFF7F8</color>
+    <color name="girl_btn_pressed">#94394F</color>
     <!-- 带透明度 -->
-    <color name="girl_brand_10">#1AFF9EAA</color>
-    <color name="girl_brand_20">#33FF9EAA</color>
-    <color name="girl_brand_50">#80FF9EAA</color>
-
-    <!-- ==================== 中性主题色（Sage & Linen - 鼠尾草与亚麻） ==================== -->
-    <!-- Primary: Sage Green -->
-    <color name="neutral_brand">#88B084</color>
-    <color name="neutral_brand_dark">#6E946A</color>
-    <color name="neutral_brand_light">#C8DBC5</color>
-    <!-- Accent: Earth Tan -->
-    <color name="neutral_accent">#D2B48C</color>
-    <!-- Background: Linen/Natural -->
-    <color name="neutral_bg_brand">#F7F7F5</color>
-    <color name="neutral_btn_pressed">#6E946A</color>
-    <!-- 带透明度 -->
-    <color name="neutral_brand_10">#1A88B084</color>
-    <color name="neutral_brand_20">#3388B084</color>
-    <color name="neutral_brand_50">#8088B084</color>
+    <color name="girl_brand_10">#1AB8526C</color>
+    <color name="girl_brand_20">#33B8526C</color>
+    <color name="girl_brand_50">#80B8526C</color>
 
 </resources>
-

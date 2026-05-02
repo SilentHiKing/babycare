@@ -217,7 +217,8 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
                         ivAvatar.setColorFilter(context.getColor(com.zero.common.R.color.girl_brand))
                     }
                     else -> {
-                        ivAvatar.setColorFilter(context.getColor(com.zero.common.R.color.neutral_brand))
+                        // 未识别性别不再使用中性主题色，保持默认品牌色。
+                        ivAvatar.setColorFilter(context.getColor(com.zero.common.R.color.boy_brand))
                     }
                 }
 

@@ -4,12 +4,12 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 健康/心形+十字 -->
+    <!-- 线性健康图标：心形加十字，保持医疗语义清晰。 -->
     <path
-        android:fillColor="@color/event_health"
-        android:pathData="M12,21.35l-1.45,-1.32C5.4,15.36 2,12.28 2,8.5 2,5.42 4.42,3 7.5,3c1.74,0 3.41,0.81 4.5,2.09C13.09,3.81 14.76,3 16.5,3 19.58,3 22,5.42 22,8.5c0,3.78 -3.4,6.86 -8.55,11.54L12,21.35z"/>
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M13,10h-2v2h-2v2h2v2h2v-2h2v-2h-2z"/>
+        android:fillColor="@android:color/transparent"
+        android:pathData="M12,20s-7,-4.2 -8.5,-9C2.6,8.1 4.7,5 7.8,5c1.7,0 3.2,0.8 4.2,2c1,-1.2 2.5,-2 4.2,-2c3.1,0 5.2,3.1 4.3,6c-1.5,4.8 -8.5,9 -8.5,9M12,10v5M9.5,12.5h5"
+        android:strokeColor="?attr/iconColorPrimary"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
 </vector>
-

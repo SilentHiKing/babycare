@@ -5,27 +5,38 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center"
+    android:minHeight="84dp"
     android:orientation="vertical"
-    android:paddingVertical="16dp">
+    android:paddingVertical="12dp">
 
-    <ImageView
-        android:id="@+id/ivIcon"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:contentDescription="@null"
-        app:tint="?attr/iconColorBrand"
-        tools:src="@drawable/ic_event_diaper" />
+    <FrameLayout
+        android:id="@+id/iconContainer"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_event_icon_circle">
+
+        <ImageView
+            android:id="@+id/ivIcon"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_gravity="center"
+            android:contentDescription="@null"
+            app:tint="?attr/iconColorBrand"
+            tools:src="@drawable/ic_event_diaper" />
+
+    </FrameLayout>
 
     <TextView
         android:id="@+id/tvName"
         style="@style/TextAppearance.BabyCare.Label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
+        android:gravity="center"
+        android:maxLines="1"
         android:textColor="?attr/colorTextSecondary"
         tools:text="排泄" />
 
 </LinearLayout>
-
 
 

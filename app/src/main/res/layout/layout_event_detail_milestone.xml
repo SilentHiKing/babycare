@@ -14,8 +14,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/milestone_congratulation"
-        android:textColor="@color/event_milestone"
-        android:fontFamily="sans-serif-medium" />
+        android:textColor="@color/event_milestone" />
 
     <!-- 自定义里程碑名称（仅自定义时显示） -->
     <LinearLayout
@@ -32,8 +31,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/milestone_name"
-            android:textColor="?attr/colorTextPrimary"
-            android:fontFamily="sans-serif-medium" />
+            android:textColor="?attr/colorTextPrimary" />
 
         <EditText
             android:id="@+id/etMilestoneName"
@@ -58,8 +56,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/milestone_description"
-        android:textColor="?attr/colorTextPrimary"
-        android:fontFamily="sans-serif-medium" />
+        android:textColor="?attr/colorTextPrimary" />
 
     <EditText
         android:id="@+id/etDescription"

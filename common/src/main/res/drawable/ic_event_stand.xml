@@ -4,12 +4,12 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 站立 -->
+    <!-- 线性站立图标：简化人体姿态，避免低龄卡通化。 -->
     <path
-        android:fillColor="@color/event_milestone"
-        android:pathData="M12,2a2,2 0,1 0,0 4a2,2 0,1 0,0 -4z"/>
-    <path
-        android:fillColor="@color/event_milestone"
-        android:pathData="M14,7h-4c-1.1,0 -2,0.9 -2,2v5h2v8h4v-8h2V9C16,7.9 15.1,7 14,7z"/>
+        android:fillColor="@android:color/transparent"
+        android:pathData="M12,7c1.4,0 2.5,-1.1 2.5,-2.5S13.4,2 12,2S9.5,3.1 9.5,4.5S10.6,7 12,7M12,8v6M8,10l4,-2l4,2M10,14l-2,6M14,14l2,6"
+        android:strokeColor="?attr/iconColorPrimary"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
 </vector>
-

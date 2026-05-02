@@ -26,14 +26,11 @@
     <!-- 右侧动作文字，按需显示 -->
     <TextView
         android:id="@+id/tvActionText"
-        style="@style/TextAppearance.BabyCare.Label"
+        style="@style/TextAppearance.BabyCare.Action"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:ellipsize="end"
         android:singleLine="true"
-        android:textSize="14sp"
-        android:textColor="?attr/colorBrand"
-        android:fontFamily="sans-serif-medium"
         android:visibility="gone"
         tools:text="编辑"
         tools:visibility="visible" />

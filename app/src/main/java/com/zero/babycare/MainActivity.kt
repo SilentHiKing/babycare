@@ -71,8 +71,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             ThemeManager.saveTheme(theme)
             ThemeManager.applyTheme(this, theme)
         } else {
-            // 无宝宝数据，使用默认主题
-            ThemeManager.applyTheme(this, ThemeManager.BabyTheme.DEFAULT)
+            // 无宝宝数据时也只使用男孩 / 女孩主题集合内的兜底值，避免出现第三套中性视觉。
+            ThemeManager.applyTheme(this, ThemeManager.BabyTheme.BOY)
         }
     }
 

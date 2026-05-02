@@ -4,15 +4,12 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 注射器 -->
+    <!-- 线性疫苗图标：注射器用轻量线条表达，减少恐惧感。 -->
     <path
-        android:fillColor="@color/event_health"
-        android:pathData="M11,5.5v-2h2v2H11zM11,7v4.11l-1.5,1.5L6,9.11V5.5c0,-0.55 0.45,-1 1,-1h4c0.55,0 1,0.45 1,1v3.61l-3.5,3.5L11,7z"/>
-    <path
-        android:fillColor="@color/event_health"
-        android:pathData="M17.5,9.5l-4,4l1,1l4,-4L17.5,9.5zM5.91,13.5L4.5,12.09L2,14.59L3.41,16L5.91,13.5zM19.5,9.5l1.5,1.5l-1.41,1.41l-1.5,-1.5L19.5,9.5z"/>
-    <path
-        android:fillColor="@color/event_health"
-        android:pathData="M10,12.5l-5.5,5.5L6,19.5l5.5,-5.5L10,12.5z"/>
+        android:fillColor="@android:color/transparent"
+        android:pathData="M17,3l4,4M19,5l-8,8M8,10l6,6M6,12l6,6M5,19l3,-3M14,6l4,4M4,21l2,-2M10,14l-4,4"
+        android:strokeColor="?attr/iconColorPrimary"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
 </vector>
-

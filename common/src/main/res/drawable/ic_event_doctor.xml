@@ -4,12 +4,12 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 听诊器/医生 -->
+    <!-- 线性就医图标：听诊器语义明确，适合健康记录。 -->
     <path
-        android:fillColor="@color/event_health"
-        android:pathData="M19,8c0,-3.87 -3.13,-7 -7,-7S5,4.13 5,8v3H3v2h2v1c0,4.42 3.58,8 8,8h1v-2h-1c-3.31,0 -6,-2.69 -6,-6v-1h12v-3h-2v-3h2zM7,8c0,-2.76 2.24,-5 5,-5s5,2.24 5,5v3H7V8z"/>
-    <path
-        android:fillColor="@color/event_health"
-        android:pathData="M19,15a3,3 0,1 0,0 6a3,3 0,1 0,0 -6z"/>
+        android:fillColor="@android:color/transparent"
+        android:pathData="M7,4v5c0,2 1.6,3.5 3.5,3.5S14,11 14,9V4M5,4h4M12,4h4M14,9c0,3.5 2,5 4,5c1.7,0 3,1.3 3,3s-1.3,3 -3,3s-3,-1.3 -3,-3"
+        android:strokeColor="?attr/iconColorPrimary"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
 </vector>
-

@@ -5,56 +5,63 @@
     <color name="text_primary_default">#E6F5F7</color>
     <color name="text_secondary_default">#B6D0D6</color>
     <color name="text_hint_default">#7F9AA1</color>
-    <color name="bg_app_default">#0E1619</color>
-    <color name="surface_default">#162227</color>
-    <color name="surface_variant_default">#1E2F35</color>
+    <color name="bg_app_default">#0E1718</color>
+    <color name="surface_default">#162426</color>
+    <color name="surface_variant_default">#1E3133</color>
+
+    <!-- Soft Utility 2.0 夜间控件底色：保持暖活力，同时避免大面积粉色或刺眼色块。 -->
+    <color name="control_surface_default">#18272A</color>
+    <color name="control_surface_selected">#2F2A24</color>
+    <color name="control_border_default">#2A4043</color>
+    <color name="control_border_selected">#9D6A37</color>
+    <color name="event_icon_surface">#3A2B1D</color>
 
     <color name="colorPrimary">#46D1E2</color>
     <color name="colorBlue">#46D1E2</color>
     
     <!-- Status Card Text (Light on Dark) -->
-    <color name="status_text_primary">#E0E0E0</color>
-    <color name="status_text_secondary">#B0B0B0</color>
+    <color name="status_text_primary">#E6F5F7</color>
+    <color name="status_text_secondary">#B6D0D6</color>
 
     <!-- Status card gradients (night, aligned with feeding/sleep palette) -->
-    <color name="status_awake_start">#2B2318</color>
-    <color name="status_awake_end">#3A2F1E</color>
+    <color name="status_awake_start">#2E2418</color>
+    <color name="status_awake_end">#3E301F</color>
     
-    <color name="status_sleeping_start">#241F35</color>
-    <color name="status_sleeping_end">#302744</color>
+    <color name="status_sleeping_start">#24233A</color>
+    <color name="status_sleeping_end">#312D4A</color>
     
-    <color name="status_feeding_start">#142B31</color>
-    <color name="status_feeding_end">#1E3940</color>
+    <color name="status_feeding_start">#123039</color>
+    <color name="status_feeding_end">#1D434B</color>
 
     <!-- Feeding card colors (night, aligned with primary) -->
-    <color name="feeding_primary">#6FE6F5</color> <!-- Lighter for text/icon -->
-    <color name="feeding_primary_dark">#36B7C4</color> 
-    <color name="feeding_secondary">#5CD4E4</color>
-    <color name="feeding_divider">#0F3C44</color>
-    <color name="feeding_bg">#12272C</color>
+    <color name="feeding_primary">#78DCEF</color>
+    <color name="feeding_primary_dark">#37AFC5</color>
+    <color name="feeding_secondary">#63C8DA</color>
+    <color name="feeding_divider">#174853</color>
+    <color name="feeding_bg">#122C32</color>
 
     <!-- Sleep card colors (night, aligned with primary) -->
-    <color name="sleep_primary">#C7B4FF</color> <!-- Lighter for text/icon -->
-    <color name="sleep_primary_dark">#9A82E6</color>
-    <color name="sleep_secondary">#B59CF2</color>
-    <color name="sleep_divider">#2B2148</color>
-    <color name="sleep_bg">#231E33</color>
+    <color name="sleep_primary">#C4BAFF</color>
+    <color name="sleep_primary_dark">#9689E8</color>
+    <color name="sleep_secondary">#AEA2F2</color>
+    <color name="sleep_divider">#322A52</color>
+    <color name="sleep_bg">#23213A</color>
 
-    <!-- Event Colors (Pastel in Light, Brighter in Dark?) - Adjusting for visibility -->
-    <color name="event_diaper">#FFCC80</color>
-    <color name="event_health">#6ADBC7</color>
-    <color name="event_growth">#A5D6A7</color>
-    <color name="event_milestone">#FF8A96</color>
-    <color name="event_care">#90CAF9</color>
-    <color name="event_activity">#CE93D8</color>
-    <color name="event_other">#B0BEC5</color>
+    <!-- Soft Utility 2.0 事件色：夜间保留温暖和识别度，不使用大面积高亮。 -->
+    <color name="event_diaper">#FFBE66</color>
+    <color name="event_health">#70DACB</color>
+    <color name="event_growth">#A7DB9D</color>
+    <color name="event_milestone">#F095A7</color>
+    <color name="event_care">#95CFFF</color>
+    <color name="event_activity">#C6A9FF</color>
+    <color name="event_other">#B8C3CC</color>
     <!-- 事件图标底色（夜间弱化对比，避免刺眼） -->
-    <color name="event_diaper_light">#4A3724</color>
-    <color name="event_health_light">#1C3D36</color>
-    <color name="event_growth_light">#2E3B2F</color>
-    <color name="event_milestone_light">#4A1E24</color>
-    <color name="event_care_light">#2B3C4C</color>
-    <color name="event_activity_light">#3B2A45</color>
-    <color name="event_other_light">#2F3A3F</color>
+    <color name="event_diaper_light">#4A3520</color>
+    <color name="event_health_light">#1A3E39</color>
+    <color name="event_growth_light">#283D2B</color>
+    <color name="event_milestone_light">#4A252D</color>
+    <color name="event_care_light">#253A4D</color>
+    <color name="event_activity_light">#332A4A</color>
+    <color name="event_other_light">#2F3B42</color>
 
 </resources>

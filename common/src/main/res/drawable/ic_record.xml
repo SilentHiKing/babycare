@@ -1,17 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="48dp"
     android:height="48dp"
-    android:viewportWidth="48"
-    android:viewportHeight="48">
-
-    <!-- 外圆环 -->
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 线性暂停记录图标：与开始记录保持同一圆形结构。 -->
     <path
-        android:fillColor="#4B535D"
-        android:pathData="M24,4C12.95,4 4,12.95 4,24s8.95,20 20,20 20,-8.95 20,-20S35.05,4 24,4zM24,40c-8.82,0 -16,-7.18 -16,-16S15.18,8 24,8s16,7.18 16,16 -7.18,16 -16,16z"/>
-
-    <!-- 暂停图标（两条竖线） -->
-    <path
-        android:fillColor="#4B535D"
-        android:pathData="M18,16h4v16h-4zM26,16h4v16h-4z"/>
-
+        android:fillColor="@android:color/transparent"
+        android:pathData="M12,21a9,9 0,1 0,0 -18a9,9 0,0 0,0 18zM9.5,8.5v7M14.5,8.5v7"
+        android:strokeColor="?attr/iconColorPrimary"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
 </vector>

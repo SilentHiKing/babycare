@@ -31,9 +31,16 @@
     <color name="text_primary_default">#12323A</color>
     <color name="text_secondary_default">#3E5B63</color>
     <color name="text_hint_default">#7C98A1</color>
-    <color name="bg_app_default">#F5FBFC</color>
+    <color name="bg_app_default">#F7FBFA</color>
     <color name="surface_default">#FFFFFF</color>
-    <color name="surface_variant_default">#E7F6F8</color>
+    <color name="surface_variant_default">#EEF7F5</color>
+
+    <!-- Soft Utility 2.0 控件底色：暖白为主，避免记录页出现脏粉或旧式灰底。 -->
+    <color name="control_surface_default">#FFFDFC</color>
+    <color name="control_surface_selected">#FFF3E8</color>
+    <color name="control_border_default">#E3ECEB</color>
+    <color name="control_border_selected">#F2BE89</color>
+    <color name="event_icon_surface">#FFF2D9</color>
 
     <color name="Red50">#FF293B</color>      <!--50 红-->
     <color name="Red60">#CC1827</color>      <!--50 红-->
@@ -199,27 +206,27 @@
     <color name="opacity_shadow_10">#1A000000</color> <!--10% 阴影/描边-->
     <color name="opacity_shadow_66">#55000000</color> <!--深色模式阴影-->
 
-    <!-- ==================== Dashboard 功能性颜色 ==================== -->
-    <!-- 喂养卡片（纯净天蓝，Classic Sky - 清晰方案） -->
-    <color name="feeding_primary">#1976D2</color>
-    <color name="feeding_primary_dark">#0D47A1</color>
-    <color name="feeding_secondary">#64B5F6</color>
-    <color name="feeding_divider">#BBDEFB</color>
-    <color name="feeding_bg">#E3F2FD</color>
+    <!-- ==================== Soft Utility 2.0 功能性颜色 ==================== -->
+    <!-- 喂养：清爽蓝绿，活泼但不使用老式高饱和蓝。 -->
+    <color name="feeding_primary">#247BA0</color>
+    <color name="feeding_primary_dark">#155E78</color>
+    <color name="feeding_secondary">#68BCD0</color>
+    <color name="feeding_divider">#BFE7EE</color>
+    <color name="feeding_bg">#EAF7F9</color>
 
-    <!-- 睡眠卡片（柔和紫调，保持温和氛围） -->
-    <color name="sleep_primary">#8C6ED6</color>
-    <color name="sleep_primary_dark">#6444B0</color>
-    <color name="sleep_secondary">#B69CF2</color>
-    <color name="sleep_divider">#E4DDF7</color>
-    <color name="sleep_bg">#F3EEFF</color>
+    <!-- 睡眠：柔和靛紫，保留安静感但避免灰暗。 -->
+    <color name="sleep_primary">#6E65B7</color>
+    <color name="sleep_primary_dark">#51489A</color>
+    <color name="sleep_secondary">#A99EE8</color>
+    <color name="sleep_divider">#DDD8F4</color>
+    <color name="sleep_bg">#F1EEFB</color>
 
-    <!-- 统计入口 (青绿色系) -->
-    <color name="statistics_primary">#2A9D8F</color>
+    <!-- 统计入口：暖活力青绿。 -->
+    <color name="statistics_primary">#2F9E8F</color>
 
-    <!-- 状态卡片文字 (Soft Charcoal/Brown) -->
-    <color name="status_text_primary">#4A4A4A</color>
-    <color name="status_text_secondary">#757575</color>
+    <!-- 状态卡片文字：使用温和墨青，避免旧式中性灰带来的老气感。 -->
+    <color name="status_text_primary">#17343A</color>
+    <color name="status_text_secondary">#4B666A</color>
 
     <!-- 状态卡片背景色（Saturated Soft - 纯色背景增强） -->
     <!-- 醒着状态（温暖杏色） -->
@@ -233,27 +240,27 @@
     <color name="status_feeding_end">#D3F2F8</color>
 
     <!-- ==================== 事件类型颜色 ==================== -->
-    <!-- 排泄 (橙色系) -->
-    <color name="event_diaper">#FFA726</color>
-    <color name="event_diaper_light">#FFE0B2</color>
-    <!-- 健康（薄荷青绿色） -->
-    <color name="event_health">#2EC4B6</color>
-    <color name="event_health_light">#BFF3EC</color>
-    <!-- 生长 (绿色系) -->
-    <color name="event_growth">#66BB6A</color>
-    <color name="event_growth_light">#C8E6C9</color>
-    <!-- 里程碑（温暖红色，提升对比与辨识度） -->
-    <color name="event_milestone">#F45B69</color>
-    <color name="event_milestone_light">#FFD6DC</color>
-    <!-- 护理 (蓝色系) -->
-    <color name="event_care">#42A5F5</color>
-    <color name="event_care_light">#BBDEFB</color>
-    <!-- 活动 (紫色系) -->
-    <color name="event_activity">#AB47BC</color>
-    <color name="event_activity_light">#E1BEE7</color>
-    <!-- 其他 (灰色系) -->
-    <color name="event_other">#78909C</color>
-    <color name="event_other_light">#CFD8DC</color>
+    <!-- 排泄：温暖琥珀，用于高频快速记录。 -->
+    <color name="event_diaper">#F59E32</color>
+    <color name="event_diaper_light">#FFE9C7</color>
+    <!-- 健康：清新薄荷，不使用医院感冷绿。 -->
+    <color name="event_health">#1FAE9B</color>
+    <color name="event_health_light">#D8F4EE</color>
+    <!-- 生长：明快鼠尾草绿，避免老式深绿。 -->
+    <color name="event_growth">#5FAE63</color>
+    <color name="event_growth_light">#E1F2DF</color>
+    <!-- 里程碑：温暖玫瑰色，有情绪但不过度粉。 -->
+    <color name="event_milestone">#D95C75</color>
+    <color name="event_milestone_light">#FCE2E8</color>
+    <!-- 护理：晴空蓝，和喂养蓝绿拉开层次。 -->
+    <color name="event_care">#4E9FE6</color>
+    <color name="event_care_light">#E1F0FC</color>
+    <!-- 活动：轻快紫，低饱和但有识别度。 -->
+    <color name="event_activity">#9A72E6</color>
+    <color name="event_activity_light">#EEE6FC</color>
+    <!-- 其他：柔和石板灰蓝，保持次级信息感。 -->
+    <color name="event_other">#73808C</color>
+    <color name="event_other_light">#E6EBEF</color>
 
     <!-- 大便颜色 -->
     <color name="stool_yellow">#FFC107</color>

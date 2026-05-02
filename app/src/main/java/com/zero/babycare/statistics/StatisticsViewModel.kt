@@ -546,31 +546,32 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
             val type = FeedingType.fromType(record.feedingType)
             counts[type] = (counts[type] ?: 0) + 1
         }
+        // 结构图使用业务语义色，避免装饰色导致不同统计模块的含义漂移。
         return listOf(
             StructureItem(
                 labelResId = com.zero.common.R.string.feeding_type_breast,
                 count = counts[FeedingType.BREAST] ?: 0,
-                colorResId = com.zero.common.R.color.color_cover_1
+                colorResId = com.zero.common.R.color.feeding_primary
             ),
             StructureItem(
                 labelResId = com.zero.common.R.string.feeding_type_formula,
                 count = counts[FeedingType.FORMULA] ?: 0,
-                colorResId = com.zero.common.R.color.color_cover_2
+                colorResId = com.zero.common.R.color.event_care
             ),
             StructureItem(
                 labelResId = com.zero.common.R.string.feeding_type_mixed,
                 count = counts[FeedingType.MIXED] ?: 0,
-                colorResId = com.zero.common.R.color.color_cover_3
+                colorResId = com.zero.common.R.color.sleep_primary
             ),
             StructureItem(
                 labelResId = com.zero.common.R.string.feeding_type_solid,
                 count = counts[FeedingType.SOLID_FOOD] ?: 0,
-                colorResId = com.zero.common.R.color.color_cover_4
+                colorResId = com.zero.common.R.color.event_growth
             ),
             StructureItem(
                 labelResId = com.zero.common.R.string.feeding_type_other,
                 count = counts[FeedingType.OTHER] ?: 0,
-                colorResId = com.zero.common.R.color.color_cover_5
+                colorResId = com.zero.common.R.color.event_other
             )
         ).filter { it.count > 0 }
     }
@@ -584,26 +585,27 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         val mixed = records.count { it.type == EventType.DIAPER_MIXED }
         val dry = records.count { it.type == EventType.DIAPER_DRY }
 
+        // 排泄结构保留可区分颜色，但仍从业务语义色中选取，保证图例含义稳定。
         return listOf(
             StructureItem(
                 labelResId = com.zero.common.R.string.event_diaper_wet,
                 count = wet,
-                colorResId = com.zero.common.R.color.color_cover_2
+                colorResId = com.zero.common.R.color.event_care
             ),
             StructureItem(
                 labelResId = com.zero.common.R.string.event_diaper_dirty,
                 count = dirty,
-                colorResId = com.zero.common.R.color.color_cover_3
+                colorResId = com.zero.common.R.color.event_diaper
             ),
             StructureItem(
                 labelResId = com.zero.common.R.string.event_diaper_mixed,
                 count = mixed,
-                colorResId = com.zero.common.R.color.color_cover_4
+                colorResId = com.zero.common.R.color.event_milestone
             ),
             StructureItem(
                 labelResId = com.zero.common.R.string.event_diaper_dry,
                 count = dry,
-                colorResId = com.zero.common.R.color.color_cover_5
+                colorResId = com.zero.common.R.color.event_other
             )
         ).filter { it.count > 0 }
     }
@@ -618,31 +620,32 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         val symptom = records.count { it.type == EventType.HEALTH_SYMPTOM }
         val vaccine = records.count { it.type == EventType.HEALTH_VACCINE }
 
+        // 健康结构使用健康、照护、成长等语义色，便于与其他统计卡片形成一致认知。
         return listOf(
             StructureItem(
                 labelResId = com.zero.common.R.string.event_health_temperature,
                 count = temperature,
-                colorResId = com.zero.common.R.color.color_cover_1
+                colorResId = com.zero.common.R.color.event_health
             ),
             StructureItem(
                 labelResId = com.zero.common.R.string.event_health_medicine,
                 count = medicine,
-                colorResId = com.zero.common.R.color.color_cover_2
+                colorResId = com.zero.common.R.color.sleep_primary
             ),
             StructureItem(
                 labelResId = com.zero.common.R.string.event_health_doctor,
                 count = doctor,
-                colorResId = com.zero.common.R.color.color_cover_3
+                colorResId = com.zero.common.R.color.event_care
             ),
             StructureItem(
                 labelResId = com.zero.common.R.string.event_health_symptom,
                 count = symptom,
-                colorResId = com.zero.common.R.color.color_cover_4
+                colorResId = com.zero.common.R.color.event_milestone
             ),
             StructureItem(
                 labelResId = com.zero.common.R.string.event_health_vaccine,
                 count = vaccine,
-                colorResId = com.zero.common.R.color.color_cover_5
+                colorResId = com.zero.common.R.color.event_growth
             )
         ).filter { it.count > 0 }
     }

@@ -4,33 +4,12 @@
     android:height="48dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 宝宝睡觉的图标 - 闭眼 -->
+    <!-- 宝宝睡眠状态：线性月亮与闭眼表情，避免厚重卡通填充。 -->
     <path
-        android:fillColor="#9575CD"
-        android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2z" />
-    <!-- 闭着的眼睛 -->
-    <path
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.5"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M12,21a9,9 0,1 0,0 -18a9,9 0,0 0,0 18zM8,10c0.7,0.8 1.4,0.8 2,0M14,10c0.7,0.8 1.4,0.8 2,0M9.5,15c1.4,0.9 3.6,0.9 5,0M17,4h3l-3,3h3"
+        android:strokeColor="@color/sleep_primary"
         android:strokeLineCap="round"
-        android:pathData="M7,9 Q8.5,10.5 10,9" />
-    <path
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.5"
-        android:strokeLineCap="round"
-        android:pathData="M14,9 Q15.5,10.5 17,9" />
-    <!-- 微笑 -->
-    <path
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="1.5"
-        android:strokeLineCap="round"
-        android:pathData="M9,14 Q12,16 15,14" />
-    <!-- ZZZ -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M18,4 L20,4 L18,6 L20,6" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M20,2 L21.5,2 L20,3.5 L21.5,3.5" />
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.8" />
 </vector>
-

@@ -59,20 +59,26 @@ class EventSubtypeAdapter(
             bgDrawable.shape = GradientDrawable.OVAL
 
             // 设置图标颜色
-            ivIcon.setColorFilter(
-                ContextCompat.getColor(context, item.category.colorResId)
-            )
+            val categoryColor = ContextCompat.getColor(context, item.category.colorResId)
+            ivIcon.setColorFilter(categoryColor)
 
-            // 选中指示器
-            selectedIndicator.visibility = if (isSelected) View.VISIBLE else View.GONE
+            // 选中态改为浅暖底和细描边，减少旧式底部色条造成的厚重感。
+            selectedIndicator.visibility = View.GONE
+            cardRoot.setCardBackgroundColor(
+                ContextCompat.getColor(
+                    context,
+                    if (isSelected) {
+                        com.zero.common.R.color.control_surface_selected
+                    } else {
+                        com.zero.common.R.color.control_surface_default
+                    }
+                )
+            )
 
             // 卡片边框（选中时）
             if (isSelected) {
-                cardRoot.strokeWidth = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 2f, context.resources.displayMetrics).toInt()
-                cardRoot.strokeColor = ContextCompat.getColor(
-                    context,
-                    com.zero.common.R.color.darkblue
-                )
+                cardRoot.strokeWidth = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 1f, context.resources.displayMetrics).toInt()
+                cardRoot.strokeColor = categoryColor
             } else {
                 cardRoot.strokeWidth = 0
             }

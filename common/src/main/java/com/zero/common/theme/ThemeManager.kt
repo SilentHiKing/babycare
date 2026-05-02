@@ -11,17 +11,15 @@ import com.zero.common.mmkv.MMKVStore
 object ThemeManager {
 
     /**
-     * 宝宝主题枚举
+     * 宝宝主题枚举。
+     *
+     * 产品只暴露男孩 / 女孩两套视觉主题，基础 AppTheme 仅作为 Android 样式父类存在。
      */
     enum class BabyTheme(val themeResId: Int) {
-        /** 默认主题 - 使用 AppTheme (蓝色 #047AFF) */
-        DEFAULT(R.style.AppTheme),
         /** 男孩主题 - 天蓝色系 */
         BOY(R.style.AppTheme_Boy),
         /** 女孩主题 - 樱花粉系 */
-        GIRL(R.style.AppTheme_Girl),
-        /** 中性主题 - 薰衣草紫 */
-        NEUTRAL(R.style.AppTheme_Neutral)
+        GIRL(R.style.AppTheme_Girl)
     }
 
     private const val KEY_THEME = "baby_theme"
@@ -33,10 +31,11 @@ object ThemeManager {
      */
     fun getThemeByGender(gender: String?): BabyTheme {
         return when {
-            gender.isNullOrEmpty() -> BabyTheme.DEFAULT
+            gender.isNullOrEmpty() -> BabyTheme.BOY
             gender.contains("男") || gender.lowercase().contains("boy") -> BabyTheme.BOY
             gender.contains("女") || gender.lowercase().contains("girl") -> BabyTheme.GIRL
-            else -> BabyTheme.DEFAULT
+            // 未识别性别不再进入中性主题，统一回退到男孩主题以保持主题集合只有两种。
+            else -> BabyTheme.BOY
         }
     }
 
@@ -52,10 +51,11 @@ object ThemeManager {
      */
     fun getSavedTheme(): BabyTheme {
         return try {
-            val name = MMKVStore.getString(KEY_THEME, BabyTheme.DEFAULT.name) ?: BabyTheme.DEFAULT.name
+            val name = MMKVStore.getString(KEY_THEME, BabyTheme.BOY.name) ?: BabyTheme.BOY.name
             BabyTheme.valueOf(name)
         } catch (e: Exception) {
-            BabyTheme.DEFAULT
+            // 兼容历史版本中已保存的旧主题值，读取失败时回退男孩主题。
+            BabyTheme.BOY
         }
     }
 
@@ -98,10 +98,12 @@ object ThemeManager {
     }
 
     /**
-     * 重置为默认主题
+     * 重置为兜底主题。
+     *
+     * 兜底值使用男孩主题，避免恢复出产品不再设计的中性主题。
      */
-    fun resetToDefault() {
-        saveTheme(BabyTheme.DEFAULT)
+    fun resetToDefaultTheme() {
+        saveTheme(BabyTheme.BOY)
     }
 }
 

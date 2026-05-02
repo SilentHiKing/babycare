@@ -46,12 +46,8 @@ class EventCategoryAdapter(
             tvName.setText(item.nameResId)
             rootLayout.isSelected = isSelected
 
-            // 根据选中状态设置图标颜色
-            val iconTint = if (isSelected) {
-                ContextCompat.getColor(context, com.zero.common.R.color.White100)
-            } else {
-                ContextCompat.getColor(context, item.colorResId)
-            }
+            // 选中态背景已改为浅暖底，图标保留事件语义色，避免白色图标在浅底上失去可读性。
+            val iconTint = ContextCompat.getColor(context, item.colorResId)
             ivIcon.setColorFilter(iconTint)
 
             root.setOnClickListener {

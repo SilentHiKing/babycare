@@ -66,7 +66,6 @@
                             style="@style/TextAppearance.BabyCare.Heading3"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
                             tools:text="12月25日 周三" />
 
                         <TextView
@@ -97,8 +96,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="20dp"
-                android:text="@string/select_event_type"
-                android:fontFamily="sans-serif-medium" />
+                android:text="@string/select_event_type" />
 
             <!-- 事件大类 Tab (RecyclerView横向滚动) -->
             <androidx.recyclerview.widget.RecyclerView
@@ -152,7 +150,6 @@
                 android:layout_marginTop="20dp"
                 android:text="@string/note"
                 android:textColor="?attr/colorTextPrimary"
-                android:fontFamily="sans-serif-medium"
                 android:visibility="gone" />
 
             <EditText
@@ -184,6 +181,7 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="16dp"
         android:background="?attr/bg_r999_brand_color"
+        android:stateListAnimator="@null"
         android:text="@string/save"
         android:textColor="?attr/colorOnBrand"
         android:visibility="gone"

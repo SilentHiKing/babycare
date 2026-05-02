@@ -11,8 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/vaccine_name"
-        android:textColor="?attr/colorTextPrimary"
-        android:fontFamily="sans-serif-medium" />
+        android:textColor="?attr/colorTextPrimary" />
 
     <EditText
         android:id="@+id/etVaccineName"
@@ -34,8 +33,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/vaccine_dose"
-        android:textColor="?attr/colorTextPrimary"
-        android:fontFamily="sans-serif-medium" />
+        android:textColor="?attr/colorTextPrimary" />
 
     <EditText
         android:id="@+id/etVaccineDose"
@@ -57,8 +55,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/vaccine_site"
-        android:textColor="?attr/colorTextPrimary"
-        android:fontFamily="sans-serif-medium" />
+        android:textColor="?attr/colorTextPrimary" />
 
     <EditText
         android:id="@+id/etVaccineSite"
@@ -80,8 +77,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/vaccine_clinic"
-        android:textColor="?attr/colorTextPrimary"
-        android:fontFamily="sans-serif-medium" />
+        android:textColor="?attr/colorTextPrimary" />
 
     <EditText
         android:id="@+id/etVaccineClinic"
@@ -103,8 +99,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/vaccine_batch"
-        android:textColor="?attr/colorTextPrimary"
-        android:fontFamily="sans-serif-medium" />
+        android:textColor="?attr/colorTextPrimary" />
 
     <EditText
         android:id="@+id/etVaccineBatch"

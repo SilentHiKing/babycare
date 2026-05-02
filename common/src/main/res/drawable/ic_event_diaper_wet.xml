@@ -4,12 +4,12 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 水滴图标 -->
+    <!-- 线性湿尿布图标：在尿布轮廓内用水滴区分状态。 -->
     <path
-        android:fillColor="@color/event_diaper"
-        android:pathData="M12,2c-5.33,4.55 -8,8.48 -8,11.8c0,4.98 3.8,8.2 8,8.2s8,-3.22 8,-8.2C20,10.48 17.33,6.55 12,2zM12,20c-3.35,0 -6,-2.57 -6,-6.2c0,-2.34 1.95,-5.44 6,-9.14c4.05,3.7 6,6.79 6,9.14C18,17.43 15.35,20 12,20z"/>
-    <path
-        android:fillColor="@color/event_diaper"
-        android:pathData="M12,18c1.93,0 3.5,-1.57 3.5,-3.5c0,-1.58 -1.06,-2.93 -2.5,-3.36V18z"/>
+        android:fillColor="@android:color/transparent"
+        android:pathData="M5,6h14v7c0,3.3 -2.7,6 -6,6h-2c-3.3,0 -6,-2.7 -6,-6V6M5,6l4,5M19,6l-4,5M12,12c-1.5,1.7 -2,2.7 -2,3.8c0,1.2 0.9,2.2 2,2.2s2,-1 2,-2.2c0,-1.1 -0.5,-2.1 -2,-3.8"
+        android:strokeColor="?attr/iconColorPrimary"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
 </vector>
-

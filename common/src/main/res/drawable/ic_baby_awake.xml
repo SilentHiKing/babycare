@@ -4,18 +4,12 @@
     android:height="48dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 宝宝醒着的图标 - 笑脸 -->
+    <!-- 宝宝清醒状态：线性表情，适配男孩/女孩主题色。 -->
     <path
-        android:fillColor="?attr/colorBrand"
-        android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2z" />
-    <path
-        android:fillColor="?attr/colorOnBrand"
-        android:pathData="M8.5,8m-1.5,0a1.5,1.5 0,1 1,3 0a1.5,1.5 0,1 1,-3 0" />
-    <path
-        android:fillColor="?attr/colorOnBrand"
-        android:pathData="M15.5,8m-1.5,0a1.5,1.5 0,1 1,3 0a1.5,1.5 0,1 1,-3 0" />
-    <path
-        android:fillColor="?attr/colorOnBrand"
-        android:pathData="M12,17.5c2.33,0 4.31,-1.46 5.11,-3.5L6.89,14c0.8,2.04 2.78,3.5 5.11,3.5z" />
+        android:fillColor="@android:color/transparent"
+        android:pathData="M12,21a9,9 0,1 0,0 -18a9,9 0,0 0,0 18zM8.5,9.5h0.1M15.5,9.5h0.1M8.5,14c1,1.4 2.2,2.1 3.5,2.1S14.5,15.4 15.5,14"
+        android:strokeColor="?attr/colorStatusTextPrimary"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
 </vector>
-

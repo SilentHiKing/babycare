@@ -4,9 +4,12 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 星星/里程碑 -->
+    <!-- 线性里程碑图标：描边星形用于成长瞬间，避免厚重填充。 -->
     <path
-        android:fillColor="@color/event_milestone"
-        android:pathData="M12,17.27L18.18,21l-1.64,-7.03L22,9.24l-7.19,-0.61L12,2L9.19,8.63L2,9.24l5.46,4.73L5.82,21L12,17.27z"/>
+        android:fillColor="@android:color/transparent"
+        android:pathData="M12,3l2.6,5.3l5.8,0.8l-4.2,4.1l1,5.8L12,16.3L6.8,19l1,-5.8L3.6,9.1l5.8,-0.8L12,3z"
+        android:strokeColor="?attr/iconColorPrimary"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
 </vector>
-

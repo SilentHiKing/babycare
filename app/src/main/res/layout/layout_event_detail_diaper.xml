@@ -21,8 +21,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/stool_consistency"
-            android:textColor="?attr/colorTextPrimary"
-            android:fontFamily="sans-serif-medium" />
+            android:textColor="?attr/colorTextPrimary" />
 
         <RadioGroup
             android:id="@+id/rgStoolConsistency"
@@ -55,8 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="@string/stool_color"
-            android:textColor="?attr/colorTextPrimary"
-            android:fontFamily="sans-serif-medium" />
+            android:textColor="?attr/colorTextPrimary" />
 
         <RadioGroup
             android:id="@+id/rgStoolColor"
@@ -107,8 +105,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/urine_amount"
-            android:textColor="?attr/colorTextPrimary"
-            android:fontFamily="sans-serif-medium" />
+            android:textColor="?attr/colorTextPrimary" />
 
         <RadioGroup
             android:id="@+id/rgUrineAmount"

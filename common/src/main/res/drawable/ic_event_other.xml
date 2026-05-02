@@ -4,15 +4,12 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 其他/更多 -->
+    <!-- 线性其他图标：圆形省略号作为兜底类别，保持中性但不沉闷。 -->
     <path
-        android:fillColor="@color/event_other"
-        android:pathData="M6,10a2,2 0,1 0,0 4a2,2 0,1 0,0 -4z"/>
-    <path
-        android:fillColor="@color/event_other"
-        android:pathData="M12,10a2,2 0,1 0,0 4a2,2 0,1 0,0 -4z"/>
-    <path
-        android:fillColor="@color/event_other"
-        android:pathData="M18,10a2,2 0,1 0,0 4a2,2 0,1 0,0 -4z"/>
+        android:fillColor="@android:color/transparent"
+        android:pathData="M12,21c5,0 9,-4 9,-9s-4,-9 -9,-9s-9,4 -9,9s4,9 9,9M8,12h0.1M12,12h0.1M16,12h0.1"
+        android:strokeColor="?attr/iconColorPrimary"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
 </vector>
-

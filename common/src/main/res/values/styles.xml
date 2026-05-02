@@ -52,9 +52,9 @@
         <item name="shapeCornerLarge">24dp</item> <!-- Soft Minimalism Standard -->
         <item name="shapeCornerExtraLarge">32dp</item>
 
-        <!-- Elevation -->
-        <item name="elevationSmall">4dp</item>
-        <item name="elevationMedium">8dp</item>
+        <!-- 普通 View 默认不产生阴影，页面层级通过背景、边框和留白表达。 -->
+        <item name="elevationSmall">0dp</item>
+        <item name="elevationMedium">0dp</item>
 
         <!-- The most prominent text color.  -->
         <item name="android:textColorPrimary">?attr/colorTextPrimary</item>
@@ -98,7 +98,7 @@
 
 
         <item name="block_default">@color/White100</item>
-        <item name="block_gridview">@color/opacity_F7F7F8</item>
+        <item name="block_gridview">@color/control_surface_default</item>
 
         <item name="primary100">?attr/colorTextPrimary</item>
         <item name="primary90">?attr/colorTextPrimary</item>
@@ -496,9 +496,9 @@
     <!-- 辅食分类选择按钮样式 -->
     <style name="SolidCategoryRadioButton">
         <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">32dp</item>
+        <item name="android:layout_height">40dp</item>
         <item name="android:layout_marginEnd">8dp</item>
-        <item name="android:paddingHorizontal">12dp</item>
+        <item name="android:paddingHorizontal">16dp</item>
         <item name="android:background">@drawable/selector_solid_category_bg</item>
         <item name="android:button">@null</item>
         <item name="android:gravity">center</item>
@@ -509,9 +509,9 @@
     <!-- 辅食子类选择按钮样式 -->
     <style name="SolidSubtypeRadioButton">
         <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">28dp</item>
-        <item name="android:layout_marginEnd">6dp</item>
-        <item name="android:paddingHorizontal">10dp</item>
+        <item name="android:layout_height">36dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:paddingHorizontal">14dp</item>
         <item name="android:background">@drawable/selector_solid_subtype_bg</item>
         <item name="android:button">@null</item>
         <item name="android:gravity">center</item>
@@ -609,6 +609,14 @@
     
     <style name="TextAppearance.BabyCare.Label.Inverse" parent="TextAppearance.BabyCare.Label">
         <item name="android:textColor">?attr/colorOnBrand</item>
+    </style>
+
+    <!-- 操作文字：用于 Toolbar、弹窗按钮等需要中等强调的短操作。 -->
+    <style name="TextAppearance.BabyCare.Action" parent="TextAppearance.BabyCare">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">?attr/colorBrand</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">false</item>
     </style>
 
 </resources>

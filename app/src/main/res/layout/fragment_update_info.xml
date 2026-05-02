@@ -32,7 +32,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_card_prediction"
-                android:elevation="?attr/elevationMedium"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="20dp">
 

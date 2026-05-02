@@ -1,6 +1,7 @@
 package com.zero.babycare.home
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.annotation.ColorRes
@@ -20,7 +21,8 @@ data class QuickRecordItem(
     val categoryId: Int,
     @StringRes val nameResId: Int,
     @DrawableRes val iconResId: Int,
-    @ColorRes val colorResId: Int
+    @ColorRes val colorResId: Int,
+    @ColorRes val lightColorResId: Int
 ) {
     companion object {
         /**
@@ -31,25 +33,29 @@ data class QuickRecordItem(
                 EventType.CATEGORY_DIAPER,
                 R.string.event_category_diaper,
                 R.drawable.ic_event_diaper,
-                R.color.event_diaper
+                R.color.event_diaper,
+                R.color.event_diaper_light
             ),
             QuickRecordItem(
                 EventType.CATEGORY_GROWTH,
                 R.string.event_category_growth,
                 R.drawable.ic_event_growth,
-                R.color.event_growth
+                R.color.event_growth,
+                R.color.event_growth_light
             ),
             QuickRecordItem(
                 EventType.CATEGORY_HEALTH,
                 R.string.event_category_health,
                 R.drawable.ic_event_health,
-                R.color.event_health
+                R.color.event_health,
+                R.color.event_health_light
             ),
             QuickRecordItem(
                 EventType.CATEGORY_MILESTONE,
                 R.string.event_category_milestone,
                 R.drawable.ic_event_milestone,
-                R.color.event_milestone
+                R.color.event_milestone,
+                R.color.event_milestone_light
             )
         )
     }
@@ -79,12 +85,14 @@ class QuickRecordAdapter(
         with(holder.binding) {
             val context = root.context
             val color = ContextCompat.getColor(context, item.colorResId)
+            val lightColor = ContextCompat.getColor(context, item.lightColorResId)
 
+            // 图标使用语义色，承托面使用同类别浅色，避免旧式高饱和彩色文字造成噪音。
+            iconContainer.backgroundTintList = ColorStateList.valueOf(lightColor)
             ivIcon.setImageResource(item.iconResId)
             ivIcon.setColorFilter(color)
 
             tvName.setText(item.nameResId)
-            tvName.setTextColor(color)
 
             root.setOnClickListener {
                 onItemClick(item)

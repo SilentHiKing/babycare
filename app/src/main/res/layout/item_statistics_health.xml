@@ -39,8 +39,7 @@
             style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="?attr/colorTextPrimary"
-            android:fontFamily="sans-serif-medium" />
+            android:textColor="?attr/colorTextPrimary" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -112,5 +111,4 @@
     </LinearLayout>
 
 </LinearLayout>
-
 

@@ -4,9 +4,12 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 尺子/生长 -->
+    <!-- 线性成长图标：新芽语义比旧实心块更轻、更亲和。 -->
     <path
-        android:fillColor="@color/event_growth"
-        android:pathData="M21,6H3c-1.1,0 -2,0.9 -2,2v8c0,1.1 0.9,2 2,2h18c1.1,0 2,-0.9 2,-2V8C23,6.9 22.1,6 21,6zM21,16H3V8h2v3h2V8h2v3h2V8h2v3h2V8h2v3h2V8h2V16z"/>
+        android:fillColor="@android:color/transparent"
+        android:pathData="M12,20V10M12,10c-3.5,0 -6,-2.2 -7,-5c3.5,0 6,2 7,5M12,10c3.5,0 6,-2.2 7,-5c-3.5,0 -6,2 -7,5M7,20h10"
+        android:strokeColor="?attr/iconColorPrimary"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
 </vector>
-

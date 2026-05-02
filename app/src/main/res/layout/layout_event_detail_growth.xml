@@ -26,8 +26,7 @@
             android:inputType="numberDecimal"
             android:maxLength="6"
             android:textColor="?attr/colorTextPrimary"
-            android:textColorHint="?attr/colorTextHint"
-            android:fontFamily="sans-serif-medium" />
+            android:textColorHint="?attr/colorTextHint" />
 
         <TextView
             android:id="@+id/tvUnit"
@@ -79,7 +78,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/event_growth"
-            android:fontFamily="sans-serif-medium"
             tools:text="+0.18 kg ↑" />
 
     </LinearLayout>

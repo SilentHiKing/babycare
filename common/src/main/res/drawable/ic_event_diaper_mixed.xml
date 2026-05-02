@@ -4,15 +4,12 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 混合尿布图标 -->
+    <!-- 线性混合尿布图标：水滴和波线并置，保持同一 stroke 语言。 -->
     <path
-        android:fillColor="@color/event_diaper"
-        android:pathData="M6,3c-2.76,2.73 -4,5.09 -4,7.08c0,2.99 2.28,4.92 4,4.92s4,-1.93 4,-4.92C10,8.09 8.76,5.73 6,3zM6,13c-1.01,0 -2,-0.77 -2,-1.92c0,-1.17 0.78,-2.72 2,-4.37v6.29z"/>
-    <path
-        android:fillColor="@color/event_diaper"
-        android:pathData="M18,3c-2.76,2.73 -4,5.09 -4,7.08c0,2.99 2.28,4.92 4,4.92s4,-1.93 4,-4.92C22,8.09 20.76,5.73 18,3z"/>
-    <path
-        android:fillColor="@color/event_diaper"
-        android:pathData="M17,17H7c-1.1,0 -2,0.9 -2,2v1c0,0.55 0.45,1 1,1h12c0.55,0 1,-0.45 1,-1v-1C19,17.9 18.1,17 17,17z"/>
+        android:fillColor="@android:color/transparent"
+        android:pathData="M5,6h14v7c0,3.3 -2.7,6 -6,6h-2c-3.3,0 -6,-2.7 -6,-6V6M5,6l4,5M19,6l-4,5M10,13c-1,1.2 -1.4,2 -1.4,2.8c0,0.9 0.6,1.6 1.4,1.6s1.4,-0.7 1.4,-1.6c0,-0.8 -0.4,-1.6 -1.4,-2.8M13,16c1,-0.8 1.8,0.8 2.8,0"
+        android:strokeColor="?attr/iconColorPrimary"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
 </vector>
-
