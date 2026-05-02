@@ -1,10 +1,10 @@
 package com.zero.components.widget
 
-import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.zero.common.util.DurationFormatUtils
 
 class TimerCounter {
 
@@ -119,24 +119,13 @@ class TimerCounter {
     /** 检查是否正在运行 */
     fun isTimerRunning(): Boolean = isRunning
 
-    @SuppressLint("DefaultLocale")
     fun formatToMinSec(ms: Long): String {
-        val totalSeconds = ms / 1000
-        val minutes = totalSeconds / 60
-        val seconds = totalSeconds % 60
-        return String.format("%02d:%02d", minutes, seconds)
+        // 计时显示统一委托 common 工具，避免不同组件对长时长和负数处理不一致。
+        return DurationFormatUtils.formatTimerClock(ms)
     }
 
-    @SuppressLint("DefaultLocale")
     fun formatToHourMinSec(ms: Long): String {
-        val totalSeconds = ms / 1000
-        val hours = totalSeconds / 3600
-        val minutes = (totalSeconds % 3600) / 60
-        val seconds = totalSeconds % 60
-        return if (hours > 0) {
-            String.format("%02d:%02d:%02d", hours, minutes, seconds)
-        } else {
-            String.format("%02d:%02d", minutes, seconds)
-        }
+        // 保留原有 API，实际格式规则集中在 DurationFormatUtils 中维护。
+        return DurationFormatUtils.formatTimerClock(ms)
     }
 }
