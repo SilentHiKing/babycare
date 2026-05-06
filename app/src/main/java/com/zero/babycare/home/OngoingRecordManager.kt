@@ -72,10 +72,13 @@ object OngoingRecordManager {
     // ==================== 睡眠 ====================
 
     /**
-     * 开始睡眠记录
+     * 开始睡眠记录。
+     *
+     * startTime 必须使用用户最终确认的入睡时间，避免手动补录过去时间后被当前时间覆盖。
      */
-    fun startSleep(babyId: Int) {
-        MMKVStore.put(sleepStartKey(babyId), System.currentTimeMillis())
+    fun startSleep(babyId: Int, startTime: Long = System.currentTimeMillis()) {
+        if (startTime <= 0L) return
+        MMKVStore.put(sleepStartKey(babyId), startTime)
         MMKVStore.remove(KEY_ONGOING_SLEEP_START)
         MMKVStore.remove(KEY_ONGOING_SLEEP_BABY_ID)
         trackBabyId(babyId)
@@ -144,11 +147,18 @@ object OngoingRecordManager {
     // ==================== 喂养 ====================
 
     /**
-     * 开始喂养记录
+     * 开始喂养记录。
+     *
      * @param feedingType 喂养类型（0=母乳，1=配方奶，2=混合）
+     * @param startTime 用户最终确认的喂养开始时间
      */
-    fun startFeeding(babyId: Int, feedingType: Int = 0) {
-        MMKVStore.put(feedingStartKey(babyId), System.currentTimeMillis())
+    fun startFeeding(
+        babyId: Int,
+        feedingType: Int = 0,
+        startTime: Long = System.currentTimeMillis()
+    ) {
+        if (startTime <= 0L) return
+        MMKVStore.put(feedingStartKey(babyId), startTime)
         MMKVStore.put(feedingTypeKey(babyId), feedingType)
         MMKVStore.remove(KEY_ONGOING_FEEDING_START)
         MMKVStore.remove(KEY_ONGOING_FEEDING_BABY_ID)

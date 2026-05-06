@@ -145,6 +145,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
             endPicker = binding.timerPanel.endPicker,
             config = RecordTimerController.Config(
                 invalidEndTimeMessageRes = R.string.sleep_end_must_after_start,
+                mode = TimerMode.SLEEP,
                 shouldIgnoreInput = { isProgrammaticChange }
             ),
             callbacks = RecordTimerController.Callbacks(
@@ -157,9 +158,9 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
                     }
                 },
                 onEndTimeChanged = { markAsUnsaved() },
-                onTimerStart = {
+                onTimerStart = { startTime ->
                     mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
-                        OngoingRecordManager.startSleep(babyId)
+                        OngoingRecordManager.startSleep(babyId, startTime)
                     }
                 },
                 onTimerResume = { markAsUnsaved() },

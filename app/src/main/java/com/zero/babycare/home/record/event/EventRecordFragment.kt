@@ -28,6 +28,7 @@ import com.zero.babycare.databinding.LayoutEventDetailCustomBinding
 import com.zero.babycare.databinding.LayoutEventDetailSymptomBinding
 import com.zero.babycare.databinding.LayoutEventDetailVaccineBinding
 import com.zero.babycare.home.record.RecordTimerController
+import com.zero.babycare.home.record.TimerMode
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babydata.entity.CustomEventData
@@ -761,7 +762,8 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             startPicker = detailBinding.timerPanel.startPicker,
             endPicker = detailBinding.timerPanel.endPicker,
             config = RecordTimerController.Config(
-                invalidEndTimeMessageRes = R.string.event_end_time_invalid
+                invalidEndTimeMessageRes = R.string.event_end_time_invalid,
+                mode = TimerMode.ACTIVITY
             ),
             callbacks = RecordTimerController.Callbacks(
                 onStartTimeChanged = { timestamp -> vm.setEventTime(timestamp) },

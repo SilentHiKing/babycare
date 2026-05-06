@@ -26,13 +26,14 @@ class RecordTimerController(
 
     data class Config(
         val invalidEndTimeMessageRes: Int,
+        val mode: TimerMode = TimerMode.FEEDING,
         val shouldIgnoreInput: () -> Boolean = { false }
     )
 
     data class Callbacks(
         val onStartTimeChanged: (Long) -> Unit = {},
         val onEndTimeChanged: (Long?) -> Unit = {},
-        val onTimerStart: () -> Unit = {},
+        val onTimerStart: (Long) -> Unit = {},
         val onTimerResume: () -> Unit = {},
         val onTimerPause: (Long) -> Unit = {},
         val onDirty: () -> Unit = {}
@@ -157,8 +158,7 @@ class RecordTimerController(
                     if (isEndTimeManuallyModified()) {
                         showResumeTimerConfirmDialog()
                     } else {
-                        handleTimerResume()
-                        timerView.resumeFromPause()
+                        continueTimerAfterPause()
                     }
                 }
                 next == RecordState.PAUSE -> {
@@ -219,8 +219,8 @@ class RecordTimerController(
     private fun handleTimerStart() {
         if (startInput.hasValidTime()) {
             val startTimestamp = startInput.getTimestamp()
-            val offset = System.currentTimeMillis() - startTimestamp
-            if (offset > 0) {
+            val offset = (System.currentTimeMillis() - startTimestamp).coerceAtLeast(0L)
+            if (offset > 0L) {
                 timerView.setPauseOffset(offset)
             }
         }
@@ -232,8 +232,19 @@ class RecordTimerController(
             val timerStartTime = timerView.getStartTimestamp()
             if (timerStartTime > 0) {
                 setStartTime(timerStartTime, notify = true)
-                callbacks.onTimerStart()
+                callbacks.onTimerStart(timerStartTime)
             }
+        }
+    }
+
+    private fun continueTimerAfterPause() {
+        handleTimerResume()
+        if (TimerSessionPolicy.shouldResumeFromStart(config.mode) && startInput.hasValidTime()) {
+            // 睡眠和活动以开始时间到当前时间作为完整区间，暂停后继续需按原始开始时间恢复计时展示。
+            val offset = (System.currentTimeMillis() - startInput.getTimestamp()).coerceAtLeast(0L)
+            timerView.startFromOffset(offset)
+        } else {
+            timerView.resumeFromPause()
         }
     }
 
@@ -265,8 +276,7 @@ class RecordTimerController(
             confirmText = StringUtils.getString(R.string.confirm),
             cancelText = StringUtils.getString(R.string.cancel),
             onConfirm = {
-                handleTimerResume()
-                timerView.resumeFromPause()
+                continueTimerAfterPause()
             }
         )
     }

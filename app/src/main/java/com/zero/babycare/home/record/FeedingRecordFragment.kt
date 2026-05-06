@@ -385,6 +385,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             endPicker = binding.timerPanel.endPicker,
             config = RecordTimerController.Config(
                 invalidEndTimeMessageRes = R.string.end_time_must_after_start,
+                mode = TimerMode.FEEDING,
                 shouldIgnoreInput = { isProgrammaticChange }
             ),
             callbacks = RecordTimerController.Callbacks(
@@ -397,9 +398,9 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
                     }
                 },
                 onEndTimeChanged = { markAsUnsaved() },
-                onTimerStart = {
+                onTimerStart = { startTime ->
                     mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
-                        OngoingRecordManager.startFeeding(babyId, selectedFeedingType.type)
+                        OngoingRecordManager.startFeeding(babyId, selectedFeedingType.type, startTime)
                     }
                 },
                 onTimerResume = { markAsUnsaved() },
