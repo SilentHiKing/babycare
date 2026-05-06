@@ -137,6 +137,44 @@ class TimerSessionPolicyTest {
         assertEquals(DurationSource.TIME_RANGE, result.source)
     }
 
+    @Test
+    fun `feeding display duration uses active duration when valid`() {
+        val state = TimerSessionState(
+            startAt = START_AT,
+            endAt = START_AT + THIRTY_MINUTES,
+            status = TimerStatus.PAUSED,
+            activeDuration = TEN_MINUTES
+        )
+
+        val result = TimerSessionPolicy.calculateDisplayDuration(
+            mode = TimerMode.FEEDING,
+            state = state,
+            now = START_AT + THIRTY_MINUTES
+        )
+
+        assertEquals(TEN_MINUTES, result.valueMs)
+        assertEquals(DurationSource.ACTIVE_TIMER, result.source)
+    }
+
+    @Test
+    fun `feeding display duration falls back to range when active duration is missing`() {
+        val state = TimerSessionState(
+            startAt = START_AT,
+            endAt = START_AT + THIRTY_MINUTES,
+            status = TimerStatus.PAUSED,
+            activeDuration = 0L
+        )
+
+        val result = TimerSessionPolicy.calculateDisplayDuration(
+            mode = TimerMode.FEEDING,
+            state = state,
+            now = START_AT + THIRTY_MINUTES
+        )
+
+        assertEquals(THIRTY_MINUTES, result.valueMs)
+        assertEquals(DurationSource.TIME_RANGE, result.source)
+    }
+
     private fun createState(
         startAt: Long,
         endAt: Long,

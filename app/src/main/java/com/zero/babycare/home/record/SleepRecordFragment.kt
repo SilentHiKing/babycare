@@ -262,12 +262,13 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
             return
         }
 
-        // 计算时长：优先使用计时器时长，如果没有则使用时间差
-        var duration = binding.timerPanel.timerView.getDuration()
-        val timeRangeDuration = DateUtils.calculateDuration(startTime, endTime)
-        if (duration <= 0 || duration > timeRangeDuration) {
-            duration = timeRangeDuration
-        }
+        // 睡眠不扣除暂停时间，最终时长始终按入睡到醒来的完整时间区间计算。
+        val duration = TimerSessionPolicy.calculateSavedDuration(
+            mode = TimerMode.SLEEP,
+            startAt = startTime,
+            endAt = endTime,
+            activeDuration = binding.timerPanel.timerView.getDuration()
+        ).valueMs
 
         val sleepRecord = SleepRecord(
             sleepId = editingRecord?.sleepId ?: 0,

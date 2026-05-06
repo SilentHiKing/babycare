@@ -45,6 +45,7 @@ import com.zero.common.ext.launchInLifecycle
 import com.zero.common.util.UnitConfig
 import com.zero.common.util.UnitConverter
 import com.zero.components.base.BaseFragment
+import com.zero.components.widget.RecordView.RecordState
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -796,6 +797,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             return
         }
 
+        syncRunningActivityTimerBeforeSave()
         syncDetailInputs()
 
         // 获取备注
@@ -814,6 +816,20 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                 ToastUtils.showShort(message)
             }
         )
+    }
+
+    private fun syncRunningActivityTimerBeforeSave() {
+        val subtype = vm.selectedSubtype.value ?: return
+        if (!EventType.hasDuration(subtype.type)) return
+
+        val root = binding.containerDetail
+        if (root.childCount == 0) return
+
+        val detailBinding = LayoutEventDetailActivityBinding.bind(root.getChildAt(0))
+        if (detailBinding.timerPanel.timerView.currentShowState == RecordState.RECORDING) {
+            // 保存活动类事件前先触发统一暂停流程，让结束时间同步写入 ViewModel。
+            detailBinding.timerPanel.timerView.forcePause(triggerCallback = true)
+        }
     }
 
     private fun syncDetailInputs() {

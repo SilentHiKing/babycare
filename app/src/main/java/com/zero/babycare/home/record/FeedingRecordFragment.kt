@@ -673,14 +673,13 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         val startTime = binding.timerPanel.startInput.getTimestamp()
         val endTime = binding.timerPanel.endInput.getTimestamp()
 
-        // 计算时长：优先使用计时器时长，如果没有则使用时间差
-        var duration = binding.timerPanel.timerView.getDuration()
-        val timeRangeDuration = DateUtils.calculateDuration(startTime, endTime)
-
-        // 如果计时器时长为0或超过时间范围，使用时间范围计算的时长
-        if (duration <= 0 || duration > timeRangeDuration) {
-            duration = timeRangeDuration
-        }
+        // 喂养保留暂停/继续产生的有效计时时长；无有效计时或超过时间跨度时回退到开始-结束区间。
+        val duration = TimerSessionPolicy.calculateSavedDuration(
+            mode = TimerMode.FEEDING,
+            startAt = startTime,
+            endAt = endTime,
+            activeDuration = binding.timerPanel.timerView.getDuration()
+        ).valueMs
 
         // 校验左右乳房时长
         if (!validateBreastDuration(duration)) {
