@@ -21,20 +21,10 @@ import com.zero.babycare.statistics.adapter.StatisticsStructureAdapter
 import com.zero.babycare.statistics.adapter.StatisticsSummaryAdapter
 import com.zero.babycare.statistics.adapter.StatisticsTrendAdapter
 import com.zero.babycare.statistics.adapter.TimelineAdapter
-import com.zero.babycare.statistics.model.DaySummary
-import com.zero.babycare.statistics.model.GrowthTrend
-import com.zero.babycare.statistics.model.StructureOverview
 import com.zero.babycare.statistics.model.TimelineEditTarget
 import com.zero.babycare.statistics.model.TimelineUiItem
-import com.zero.babycare.statistics.model.TrendOverview
-import com.zero.babydata.entity.BabyInfo
 import com.zero.common.ext.launchInLifecycle
 import com.zero.components.base.BaseFragment
-import com.zero.components.base.vm.UiState
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.temporal.ChronoUnit
 
 /**
  * 数据统计页面
@@ -63,7 +53,6 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     private lateinit var emptyAdapter: StatisticsEmptyAdapter
     private lateinit var concatAdapter: ConcatAdapter
     private lateinit var timelineAdapter: TimelineAdapter
-    private var currentBabyInfo: BabyInfo? = null
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
@@ -139,14 +128,14 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
 
         concatAdapter = ConcatAdapter(
             calendarAdapter,
+            babyAgeAdapter,
             summaryAdapter,
+            timelineAdapter,
             trendAdapter,
             structureAdapter,
             growthAdapter,
             growthPercentileAdapter,
-            healthAdapter,
-            babyAgeAdapter,
-            timelineAdapter
+            healthAdapter
         )
 
         binding.rvStatistics.apply {
@@ -167,35 +156,12 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     private fun ensureBabyOrNavigate(): Boolean {
         val currentBaby = mainVm.getCurrentBabyInfo()
         return if (currentBaby == null) {
-            currentBabyInfo = null
             babyAgeAdapter.updateBabyDaysText(null)
             mainVm.navigateTo(NavTarget.BabyInfo.create(returnTarget = NavTarget.Statistics(getReturnTarget())))
             false
         } else {
             vm.setBabyId(currentBaby.babyId)
-            currentBabyInfo = currentBaby
-            updateBabyDays(currentBaby, vm.selectedDate.value)
             true
-        }
-    }
-
-    private fun updateBabyDays(babyInfo: BabyInfo, selectedDate: LocalDate) {
-        if (babyInfo.birthDate > 0) {
-            val birthDate = Instant.ofEpochMilli(babyInfo.birthDate)
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate()
-            val days = ChronoUnit.DAYS.between(birthDate, selectedDate)
-            if (days < 0) {
-                babyAgeAdapter.updateBabyDaysText(
-                    StringUtils.getString(com.zero.common.R.string.baby_not_born_yet_playful)
-                )
-            } else {
-                babyAgeAdapter.updateBabyDaysText(
-                    StringUtils.getString(com.zero.common.R.string.days_born, days.toInt())
-                )
-            }
-        } else {
-            babyAgeAdapter.updateBabyDaysText(null)
         }
     }
 
@@ -203,142 +169,20 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
      * 观察数据变化
      */
     private fun observeData() {
-        // 观察当日摘要
         launchInLifecycle {
-            vm.daySummary.collect { state ->
-                when (state) {
-                    is UiState.None -> {
-                        // 初始状态
-                    }
-                    is UiState.Loading -> {
-                        // 可以显示加载状态
-                    }
-                    is UiState.Success -> {
-                        state.data?.let { updateSummaryUI(it) }
-                    }
-                    is UiState.Error -> {
-                        // 显示错误状态
-                    }
-                }
+            vm.uiState.collect { state ->
+                calendarAdapter.setDatesWithRecords(state.datesWithRecords)
+                calendarAdapter.syncSelectedDate(state.selectedDate)
+                babyAgeAdapter.bindDayRecord(state.dayRecord)
+                summaryAdapter.updateSummary(state.dayRecord.summaryMetrics)
+                updateTimelineUI(state.dayRecord.timelineItems)
+                trendAdapter.updateTrend(state.insights.trend)
+                structureAdapter.updateStructure(state.insights.structure)
+                growthAdapter.updateTrend(state.insights.growth)
+                growthPercentileAdapter.updatePercentile(state.insights.percentile)
+                healthAdapter.updateHealth(state.insights.health)
             }
         }
-
-        // 观察时间轴数据
-        launchInLifecycle {
-            vm.timelineItems.collect { state ->
-                when (state) {
-                    is UiState.None -> {
-                        // 初始状态
-                    }
-                    is UiState.Loading -> {
-                        // 可以显示加载状态
-                    }
-                    is UiState.Success -> {
-                        updateTimelineUI(state.data ?: emptyList())
-                    }
-                    is UiState.Error -> {
-                        // 显示错误状态
-                    }
-                }
-            }
-        }
-
-        // 观察生长趋势
-        launchInLifecycle {
-            vm.growthTrend.collect { state ->
-                when (state) {
-                    is UiState.None -> {
-                        // 初始状态
-                    }
-                    is UiState.Loading -> {
-                        // 可以显示加载状态
-                    }
-                    is UiState.Success -> {
-                        updateGrowthTrendUI(state.data)
-                    }
-                    is UiState.Error -> {
-                        // 显示错误状态
-                    }
-                }
-            }
-        }
-
-        // 观察趋势概览
-        launchInLifecycle {
-            vm.trendOverview.collect { state ->
-                when (state) {
-                    is UiState.None -> Unit
-                    is UiState.Loading -> Unit
-                    is UiState.Success -> trendAdapter.updateTrend(state.data ?: TrendOverview(emptyList()))
-                    is UiState.Error -> Unit
-                }
-            }
-        }
-
-        // 观察结构图
-        launchInLifecycle {
-            vm.structureOverview.collect { state ->
-                when (state) {
-                    is UiState.None -> Unit
-                    is UiState.Loading -> Unit
-                    is UiState.Success -> structureAdapter.updateStructure(state.data ?: StructureOverview(emptyList()))
-                    is UiState.Error -> Unit
-                }
-            }
-        }
-
-        // 观察生长百分位
-        launchInLifecycle {
-            vm.growthPercentile.collect { state ->
-                when (state) {
-                    is UiState.None -> Unit
-                    is UiState.Loading -> Unit
-                    is UiState.Success -> growthPercentileAdapter.updatePercentile(state.data)
-                    is UiState.Error -> Unit
-                }
-            }
-        }
-
-        // 观察健康/疫苗统计
-        launchInLifecycle {
-            vm.healthStats.collect { state ->
-                when (state) {
-                    is UiState.None -> Unit
-                    is UiState.Loading -> Unit
-                    is UiState.Success -> healthAdapter.updateHealth(state.data)
-                    is UiState.Error -> Unit
-                }
-            }
-        }
-
-        // 观察有记录的日期
-        launchInLifecycle {
-            vm.datesWithRecords.collect { dates ->
-                calendarAdapter.setDatesWithRecords(dates)
-            }
-        }
-
-        // 观察 ViewModel 的选中日期变化（外部设置时同步到日历）
-        launchInLifecycle {
-            vm.selectedDate.collect { date ->
-                calendarAdapter.syncSelectedDate(date)
-                currentBabyInfo?.let { updateBabyDays(it, date) }
-            }
-        }
-    }
-
-    /**
-     * 更新统计摘要 UI
-     */
-    private fun updateSummaryUI(summary: DaySummary) {
-        summaryAdapter.updateSummary(summary)
-    }
-
-    /**
-     * 更新生长趋势 UI
-     */
-    private fun updateGrowthTrendUI(trend: GrowthTrend?) {
-        growthAdapter.updateTrend(trend)
     }
 
     /**
@@ -347,15 +191,16 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     private fun updateTimelineUI(items: List<TimelineUiItem>) {
         timelineAdapter.submitList(items)
         val hasEmptyAdapter = concatAdapter.adapters.contains(emptyAdapter)
+        val timelineIndex = concatAdapter.adapters.indexOf(timelineAdapter)
         if (items.isEmpty()) {
             if (!hasEmptyAdapter) {
-                concatAdapter.addAdapter(emptyAdapter)
+                concatAdapter.addAdapter(timelineIndex, emptyAdapter)
             }
             timelineAdapter.setRoundBottom(false)
-        } else if (hasEmptyAdapter) {
-            concatAdapter.removeAdapter(emptyAdapter)
-            timelineAdapter.setRoundBottom(true)
         } else {
+            if (hasEmptyAdapter) {
+                concatAdapter.removeAdapter(emptyAdapter)
+            }
             timelineAdapter.setRoundBottom(true)
         }
     }

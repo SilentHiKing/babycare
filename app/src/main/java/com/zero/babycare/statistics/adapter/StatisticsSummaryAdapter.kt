@@ -4,14 +4,13 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.zero.babycare.databinding.ItemStatisticsSummaryBinding
-import com.zero.babycare.statistics.model.DaySummary
+import com.zero.babycare.statistics.model.SummaryMetricType
+import com.zero.babycare.statistics.model.SummaryMetricUiModel
 import com.zero.common.R as CommonR
-import java.time.LocalDate
 
 class StatisticsSummaryAdapter : RecyclerView.Adapter<StatisticsSummaryAdapter.SummaryViewHolder>() {
 
-    private var summary: DaySummary? = null
-    private val fallbackSummary = DaySummary.empty(LocalDate.now())
+    private var metrics: List<SummaryMetricUiModel> = emptyList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SummaryViewHolder {
         val binding = ItemStatisticsSummaryBinding.inflate(
@@ -23,35 +22,34 @@ class StatisticsSummaryAdapter : RecyclerView.Adapter<StatisticsSummaryAdapter.S
     }
 
     override fun onBindViewHolder(holder: SummaryViewHolder, position: Int) {
-        holder.bind(summary)
+        holder.bind(metrics)
     }
 
     override fun getItemCount(): Int = 1
 
-    fun updateSummary(data: DaySummary?) {
-        summary = data
+    fun updateSummary(items: List<SummaryMetricUiModel>) {
+        metrics = items
         notifyItemChanged(0)
     }
 
     inner class SummaryViewHolder(
         private val binding: ItemStatisticsSummaryBinding
     ) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(summary: DaySummary?) {
-            val data = summary ?: fallbackSummary
+        fun bind(metrics: List<SummaryMetricUiModel>) {
             val context = binding.root.context
-            binding.tvFeedingCount.text = context.getString(
-                CommonR.string.times_count_format,
-                data.feedingCount
-            )
-            binding.tvSleepDuration.text = data.formatSleepDuration()
-            binding.tvDiaperCount.text = context.getString(
-                CommonR.string.times_count_format,
-                data.totalDiaperCount
-            )
-            binding.tvOtherCount.text = context.getString(
-                CommonR.string.times_count_format,
-                data.otherEventCount
-            )
+            val placeholder = context.getString(CommonR.string.statistics_growth_placeholder)
+
+            binding.tvFeedingCount.text = metrics.primaryText(SummaryMetricType.FEEDING, placeholder)
+            binding.tvSleepDuration.text = metrics.primaryText(SummaryMetricType.SLEEP, placeholder)
+            binding.tvDiaperCount.text = metrics.primaryText(SummaryMetricType.DIAPER, placeholder)
+            binding.tvOtherCount.text = metrics.primaryText(SummaryMetricType.OTHER, placeholder)
         }
+    }
+
+    private fun List<SummaryMetricUiModel>.primaryText(
+        type: SummaryMetricType,
+        fallback: String
+    ): String {
+        return firstOrNull { it.type == type }?.primaryText ?: fallback
     }
 }
