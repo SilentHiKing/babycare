@@ -3,6 +3,7 @@ package com.zero.babycare.statistics
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.zero.babycare.statistics.mapper.StatisticsGrowthCutoff
 import com.zero.babycare.statistics.model.DaySummary
 import com.zero.babycare.statistics.model.GrowthPercentileOverview
 import com.zero.babycare.statistics.model.GrowthPercentilePoint
@@ -114,6 +115,8 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
             loadDayData()
             loadTrendOverview()
             loadStructureOverview()
+            loadGrowthTrend()
+            loadGrowthPercentile()
             loadHealthStats()
         }
     }
@@ -210,8 +213,9 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
      */
     private fun loadGrowthTrend() {
         val babyId = _currentBabyId.value
+        val date = _selectedDate.value
         if (babyId <= 0) {
-            _growthTrend.value = UiState.Success(buildEmptyGrowthTrend())
+            _growthTrend.value = UiState.Success(GrowthTrend.empty())
             return
         }
 
@@ -219,11 +223,11 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
             _growthTrend.value = UiState.Loading
             try {
                 val trend = withContext(Dispatchers.IO) {
-                    buildGrowthTrend(babyId)
+                    buildGrowthTrend(babyId, date)
                 }
                 _growthTrend.value = UiState.Success(trend)
             } catch (e: Exception) {
-                _growthTrend.value = UiState.Error(e, e.message ?: "加载失败")
+                _growthTrend.value = UiState.Error(e, getLoadFailedText())
             }
         }
     }
@@ -305,6 +309,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
      */
     private fun loadGrowthPercentile() {
         val babyId = _currentBabyId.value
+        val date = _selectedDate.value
         if (babyId <= 0) {
             _growthPercentile.value = UiState.Success(
                 buildEmptyGrowthPercentile(
@@ -318,7 +323,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
             _growthPercentile.value = UiState.Loading
             try {
                 val overview = withContext(Dispatchers.IO) {
-                    buildGrowthPercentileOverview(babyId)
+                    buildGrowthPercentileOverview(babyId, date)
                 }
                 _growthPercentile.value = UiState.Success(overview)
             } catch (e: Exception) {
@@ -406,13 +411,14 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     /**
      * 查询并计算生长趋势
      */
-    private fun buildGrowthTrend(babyId: Int): GrowthTrend {
+    private fun buildGrowthTrend(babyId: Int, selectedDate: LocalDate): GrowthTrend {
         val weightUnit = UnitConfig.getWeightUnit()
         val heightUnit = UnitConfig.getHeightUnit()
 
         val weightItem = buildGrowthItem(
             babyId = babyId,
             type = EventType.GROWTH_WEIGHT,
+            selectedDate = selectedDate,
             unitLabelResId = UnitConfig.getWeightUnitLabelResId(),
             targetUnit = weightUnit,
             converter = UnitConverter::weightToDisplay
@@ -421,6 +427,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         val heightItem = buildGrowthItem(
             babyId = babyId,
             type = EventType.GROWTH_HEIGHT,
+            selectedDate = selectedDate,
             unitLabelResId = UnitConfig.getHeightUnitLabelResId(),
             targetUnit = heightUnit,
             converter = UnitConverter::heightToDisplay
@@ -429,6 +436,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         val headItem = buildGrowthItem(
             babyId = babyId,
             type = EventType.GROWTH_HEAD,
+            selectedDate = selectedDate,
             unitLabelResId = UnitConfig.getHeightUnitLabelResId(),
             targetUnit = heightUnit,
             converter = UnitConverter::heightToDisplay
@@ -653,7 +661,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     /**
      * 构建生长百分位数据（基于 WHO 标准）
      */
-    private fun buildGrowthPercentileOverview(babyId: Int): GrowthPercentileOverview {
+    private fun buildGrowthPercentileOverview(babyId: Int, selectedDate: LocalDate): GrowthPercentileOverview {
         val baby = repository.getBabyInfoSync(babyId)
         val birthDate = baby?.birthDate ?: 0L
         val sex = parseWhoSex(baby?.gender)
@@ -674,7 +682,8 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
             targetUnit = weightUnit,
             indicator = WhoIndicator.WEIGHT,
             sex = sex,
-            birthDate = birthDate
+            birthDate = birthDate,
+            selectedDate = selectedDate
         )
         val height = buildPercentileSeries(
             babyId = babyId,
@@ -684,7 +693,8 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
             targetUnit = heightUnit,
             indicator = WhoIndicator.LENGTH_HEIGHT,
             sex = sex,
-            birthDate = birthDate
+            birthDate = birthDate,
+            selectedDate = selectedDate
         )
         val head = buildPercentileSeries(
             babyId = babyId,
@@ -694,7 +704,8 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
             targetUnit = heightUnit,
             indicator = WhoIndicator.HEAD,
             sex = sex,
-            birthDate = birthDate
+            birthDate = birthDate,
+            selectedDate = selectedDate
         )
 
         return GrowthPercentileOverview(
@@ -716,9 +727,12 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         targetUnit: String,
         indicator: WhoIndicator,
         sex: WhoSex,
-        birthDate: Long
+        birthDate: Long,
+        selectedDate: LocalDate
     ): GrowthPercentileSeries {
-        val records = repository.getEventRecordsByType(babyId, type).sortedBy { it.time }
+        val records = StatisticsGrowthCutoff
+            .filterUntil(repository.getEventRecordsByType(babyId, type), selectedDate)
+            .sortedBy { it.time }
         if (records.isEmpty()) {
             return GrowthPercentileSeries(
                 labelResId = labelResId,
@@ -933,11 +947,16 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     private fun buildGrowthItem(
         babyId: Int,
         type: Int,
+        selectedDate: LocalDate,
         unitLabelResId: Int,
         targetUnit: String,
         converter: (Double, String, String) -> Double
     ): GrowthTrendItem {
-        val records = repository.getLatestEventRecordsByType(babyId, type, 2)
+        val records = StatisticsGrowthCutoff.latestUntil(
+            records = repository.getEventRecordsByType(babyId, type),
+            selectedDate = selectedDate,
+            limit = 2
+        )
         val dataList = records.mapNotNull { GrowthData.fromJson(it.extraData) }
         val latest = dataList.getOrNull(0)
         if (latest == null) {
