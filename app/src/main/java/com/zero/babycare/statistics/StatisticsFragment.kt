@@ -24,7 +24,8 @@ import com.zero.babycare.statistics.adapter.TimelineAdapter
 import com.zero.babycare.statistics.model.DaySummary
 import com.zero.babycare.statistics.model.GrowthTrend
 import com.zero.babycare.statistics.model.StructureOverview
-import com.zero.babycare.statistics.model.TimelineItem
+import com.zero.babycare.statistics.model.TimelineEditTarget
+import com.zero.babycare.statistics.model.TimelineUiItem
 import com.zero.babycare.statistics.model.TrendOverview
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.ext.launchInLifecycle
@@ -343,7 +344,7 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     /**
      * 更新时间轴 UI
      */
-    private fun updateTimelineUI(items: List<TimelineItem>) {
+    private fun updateTimelineUI(items: List<TimelineUiItem>) {
         timelineAdapter.submitList(items)
         val hasEmptyAdapter = concatAdapter.adapters.contains(emptyAdapter)
         if (items.isEmpty()) {
@@ -362,31 +363,31 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     /**
      * 处理时间轴项点击
      */
-    private fun handleTimelineItemClick(item: TimelineItem) {
-        when (item) {
-            is TimelineItem.Feeding -> {
+    private fun handleTimelineItemClick(item: TimelineUiItem) {
+        when (val target = item.editTarget) {
+            is TimelineEditTarget.Feeding -> {
                 // 跳转到喂养编辑页面
                 mainVm.navigateTo(
                     NavTarget.FeedingRecord(
-                        editRecordId = item.record.feedingId,
+                        editRecordId = target.recordId,
                         returnTarget = NavTarget.Statistics(getReturnTarget())
                     )
                 )
             }
-            is TimelineItem.Sleep -> {
+            is TimelineEditTarget.Sleep -> {
                 // 跳转到睡眠编辑页面
                 mainVm.navigateTo(
                     NavTarget.SleepRecord(
-                        editRecordId = item.record.sleepId,
+                        editRecordId = target.recordId,
                         returnTarget = NavTarget.Statistics(getReturnTarget())
                     )
                 )
             }
-            is TimelineItem.Event -> {
+            is TimelineEditTarget.Event -> {
                 // 跳转到事件编辑页面
                 mainVm.navigateTo(
                     NavTarget.EventRecord(
-                        editRecordId = item.record.eventId,
+                        editRecordId = target.recordId,
                         returnTarget = NavTarget.Statistics(getReturnTarget())
                     )
                 )

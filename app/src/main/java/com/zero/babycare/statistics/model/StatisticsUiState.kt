@@ -79,6 +79,7 @@ data class TimelineUiItem(
     val timeText: String,
     val titleText: String,
     val detailText: String,
+    val endTimeText: String? = null,
     val noteText: String?,
     @DrawableRes val iconResId: Int,
     @ColorRes val colorResId: Int,

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.zero.babycare.statistics.mapper.StatisticsGrowthCutoff
+import com.zero.babycare.statistics.mapper.StatisticsTimelineMapper
 import com.zero.babycare.statistics.model.DaySummary
 import com.zero.babycare.statistics.model.GrowthPercentileOverview
 import com.zero.babycare.statistics.model.GrowthPercentilePoint
@@ -14,7 +15,7 @@ import com.zero.babycare.statistics.model.HealthStats
 import com.zero.babycare.statistics.model.StructureItem
 import com.zero.babycare.statistics.model.StructureOverview
 import com.zero.babycare.statistics.model.StructureSection
-import com.zero.babycare.statistics.model.TimelineItem
+import com.zero.babycare.statistics.model.TimelineUiItem
 import com.zero.babycare.statistics.model.TrendOverview
 import com.zero.babycare.statistics.model.TrendPeriod
 import com.zero.babycare.statistics.model.TrendPeriodSummary
@@ -67,8 +68,8 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     val daySummary: StateFlow<UiState<DaySummary>> = _daySummary.asStateFlow()
 
     /** 时间轴记录列表 */
-    private val _timelineItems = MutableStateFlow<UiState<List<TimelineItem>>>(UiState.Loading)
-    val timelineItems: StateFlow<UiState<List<TimelineItem>>> = _timelineItems.asStateFlow()
+    private val _timelineItems = MutableStateFlow<UiState<List<TimelineUiItem>>>(UiState.Loading)
+    val timelineItems: StateFlow<UiState<List<TimelineUiItem>>> = _timelineItems.asStateFlow()
 
     /** 生长趋势对比 */
     private val _growthTrend = MutableStateFlow<UiState<GrowthTrend>>(UiState.Loading)
@@ -187,11 +188,12 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                         otherEventCount = summaryData.otherEventCount
                     )
 
+                    val mapper = buildTimelineMapper()
                     val timelineItems = timelineRecords.map { record ->
                         when (record) {
-                            is BabyRepository.TimelineRecord.Feeding -> TimelineItem.Feeding(record.record)
-                            is BabyRepository.TimelineRecord.Sleep -> TimelineItem.Sleep(record.record)
-                            is BabyRepository.TimelineRecord.Event -> TimelineItem.Event(record.record)
+                            is BabyRepository.TimelineRecord.Feeding -> mapper.mapFeeding(record.record)
+                            is BabyRepository.TimelineRecord.Sleep -> mapper.mapSleep(record.record)
+                            is BabyRepository.TimelineRecord.Event -> mapper.mapEvent(record.record)
                         }
                     }
 
@@ -939,6 +941,21 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
 
     private fun getLoadFailedText(): String {
         return getApplication<Application>().getString(com.zero.common.R.string.statistics_load_failed)
+    }
+
+    private fun buildTimelineMapper(): StatisticsTimelineMapper {
+        val app = getApplication<Application>()
+        return StatisticsTimelineMapper(
+            strings = object : StatisticsTimelineMapper.Strings {
+                override fun get(resId: Int): String {
+                    return app.getString(resId)
+                }
+
+                override fun format(resId: Int, vararg args: Any): String {
+                    return app.getString(resId, *args)
+                }
+            }
+        )
     }
 
     /**
