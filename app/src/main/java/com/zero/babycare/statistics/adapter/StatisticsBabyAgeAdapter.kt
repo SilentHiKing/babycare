@@ -49,6 +49,7 @@ class StatisticsBabyAgeAdapter :
         binding.llBirthHint.visibility = if (showBirthHint) View.VISIBLE else View.GONE
         binding.llBabyAge.visibility = if (babyDaysText.isNullOrBlank()) View.GONE else View.VISIBLE
         binding.tvBabyDays.text = babyDaysText.orEmpty()
+        binding.tvRecordCount.text = recordCountText
     }
 
     class BabyAgeViewHolder(val binding: ItemStatisticsBabyAgeBinding) :

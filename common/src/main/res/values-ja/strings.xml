@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="statistics_day_record_count_format">当日 %1$d 件の記録</string>
+    <string name="statistics_summary_other_scope">ケア/活動/健康</string>
+    <string name="statistics_insight_title">リズムの洞察</string>
+    <string name="statistics_insight_based_on_format">%1$s に基づく</string>
+    <string name="statistics_until_selected_date_format">%1$s まで</string>
+</resources>

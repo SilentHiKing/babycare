@@ -9,172 +9,210 @@
     android:background="?attr/secondary_bg_default"
     android:orientation="vertical"
     android:paddingHorizontal="16dp"
-    android:paddingVertical="12dp">
+    android:paddingVertical="10dp">
 
     <LinearLayout
         android:id="@+id/llSummaryContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/bg_r8_block_gridview"
-        android:orientation="horizontal"
-        android:paddingVertical="20dp">
+        android:orientation="vertical">
 
-        <!-- 喂养统计 -->
         <LinearLayout
-            android:id="@+id/llFeedingSummary"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
+            android:orientation="horizontal">
 
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_feeding"
-                app:tint="@color/feeding_primary" />
-
-            <TextView
-                android:id="@+id/tvFeedingCount"
-                style="@style/TextAppearance.BabyCare.Heading3"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/llFeedingSummary"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@color/feeding_primary"
-                tools:text="5次" />
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_r8_block_gridview"
+                android:gravity="center_vertical"
+                android:minHeight="72dp"
+                android:orientation="horizontal"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp">
 
-            <TextView
-                style="@style/TextAppearance.BabyCare.Label"
-                android:layout_width="wrap_content"
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_feeding"
+                    app:tint="@color/feeding_primary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvFeedingCount"
+                        style="@style/TextAppearance.BabyCare.Heading3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/feeding_primary"
+                        tools:text="5次" />
+
+                    <TextView
+                        android:id="@+id/tvFeedingDetail"
+                        style="@style/TextAppearance.BabyCare.Label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="?attr/colorTextHint"
+                        tools:text="1小时20分钟" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/llSleepSummary"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/feeding"
-                android:textColor="?attr/colorTextHint" />
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_r8_block_gridview"
+                android:gravity="center_vertical"
+                android:minHeight="72dp"
+                android:orientation="horizontal"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp">
 
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_sleep"
+                    app:tint="@color/sleep_primary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvSleepDuration"
+                        style="@style/TextAppearance.BabyCare.Heading3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/sleep_primary"
+                        tools:text="2次" />
+
+                    <TextView
+                        android:id="@+id/tvSleepDetail"
+                        style="@style/TextAppearance.BabyCare.Label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="?attr/colorTextHint"
+                        tools:text="4h30m" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
 
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:layout_marginVertical="8dp"
-            android:background="?attr/line10" />
-
-        <!-- 睡眠统计 -->
         <LinearLayout
-            android:id="@+id/llSleepSummary"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
 
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_sleep"
-                app:tint="@color/sleep_primary" />
-
-            <TextView
-                android:id="@+id/tvSleepDuration"
-                style="@style/TextAppearance.BabyCare.Heading3"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/llDiaperSummary"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@color/sleep_primary"
-                tools:text="4h30m" />
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_r8_block_gridview"
+                android:gravity="center_vertical"
+                android:minHeight="72dp"
+                android:orientation="horizontal"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp">
 
-            <TextView
-                style="@style/TextAppearance.BabyCare.Label"
-                android:layout_width="wrap_content"
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_event_diaper"
+                    app:tint="@color/event_diaper" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvDiaperCount"
+                        style="@style/TextAppearance.BabyCare.Heading3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/event_diaper"
+                        tools:text="8次" />
+
+                    <TextView
+                        android:id="@+id/tvDiaperDetail"
+                        style="@style/TextAppearance.BabyCare.Label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="?attr/colorTextHint"
+                        tools:text="湿3/脏1" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/llOtherSummary"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/sleeping"
-                android:textColor="?attr/colorTextHint" />
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_r8_block_gridview"
+                android:gravity="center_vertical"
+                android:minHeight="72dp"
+                android:orientation="horizontal"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp">
 
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_event_other"
+                    app:tint="@color/event_other" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvOtherCount"
+                        style="@style/TextAppearance.BabyCare.Heading3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/event_other"
+                        tools:text="3次" />
+
+                    <TextView
+                        android:id="@+id/tvOtherDetail"
+                        style="@style/TextAppearance.BabyCare.Label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textColor="?attr/colorTextHint"
+                        tools:text="护理/活动/健康" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:layout_marginVertical="8dp"
-            android:background="?attr/line10" />
-
-        <!-- 尿布统计 -->
-        <LinearLayout
-            android:id="@+id/llDiaperSummary"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_event_diaper"
-                app:tint="@color/event_diaper" />
-
-            <TextView
-                android:id="@+id/tvDiaperCount"
-                style="@style/TextAppearance.BabyCare.Heading3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@color/event_diaper"
-                tools:text="8次" />
-
-            <TextView
-                style="@style/TextAppearance.BabyCare.Label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/diaper"
-                android:textColor="?attr/colorTextHint" />
-
-        </LinearLayout>
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:layout_marginVertical="8dp"
-            android:background="?attr/line10" />
-
-        <!-- 其他事件统计 -->
-        <LinearLayout
-            android:id="@+id/llOtherSummary"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_event_other"
-                app:tint="@color/event_other" />
-
-            <TextView
-                android:id="@+id/tvOtherCount"
-                style="@style/TextAppearance.BabyCare.Heading3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@color/event_other"
-                tools:text="3次" />
-
-            <TextView
-                style="@style/TextAppearance.BabyCare.Label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/other"
-                android:textColor="?attr/colorTextHint" />
-
-        </LinearLayout>
-
     </LinearLayout>
 
 </LinearLayout>
-
-

@@ -10,6 +10,7 @@ import com.zero.babycare.databinding.ItemStatisticsTrendCardBinding
 import com.zero.babycare.statistics.model.TrendOverview
 import com.zero.babycare.statistics.model.TrendPeriod
 import com.zero.babycare.statistics.model.TrendPeriodSummary
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 /**
@@ -17,6 +18,8 @@ import java.time.format.DateTimeFormatter
  */
 class StatisticsTrendAdapter :
     BaseSingleItemAdapter<TrendOverview, StatisticsTrendAdapter.TrendViewHolder>() {
+
+    private var selectedDate: LocalDate = LocalDate.now()
 
     override fun onCreateViewHolder(context: Context, parent: ViewGroup, viewType: Int): TrendViewHolder {
         val binding = ItemStatisticsTrendBinding.inflate(
@@ -32,6 +35,11 @@ class StatisticsTrendAdapter :
     }
 
     fun updateTrend(overview: TrendOverview?) {
+        updateTrend(overview, selectedDate)
+    }
+
+    fun updateTrend(overview: TrendOverview?, selectedDate: LocalDate) {
+        this.selectedDate = selectedDate
         item = overview
     }
 
@@ -43,9 +51,25 @@ class StatisticsTrendAdapter :
 
         fun bind(overview: TrendOverview?) {
             val list = overview?.summaries.orEmpty()
+            binding.tvTrendContext.text = buildContextText(list)
             bindCard(binding.cardTrendWeek, list.firstOrNull { it.period == TrendPeriod.WEEK })
             bindCard(binding.cardTrendMonth, list.firstOrNull { it.period == TrendPeriod.MONTH })
             bindCard(binding.cardTrendYear, list.firstOrNull { it.period == TrendPeriod.YEAR })
+        }
+
+        private fun buildContextText(list: List<TrendPeriodSummary>): String {
+            val context = binding.root.context
+            val summary = list.firstOrNull { it.period == TrendPeriod.WEEK }
+            val rangeText = if (summary == null) {
+                selectedDate.format(formatter)
+            } else {
+                context.getString(
+                    com.zero.common.R.string.statistics_trend_range_format,
+                    summary.startDate.format(formatter),
+                    summary.endDate.format(formatter)
+                )
+            }
+            return context.getString(com.zero.common.R.string.statistics_insight_based_on_format, rangeText)
         }
 
         private fun bindCard(card: ItemStatisticsTrendCardBinding, summary: TrendPeriodSummary?) {

@@ -17,6 +17,14 @@
         android:layout_height="wrap_content"
         android:text="@string/statistics_trend_title" />
 
+    <TextView
+        android:id="@+id/tvTrendContext"
+        style="@style/TextAppearance.BabyCare.Label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="?attr/colorTextHint" />
+
     <include
         android:id="@+id/cardTrendWeek"
         layout="@layout/item_statistics_trend_card"

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="statistics_day_record_count_format">當天 %1$d 條記錄</string>
+    <string name="statistics_summary_other_scope">護理/活動/健康</string>
+    <string name="statistics_insight_title">規律洞察</string>
+    <string name="statistics_insight_based_on_format">基於 %1$s</string>
+    <string name="statistics_until_selected_date_format">截至 %1$s</string>
+</resources>

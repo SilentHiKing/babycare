@@ -10,12 +10,16 @@ import com.zero.babycare.databinding.ItemStatisticsGrowthPercentileItemBinding
 import com.zero.babycare.statistics.model.GrowthPercentileOverview
 import com.zero.babycare.statistics.model.GrowthPercentileSeries
 import com.zero.common.util.UnitConverter
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 /**
  * 生长百分位适配器
  */
 class StatisticsGrowthPercentileAdapter :
     BaseSingleItemAdapter<GrowthPercentileOverview, StatisticsGrowthPercentileAdapter.PercentileViewHolder>() {
+
+    private var selectedDate: LocalDate = LocalDate.now()
 
     override fun onCreateViewHolder(context: Context, parent: ViewGroup, viewType: Int): PercentileViewHolder {
         val binding = ItemStatisticsGrowthPercentileBinding.inflate(
@@ -31,6 +35,11 @@ class StatisticsGrowthPercentileAdapter :
     }
 
     fun updatePercentile(overview: GrowthPercentileOverview?) {
+        updatePercentile(overview, selectedDate)
+    }
+
+    fun updatePercentile(overview: GrowthPercentileOverview?, selectedDate: LocalDate) {
+        this.selectedDate = selectedDate
         item = overview
     }
 
@@ -38,7 +47,13 @@ class StatisticsGrowthPercentileAdapter :
         private val binding: ItemStatisticsGrowthPercentileBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        private val formatter = DateTimeFormatter.ofPattern("MM.dd")
+
         fun bind(overview: GrowthPercentileOverview?) {
+            binding.tvGrowthPercentileContext.text = binding.root.context.getString(
+                com.zero.common.R.string.statistics_until_selected_date_format,
+                selectedDate.format(formatter)
+            )
             if (overview == null) {
                 bindEmpty()
                 return

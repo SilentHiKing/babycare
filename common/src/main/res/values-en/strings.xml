@@ -154,6 +154,11 @@
     <string name="statistics_health_vaccine_format">Vaccines %1$d times</string>
     <string name="statistics_health_last_vaccine_format">Last shot: %1$s</string>
     <string name="statistics_health_last_vaccine_empty">No vaccine record</string>
+    <string name="statistics_day_record_count_format">%1$d records that day</string>
+    <string name="statistics_summary_other_scope">Care/activity/health</string>
+    <string name="statistics_insight_title">Routine insights</string>
+    <string name="statistics_insight_based_on_format">Based on %1$s</string>
+    <string name="statistics_until_selected_date_format">Until %1$s</string>
     <string name="statistics_load_failed">Load failed</string>
     <string name="unit_oz_abbr">oz</string>
     <string name="unit_lb_abbr">lb</string>

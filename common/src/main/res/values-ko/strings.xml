@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="statistics_day_record_count_format">해당 날짜 기록 %1$d개</string>
+    <string name="statistics_summary_other_scope">케어/활동/건강</string>
+    <string name="statistics_insight_title">패턴 인사이트</string>
+    <string name="statistics_insight_based_on_format">%1$s 기준</string>
+    <string name="statistics_until_selected_date_format">%1$s까지</string>
+</resources>

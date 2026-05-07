@@ -18,6 +18,14 @@
         android:text="@string/statistics_growth_percentile_title" />
 
     <TextView
+        android:id="@+id/tvGrowthPercentileContext"
+        style="@style/TextAppearance.BabyCare.Label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="?attr/colorTextHint" />
+
+    <TextView
         android:id="@+id/tvGrowthPercentileNote"
         style="@style/TextAppearance.BabyCare.Label"
         android:layout_width="wrap_content"

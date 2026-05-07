@@ -17,6 +17,14 @@
         android:layout_height="wrap_content"
         android:text="@string/statistics_structure_title" />
 
+    <TextView
+        android:id="@+id/tvStructureContext"
+        style="@style/TextAppearance.BabyCare.Label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="?attr/colorTextHint" />
+
     <LinearLayout
         android:id="@+id/llStructureContainer"
         android:layout_width="match_parent"

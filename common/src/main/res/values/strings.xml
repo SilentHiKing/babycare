@@ -498,6 +498,11 @@
     <string name="statistics_health_vaccine_format">疫苗 %1$d次</string>
     <string name="statistics_health_last_vaccine_format">上次接种：%1$s</string>
     <string name="statistics_health_last_vaccine_empty">暂无接种记录</string>
+    <string name="statistics_day_record_count_format">当天 %1$d 条记录</string>
+    <string name="statistics_summary_other_scope">护理/活动/健康</string>
+    <string name="statistics_insight_title">规律洞察</string>
+    <string name="statistics_insight_based_on_format">基于 %1$s</string>
+    <string name="statistics_until_selected_date_format">截至 %1$s</string>
     <string name="statistics_load_failed">加载失败</string>
     <string name="daily_records">生活记录</string>
     <string name="no_records_today">这一天还没有记录</string>

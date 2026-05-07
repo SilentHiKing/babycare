@@ -9,7 +9,7 @@
     android:background="@drawable/bg_r12_bottom_secondary_bg_default"
     android:gravity="center"
     android:orientation="vertical"
-    android:paddingTop="60dp"
+    android:paddingTop="24dp"
     android:paddingBottom="12dp"
     android:paddingHorizontal="12dp"
     tools:visibility="visible">

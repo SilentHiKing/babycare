@@ -1052,7 +1052,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
             babyAgeText = babyAgeText,
             showBirthHint = babyAgeText.isNullOrBlank(),
             recordCountText = getApplication<Application>().getString(
-                com.zero.common.R.string.count_times,
+                com.zero.common.R.string.statistics_day_record_count_format,
                 timelineItems.size
             ),
             summaryMetrics = buildSummaryMetrics(summary),
@@ -1112,7 +1112,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                 type = SummaryMetricType.OTHER,
                 titleResId = com.zero.common.R.string.other,
                 primaryText = app.getString(com.zero.common.R.string.times_count_format, summary.otherEventCount),
-                secondaryText = app.getString(com.zero.common.R.string.statistics_trend_metric_event),
+                secondaryText = app.getString(com.zero.common.R.string.statistics_summary_other_scope),
                 iconResId = com.zero.common.R.drawable.ic_event_other,
                 colorResId = com.zero.common.R.color.event_other,
                 surfaceColorResId = com.zero.common.R.color.event_other_light

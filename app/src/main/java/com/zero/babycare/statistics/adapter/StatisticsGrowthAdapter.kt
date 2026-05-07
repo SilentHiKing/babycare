@@ -11,10 +11,14 @@ import com.zero.babycare.statistics.model.GrowthTrendItem
 import com.zero.common.util.UnitConfig
 import com.zero.common.util.UnitConverter
 import com.zero.common.R as CommonR
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import kotlin.math.abs
 
 class StatisticsGrowthAdapter :
     BaseSingleItemAdapter<GrowthTrend, StatisticsGrowthAdapter.GrowthViewHolder>() {
+
+    private var selectedDate: LocalDate = LocalDate.now()
 
     override fun onCreateViewHolder(context: Context, parent: ViewGroup, viewType: Int): GrowthViewHolder {
         val binding = ItemStatisticsGrowthBinding.inflate(
@@ -30,14 +34,26 @@ class StatisticsGrowthAdapter :
     }
 
     fun updateTrend(data: GrowthTrend?) {
+        updateTrend(data, selectedDate)
+    }
+
+    fun updateTrend(data: GrowthTrend?, selectedDate: LocalDate) {
+        this.selectedDate = selectedDate
         item = data
     }
 
     inner class GrowthViewHolder(
         private val binding: ItemStatisticsGrowthBinding
     ) : RecyclerView.ViewHolder(binding.root) {
+
+        private val formatter = DateTimeFormatter.ofPattern("MM.dd")
+
         fun bind(trend: GrowthTrend?) {
             val data = trend ?: buildFallback()
+            binding.tvGrowthContext.text = binding.root.context.getString(
+                CommonR.string.statistics_until_selected_date_format,
+                selectedDate.format(formatter)
+            )
             bindItem(binding.tvWeightValue, binding.tvWeightDiff, data.weight)
             bindItem(binding.tvHeightValue, binding.tvHeightDiff, data.height)
             bindItem(binding.tvHeadValue, binding.tvHeadDiff, data.head)

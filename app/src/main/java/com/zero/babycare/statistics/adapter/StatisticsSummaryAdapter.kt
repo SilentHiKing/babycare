@@ -43,6 +43,10 @@ class StatisticsSummaryAdapter : RecyclerView.Adapter<StatisticsSummaryAdapter.S
             binding.tvSleepDuration.text = metrics.primaryText(SummaryMetricType.SLEEP, placeholder)
             binding.tvDiaperCount.text = metrics.primaryText(SummaryMetricType.DIAPER, placeholder)
             binding.tvOtherCount.text = metrics.primaryText(SummaryMetricType.OTHER, placeholder)
+            binding.tvFeedingDetail.text = metrics.secondaryText(SummaryMetricType.FEEDING, placeholder)
+            binding.tvSleepDetail.text = metrics.secondaryText(SummaryMetricType.SLEEP, placeholder)
+            binding.tvDiaperDetail.text = metrics.secondaryText(SummaryMetricType.DIAPER, placeholder)
+            binding.tvOtherDetail.text = metrics.secondaryText(SummaryMetricType.OTHER, placeholder)
         }
     }
 
@@ -51,5 +55,12 @@ class StatisticsSummaryAdapter : RecyclerView.Adapter<StatisticsSummaryAdapter.S
         fallback: String
     ): String {
         return firstOrNull { it.type == type }?.primaryText ?: fallback
+    }
+
+    private fun List<SummaryMetricUiModel>.secondaryText(
+        type: SummaryMetricType,
+        fallback: String
+    ): String {
+        return firstOrNull { it.type == type }?.secondaryText ?: fallback
     }
 }

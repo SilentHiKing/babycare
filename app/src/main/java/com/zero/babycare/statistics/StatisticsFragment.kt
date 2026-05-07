@@ -176,10 +176,10 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
                 babyAgeAdapter.bindDayRecord(state.dayRecord)
                 summaryAdapter.updateSummary(state.dayRecord.summaryMetrics)
                 updateTimelineUI(state.dayRecord.timelineItems)
-                trendAdapter.updateTrend(state.insights.trend)
-                structureAdapter.updateStructure(state.insights.structure)
-                growthAdapter.updateTrend(state.insights.growth)
-                growthPercentileAdapter.updatePercentile(state.insights.percentile)
+                trendAdapter.updateTrend(state.insights.trend, state.selectedDate)
+                structureAdapter.updateStructure(state.insights.structure, state.selectedDate)
+                growthAdapter.updateTrend(state.insights.growth, state.selectedDate)
+                growthPercentileAdapter.updatePercentile(state.insights.percentile, state.selectedDate)
                 healthAdapter.updateHealth(state.insights.health)
             }
         }

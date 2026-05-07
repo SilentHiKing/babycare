@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/flBabyAge"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
     android:background="?attr/secondary_bg_default"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
     android:paddingHorizontal="16dp"
     android:paddingTop="10dp"
-    android:paddingBottom="10dp">
+    android:paddingBottom="8dp">
 
     <LinearLayout
         android:id="@+id/llBabyAge"
@@ -64,6 +66,18 @@
 
     </LinearLayout>
 
-</FrameLayout>
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_weight="1" />
 
+    <TextView
+        android:id="@+id/tvRecordCount"
+        style="@style/TextAppearance.BabyCare.Label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|end"
+        android:textColor="?attr/colorTextHint"
+        tools:text="当天 5 条记录" />
 
+</LinearLayout>

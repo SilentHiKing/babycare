@@ -15,12 +15,17 @@ import com.zero.babycare.databinding.ItemStatisticsStructureSectionBinding
 import com.zero.babycare.statistics.model.StructureItem
 import com.zero.babycare.statistics.model.StructureOverview
 import com.zero.babycare.statistics.model.StructureSection
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 
 /**
  * 结构图适配器
  */
 class StatisticsStructureAdapter :
     BaseSingleItemAdapter<StructureOverview, StatisticsStructureAdapter.StructureViewHolder>() {
+
+    private var selectedDate: LocalDate = LocalDate.now()
 
     override fun onCreateViewHolder(context: Context, parent: ViewGroup, viewType: Int): StructureViewHolder {
         val binding = ItemStatisticsStructureBinding.inflate(
@@ -36,6 +41,11 @@ class StatisticsStructureAdapter :
     }
 
     fun updateStructure(overview: StructureOverview?) {
+        updateStructure(overview, selectedDate)
+    }
+
+    fun updateStructure(overview: StructureOverview?, selectedDate: LocalDate) {
+        this.selectedDate = selectedDate
         item = overview
     }
 
@@ -43,8 +53,11 @@ class StatisticsStructureAdapter :
         private val binding: ItemStatisticsStructureBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        private val formatter = DateTimeFormatter.ofPattern("MM.dd")
+
         fun bind(overview: StructureOverview?) {
             val sections = overview?.sections.orEmpty()
+            binding.tvStructureContext.text = buildContextText()
             binding.llStructureContainer.removeAllViews()
 
             if (sections.isEmpty()) {
@@ -72,6 +85,17 @@ class StatisticsStructureAdapter :
                 }
                 binding.llStructureContainer.addView(sectionBinding.root)
             }
+        }
+
+        private fun buildContextText(): String {
+            val context = binding.root.context
+            val month = YearMonth.from(selectedDate)
+            val rangeText = context.getString(
+                com.zero.common.R.string.statistics_trend_range_format,
+                month.atDay(1).format(formatter),
+                month.atEndOfMonth().format(formatter)
+            )
+            return context.getString(com.zero.common.R.string.statistics_insight_based_on_format, rangeText)
         }
 
         private fun bindSection(
