@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.zero.babycare.statistics.mapper.StatisticsGrowthCutoff
 import com.zero.babycare.statistics.mapper.StatisticsTimelineMapper
+import com.zero.babycare.statistics.model.DayRecordSectionUiModel
 import com.zero.babycare.statistics.model.DaySummary
 import com.zero.babycare.statistics.model.GrowthPercentileOverview
 import com.zero.babycare.statistics.model.GrowthPercentilePoint
@@ -12,9 +13,14 @@ import com.zero.babycare.statistics.model.GrowthPercentileSeries
 import com.zero.babycare.statistics.model.GrowthTrend
 import com.zero.babycare.statistics.model.GrowthTrendItem
 import com.zero.babycare.statistics.model.HealthStats
+import com.zero.babycare.statistics.model.InsightSectionUiModel
+import com.zero.babycare.statistics.model.StatisticsUiEvent
+import com.zero.babycare.statistics.model.StatisticsUiState
 import com.zero.babycare.statistics.model.StructureItem
 import com.zero.babycare.statistics.model.StructureOverview
 import com.zero.babycare.statistics.model.StructureSection
+import com.zero.babycare.statistics.model.SummaryMetricType
+import com.zero.babycare.statistics.model.SummaryMetricUiModel
 import com.zero.babycare.statistics.model.TimelineUiItem
 import com.zero.babycare.statistics.model.TrendOverview
 import com.zero.babycare.statistics.model.TrendPeriod
@@ -22,6 +28,7 @@ import com.zero.babycare.statistics.model.TrendPeriodSummary
 import com.zero.babycare.statistics.standard.WhoGrowthStandardProvider
 import com.zero.babycare.statistics.standard.WhoIndicator
 import com.zero.babycare.statistics.standard.WhoSex
+import com.zero.babydata.entity.BabyInfo
 import com.zero.babydata.entity.FeedingType
 import com.zero.babydata.entity.EventType
 import com.zero.babydata.entity.GrowthData
@@ -37,9 +44,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
 import java.util.Locale
@@ -62,6 +71,10 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     /** 选中的日期 */
     private val _selectedDate = MutableStateFlow(LocalDate.now())
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
+
+    /** 统计页统一状态，后续 Fragment 只按它渲染整页。 */
+    private val _uiState = MutableStateFlow(StatisticsUiState())
+    val uiState: StateFlow<StatisticsUiState> = _uiState.asStateFlow()
 
     /** 当日统计摘要 */
     private val _daySummary = MutableStateFlow<UiState<DaySummary>>(UiState.Loading)
@@ -103,7 +116,18 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     fun setBabyId(babyId: Int) {
         if (_currentBabyId.value != babyId) {
             _currentBabyId.value = babyId
+            _uiState.value = _uiState.value.copy(babyId = babyId)
             loadData()
+        }
+    }
+
+    fun onEvent(event: StatisticsUiEvent) {
+        when (event) {
+            is StatisticsUiEvent.SelectDate -> selectDate(event.date)
+            is StatisticsUiEvent.ChangeMonth -> onMonthChanged(event.yearMonth)
+            StatisticsUiEvent.GoToday -> goToToday()
+            StatisticsUiEvent.Refresh -> refreshData()
+            is StatisticsUiEvent.OpenTimelineItem -> Unit
         }
     }
 
@@ -113,6 +137,11 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     fun selectDate(date: LocalDate) {
         if (_selectedDate.value != date) {
             _selectedDate.value = date
+            _uiState.value = _uiState.value.copy(
+                selectedDate = date,
+                dayRecord = _uiState.value.dayRecord.copy(date = date),
+                insights = _uiState.value.insights.copy(selectedDate = date)
+            )
             loadDayData()
             loadTrendOverview()
             loadStructureOverview()
@@ -161,15 +190,23 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         if (babyId <= 0) {
             _daySummary.value = UiState.Success(DaySummary.empty(date))
             _timelineItems.value = UiState.Success(emptyList())
+            _uiState.value = _uiState.value.copy(
+                babyId = babyId,
+                selectedDate = date,
+                dayRecord = DayRecordSectionUiModel.empty(date),
+                isLoading = false,
+                errorMessage = null
+            )
             return
         }
 
         viewModelScope.launch {
             _daySummary.value = UiState.Loading
             _timelineItems.value = UiState.Loading
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
 
             try {
-                val (summary, items) = withContext(Dispatchers.IO) {
+                val (summary, items, babyInfo) = withContext(Dispatchers.IO) {
                     val summaryData = repository.getDaySummary(babyId, date)
                     val timelineRecords = repository.getTimelineRecords(babyId, date)
 
@@ -197,15 +234,33 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                         }
                     }
 
-                    Pair(daySummary, timelineItems)
+                    Triple(daySummary, timelineItems, repository.getBabyInfoSync(babyId))
                 }
 
                 _daySummary.value = UiState.Success(summary)
                 _timelineItems.value = UiState.Success(items)
+                if (_selectedDate.value == date && _currentBabyId.value == babyId) {
+                    _uiState.value = _uiState.value.copy(
+                        babyId = babyId,
+                        selectedDate = date,
+                        dayRecord = buildDayRecordSection(
+                            date = date,
+                            babyInfo = babyInfo,
+                            summary = summary,
+                            timelineItems = items
+                        ),
+                        isLoading = false,
+                        errorMessage = null
+                    )
+                }
 
             } catch (e: Exception) {
                 _daySummary.value = UiState.Error(e, e.message ?: "加载失败")
                 _timelineItems.value = UiState.Error(e, e.message ?: "加载失败")
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = getLoadFailedText()
+                )
             }
         }
     }
@@ -217,7 +272,9 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         val babyId = _currentBabyId.value
         val date = _selectedDate.value
         if (babyId <= 0) {
-            _growthTrend.value = UiState.Success(GrowthTrend.empty())
+            val empty = GrowthTrend.empty()
+            _growthTrend.value = UiState.Success(empty)
+            updateInsights { it.copy(selectedDate = date, growth = empty) }
             return
         }
 
@@ -228,6 +285,9 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                     buildGrowthTrend(babyId, date)
                 }
                 _growthTrend.value = UiState.Success(trend)
+                updateInsightsIfCurrent(babyId, date) {
+                    it.copy(selectedDate = date, growth = trend)
+                }
             } catch (e: Exception) {
                 _growthTrend.value = UiState.Error(e, getLoadFailedText())
             }
@@ -243,6 +303,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
 
         if (babyId <= 0) {
             _datesWithRecords.value = emptySet()
+            _uiState.value = _uiState.value.copy(datesWithRecords = emptySet())
             return
         }
 
@@ -252,8 +313,10 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                     repository.getDatesWithRecords(babyId, yearMonth)
                 }
                 _datesWithRecords.value = dates
+                _uiState.value = _uiState.value.copy(datesWithRecords = dates)
             } catch (e: Exception) {
                 _datesWithRecords.value = emptySet()
+                _uiState.value = _uiState.value.copy(datesWithRecords = emptySet())
             }
         }
     }
@@ -265,7 +328,9 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         val babyId = _currentBabyId.value
         val date = _selectedDate.value
         if (babyId <= 0) {
-            _trendOverview.value = UiState.Success(TrendOverview(emptyList()))
+            val empty = TrendOverview(emptyList())
+            _trendOverview.value = UiState.Success(empty)
+            updateInsights { it.copy(selectedDate = date, trend = empty) }
             return
         }
 
@@ -276,6 +341,9 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                     buildTrendOverview(babyId, date)
                 }
                 _trendOverview.value = UiState.Success(overview)
+                updateInsightsIfCurrent(babyId, date) {
+                    it.copy(selectedDate = date, trend = overview)
+                }
             } catch (e: Exception) {
                 _trendOverview.value = UiState.Error(e, getLoadFailedText())
             }
@@ -289,7 +357,9 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         val babyId = _currentBabyId.value
         val date = _selectedDate.value
         if (babyId <= 0) {
-            _structureOverview.value = UiState.Success(StructureOverview(emptyList()))
+            val empty = StructureOverview(emptyList())
+            _structureOverview.value = UiState.Success(empty)
+            updateInsights { it.copy(selectedDate = date, structure = empty) }
             return
         }
 
@@ -300,6 +370,9 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                     buildStructureOverview(babyId, date)
                 }
                 _structureOverview.value = UiState.Success(overview)
+                updateInsightsIfCurrent(babyId, date) {
+                    it.copy(selectedDate = date, structure = overview)
+                }
             } catch (e: Exception) {
                 _structureOverview.value = UiState.Error(e, getLoadFailedText())
             }
@@ -313,11 +386,11 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         val babyId = _currentBabyId.value
         val date = _selectedDate.value
         if (babyId <= 0) {
-            _growthPercentile.value = UiState.Success(
-                buildEmptyGrowthPercentile(
-                    com.zero.common.R.string.statistics_growth_percentile_note_missing_info
-                )
+            val empty = buildEmptyGrowthPercentile(
+                com.zero.common.R.string.statistics_growth_percentile_note_missing_info
             )
+            _growthPercentile.value = UiState.Success(empty)
+            updateInsights { it.copy(selectedDate = date, percentile = empty) }
             return
         }
 
@@ -328,6 +401,9 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                     buildGrowthPercentileOverview(babyId, date)
                 }
                 _growthPercentile.value = UiState.Success(overview)
+                updateInsightsIfCurrent(babyId, date) {
+                    it.copy(selectedDate = date, percentile = overview)
+                }
             } catch (e: Exception) {
                 _growthPercentile.value = UiState.Error(e, getLoadFailedText())
             }
@@ -352,6 +428,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                 lastVaccineTime = null
             )
             _healthStats.value = UiState.Success(empty)
+            updateInsights { it.copy(selectedDate = date, health = empty) }
             return
         }
 
@@ -362,6 +439,9 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                     buildHealthStats(babyId, date)
                 }
                 _healthStats.value = UiState.Success(stats)
+                updateInsightsIfCurrent(babyId, date) {
+                    it.copy(selectedDate = date, health = stats)
+                }
             } catch (e: Exception) {
                 _healthStats.value = UiState.Error(e, getLoadFailedText())
             }
@@ -381,6 +461,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                     repository.getDatesWithRecords(babyId, yearMonth)
                 }
                 _datesWithRecords.value = dates
+                _uiState.value = _uiState.value.copy(datesWithRecords = dates)
             } catch (e: Exception) {
                 // 忽略
             }
@@ -941,6 +1022,102 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
 
     private fun getLoadFailedText(): String {
         return getApplication<Application>().getString(com.zero.common.R.string.statistics_load_failed)
+    }
+
+    private fun updateInsights(transform: (InsightSectionUiModel) -> InsightSectionUiModel) {
+        _uiState.value = _uiState.value.copy(
+            insights = transform(_uiState.value.insights)
+        )
+    }
+
+    private fun updateInsightsIfCurrent(
+        babyId: Int,
+        date: LocalDate,
+        transform: (InsightSectionUiModel) -> InsightSectionUiModel
+    ) {
+        if (_currentBabyId.value == babyId && _selectedDate.value == date) {
+            updateInsights(transform)
+        }
+    }
+
+    private fun buildDayRecordSection(
+        date: LocalDate,
+        babyInfo: BabyInfo?,
+        summary: DaySummary,
+        timelineItems: List<TimelineUiItem>
+    ): DayRecordSectionUiModel {
+        val babyAgeText = babyInfo?.let { buildBabyAgeText(it, date) }
+        return DayRecordSectionUiModel(
+            date = date,
+            babyAgeText = babyAgeText,
+            showBirthHint = babyAgeText.isNullOrBlank(),
+            recordCountText = getApplication<Application>().getString(
+                com.zero.common.R.string.count_times,
+                timelineItems.size
+            ),
+            summaryMetrics = buildSummaryMetrics(summary),
+            timelineItems = timelineItems,
+            isEmpty = timelineItems.isEmpty()
+        )
+    }
+
+    private fun buildBabyAgeText(babyInfo: BabyInfo, selectedDate: LocalDate): String? {
+        if (babyInfo.birthDate <= 0) {
+            return null
+        }
+        val birthDate = Instant.ofEpochMilli(babyInfo.birthDate)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
+        val days = ChronoUnit.DAYS.between(birthDate, selectedDate)
+        return if (days < 0) {
+            getApplication<Application>().getString(com.zero.common.R.string.baby_not_born_yet_playful)
+        } else {
+            getApplication<Application>().getString(com.zero.common.R.string.days_born, days.toInt())
+        }
+    }
+
+    private fun buildSummaryMetrics(summary: DaySummary): List<SummaryMetricUiModel> {
+        val app = getApplication<Application>()
+        return listOf(
+            SummaryMetricUiModel(
+                type = SummaryMetricType.FEEDING,
+                titleResId = com.zero.common.R.string.feeding,
+                primaryText = app.getString(com.zero.common.R.string.times_count_format, summary.feedingCount),
+                secondaryText = summary.formatFeedingDuration(),
+                iconResId = com.zero.common.R.drawable.ic_feeding,
+                colorResId = com.zero.common.R.color.feeding_primary,
+                surfaceColorResId = com.zero.common.R.color.feeding_bg
+            ),
+            SummaryMetricUiModel(
+                type = SummaryMetricType.SLEEP,
+                titleResId = com.zero.common.R.string.sleeping,
+                primaryText = app.getString(com.zero.common.R.string.times_count_format, summary.sleepCount),
+                secondaryText = summary.formatSleepDuration(),
+                iconResId = com.zero.common.R.drawable.ic_sleep,
+                colorResId = com.zero.common.R.color.sleep_primary,
+                surfaceColorResId = com.zero.common.R.color.sleep_bg
+            ),
+            SummaryMetricUiModel(
+                type = SummaryMetricType.DIAPER,
+                titleResId = com.zero.common.R.string.diaper,
+                primaryText = app.getString(com.zero.common.R.string.times_count_format, summary.totalDiaperCount),
+                secondaryText = summary.formatDiaperDetail().ifBlank {
+                    app.getString(com.zero.common.R.string.statistics_growth_no_record)
+                },
+                iconResId = com.zero.common.R.drawable.ic_event_diaper,
+                colorResId = com.zero.common.R.color.event_diaper,
+                surfaceColorResId = com.zero.common.R.color.event_diaper_light
+            ),
+            SummaryMetricUiModel(
+                type = SummaryMetricType.OTHER,
+                titleResId = com.zero.common.R.string.other,
+                primaryText = app.getString(com.zero.common.R.string.times_count_format, summary.otherEventCount),
+                secondaryText = app.getString(com.zero.common.R.string.statistics_trend_metric_event),
+                iconResId = com.zero.common.R.drawable.ic_event_other,
+                colorResId = com.zero.common.R.color.event_other,
+                surfaceColorResId = com.zero.common.R.color.event_other_light
+            )
+        )
     }
 
     private fun buildTimelineMapper(): StatisticsTimelineMapper {
