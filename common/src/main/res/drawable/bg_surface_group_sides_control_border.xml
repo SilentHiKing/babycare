@@ -6,13 +6,17 @@
         </shape>
     </item>
     <item
-        android:top="-1dp"
-        android:bottom="-1dp">
+        android:width="1dp"
+        android:gravity="left">
         <shape>
-            <solid android:color="@android:color/transparent" />
-            <stroke
-                android:width="1dp"
-                android:color="@color/control_border_default" />
+            <solid android:color="@color/control_border_default" />
+        </shape>
+    </item>
+    <item
+        android:width="1dp"
+        android:gravity="right">
+        <shape>
+            <solid android:color="@color/control_border_default" />
         </shape>
     </item>
 </layer-list>
