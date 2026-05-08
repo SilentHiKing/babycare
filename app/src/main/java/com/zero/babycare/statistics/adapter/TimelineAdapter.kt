@@ -12,7 +12,6 @@ import com.zero.babycare.databinding.ItemTimelineFeedingBinding
 import com.zero.babycare.databinding.ItemTimelineSleepBinding
 import com.zero.babycare.statistics.model.TimelineEditTarget
 import com.zero.babycare.statistics.model.TimelineUiItem
-import com.zero.common.ext.getThemeColor
 import com.zero.common.R as CommonR
 
 /**
@@ -171,9 +170,9 @@ class TimelineAdapter(
     private fun applyTimelineBackground(view: View, position: Int) {
         val isLast = position == itemCount - 1
         if (roundBottom && isLast) {
-            view.setBackgroundResource(CommonR.drawable.bg_r12_bottom_secondary_bg_default)
+            view.setBackgroundResource(CommonR.drawable.bg_r16_bottom_surface_stroke_control_border)
         } else {
-            view.setBackgroundColor(view.getThemeColor(CommonR.attr.secondary_bg_default))
+            view.setBackgroundResource(CommonR.drawable.bg_surface_stroke_control_border)
         }
     }
 

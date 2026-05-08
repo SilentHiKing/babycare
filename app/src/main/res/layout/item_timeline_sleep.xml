@@ -5,8 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
-    android:background="?attr/colorSurface"
-    android:paddingHorizontal="50dp">
+    android:background="@drawable/bg_surface_stroke_control_border"
+    android:paddingHorizontal="16dp">
 
     <Space
         android:id="@+id/spaceTop"
@@ -20,7 +20,7 @@
     <TextView
         android:id="@+id/tvStartTime"
         style="@style/TextAppearance.BabyCare.Body2"
-        android:layout_width="56dp"
+        android:layout_width="48dp"
         android:layout_height="32dp"
         android:gravity="center_vertical"
         android:includeFontPadding="false"
@@ -29,12 +29,20 @@
         app:layout_constraintTop_toBottomOf="@id/spaceTop"
         tools:text="09:30" />
 
+    <Space
+        android:id="@+id/spaceTimelineRail"
+        android:layout_width="20dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/tvStartTime"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- 时间轴线（上） -->
     <View
         android:id="@+id/vTimelineLineTop"
         android:layout_width="1dp"
         android:layout_height="0dp"
-        android:background="?attr/line10"
+        android:background="@color/control_border_default"
         app:layout_constraintBottom_toTopOf="@id/vTimelineDot"
         app:layout_constraintEnd_toEndOf="@id/vTimelineDot"
         app:layout_constraintStart_toStartOf="@id/vTimelineDot"
@@ -45,11 +53,11 @@
         android:id="@+id/vTimelineDot"
         android:layout_width="6dp"
         android:layout_height="6dp"
-        android:layout_marginStart="6dp"
         android:background="@drawable/circle_white"
         android:backgroundTint="@color/sleep_primary"
         app:layout_constraintBottom_toBottomOf="@id/tvStartTime"
-        app:layout_constraintStart_toEndOf="@id/tvStartTime"
+        app:layout_constraintEnd_toEndOf="@id/spaceTimelineRail"
+        app:layout_constraintStart_toStartOf="@id/spaceTimelineRail"
         app:layout_constraintTop_toTopOf="@id/tvStartTime" />
 
     <!-- 时间轴线（下） -->
@@ -57,7 +65,7 @@
         android:id="@+id/vTimelineLineBottom"
         android:layout_width="1dp"
         android:layout_height="0dp"
-        android:background="?attr/line10"
+        android:background="@color/control_border_default"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@id/vTimelineDot"
         app:layout_constraintStart_toStartOf="@id/vTimelineDot"
@@ -66,16 +74,15 @@
     <!-- 图标 -->
     <ImageView
         android:id="@+id/ivIcon"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginStart="12dp"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
         android:contentDescription="@null"
-        android:padding="4dp"
+        android:padding="8dp"
         android:background="@drawable/bg_event_icon_circle"
         android:backgroundTint="@color/sleep_bg"
         android:src="@drawable/ic_sleep"
         app:layout_constraintBottom_toBottomOf="@id/tvStartTime"
-        app:layout_constraintStart_toEndOf="@id/vTimelineDot"
+        app:layout_constraintStart_toEndOf="@id/spaceTimelineRail"
         app:layout_constraintTop_toTopOf="@id/tvStartTime"
         app:tint="@color/sleep_primary" />
 
@@ -85,7 +92,7 @@
         style="@style/TextAppearance.BabyCare.Heading3"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
+        android:layout_marginStart="12dp"
         android:ellipsize="end"
         android:maxLines="1"
         android:includeFontPadding="false"
@@ -119,7 +126,7 @@
         android:textColor="?attr/colorTextHint"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@id/ivIcon"
+        app:layout_constraintStart_toStartOf="@id/tvTitle"
         app:layout_constraintTop_toBottomOf="@id/ivIcon"
         tools:text="- 11:45"
         tools:visibility="visible" />
@@ -144,7 +151,7 @@
         android:textColor="?attr/colorTextHint"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@id/ivIcon"
+        app:layout_constraintStart_toStartOf="@id/tvTitle"
         app:layout_constraintTop_toBottomOf="@id/barDetail"
         tools:text="备注：睡得很香"
         tools:visibility="visible" />
