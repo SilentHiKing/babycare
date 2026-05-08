@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
-    android:background="?attr/secondary_bg_default"
+    android:background="@drawable/bg_surface_stroke_control_border"
     android:orientation="vertical"
     android:paddingHorizontal="16dp"
     android:paddingVertical="10dp">
@@ -28,7 +28,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="4dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_r8_block_gridview"
+                android:background="@drawable/bg_r8_metric_tile"
                 android:gravity="center_vertical"
                 android:minHeight="72dp"
                 android:orientation="horizontal"
@@ -36,9 +36,12 @@
                 android:paddingVertical="10dp">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_event_icon_circle"
+                    android:backgroundTint="@color/feeding_bg"
                     android:contentDescription="@null"
+                    android:padding="8dp"
                     android:src="@drawable/ic_feeding"
                     app:tint="@color/feeding_primary" />
 
@@ -74,7 +77,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_r8_block_gridview"
+                android:background="@drawable/bg_r8_metric_tile"
                 android:gravity="center_vertical"
                 android:minHeight="72dp"
                 android:orientation="horizontal"
@@ -82,9 +85,12 @@
                 android:paddingVertical="10dp">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_event_icon_circle"
+                    android:backgroundTint="@color/sleep_bg"
                     android:contentDescription="@null"
+                    android:padding="8dp"
                     android:src="@drawable/ic_sleep"
                     app:tint="@color/sleep_primary" />
 
@@ -127,7 +133,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="4dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_r8_block_gridview"
+                android:background="@drawable/bg_r8_metric_tile"
                 android:gravity="center_vertical"
                 android:minHeight="72dp"
                 android:orientation="horizontal"
@@ -135,9 +141,12 @@
                 android:paddingVertical="10dp">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_event_icon_circle"
+                    android:backgroundTint="@color/event_diaper_light"
                     android:contentDescription="@null"
+                    android:padding="8dp"
                     android:src="@drawable/ic_event_diaper"
                     app:tint="@color/event_diaper" />
 
@@ -173,7 +182,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_r8_block_gridview"
+                android:background="@drawable/bg_r8_metric_tile"
                 android:gravity="center_vertical"
                 android:minHeight="72dp"
                 android:orientation="horizontal"
@@ -181,9 +190,12 @@
                 android:paddingVertical="10dp">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_event_icon_circle"
+                    android:backgroundTint="@color/event_other_light"
                     android:contentDescription="@null"
+                    android:padding="8dp"
                     android:src="@drawable/ic_event_other"
                     app:tint="@color/event_other" />
 
