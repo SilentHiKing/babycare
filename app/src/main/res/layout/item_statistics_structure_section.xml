@@ -3,7 +3,7 @@
     android:id="@+id/llStructureSection"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/bg_r8_block_gridview"
+    android:background="@drawable/bg_r8_metric_tile"
     android:orientation="vertical"
     android:paddingHorizontal="12dp"
     android:paddingVertical="10dp">
@@ -20,7 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="6dp"
         android:layout_marginTop="8dp"
-        android:background="?attr/line10"
+        android:background="@color/control_border_default"
         android:orientation="horizontal" />
 
     <LinearLayout

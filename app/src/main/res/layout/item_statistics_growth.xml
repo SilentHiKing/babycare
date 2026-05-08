@@ -5,18 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
-    android:background="?attr/secondary_bg_default"
+    android:layout_marginTop="12dp"
+    android:background="@drawable/bg_r16_surface_stroke_control_border"
     android:orientation="vertical"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="12dp">
+    android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/bg_r8_block_gridview"
         android:orientation="vertical"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="12dp">
+        android:padding="0dp">
 
         <TextView
             android:id="@+id/tvGrowthTitle"
@@ -42,9 +40,14 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
                 android:layout_weight="1"
+                android:background="@drawable/bg_r8_metric_tile"
                 android:gravity="center"
-                android:orientation="vertical">
+                android:minHeight="76dp"
+                android:orientation="vertical"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="10dp">
 
                 <TextView
                     android:id="@+id/tvWeightLabel"
@@ -74,18 +77,17 @@
 
             </LinearLayout>
 
-            <View
-                android:layout_width="1dp"
-                android:layout_height="match_parent"
-                android:layout_marginVertical="6dp"
-                android:background="?attr/line10" />
-
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginHorizontal="4dp"
                 android:layout_weight="1"
+                android:background="@drawable/bg_r8_metric_tile"
                 android:gravity="center"
-                android:orientation="vertical">
+                android:minHeight="76dp"
+                android:orientation="vertical"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="10dp">
 
                 <TextView
                     android:id="@+id/tvHeightLabel"
@@ -115,18 +117,17 @@
 
             </LinearLayout>
 
-            <View
-                android:layout_width="1dp"
-                android:layout_height="match_parent"
-                android:layout_marginVertical="6dp"
-                android:background="?attr/line10" />
-
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
                 android:layout_weight="1"
+                android:background="@drawable/bg_r8_metric_tile"
                 android:gravity="center"
-                android:orientation="vertical">
+                android:minHeight="76dp"
+                android:orientation="vertical"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="10dp">
 
                 <TextView
                     android:id="@+id/tvHeadLabel"

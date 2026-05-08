@@ -5,10 +5,9 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
     android:layout_marginTop="12dp"
-    android:background="?attr/secondary_bg_default"
+    android:background="@drawable/bg_r16_surface_stroke_control_border"
     android:orientation="vertical"
-    android:paddingHorizontal="12dp"
-    android:paddingVertical="12dp">
+    android:padding="16dp">
 
     <TextView
         android:id="@+id/tvStructureTitle"

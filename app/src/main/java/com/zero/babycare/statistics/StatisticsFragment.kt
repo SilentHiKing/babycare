@@ -17,6 +17,7 @@ import com.zero.babycare.statistics.adapter.StatisticsEmptyAdapter
 import com.zero.babycare.statistics.adapter.StatisticsGrowthPercentileAdapter
 import com.zero.babycare.statistics.adapter.StatisticsGrowthAdapter
 import com.zero.babycare.statistics.adapter.StatisticsHealthAdapter
+import com.zero.babycare.statistics.adapter.StatisticsInsightHeaderAdapter
 import com.zero.babycare.statistics.adapter.StatisticsStructureAdapter
 import com.zero.babycare.statistics.adapter.StatisticsSummaryAdapter
 import com.zero.babycare.statistics.adapter.StatisticsTrendAdapter
@@ -51,6 +52,7 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     private lateinit var healthAdapter: StatisticsHealthAdapter
     private lateinit var babyAgeAdapter: StatisticsBabyAgeAdapter
     private lateinit var emptyAdapter: StatisticsEmptyAdapter
+    private lateinit var insightHeaderAdapter: StatisticsInsightHeaderAdapter
     private lateinit var concatAdapter: ConcatAdapter
     private lateinit var timelineAdapter: TimelineAdapter
 
@@ -116,6 +118,7 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
         growthPercentileAdapter = StatisticsGrowthPercentileAdapter()
         healthAdapter = StatisticsHealthAdapter()
         babyAgeAdapter = StatisticsBabyAgeAdapter()
+        insightHeaderAdapter = StatisticsInsightHeaderAdapter()
         timelineAdapter = TimelineAdapter { item ->
             handleTimelineItemClick(item)
         }
@@ -131,6 +134,7 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
             babyAgeAdapter,
             summaryAdapter,
             timelineAdapter,
+            insightHeaderAdapter,
             trendAdapter,
             structureAdapter,
             growthAdapter,
