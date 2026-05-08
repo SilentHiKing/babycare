@@ -12,6 +12,7 @@ import android.view.ViewConfiguration
 import android.view.animation.DecelerateInterpolator
 import androidx.core.content.ContextCompat
 import com.zero.babycare.R
+import com.zero.babycare.statistics.mapper.StatisticsDateRange
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -86,8 +87,7 @@ class BabyCalendarView @JvmOverloads constructor(
     private var selectedRadius: Float = 0f
 
     // ==================== 周规则（统一） ====================
-    private val locale: Locale = Locale.getDefault()
-    private val weekFields: WeekFields = WeekFields.of(locale)
+    private val weekFields: WeekFields = StatisticsDateRange.statisticsWeekFields()
     private val firstDayOfWeek: DayOfWeek = weekFields.firstDayOfWeek
 
     // ==================== 状态 ====================

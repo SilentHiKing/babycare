@@ -3,6 +3,7 @@ package com.zero.babycare.statistics
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.zero.babycare.statistics.mapper.StatisticsDateRange
 import com.zero.babycare.statistics.mapper.StatisticsGrowthCutoff
 import com.zero.babycare.statistics.mapper.StatisticsTimelineMapper
 import com.zero.babycare.statistics.model.DayRecordSectionUiModel
@@ -48,8 +49,6 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-import java.time.temporal.TemporalAdjusters
-import java.time.temporal.WeekFields
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -451,9 +450,9 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
      * 生成周/月/年趋势数据
      */
     private fun buildTrendOverview(babyId: Int, date: LocalDate): TrendOverview {
-        val weekFields = WeekFields.of(Locale.getDefault())
-        val weekStart = date.with(TemporalAdjusters.previousOrSame(weekFields.firstDayOfWeek))
-        val weekEnd = weekStart.plusDays(6)
+        val weekRange = StatisticsDateRange.week(date)
+        val weekStart = weekRange.startDate
+        val weekEnd = weekRange.endDate
 
         val month = YearMonth.from(date)
         val monthStart = month.atDay(1)

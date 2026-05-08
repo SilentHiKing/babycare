@@ -1,11 +1,11 @@
 package com.zero.babycare.statistics.mapper
 
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
-import java.util.Locale
 
 /**
  * 统计页统一时间范围计算，避免各模块对 selectedDate 的边界理解不一致。
@@ -19,8 +19,11 @@ object StatisticsDateRange {
         val endMillis: Long
     )
 
-    fun weekFields(locale: Locale = Locale.getDefault()): WeekFields {
-        return WeekFields.of(locale)
+    /**
+     * 统计业务固定使用周一到周日，避免系统地区设置导致趋势区和日历区范围不一致。
+     */
+    fun statisticsWeekFields(): WeekFields {
+        return WeekFields.of(DayOfWeek.MONDAY, 4)
     }
 
     fun day(date: LocalDate, zone: ZoneId = ZoneId.systemDefault()): Range {
@@ -30,7 +33,7 @@ object StatisticsDateRange {
     fun week(
         date: LocalDate,
         zone: ZoneId = ZoneId.systemDefault(),
-        weekFields: WeekFields = weekFields()
+        weekFields: WeekFields = statisticsWeekFields()
     ): Range {
         val start = date.with(TemporalAdjusters.previousOrSame(weekFields.firstDayOfWeek))
         return buildRange(start, start.plusDays(6), zone)

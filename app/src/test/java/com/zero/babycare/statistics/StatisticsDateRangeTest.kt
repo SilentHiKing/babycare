@@ -6,8 +6,8 @@ import org.junit.Test
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
-import java.util.Locale
 
 class StatisticsDateRangeTest {
 
@@ -38,19 +38,36 @@ class StatisticsDateRangeTest {
     }
 
     @Test
-    fun `week range follows the provided locale first day`() {
+    fun `statistics week is fixed to Monday through Sunday`() {
         val zone = ZoneId.of("Asia/Shanghai")
-        val weekFields = WeekFields.of(DayOfWeek.MONDAY, 4)
-        val range = StatisticsDateRange.week(LocalDate.of(2026, 5, 2), zone, weekFields)
+        val range = StatisticsDateRange.week(LocalDate.of(2026, 5, 8), zone)
 
-        assertEquals(LocalDate.of(2026, 4, 27), range.startDate)
-        assertEquals(LocalDate.of(2026, 5, 3), range.endDate)
+        assertEquals(LocalDate.of(2026, 5, 4), range.startDate)
+        assertEquals(LocalDate.of(2026, 5, 10), range.endDate)
+        assertEquals(
+            "05.04-05.10",
+            "${range.startDate.format(MONTH_DAY)}-${range.endDate.format(MONTH_DAY)}"
+        )
     }
 
     @Test
-    fun `default week fields come from locale`() {
-        val fields = StatisticsDateRange.weekFields(Locale.CHINA)
+    fun `week range can follow provided week fields`() {
+        val zone = ZoneId.of("Asia/Shanghai")
+        val weekFields = WeekFields.of(DayOfWeek.SUNDAY, 1)
+        val range = StatisticsDateRange.week(LocalDate.of(2026, 5, 2), zone, weekFields)
 
-        assertEquals(WeekFields.of(Locale.CHINA).firstDayOfWeek, fields.firstDayOfWeek)
+        assertEquals(LocalDate.of(2026, 4, 26), range.startDate)
+        assertEquals(LocalDate.of(2026, 5, 2), range.endDate)
+    }
+
+    @Test
+    fun `statistics week fields start on Monday`() {
+        val fields = StatisticsDateRange.statisticsWeekFields()
+
+        assertEquals(DayOfWeek.MONDAY, fields.firstDayOfWeek)
+    }
+
+    private companion object {
+        val MONTH_DAY: DateTimeFormatter = DateTimeFormatter.ofPattern("MM.dd")
     }
 }
