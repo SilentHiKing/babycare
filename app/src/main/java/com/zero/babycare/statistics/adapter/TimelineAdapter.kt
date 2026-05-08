@@ -170,9 +170,9 @@ class TimelineAdapter(
     private fun applyTimelineBackground(view: View, position: Int) {
         val isLast = position == itemCount - 1
         if (roundBottom && isLast) {
-            view.setBackgroundResource(CommonR.drawable.bg_r16_bottom_surface_stroke_control_border)
+            view.setBackgroundResource(CommonR.drawable.bg_r16_bottom_surface_group_control_border)
         } else {
-            view.setBackgroundResource(CommonR.drawable.bg_surface_stroke_control_border)
+            view.setBackgroundResource(CommonR.drawable.bg_surface_group_sides_control_border)
         }
     }
 

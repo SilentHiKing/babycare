@@ -28,7 +28,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:background="@drawable/bg_r8_metric_tile"
+        android:background="@drawable/bg_r8_metric_tile_soft"
         android:orientation="vertical"
         android:paddingHorizontal="12dp"
         android:paddingVertical="10dp">
