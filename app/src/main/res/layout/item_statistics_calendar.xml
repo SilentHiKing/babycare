@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
     android:background="@drawable/bg_r16_top_surface_group_control_border"
-    android:paddingHorizontal="12dp"
+    android:paddingHorizontal="@dimen/statistics_day_content_inset"
     android:paddingTop="30dp"
     android:paddingBottom="8dp">
 

@@ -8,7 +8,7 @@
     android:background="@drawable/bg_surface_group_sides_control_border"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingHorizontal="16dp"
+    android:paddingHorizontal="@dimen/statistics_day_content_inset"
     android:paddingTop="10dp"
     android:paddingBottom="8dp">
 

@@ -8,7 +8,7 @@
     android:layout_marginHorizontal="16dp"
     android:background="@drawable/bg_surface_group_sides_control_border"
     android:orientation="vertical"
-    android:paddingHorizontal="16dp"
+    android:paddingHorizontal="@dimen/statistics_day_content_inset"
     android:paddingVertical="10dp">
 
     <LinearLayout

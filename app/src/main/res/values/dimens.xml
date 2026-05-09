@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 统计页当日主区内部统一边距，保证日历、摘要和时间轴共用同一条内容边界。 -->
+    <dimen name="statistics_day_content_inset">20dp</dimen>
+</resources>

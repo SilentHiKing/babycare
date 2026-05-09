@@ -11,7 +11,7 @@
     android:orientation="vertical"
     android:paddingTop="24dp"
     android:paddingBottom="12dp"
-    android:paddingHorizontal="12dp"
+    android:paddingHorizontal="@dimen/statistics_day_content_inset"
     tools:visibility="visible">
 
     <ImageView
