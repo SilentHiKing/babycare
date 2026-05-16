@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import com.zero.babycare.R
 import com.chad.library.adapter4.BaseMultiItemAdapter
 import com.chad.library.adapter4.viewholder.QuickViewHolder
 import com.zero.babycare.databinding.ItemTimelineEventBinding
@@ -55,6 +56,7 @@ class TimelineAdapter(
 
             with(binding) {
                 applyTimelineBackground(root, position)
+                applyTimelineSpacing(spaceBottom, position)
                 updateTimelineLineState(vTimelineLineTop, vTimelineLineBottom, position)
                 bindCommonEventChrome(
                     context = ctx,
@@ -88,6 +90,7 @@ class TimelineAdapter(
 
             with(binding) {
                 applyTimelineBackground(root, position)
+                applyTimelineSpacing(spaceBottom, position)
                 updateTimelineLineState(vTimelineLineTop, vTimelineLineBottom, position)
                 bindCommonEventChrome(
                     context = ctx,
@@ -123,6 +126,7 @@ class TimelineAdapter(
 
             with(binding) {
                 applyTimelineBackground(root, position)
+                applyTimelineSpacing(spaceBottom, position)
                 updateTimelineLineState(vTimelineLineTop, vTimelineLineBottom, position)
                 bindCommonEventChrome(
                     context = ctx,
@@ -173,6 +177,20 @@ class TimelineAdapter(
             view.setBackgroundResource(CommonR.drawable.bg_r16_bottom_surface_group_control_border)
         } else {
             view.setBackgroundResource(CommonR.drawable.bg_surface_group_sides_control_border)
+        }
+    }
+
+    private fun applyTimelineSpacing(bottomSpace: View, position: Int) {
+        val bottomGapRes = if (position == itemCount - 1) {
+            R.dimen.statistics_timeline_last_bottom_gap
+        } else {
+            R.dimen.statistics_timeline_item_bottom_gap
+        }
+        val targetHeight = bottomSpace.resources.getDimensionPixelSize(bottomGapRes)
+        if (bottomSpace.layoutParams.height != targetHeight) {
+            bottomSpace.layoutParams = bottomSpace.layoutParams.apply {
+                height = targetHeight
+            }
         }
     }
 

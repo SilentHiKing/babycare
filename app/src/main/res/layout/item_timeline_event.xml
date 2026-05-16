@@ -16,26 +16,28 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 时间 -->
-    <TextView
-        android:id="@+id/tvTime"
-        style="@style/TextAppearance.BabyCare.Body2"
-        android:layout_width="@dimen/statistics_timeline_time_width"
-        android:layout_height="32dp"
-        android:gravity="center_vertical|end"
-        android:includeFontPadding="false"
-        android:textColor="?attr/colorTextPrimary"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/spaceTop"
-        tools:text="09:15" />
-
     <Space
         android:id="@+id/spaceTimelineRail"
         android:layout_width="@dimen/statistics_timeline_rail_width"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/tvTime"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 时间放在轨道右侧，避免形成“左时间列 + 右内容列”的割裂阅读路径。 -->
+    <TextView
+        android:id="@+id/tvTime"
+        style="@style/TextAppearance.BabyCare.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="24dp"
+        android:layout_marginStart="@dimen/statistics_timeline_time_gap"
+        android:gravity="center_vertical"
+        android:includeFontPadding="false"
+        android:textColor="?attr/colorTextPrimary"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/spaceTimelineRail"
+        app:layout_constraintTop_toBottomOf="@id/spaceTop"
+        tools:text="09:15" />
 
     <!-- 时间轴线（上） -->
     <View
@@ -81,12 +83,12 @@
         android:background="@drawable/bg_event_icon_circle"
         android:backgroundTint="@color/event_diaper_light"
         android:src="@drawable/ic_event_diaper"
-        app:layout_constraintBottom_toBottomOf="@id/tvTime"
-        app:layout_constraintStart_toEndOf="@id/spaceTimelineRail"
-        app:layout_constraintTop_toTopOf="@id/tvTime"
+        android:layout_marginTop="@dimen/statistics_timeline_content_top_gap"
+        app:layout_constraintStart_toStartOf="@id/tvTime"
+        app:layout_constraintTop_toBottomOf="@id/tvTime"
         app:tint="@color/event_diaper" />
 
-    <!-- 标题：与时间同一水平线（居中对齐） -->
+    <!-- 标题与详情跟随图标形成内容列，时间只作为该条记录的锚点。 -->
     <TextView
         android:id="@+id/tvTitle"
         style="@style/TextAppearance.BabyCare.Heading3"
@@ -97,10 +99,9 @@
         android:maxLines="1"
         android:includeFontPadding="false"
         android:textColor="?attr/colorTextPrimary"
-        app:layout_constraintBottom_toBottomOf="@id/tvTime"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/ivIcon"
-        app:layout_constraintTop_toTopOf="@id/tvTime"
+        app:layout_constraintTop_toTopOf="@id/ivIcon"
         tools:text="换尿布（湿）" />
 
     <!-- 详情信息（可选） -->
@@ -114,7 +115,7 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/tvTitle"
-        app:layout_constraintTop_toBottomOf="@id/ivIcon"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle"
         tools:text="体温：37.2°C"
         tools:visibility="visible" />
 
@@ -153,7 +154,7 @@
     <Space
         android:id="@+id/spaceBottom"
         android:layout_width="0dp"
-        android:layout_height="10dp"
+        android:layout_height="@dimen/statistics_timeline_item_bottom_gap"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

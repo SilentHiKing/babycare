@@ -1,5 +1,7 @@
 package com.zero.babycare.statistics.widget
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
@@ -33,7 +35,7 @@ import kotlin.math.min
  * 修复点（核心逻辑）：
  * 1) 点击只走 GestureDetector，避免一次点击处理两次
  * 2) “是否本月”判断改为 YearMonth 级别（年+月）
- * 3) animatedRowCount 的测量/绘制/点击统一使用 visibleRowCount = ceil(animatedRowCount)
+ * 3) animatedRowCount 直接参与高度测量，避免展开/折叠时按整数行跳变
  * 4) 周起始日统一使用 WeekFields(firstDayOfWeek)，月补齐/周起始/标题周数一致
  * 5) onMeasure 尊重 MeasureSpec
  * 6) detach 时 cancel animator
@@ -49,6 +51,7 @@ class BabyCalendarView @JvmOverloads constructor(
         private const val MAX_MONTH_ROWS = 6
         private const val DAYS_IN_WEEK = 7
         private const val EXPAND_DURATION = 300L
+        private const val DATE_ROW_HEIGHT_FACTOR = 0.72f
     }
 
     enum class ViewMode { WEEK, MONTH }
@@ -84,6 +87,7 @@ class BabyCalendarView @JvmOverloads constructor(
     private var cellHeight: Float = 0f
     private var weekDayHeight: Float = 0f
     private var dotRadius: Float = 0f
+    private var recordDotTextGap: Float = 0f
     private var selectedRadius: Float = 0f
 
     // ==================== 周规则（统一） ====================
@@ -100,6 +104,7 @@ class BabyCalendarView @JvmOverloads constructor(
     // 动画相关
     private var animatedRowCount: Float = WEEK_ROWS.toFloat()
     private var expandAnimator: ValueAnimator? = null
+    private var transitionDates: List<LocalDate>? = null
 
     /**
      * 是否在翻月时自动调整 selectedDate 到新月份（可选，默认保持原行为：不调整）
@@ -189,13 +194,14 @@ class BabyCalendarView @JvmOverloads constructor(
     private fun initSizes() {
         val density = resources.displayMetrics.density
         weekDayTextSize = 11 * density
-        dateTextSize = 15 * density
-        weekDayHeight = 26 * density
-        dotRadius = 3 * density
-        selectedRadius = 15 * density
+        dateTextSize = 14 * density
+        weekDayHeight = 24 * density
+        dotRadius = 2.5f * density
+        recordDotTextGap = 4 * density
+        selectedRadius = 14 * density
     }
 
-    private val visibleRowCount: Int
+    private val interactiveRowCount: Int
         get() = max(1, ceil(animatedRowCount.toDouble()).toInt())
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -212,9 +218,9 @@ class BabyCalendarView @JvmOverloads constructor(
         // 绘制和点击都基于 View 的 padding 内部区域，避免日历自绘内容越过统计主区统一边界。
         val contentWidth = max(0, measuredWidth - paddingLeft - paddingRight)
         cellWidth = contentWidth / DAYS_IN_WEEK.toFloat()
-        cellHeight = cellWidth * 0.76f
+        cellHeight = cellWidth * DATE_ROW_HEIGHT_FACTOR
 
-        val desiredHeight = (paddingTop + weekDayHeight + cellHeight * visibleRowCount + paddingBottom).toInt()
+        val desiredHeight = (paddingTop + weekDayHeight + cellHeight * animatedRowCount + paddingBottom).toInt()
         val measuredHeight = when (heightMode) {
             MeasureSpec.EXACTLY -> heightSize
             MeasureSpec.AT_MOST -> min(desiredHeight, heightSize)
@@ -243,16 +249,15 @@ class BabyCalendarView @JvmOverloads constructor(
     }
 
     private fun drawDates(canvas: Canvas) {
-        val dates = getDisplayDates()
+        val dates = transitionDates ?: getDisplayDates()
         val today = LocalDate.now()
 
         datePaint.textSize = dateTextSize
 
-        val rows = visibleRowCount
         val contentLeft = paddingLeft.toFloat()
+        val weekModeWithoutTransition = transitionDates == null && currentMode == ViewMode.WEEK
         for ((index, date) in dates.withIndex()) {
             val row = index / DAYS_IN_WEEK
-            if (row >= rows) break // ✅ 与测量/点击统一
 
             val col = index % DAYS_IN_WEEK
             val centerX = contentLeft + cellWidth * col + cellWidth / 2
@@ -262,6 +267,7 @@ class BabyCalendarView @JvmOverloads constructor(
             val isToday = date == today
             val isCurrentMonth = YearMonth.from(date) == displayMonth
             val hasRecord = datesWithRecords.contains(date)
+            val shouldDrawRecordDot = hasRecord && !isSelected && !isToday
 
             if (isSelected) {
                 selectedBgPaint.color = selectedBgColor
@@ -274,7 +280,7 @@ class BabyCalendarView @JvmOverloads constructor(
             datePaint.color = when {
                 isSelected -> selectedTextColor
                 isToday -> todayTextColor
-                isCurrentMonth || currentMode == ViewMode.WEEK -> dateTextColor
+                isCurrentMonth || weekModeWithoutTransition -> dateTextColor
                 else -> otherMonthTextColor
             }
             datePaint.isFakeBoldText = isSelected || isToday
@@ -282,9 +288,10 @@ class BabyCalendarView @JvmOverloads constructor(
             val textY = centerY + dateTextSize / 3
             canvas.drawText(date.dayOfMonth.toString(), centerX, textY, datePaint)
 
-            if (hasRecord && !isSelected) {
+            if (shouldDrawRecordDot) {
                 dotPaint.color = dotColor
-                val dotY = centerY + selectedRadius + dotRadius + 2
+                // 记录点跟随日期文字，而不是跟随选中圆半径；否则月视图行高紧凑时会贴到下一行状态。
+                val dotY = centerY + dateTextSize / 2 + recordDotTextGap
                 canvas.drawCircle(centerX, dotY, dotRadius, dotPaint)
             }
         }
@@ -327,7 +334,7 @@ class BabyCalendarView @JvmOverloads constructor(
         val col = (contentX / cellWidth).toInt().coerceIn(0, DAYS_IN_WEEK - 1)
         val row = ((contentY - weekDayHeight) / cellHeight).toInt()
 
-        val maxRow = visibleRowCount
+        val maxRow = interactiveRowCount
         if (row < 0 || row >= maxRow) return false
 
         val dates = getDisplayDates()
@@ -382,6 +389,12 @@ class BabyCalendarView @JvmOverloads constructor(
 
     fun setViewMode(mode: ViewMode, animate: Boolean = true) {
         if (mode == currentMode) return
+        val previousMode = currentMode
+        val collapseTransitionDates = if (animate && previousMode == ViewMode.MONTH && mode == ViewMode.WEEK) {
+            getMonthDates()
+        } else {
+            null
+        }
         currentMode = mode
 
         if (mode == ViewMode.MONTH) {
@@ -399,8 +412,13 @@ class BabyCalendarView @JvmOverloads constructor(
         }
 
         if (animate) {
-            animateRowChange(targetRows.toFloat())
+            // 折叠时保留月视图日期并交给高度裁剪，避免内容先消失再缩短造成空白跳动。
+            transitionDates = collapseTransitionDates
+            animateRowChange(targetRows.toFloat()) {
+                transitionDates = null
+            }
         } else {
+            transitionDates = null
             animatedRowCount = targetRows.toFloat()
             requestLayout()
             invalidate()
@@ -421,6 +439,7 @@ class BabyCalendarView @JvmOverloads constructor(
             }
             ViewMode.MONTH -> {
                 displayMonth = displayMonth.minusMonths(1)
+                transitionDates = null
 
                 val targetRows = getMonthDates().size / DAYS_IN_WEEK
                 animatedRowCount = targetRows.toFloat()
@@ -446,6 +465,7 @@ class BabyCalendarView @JvmOverloads constructor(
             }
             ViewMode.MONTH -> {
                 displayMonth = displayMonth.plusMonths(1)
+                transitionDates = null
 
                 val targetRows = getMonthDates().size / DAYS_IN_WEEK
                 animatedRowCount = targetRows.toFloat()
@@ -499,7 +519,7 @@ class BabyCalendarView @JvmOverloads constructor(
         onModeChangedListener = listener
     }
 
-    private fun animateRowChange(targetRows: Float) {
+    private fun animateRowChange(targetRows: Float, onEnd: () -> Unit = {}) {
         expandAnimator?.cancel()
         expandAnimator = ValueAnimator.ofFloat(animatedRowCount, targetRows).apply {
             duration = EXPAND_DURATION
@@ -509,6 +529,23 @@ class BabyCalendarView @JvmOverloads constructor(
                 requestLayout()
                 invalidate()
             }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationCancel(animation: Animator) {
+                    if (expandAnimator === animation) {
+                        expandAnimator = null
+                    }
+                }
+
+                override fun onAnimationEnd(animation: Animator) {
+                    if (expandAnimator === animation) {
+                        animatedRowCount = targetRows
+                        expandAnimator = null
+                        onEnd()
+                        requestLayout()
+                        invalidate()
+                    }
+                }
+            })
             start()
         }
     }
@@ -517,6 +554,7 @@ class BabyCalendarView @JvmOverloads constructor(
         super.onDetachedFromWindow()
         expandAnimator?.cancel()
         expandAnimator = null
+        transitionDates = null
     }
 
     private fun buildWeekDayLabels(first: DayOfWeek): Array<String> {

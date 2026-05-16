@@ -16,26 +16,28 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 开始时间 -->
-    <TextView
-        android:id="@+id/tvStartTime"
-        style="@style/TextAppearance.BabyCare.Body2"
-        android:layout_width="@dimen/statistics_timeline_time_width"
-        android:layout_height="32dp"
-        android:gravity="center_vertical|end"
-        android:includeFontPadding="false"
-        android:textColor="?attr/colorTextPrimary"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/spaceTop"
-        tools:text="09:30" />
-
     <Space
         android:id="@+id/spaceTimelineRail"
         android:layout_width="@dimen/statistics_timeline_rail_width"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/tvStartTime"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 开始时间放在轨道右侧，睡眠时长与结束时间统一归入内容列。 -->
+    <TextView
+        android:id="@+id/tvStartTime"
+        style="@style/TextAppearance.BabyCare.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="24dp"
+        android:layout_marginStart="@dimen/statistics_timeline_time_gap"
+        android:gravity="center_vertical"
+        android:includeFontPadding="false"
+        android:textColor="?attr/colorTextPrimary"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/spaceTimelineRail"
+        app:layout_constraintTop_toBottomOf="@id/spaceTop"
+        tools:text="09:30" />
 
     <!-- 时间轴线（上） -->
     <View
@@ -81,12 +83,12 @@
         android:background="@drawable/bg_event_icon_circle"
         android:backgroundTint="@color/sleep_bg"
         android:src="@drawable/ic_sleep"
-        app:layout_constraintBottom_toBottomOf="@id/tvStartTime"
-        app:layout_constraintStart_toEndOf="@id/spaceTimelineRail"
-        app:layout_constraintTop_toTopOf="@id/tvStartTime"
+        android:layout_marginTop="@dimen/statistics_timeline_content_top_gap"
+        app:layout_constraintStart_toStartOf="@id/tvStartTime"
+        app:layout_constraintTop_toBottomOf="@id/tvStartTime"
         app:tint="@color/sleep_primary" />
 
-    <!-- 标题：与时间同一水平线（居中对齐） -->
+    <!-- 标题与睡眠详情位于同一内容列，避免右侧出现孤立的时长文本。 -->
     <TextView
         android:id="@+id/tvTitle"
         style="@style/TextAppearance.BabyCare.Heading3"
@@ -98,23 +100,21 @@
         android:includeFontPadding="false"
         android:text="@string/sleeping"
         android:textColor="?attr/colorTextPrimary"
-        app:layout_constraintBottom_toBottomOf="@id/tvStartTime"
-        app:layout_constraintEnd_toStartOf="@id/tvDuration"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/ivIcon"
-        app:layout_constraintTop_toTopOf="@id/tvStartTime" />
+        app:layout_constraintTop_toTopOf="@id/ivIcon" />
 
-    <!-- 时长：同一水平线（居中对齐） -->
+    <!-- 时长：放回文本列内，避免右侧只在个别行出现一条漂浮边界。 -->
     <TextView
         android:id="@+id/tvDuration"
-        style="@style/TextAppearance.BabyCare.Body2"
-        android:layout_width="@dimen/statistics_timeline_meta_width"
+        style="@style/TextAppearance.BabyCare.Label"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:gravity="end"
-        android:includeFontPadding="false"
+        android:layout_marginTop="6dp"
         android:textColor="@color/sleep_primary"
-        app:layout_constraintBottom_toBottomOf="@id/tvStartTime"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvStartTime"
+        app:layout_constraintStart_toStartOf="@id/tvTitle"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle"
         tools:text="2h15m" />
 
     <!-- 结束时间（可选） -->
@@ -128,7 +128,7 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/tvTitle"
-        app:layout_constraintTop_toBottomOf="@id/ivIcon"
+        app:layout_constraintTop_toBottomOf="@id/tvDuration"
         tools:text="- 11:45"
         tools:visibility="visible" />
 
@@ -138,7 +138,7 @@
         android:layout_height="wrap_content"
         app:barrierAllowsGoneWidgets="false"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="ivIcon,tvEndTime" />
+        app:constraint_referenced_ids="ivIcon,tvDuration,tvEndTime" />
 
     <!-- 备注（可选） -->
     <TextView
@@ -163,12 +163,12 @@
         android:layout_height="wrap_content"
         app:barrierAllowsGoneWidgets="false"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="ivIcon,tvEndTime,tvNote" />
+        app:constraint_referenced_ids="ivIcon,tvDuration,tvEndTime,tvNote" />
 
     <Space
         android:id="@+id/spaceBottom"
         android:layout_width="0dp"
-        android:layout_height="10dp"
+        android:layout_height="@dimen/statistics_timeline_item_bottom_gap"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

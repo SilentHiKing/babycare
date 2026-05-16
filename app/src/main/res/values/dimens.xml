@@ -7,12 +7,16 @@
     <dimen name="statistics_day_content_inset">24dp</dimen>
 
     <!-- 日历网格在统一内容边界内再留一点呼吸感，避免首尾日期贴近容器边。 -->
-    <dimen name="statistics_calendar_grid_inset">8dp</dimen>
+    <dimen name="statistics_calendar_grid_inset">0dp</dimen>
+    <dimen name="statistics_calendar_nav_button_size">40dp</dimen>
+    <dimen name="statistics_calendar_nav_icon_padding">8dp</dimen>
 
-    <!-- 时间轴固定列：时间 / 轨道 / 图标 / 文本 / 右侧辅助信息。 -->
-    <dimen name="statistics_timeline_time_width">44dp</dimen>
-    <dimen name="statistics_timeline_rail_width">20dp</dimen>
-    <dimen name="statistics_timeline_icon_size">36dp</dimen>
+    <!-- 时间轴固定列：左侧轨道 / 右侧时间与内容，保证回看记录时只有一条阅读主线。 -->
+    <dimen name="statistics_timeline_rail_width">16dp</dimen>
+    <dimen name="statistics_timeline_time_gap">12dp</dimen>
+    <dimen name="statistics_timeline_icon_size">40dp</dimen>
+    <dimen name="statistics_timeline_content_top_gap">10dp</dimen>
     <dimen name="statistics_timeline_text_gap">12dp</dimen>
-    <dimen name="statistics_timeline_meta_width">56dp</dimen>
+    <dimen name="statistics_timeline_item_bottom_gap">10dp</dimen>
+    <dimen name="statistics_timeline_last_bottom_gap">22dp</dimen>
 </resources>

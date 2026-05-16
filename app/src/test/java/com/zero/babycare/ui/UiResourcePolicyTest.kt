@@ -161,6 +161,178 @@ class UiResourcePolicyTest {
     }
 
     @Test
+    fun `statistics timeline keeps time and content to the right of the rail`() {
+        val timelineLayouts = listOf(
+            "app/src/main/res/layout/item_timeline_event.xml" to "tvTime",
+            "app/src/main/res/layout/item_timeline_feeding.xml" to "tvTime",
+            "app/src/main/res/layout/item_timeline_sleep.xml" to "tvStartTime"
+        )
+
+        val offenders = timelineLayouts.flatMap { (relativePath, timeViewId) ->
+            val content = File(repoRoot(), relativePath).readText()
+            buildList {
+                if (!content.contains("""android:id="@+id/spaceTimelineRail"""") ||
+                    !content.contains("""app:layout_constraintStart_toStartOf="parent"""")
+                ) {
+                    add("$relativePath should anchor the timeline rail to the left content edge")
+                }
+                if (!content.contains(
+                        """app:layout_constraintStart_toEndOf="@id/spaceTimelineRail""""
+                    )
+                ) {
+                    add("$relativePath should put $timeViewId to the right of the rail")
+                }
+                if (!content.contains(
+                        """app:layout_constraintStart_toStartOf="@id/$timeViewId""""
+                    )
+                ) {
+                    add("$relativePath should align event content with the time column")
+                }
+                if (content.contains("""android:layout_width="@dimen/statistics_timeline_time_width"""") ||
+                    content.contains("""app:layout_constraintStart_toEndOf="@id/$timeViewId"""")
+                ) {
+                    add("$relativePath should not keep the old separate left time column")
+                }
+            }
+        }
+
+        // 统计页当日记录按时间扫读，轨道只负责定位，时间和内容必须在轨道右侧形成单一阅读列。
+        assertTrue(
+            "Statistics timeline should use left rail with right-side time/content: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
+    fun `statistics calendar does not overlap selected today and record states`() {
+        val source = File(
+            repoRoot(),
+            "app/src/main/java/com/zero/babycare/statistics/widget/BabyCalendarView.kt"
+        ).readText()
+
+        // 选中态和今天态已经足够强，记录点不能继续叠在同一个日期 cell 上制造状态噪音。
+        assertTrue(
+            "Calendar record dots should be suppressed for selected and today cells.",
+            source.contains("val shouldDrawRecordDot = hasRecord && !isSelected && !isToday") &&
+                source.contains("if (shouldDrawRecordDot)")
+        )
+    }
+
+    @Test
+    fun `statistics calendar expands with continuous animated height`() {
+        val source = File(
+            repoRoot(),
+            "app/src/main/java/com/zero/babycare/statistics/widget/BabyCalendarView.kt"
+        ).readText()
+
+        // 展开/折叠高度必须直接使用浮点动画值；如果用 ceil 后的整数行测量，会一行一行跳变。
+        assertTrue(
+            "Calendar measurement should use animatedRowCount directly for smooth height changes.",
+            source.contains("cellHeight * animatedRowCount") &&
+                !source.contains("cellHeight * visibleRowCount")
+        )
+    }
+
+    @Test
+    fun `statistics calendar record dots stay close to their own date`() {
+        val source = File(
+            repoRoot(),
+            "app/src/main/java/com/zero/babycare/statistics/widget/BabyCalendarView.kt"
+        ).readText()
+
+        // 记录点是日期文字的弱提示，不能依赖选中圆半径放到 cell 底部，否则会贴近下一行的今天态。
+        assertTrue(
+            "Calendar record dots should be positioned from date text, not selected circle radius.",
+            source.contains("recordDotTextGap = 4 * density") &&
+                source.contains("dateTextSize / 2 + recordDotTextGap") &&
+                !source.contains("centerY + selectedRadius + dotRadius + 2")
+        )
+    }
+
+    @Test
+    fun `statistics calendar date selection does not auto collapse month view`() {
+        val source = File(
+            repoRoot(),
+            "app/src/main/java/com/zero/babycare/statistics/adapter/StatisticsCalendarAdapter.kt"
+        ).readText()
+
+        // 月视图用于连续选日期和对比有记录日期，选中某天后不应强制折回周视图。
+        assertFalse(
+            "Statistics calendar adapter should not auto-collapse to week mode after date selection.",
+            source.contains("setViewMode(BabyCalendarView.ViewMode.WEEK)")
+        )
+    }
+
+    @Test
+    fun `statistics calendar navigation arrows use one secondary button treatment`() {
+        val layout = File(
+            repoRoot(),
+            "app/src/main/res/layout/item_statistics_calendar.xml"
+        ).readText()
+
+        val offenders = buildList {
+            if (!layout.contains("""android:layout_width="@dimen/statistics_calendar_nav_button_size"""") ||
+                !layout.contains("""android:layout_height="@dimen/statistics_calendar_nav_button_size"""")
+            ) {
+                add("month navigation arrows should use the shared 40dp button size")
+            }
+            if (!layout.contains("""android:padding="@dimen/statistics_calendar_nav_icon_padding"""")) {
+                add("month navigation arrows should use the shared icon padding")
+            }
+            if (!layout.contains("""android:background="?attr/selectableItemBackgroundBorderless"""")) {
+                add("month navigation arrows should keep a familiar borderless touch state")
+            }
+            if (!layout.contains("""app:tint="?attr/colorTextSecondary"""")) {
+                add("month navigation arrows should be secondary controls, not hint-level controls")
+            }
+            if (layout.contains("""android:layout_width="32dp"""") ||
+                layout.contains("""android:padding="4dp"""")
+            ) {
+                add("month navigation arrows should not keep the old small 32dp treatment")
+            }
+        }
+
+        // 页面返回是主导航，月份切换是页面内次级导航；三枚箭头要共享线性图标和按钮节奏。
+        assertTrue(
+            "Statistics calendar arrows are visually inconsistent: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
+    fun `statistics timeline gives the final record enough bottom padding`() {
+        val adapter = File(
+            repoRoot(),
+            "app/src/main/java/com/zero/babycare/statistics/adapter/TimelineAdapter.kt"
+        ).readText()
+        val timelineLayouts = listOf(
+            "app/src/main/res/layout/item_timeline_event.xml",
+            "app/src/main/res/layout/item_timeline_feeding.xml",
+            "app/src/main/res/layout/item_timeline_sleep.xml"
+        )
+
+        val offenders = buildList {
+            if (!adapter.contains("applyTimelineSpacing(spaceBottom, position)") ||
+                !adapter.contains("statistics_timeline_last_bottom_gap")
+            ) {
+                add("TimelineAdapter should enlarge only the last record bottom spacer")
+            }
+            timelineLayouts.forEach { relativePath ->
+                val layout = File(repoRoot(), relativePath).readText()
+                if (!layout.contains("""android:layout_height="@dimen/statistics_timeline_item_bottom_gap"""")) {
+                    add("$relativePath should use the shared default bottom gap dimen")
+                }
+            }
+        }
+
+        // 当日主区底部留白只需要加强最后一条记录，不能把每条记录都拉散。
+        assertTrue(
+            "Statistics timeline final record bottom padding is too tight: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
     fun `event and quick record icons use soft utility line style`() {
         val iconDir = File(repoRoot(), "common/src/main/res/drawable")
         val eventIcons = iconDir.walkTopDown()

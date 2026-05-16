@@ -7,22 +7,22 @@
     android:layout_marginHorizontal="16dp"
     android:background="@drawable/bg_r16_top_surface_group_control_border"
     android:paddingHorizontal="@dimen/statistics_day_content_inset"
-    android:paddingTop="30dp"
-    android:paddingBottom="8dp">
+    android:paddingTop="22dp"
+    android:paddingBottom="6dp">
 
     <!-- 月份标题 -->
     <ImageView
         android:id="@+id/ivPrevious"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="@dimen/statistics_calendar_nav_button_size"
+        android:layout_height="@dimen/statistics_calendar_nav_button_size"
+        android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/calendar_previous"
-        android:padding="4dp"
+        android:padding="@dimen/statistics_calendar_nav_icon_padding"
         android:rotation="0"
         android:src="@drawable/ic_back"
-        app:layout_constraintBottom_toBottomOf="@id/tvCalendarTitle"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvCalendarTitle"
-        app:tint="?attr/colorTextHint" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorTextSecondary" />
 
     <TextView
         android:id="@+id/tvCalendarTitle"
@@ -30,23 +30,25 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="@id/ivPrevious"
         app:layout_constraintEnd_toStartOf="@id/ivNext"
         app:layout_constraintStart_toEndOf="@id/ivPrevious"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@id/ivPrevious"
         tools:text="2024年1月 第2周" />
 
     <ImageView
         android:id="@+id/ivNext"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="@dimen/statistics_calendar_nav_button_size"
+        android:layout_height="@dimen/statistics_calendar_nav_button_size"
+        android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/calendar_next"
-        android:padding="4dp"
+        android:padding="@dimen/statistics_calendar_nav_icon_padding"
         android:rotation="180"
         android:src="@drawable/ic_back"
-        app:layout_constraintBottom_toBottomOf="@id/tvCalendarTitle"
+        app:layout_constraintBottom_toBottomOf="@id/ivPrevious"
         app:layout_constraintEnd_toStartOf="@id/tvToday"
-        app:layout_constraintTop_toTopOf="@id/tvCalendarTitle"
-        app:tint="?attr/colorTextHint" />
+        app:layout_constraintTop_toTopOf="@id/ivPrevious"
+        app:tint="?attr/colorTextSecondary" />
 
     <TextView
         android:id="@+id/tvToday"
@@ -58,25 +60,25 @@
         android:paddingVertical="4dp"
         android:text="@string/today"
         android:textColor="?attr/colorTextSecondary"
-        app:layout_constraintBottom_toBottomOf="@id/tvCalendarTitle"
+        app:layout_constraintBottom_toBottomOf="@id/ivPrevious"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/tvCalendarTitle" />
+        app:layout_constraintTop_toTopOf="@id/ivPrevious" />
 
     <!-- 日历控件 -->
     <com.zero.babycare.statistics.widget.BabyCalendarView
         android:id="@+id/calendarView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:paddingHorizontal="@dimen/statistics_calendar_grid_inset"
-        app:layout_constraintTop_toBottomOf="@id/tvCalendarTitle" />
+        app:layout_constraintTop_toBottomOf="@id/ivPrevious" />
 
     <!-- 展开/收起指示器 -->
     <ImageView
         android:id="@+id/ivExpandIndicator"
         android:layout_width="24dp"
-        android:layout_height="16dp"
-        android:layout_marginTop="6dp"
+        android:layout_height="14dp"
+        android:layout_marginTop="2dp"
         android:contentDescription="@null"
         android:rotation="90"
         android:src="@drawable/ic_arrow_right"
