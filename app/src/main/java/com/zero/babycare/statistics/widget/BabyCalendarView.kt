@@ -209,10 +209,12 @@ class BabyCalendarView @JvmOverloads constructor(
             else -> suggestedMinimumWidth
         }
 
-        cellWidth = measuredWidth / DAYS_IN_WEEK.toFloat()
+        // 绘制和点击都基于 View 的 padding 内部区域，避免日历自绘内容越过统计主区统一边界。
+        val contentWidth = max(0, measuredWidth - paddingLeft - paddingRight)
+        cellWidth = contentWidth / DAYS_IN_WEEK.toFloat()
         cellHeight = cellWidth * 0.76f
 
-        val desiredHeight = (weekDayHeight + cellHeight * visibleRowCount).toInt()
+        val desiredHeight = (paddingTop + weekDayHeight + cellHeight * visibleRowCount + paddingBottom).toInt()
         val measuredHeight = when (heightMode) {
             MeasureSpec.EXACTLY -> heightSize
             MeasureSpec.AT_MOST -> min(desiredHeight, heightSize)
@@ -232,9 +234,10 @@ class BabyCalendarView @JvmOverloads constructor(
         weekDayPaint.textSize = weekDayTextSize
         weekDayPaint.color = weekDayTextColor
 
-        val y = weekDayHeight / 2 + weekDayTextSize / 3
+        val contentLeft = paddingLeft.toFloat()
+        val y = paddingTop + weekDayHeight / 2 + weekDayTextSize / 3
         for (i in 0 until DAYS_IN_WEEK) {
-            val x = cellWidth * i + cellWidth / 2
+            val x = contentLeft + cellWidth * i + cellWidth / 2
             canvas.drawText(weekDayLabels[i], x, y, weekDayPaint)
         }
     }
@@ -246,13 +249,14 @@ class BabyCalendarView @JvmOverloads constructor(
         datePaint.textSize = dateTextSize
 
         val rows = visibleRowCount
+        val contentLeft = paddingLeft.toFloat()
         for ((index, date) in dates.withIndex()) {
             val row = index / DAYS_IN_WEEK
             if (row >= rows) break // ✅ 与测量/点击统一
 
             val col = index % DAYS_IN_WEEK
-            val centerX = cellWidth * col + cellWidth / 2
-            val centerY = weekDayHeight + cellHeight * row + cellHeight / 2
+            val centerX = contentLeft + cellWidth * col + cellWidth / 2
+            val centerY = paddingTop + weekDayHeight + cellHeight * row + cellHeight / 2
 
             val isSelected = date == selectedDate
             val isToday = date == today
@@ -312,11 +316,16 @@ class BabyCalendarView @JvmOverloads constructor(
     }
 
     private fun handleClick(x: Float, y: Float): Boolean {
-        if (y < weekDayHeight) return false
+        val contentX = x - paddingLeft
+        val contentY = y - paddingTop
+        if (contentY < weekDayHeight) return false
         if (cellWidth <= 0f || cellHeight <= 0f) return false
 
-        val col = (x / cellWidth).toInt().coerceIn(0, DAYS_IN_WEEK - 1)
-        val row = ((y - weekDayHeight) / cellHeight).toInt()
+        val contentWidth = max(0, width - paddingLeft - paddingRight).toFloat()
+        if (contentX < 0f || contentX > contentWidth) return false
+
+        val col = (contentX / cellWidth).toInt().coerceIn(0, DAYS_IN_WEEK - 1)
+        val row = ((contentY - weekDayHeight) / cellHeight).toInt()
 
         val maxRow = visibleRowCount
         if (row < 0 || row >= maxRow) return false

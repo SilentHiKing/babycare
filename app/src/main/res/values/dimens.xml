@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 统计页主体最大宽度，避免横屏时日历和时间轴被拉得过散。 -->
+    <dimen name="statistics_content_max_width">520dp</dimen>
+
     <!-- 统计页当日主区内部统一边距，保证日历、摘要和时间轴共用同一条内容边界。 -->
-    <dimen name="statistics_day_content_inset">20dp</dimen>
+    <dimen name="statistics_day_content_inset">24dp</dimen>
+
+    <!-- 日历网格在统一内容边界内再留一点呼吸感，避免首尾日期贴近容器边。 -->
+    <dimen name="statistics_calendar_grid_inset">8dp</dimen>
+
+    <!-- 时间轴固定列：时间 / 轨道 / 图标 / 文本 / 右侧辅助信息。 -->
+    <dimen name="statistics_timeline_time_width">44dp</dimen>
+    <dimen name="statistics_timeline_rail_width">20dp</dimen>
+    <dimen name="statistics_timeline_icon_size">36dp</dimen>
+    <dimen name="statistics_timeline_text_gap">12dp</dimen>
+    <dimen name="statistics_timeline_meta_width">56dp</dimen>
 </resources>

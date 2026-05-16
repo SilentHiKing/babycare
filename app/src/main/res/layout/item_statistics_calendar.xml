@@ -68,6 +68,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:paddingHorizontal="@dimen/statistics_calendar_grid_inset"
         app:layout_constraintTop_toBottomOf="@id/tvCalendarTitle" />
 
     <!-- 展开/收起指示器 -->

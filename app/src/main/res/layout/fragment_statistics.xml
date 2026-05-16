@@ -13,7 +13,7 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvStatistics"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:nestedScrollingEnabled="false"
@@ -21,7 +21,10 @@
         android:paddingTop="8dp"
         android:paddingBottom="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintWidth_max="@dimen/statistics_content_max_width" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

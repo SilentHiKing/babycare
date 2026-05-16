@@ -20,9 +20,9 @@
     <TextView
         android:id="@+id/tvStartTime"
         style="@style/TextAppearance.BabyCare.Body2"
-        android:layout_width="48dp"
+        android:layout_width="@dimen/statistics_timeline_time_width"
         android:layout_height="32dp"
-        android:gravity="center_vertical"
+        android:gravity="center_vertical|end"
         android:includeFontPadding="false"
         android:textColor="?attr/colorTextPrimary"
         app:layout_constraintStart_toStartOf="parent"
@@ -31,7 +31,7 @@
 
     <Space
         android:id="@+id/spaceTimelineRail"
-        android:layout_width="20dp"
+        android:layout_width="@dimen/statistics_timeline_rail_width"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/tvStartTime"
@@ -74,8 +74,8 @@
     <!-- 图标 -->
     <ImageView
         android:id="@+id/ivIcon"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="@dimen/statistics_timeline_icon_size"
+        android:layout_height="@dimen/statistics_timeline_icon_size"
         android:contentDescription="@null"
         android:padding="8dp"
         android:background="@drawable/bg_event_icon_circle"
@@ -92,7 +92,7 @@
         style="@style/TextAppearance.BabyCare.Heading3"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="@dimen/statistics_timeline_text_gap"
         android:ellipsize="end"
         android:maxLines="1"
         android:includeFontPadding="false"
@@ -107,8 +107,9 @@
     <TextView
         android:id="@+id/tvDuration"
         style="@style/TextAppearance.BabyCare.Body2"
-        android:layout_width="wrap_content"
+        android:layout_width="@dimen/statistics_timeline_meta_width"
         android:layout_height="wrap_content"
+        android:gravity="end"
         android:includeFontPadding="false"
         android:textColor="@color/sleep_primary"
         app:layout_constraintBottom_toBottomOf="@id/tvStartTime"
