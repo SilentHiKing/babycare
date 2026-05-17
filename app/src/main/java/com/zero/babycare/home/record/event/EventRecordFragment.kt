@@ -164,6 +164,11 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             }
 
             vm.setEventTime(record.time)
+            if (EventType.hasDuration(record.type)) {
+                vm.setDurationStartTime(record.time)
+            } else {
+                vm.setDurationStartTime(null)
+            }
             vm.setEndTime(if (record.endTime > 0L) record.endTime else null)
             vm.setExtraData(pendingExtraData)
             vm.setNote(record.note)
@@ -271,7 +276,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             onConfirm = { timestamp ->
                 vm.setEventTime(timestamp)
                 val subtype = vm.selectedSubtype.value
-                if (subtype != null && EventType.hasDuration(subtype.type)) {
+                if (subtype != null && EventType.hasDuration(subtype.type) && vm.durationStartTime.value != null) {
                     syncActivityStartTime(timestamp)
                 }
             }
@@ -282,6 +287,9 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         val root = binding.containerDetail
         if (root.childCount == 0) return
         val detailBinding = LayoutEventDetailActivityBinding.bind(root.getChildAt(0))
+        val hasExplicitStartTime = vm.durationStartTime.value != null ||
+            detailBinding.timerPanel.startInput.hasValidTime()
+        if (!hasExplicitStartTime) return
         if (detailBinding.timerPanel.startInput.getTimestamp() == timestamp) return
 
         activityTimerController?.let { controller ->
@@ -292,6 +300,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                 notify = false,
                 notifyEndClear = true
             )
+            vm.setDurationStartTime(timestamp)
             return
         }
 
@@ -299,6 +308,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         detailBinding.timerPanel.endInput.clear()
         detailBinding.timerPanel.endInput.setReferenceTimestamp(timestamp)
         detailBinding.timerPanel.timerView.reset()
+        vm.setDurationStartTime(timestamp)
         vm.setEndTime(null)
     }
 
@@ -466,8 +476,18 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         }
 
         if (EventType.hasDuration(subtype.type)) {
-            val endTime = vm.endTime.value
-            activityTimerController?.setStartTime(vm.eventTime.value, notify = false)
+            val record = editingRecord
+            val startTime = when {
+                record != null && record.type == subtype.type -> record.time
+                else -> vm.durationStartTime.value
+            }
+            val endTime = when {
+                record != null && record.type == subtype.type && record.endTime > 0L -> record.endTime
+                else -> vm.endTime.value
+            }
+            if (startTime != null && startTime > 0L) {
+                activityTimerController?.setStartTime(startTime, notify = false)
+            }
             if (endTime != null && endTime > 0L) {
                 activityTimerController?.setEndTime(endTime, notify = false, updateDuration = true)
             } else {
@@ -782,17 +802,18 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                 mode = TimerMode.ACTIVITY
             ),
             callbacks = RecordTimerController.Callbacks(
-                onStartTimeChanged = { timestamp -> vm.setEventTime(timestamp) },
+                onStartTimeChanged = { timestamp -> vm.setDurationStartTime(timestamp) },
                 onEndTimeChanged = { timestamp -> vm.setEndTime(timestamp) }
             )
         )
 
-        // 初始化时间
-        val startTime = vm.eventTime.value
-        activityTimerController?.setStartTime(startTime, notify = false)
-
+        // 创建模式下不预填开始时间；只有已有显式开始时间时才恢复计时表单。
+        val durationStartTime = vm.durationStartTime.value
         val endTime = vm.endTime.value
-        if (endTime != null && endTime > 0L) {
+        if (durationStartTime != null && durationStartTime > 0L) {
+            activityTimerController?.setStartTime(durationStartTime, notify = false)
+        }
+        if (durationStartTime != null && endTime != null && endTime > 0L) {
             activityTimerController?.setEndTime(endTime, notify = false, updateDuration = true)
         } else {
             activityTimerController?.clearEndTime(notify = false)

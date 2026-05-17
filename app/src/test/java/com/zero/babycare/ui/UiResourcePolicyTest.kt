@@ -712,6 +712,38 @@ class UiResourcePolicyTest {
     }
 
     @Test
+    fun `event duration detail does not auto fill start time from page event time`() {
+        val fragment = File(
+            repoRoot(),
+            "app/src/main/java/com/zero/babycare/home/record/event/EventRecordFragment.kt"
+        ).readText()
+        val viewModel = File(
+            repoRoot(),
+            "app/src/main/java/com/zero/babycare/home/record/event/EventRecordViewModel.kt"
+        ).readText()
+
+        val offenders = buildList {
+            if (fragment.contains("val startTime = vm.eventTime.value") &&
+                fragment.contains("activityTimerController?.setStartTime(startTime, notify = false)")
+            ) {
+                add("activity detail should not copy the page event time into start input before timer start")
+            }
+            if (!fragment.contains("vm.durationStartTime.value")) {
+                add("activity detail should render only an explicit duration start time")
+            }
+            if (!viewModel.contains("durationStartTime")) {
+                add("EventRecordViewModel should track explicit duration start separately from page event time")
+            }
+        }
+
+        // 活动类事件的开始时间必须来自开始计时或手动开始时间输入，不能来自页面默认事件时间。
+        assertTrue(
+            "Event duration start time is still coupled to page event time: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
     fun `event detail numeric inputs keep units inside left aligned fields`() {
         val temperature = File(
             repoRoot(),

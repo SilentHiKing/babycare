@@ -32,6 +32,10 @@ class EventRecordViewModel : BaseViewModel() {
     private val _eventTime = MutableStateFlow(System.currentTimeMillis())
     val eventTime: StateFlow<Long> = _eventTime
 
+    /** 活动类事件的显式开始时间，只有点击开始计时或手动输入开始时间后才写入 */
+    private val _durationStartTime = MutableStateFlow<Long?>(null)
+    val durationStartTime: StateFlow<Long?> = _durationStartTime
+
     /** 结束时间（活动类事件） */
     private val _endTime = MutableStateFlow<Long?>(null)
     val endTime: StateFlow<Long?> = _endTime
@@ -48,17 +52,24 @@ class EventRecordViewModel : BaseViewModel() {
      * 选择大类
      */
     fun selectCategory(category: EventCategory) {
+        // 先清理依赖旧类型的详情状态，再发出分类/子类型变化，避免页面重建时读到旧表单数据。
+        clearDurationTiming()
+        _extraData.value = null
         _selectedCategory.value = category
         _selectedSubtype.value = null
-        _extraData.value = null
     }
 
     /**
      * 选择子类型
      */
     fun selectSubtype(subtype: EventSubtype) {
-        _selectedSubtype.value = subtype
+        val subtypeChanged = _selectedSubtype.value?.type != subtype.type
+        if (subtypeChanged) {
+            // selectedSubtype 的观察者会同步重建详情区，必须在发出新类型前清空旧计时状态。
+            clearDurationTiming()
+        }
         _extraData.value = null
+        _selectedSubtype.value = subtype
     }
 
     /**
@@ -66,6 +77,20 @@ class EventRecordViewModel : BaseViewModel() {
      */
     fun setEventTime(time: Long) {
         _eventTime.value = time
+    }
+
+    /**
+     * 设置活动类事件的开始时间。
+     *
+     * 页面顶部事件时间是普通事件的默认发生时间；活动类事件只有用户明确开始计时
+     * 或手动选择开始时间后，才把该值作为可保存的开始时间。
+     */
+    fun setDurationStartTime(time: Long?) {
+        val normalizedTime = time?.takeIf { it > 0L }
+        _durationStartTime.value = normalizedTime
+        if (normalizedTime != null) {
+            _eventTime.value = normalizedTime
+        }
     }
 
     /**
@@ -115,8 +140,12 @@ class EventRecordViewModel : BaseViewModel() {
 
         // 需要时长的事件验证结束时间
         if (requiresDuration()) {
+            val start = _durationStartTime.value
+            if (start == null || start <= 0L) {
+                return ValidationResult.Error(StringUtils.getString(R.string.start_time_required))
+            }
             val end = _endTime.value
-            if (end == null || end <= _eventTime.value) {
+            if (end == null || end <= start) {
                 return ValidationResult.Error(StringUtils.getString(R.string.event_end_time_invalid))
             }
         }
@@ -199,13 +228,18 @@ class EventRecordViewModel : BaseViewModel() {
         }
 
         val subtype = _selectedSubtype.value ?: return
+        val recordTime = if (EventType.hasDuration(subtype.type)) {
+            _durationStartTime.value ?: _eventTime.value
+        } else {
+            _eventTime.value
+        }
 
         safeLaunch {
             val record = EventRecord(
                 eventId = editRecordId ?: 0,
                 babyId = babyId,
                 type = subtype.type,
-                time = _eventTime.value,
+                time = recordTime,
                 endTime = _endTime.value ?: 0L,
                 extraData = _extraData.value?.toJson() ?: "",
                 note = _note.value,
@@ -236,9 +270,14 @@ class EventRecordViewModel : BaseViewModel() {
         _selectedCategory.value = null
         _selectedSubtype.value = null
         _eventTime.value = System.currentTimeMillis()
-        _endTime.value = null
+        clearDurationTiming()
         _extraData.value = null
         _note.value = ""
+    }
+
+    private fun clearDurationTiming() {
+        _durationStartTime.value = null
+        _endTime.value = null
     }
 
     /**
