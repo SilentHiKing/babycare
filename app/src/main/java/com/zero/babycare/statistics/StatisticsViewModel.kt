@@ -4,8 +4,10 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.zero.babycare.statistics.mapper.StatisticsDateRange
+import com.zero.babycare.statistics.mapper.StatisticsDurationCalculator
 import com.zero.babycare.statistics.mapper.StatisticsGrowthCutoff
 import com.zero.babycare.statistics.mapper.StatisticsTimelineMapper
+import com.zero.babycare.statistics.mapper.WhoSexParser
 import com.zero.babycare.statistics.model.DayRecordSectionUiModel
 import com.zero.babycare.statistics.model.DaySummary
 import com.zero.babycare.statistics.model.GrowthPercentileOverview
@@ -49,8 +51,6 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 /**
  * 统计页面 ViewModel
@@ -451,20 +451,13 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
      */
     private fun buildTrendOverview(babyId: Int, date: LocalDate): TrendOverview {
         val weekRange = StatisticsDateRange.week(date)
-        val weekStart = weekRange.startDate
-        val weekEnd = weekRange.endDate
-
-        val month = YearMonth.from(date)
-        val monthStart = month.atDay(1)
-        val monthEnd = month.atEndOfMonth()
-
-        val yearStart = LocalDate.of(date.year, 1, 1)
-        val yearEnd = LocalDate.of(date.year, 12, 31)
+        val monthRange = StatisticsDateRange.month(date)
+        val yearRange = StatisticsDateRange.year(date)
 
         val summaries = listOf(
-            buildPeriodSummary(babyId, TrendPeriod.WEEK, weekStart, weekEnd),
-            buildPeriodSummary(babyId, TrendPeriod.MONTH, monthStart, monthEnd),
-            buildPeriodSummary(babyId, TrendPeriod.YEAR, yearStart, yearEnd)
+            buildPeriodSummary(babyId, TrendPeriod.WEEK, weekRange),
+            buildPeriodSummary(babyId, TrendPeriod.MONTH, monthRange),
+            buildPeriodSummary(babyId, TrendPeriod.YEAR, yearRange)
         )
         return TrendOverview(summaries)
     }
@@ -475,20 +468,29 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     private fun buildPeriodSummary(
         babyId: Int,
         period: TrendPeriod,
-        startDate: LocalDate,
-        endDate: LocalDate
+        range: StatisticsDateRange.Range
     ): TrendPeriodSummary {
-        val (startTime, endTime) = buildRangeMillis(startDate, endDate)
-        val feedings = repository.getFeedingRecordsBetween(babyId, startTime, endTime)
-        val sleeps = repository.getSleepRecordsBetween(babyId, startTime, endTime)
-        val events = repository.getEventRecordsBetween(babyId, startTime, endTime)
+        val feedings = repository.getFeedingRecordsBetween(babyId, range.startMillis, range.endMillis)
+        val sleeps = repository.getSleepRecordsBetween(babyId, range.startMillis, range.endMillis)
+        val feedingOverlaps = repository.getFeedingRecordsIntersectingRange(babyId, range.startMillis, range.endMillis)
+        val sleepOverlaps = repository.getSleepRecordsIntersectingRange(babyId, range.startMillis, range.endMillis)
+        val events = repository.getEventRecordsBetween(babyId, range.startMillis, range.endMillis)
 
-        val feedingTotalMinutes = feedings.sumOf {
-            TimeUnit.MILLISECONDS.toMinutes(it.feedingDuration).toInt()
-        }
-        val sleepTotalMinutes = sleeps.sumOf {
-            TimeUnit.MILLISECONDS.toMinutes(it.sleepDuration).toInt()
-        }
+        // 次数仍按记录开始时间归属周期；时长按重叠部分归属周期，避免跨边界记录重复放大。
+        val feedingTotalMinutes = StatisticsDurationCalculator.toWholeMinutes(
+            StatisticsDurationCalculator.feedingDurationMillis(
+                records = feedingOverlaps,
+                rangeStart = range.startMillis,
+                rangeEnd = range.endMillis
+            )
+        )
+        val sleepTotalMinutes = StatisticsDurationCalculator.toWholeMinutes(
+            StatisticsDurationCalculator.sleepDurationMillis(
+                records = sleepOverlaps,
+                rangeStart = range.startMillis,
+                rangeEnd = range.endMillis
+            )
+        )
 
         var diaperCount = 0
         var otherEventCount = 0
@@ -502,8 +504,8 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
 
         return TrendPeriodSummary(
             period = period,
-            startDate = startDate,
-            endDate = endDate,
+            startDate = range.startDate,
+            endDate = range.endDate,
             feedingCount = feedings.size,
             feedingTotalMinutes = feedingTotalMinutes,
             sleepCount = sleeps.size,
@@ -517,12 +519,9 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
      * 构建结构图数据（默认按月）
      */
     private fun buildStructureOverview(babyId: Int, date: LocalDate): StructureOverview {
-        val month = YearMonth.from(date)
-        val startDate = month.atDay(1)
-        val endDate = month.atEndOfMonth()
-        val (startTime, endTime) = buildRangeMillis(startDate, endDate)
-        val feedings = repository.getFeedingRecordsBetween(babyId, startTime, endTime)
-        val events = repository.getEventRecordsBetween(babyId, startTime, endTime)
+        val range = StatisticsDateRange.month(date)
+        val feedings = repository.getFeedingRecordsBetween(babyId, range.startMillis, range.endMillis)
+        val events = repository.getEventRecordsBetween(babyId, range.startMillis, range.endMillis)
 
         val feedingSection = StructureSection(
             titleResId = com.zero.common.R.string.statistics_structure_feeding_title,
@@ -661,7 +660,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     private fun buildGrowthPercentileOverview(babyId: Int, selectedDate: LocalDate): GrowthPercentileOverview {
         val baby = repository.getBabyInfoSync(babyId)
         val birthDate = baby?.birthDate ?: 0L
-        val sex = parseWhoSex(baby?.gender)
+        val sex = WhoSexParser.parse(baby?.gender)
 
         if (birthDate <= 0L || sex == WhoSex.UNKNOWN) {
             return buildEmptyGrowthPercentile(
@@ -728,8 +727,8 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         selectedDate: LocalDate
     ): GrowthPercentileSeries {
         val records = StatisticsGrowthCutoff
-            .filterUntil(repository.getEventRecordsByType(babyId, type), selectedDate)
-            .sortedBy { it.time }
+            .validGrowthDataUntil(repository.getEventRecordsByType(babyId, type), selectedDate)
+            .sortedBy { it.record.time }
         if (records.isEmpty()) {
             return GrowthPercentileSeries(
                 labelResId = labelResId,
@@ -744,9 +743,10 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         var latestValue: Double? = null
         var latestPercentile: Int? = null
 
-        records.forEachIndexed { index, record ->
-            val data = GrowthData.fromJson(record.extraData) ?: return@forEachIndexed
-            val ageDays = buildAgeDays(birthDate, record.time) ?: return@forEachIndexed
+        records.forEach { item ->
+            val record = item.record
+            val data = item.data
+            val ageDays = buildAgeDays(birthDate, record.time) ?: return@forEach
             // 以平均月天数换算，便于对接 WHO 月龄表
             val ageMonths = ageDays / 30.4375
             val standardValue = when (indicator) {
@@ -767,10 +767,8 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
             if (percentile != null) {
                 points.add(GrowthPercentilePoint(recordDate, percentile))
             }
-            if (index == records.lastIndex) {
-                latestValue = toDisplayValue(standardValue, indicator, targetUnit)
-                latestPercentile = percentile
-            }
+            latestValue = toDisplayValue(standardValue, indicator, targetUnit)
+            latestPercentile = percentile
         }
 
         return GrowthPercentileSeries(
@@ -786,11 +784,8 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
      * 构建健康/疫苗统计（按选中月份）
      */
     private fun buildHealthStats(babyId: Int, date: LocalDate): HealthStats {
-        val month = YearMonth.from(date)
-        val startDate = month.atDay(1)
-        val endDate = month.atEndOfMonth()
-        val (startTime, endTime) = buildRangeMillis(startDate, endDate)
-        val events = repository.getEventRecordsBetween(babyId, startTime, endTime)
+        val range = StatisticsDateRange.month(date)
+        val events = repository.getEventRecordsBetween(babyId, range.startMillis, range.endMillis)
 
         var temperatureCount = 0
         var medicineCount = 0
@@ -816,8 +811,8 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         }
 
         return HealthStats(
-            startDate = startDate,
-            endDate = endDate,
+            startDate = range.startDate,
+            endDate = range.endDate,
             temperatureCount = temperatureCount,
             medicineCount = medicineCount,
             doctorCount = doctorCount,
@@ -855,18 +850,6 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
             ),
             noteResId = noteResId
         )
-    }
-
-    /**
-     * 解析性别字段（用于 WHO 标准）
-     */
-    private fun parseWhoSex(gender: String?): WhoSex {
-        val value = gender?.trim()?.lowercase(Locale.getDefault()) ?: return WhoSex.UNKNOWN
-        return when {
-            value.contains("男") || value.contains("boy") || value.contains("male") -> WhoSex.BOY
-            value.contains("女") || value.contains("girl") || value.contains("female") -> WhoSex.GIRL
-            else -> WhoSex.UNKNOWN
-        }
     }
 
     /**
@@ -922,16 +905,6 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                 targetUnit
             )
         }
-    }
-
-    /**
-     * 将日期范围转换为毫秒时间戳
-     */
-    private fun buildRangeMillis(startDate: LocalDate, endDate: LocalDate): Pair<Long, Long> {
-        val zone = ZoneId.systemDefault()
-        val startTime = startDate.atStartOfDay(zone).toInstant().toEpochMilli()
-        val endTime = endDate.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli() - 1
-        return startTime to endTime
     }
 
     private fun getLoadFailedText(): String {
@@ -1073,12 +1046,11 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
         targetUnit: String,
         converter: (Double, String, String) -> Double
     ): GrowthTrendItem {
-        val records = StatisticsGrowthCutoff.latestUntil(
+        val dataList = StatisticsGrowthCutoff.latestValidGrowthDataUntil(
             records = repository.getEventRecordsByType(babyId, type),
             selectedDate = selectedDate,
             limit = 2
-        )
-        val dataList = records.mapNotNull { GrowthData.fromJson(it.extraData) }
+        ).map { it.data }
         val latest = dataList.getOrNull(0)
         if (latest == null) {
             return GrowthTrendItem(latestValue = null, diffValue = null, unitLabelResId = unitLabelResId)

@@ -12,16 +12,15 @@ import androidx.fragment.app.viewModels
 import com.blankj.utilcode.util.AppUtils
 import com.blankj.utilcode.util.StringUtils
 import com.blankj.utilcode.util.ToastUtils
-import com.lxj.xpopup.XPopup
-import com.lxj.xpopupext.listener.CommonPickerListener
-import com.lxj.xpopupext.popup.CommonPickerPopup
 import com.zero.babycare.MainViewModel
+import com.zero.babycare.R
 import com.zero.babycare.databinding.FragmentSettingsBinding
 import com.zero.babycare.databinding.ItemSettingRowBinding
 import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babycare.navigation.NavTarget
 import com.zero.common.ext.launchInLifecycle
 import com.zero.components.base.BaseFragment
+import com.zero.components.base.util.DialogHelper
 
 /**
  * 设置页面
@@ -75,6 +74,8 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
      * 初始化列表项与点击逻辑
      */
     private fun setupRows() {
+        bindGroupedRowBackgrounds()
+
         reminderRow.switchToggle.isChecked = vm.settingsState.value.reminderEnabled
 
         feedingUnitRow.tvSummary.visibility = View.GONE
@@ -107,6 +108,22 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
         setupComingSoonRow(familyRow, com.zero.common.R.string.settings_family_share)
 
         bindRowTexts()
+    }
+
+    /**
+     * 分组首尾行需要和外层 16dp 圆角一致，否则按压态会露出矩形边界。
+     */
+    private fun bindGroupedRowBackgrounds() {
+        feedingUnitRow.root.setBackgroundResource(R.drawable.bg_setting_item_top_ripple)
+        weightUnitRow.root.setBackgroundResource(R.drawable.bg_setting_item_middle_ripple)
+        heightUnitRow.root.setBackgroundResource(R.drawable.bg_setting_item_bottom_ripple)
+
+        reminderRow.root.setBackgroundResource(R.drawable.bg_setting_item_single_ripple)
+        versionRow.root.setBackgroundResource(R.drawable.bg_setting_item_single_ripple)
+
+        languageRow.root.setBackgroundResource(R.drawable.bg_setting_item_top_ripple)
+        backupRow.root.setBackgroundResource(R.drawable.bg_setting_item_middle_ripple)
+        familyRow.root.setBackgroundResource(R.drawable.bg_setting_item_bottom_ripple)
     }
 
     /**
@@ -184,6 +201,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
      */
     private fun showFeedingUnitPicker(current: FeedingUnit) {
         showUnitPicker(
+            title = StringUtils.getString(com.zero.common.R.string.settings_unit_feeding_title),
             options = FeedingUnit.values().toList(),
             current = current,
             onSelected = { vm.setFeedingUnit(it) }
@@ -195,6 +213,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
      */
     private fun showWeightUnitPicker(current: WeightUnit) {
         showUnitPicker(
+            title = StringUtils.getString(com.zero.common.R.string.settings_unit_weight_title),
             options = WeightUnit.values().toList(),
             current = current,
             onSelected = { vm.setWeightUnit(it) }
@@ -206,6 +225,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
      */
     private fun showHeightUnitPicker(current: HeightUnit) {
         showUnitPicker(
+            title = StringUtils.getString(com.zero.common.R.string.settings_unit_height_title),
             options = HeightUnit.values().toList(),
             current = current,
             onSelected = { vm.setHeightUnit(it) }
@@ -217,58 +237,51 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
      */
     private fun showLanguagePicker(current: LanguageOption) {
         val options = LanguageOption.values().toList()
-        val labels = options.map { StringUtils.getString(it.labelResId) }
-
-        val popup = CommonPickerPopup(requireContext())
-        popup.setPickerData(ArrayList(labels))
-        popup.setCommonPickerListener(object : CommonPickerListener {
-            override fun onItemSelected(index: Int, data: String?) {
-                val selected = options.getOrNull(index) ?: current
-                if (selected == current) return
-                vm.setLanguage(selected)
+        DialogHelper.showChoiceSheet(
+            context = requireContext(),
+            title = StringUtils.getString(com.zero.common.R.string.settings_language),
+            options = options.map {
+                DialogHelper.PickerOption(
+                    value = it,
+                    label = StringUtils.getString(it.labelResId)
+                )
+            },
+            selectedValue = current,
+            onSelected = { selected ->
+                if (selected != current) {
+                    vm.setLanguage(selected)
+                }
             }
-
-            override fun onCancel() {}
-        })
-
-        XPopup.Builder(requireContext())
-            .asCustom(popup)
-            .show()
+        )
     }
 
     /**
      * 通用单位选择弹窗
      */
     private fun <T> showUnitPicker(
+        title: String,
         options: List<T>,
         current: T,
         onSelected: (T) -> Unit
     ) where T : Enum<T> {
-        val labels = ArrayList<String?>()
-        options.forEach { option ->
-            val labelResId = when (option) {
-                is FeedingUnit -> option.labelResId
-                is WeightUnit -> option.labelResId
-                is HeightUnit -> option.labelResId
-                else -> null
-            }
-            labels.add(labelResId?.let { StringUtils.getString(it) } ?: "")
-        }
-
-        val popup = CommonPickerPopup(requireContext())
-        popup.setPickerData(labels)
-        popup.setCommonPickerListener(object : CommonPickerListener {
-            override fun onItemSelected(index: Int, data: String?) {
-                val selected = options.getOrNull(index) ?: current
-                onSelected(selected)
-            }
-
-            override fun onCancel() {}
-        })
-
-        XPopup.Builder(requireContext())
-            .asCustom(popup)
-            .show()
+        DialogHelper.showChoiceSheet(
+            context = requireContext(),
+            title = title,
+            options = options.map { option ->
+                val labelResId = when (option) {
+                    is FeedingUnit -> option.labelResId
+                    is WeightUnit -> option.labelResId
+                    is HeightUnit -> option.labelResId
+                    else -> null
+                }
+                DialogHelper.PickerOption(
+                    value = option,
+                    label = labelResId?.let { StringUtils.getString(it) } ?: ""
+                )
+            },
+            selectedValue = current,
+            onSelected = onSelected
+        )
     }
 
     override fun onSystemBackPressed(): Boolean {

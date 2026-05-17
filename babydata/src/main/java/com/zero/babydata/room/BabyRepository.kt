@@ -32,10 +32,18 @@ class BabyRepository(context: Context) {
         eventRecordDao = db.eventRecordDao()
     }
 
-    private fun run(action: Runnable, callback: Runnable?) {
+    private fun run(
+        action: Runnable,
+        callback: Runnable?,
+        errorCallback: ((Throwable) -> Unit)? = null
+    ) {
         BabyDatabase.getDatabaseWriteExecutor().execute {
-            action.run()
-            callback?.run()
+            try {
+                action.run()
+                callback?.run()
+            } catch (throwable: Throwable) {
+                errorCallback?.invoke(throwable)
+            }
         }
     }
 
@@ -108,6 +116,13 @@ class BabyRepository(context: Context) {
         return feedingRecordDao.getFeedingRecordsIntersectingDay(babyId, startOfDay, endOfDay)
     }
 
+    /**
+     * 获取与任意统计范围有重叠的喂养记录（用于周/月/年跨边界时长统计）
+     */
+    fun getFeedingRecordsIntersectingRange(babyId: Int, startTime: Long, endTime: Long): List<FeedingRecord> {
+        return feedingRecordDao.getFeedingRecordsIntersectingRange(babyId, startTime, endTime)
+    }
+
     fun getFeedingRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<FeedingRecord> {
         return feedingRecordDao.getFeedingRecordsBetween(babyId, startTime, endTime)
     }
@@ -158,6 +173,13 @@ class BabyRepository(context: Context) {
      */
     fun getSleepRecordsIntersectingDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<SleepRecord> {
         return sleepRecordDao.getSleepRecordsIntersectingDay(babyId, startOfDay, endOfDay)
+    }
+
+    /**
+     * 获取与任意统计范围有重叠的睡眠记录（用于周/月/年跨边界时长统计）
+     */
+    fun getSleepRecordsIntersectingRange(babyId: Int, startTime: Long, endTime: Long): List<SleepRecord> {
+        return sleepRecordDao.getSleepRecordsIntersectingRange(babyId, startTime, endTime)
     }
 
     fun getSleepRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<SleepRecord> {
@@ -236,12 +258,20 @@ class BabyRepository(context: Context) {
 
     // ==================== EventRecord ====================
 
-    fun insertEventRecord(record: EventRecord, callback: Runnable? = null) {
-        run({ eventRecordDao.insertEventRecord(record) }, callback)
+    fun insertEventRecord(
+        record: EventRecord,
+        callback: Runnable? = null,
+        errorCallback: ((Throwable) -> Unit)? = null
+    ) {
+        run({ eventRecordDao.insertEventRecord(record) }, callback, errorCallback)
     }
 
-    fun updateEventRecord(record: EventRecord, callback: Runnable? = null) {
-        run({ eventRecordDao.updateEventRecord(record) }, callback)
+    fun updateEventRecord(
+        record: EventRecord,
+        callback: Runnable? = null,
+        errorCallback: ((Throwable) -> Unit)? = null
+    ) {
+        run({ eventRecordDao.updateEventRecord(record) }, callback, errorCallback)
     }
 
     fun deleteEventRecord(record: EventRecord, callback: Runnable? = null) {

@@ -1,10 +1,12 @@
 package com.zero.babycare.home.prediction
 
 import com.zero.babydata.entity.FeedingRecord
+import com.zero.babydata.entity.FeedingType
 import com.zero.babydata.entity.SleepRecord
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import kotlin.math.abs
 
 /**
  * LocalRulePredictor 单元测试
@@ -205,13 +207,105 @@ class LocalRulePredictorTest {
         )
     }
 
+    @Test
+    fun `predictNextFeeding ignores solid food records when predicting next milk`() {
+        val now = System.currentTimeMillis()
+        val milkRecords = listOf(
+            createFeedingRecord(now - 7 * HOUR, now - 7 * HOUR + 10 * MINUTE),
+            createFeedingRecord(now - 4 * HOUR, now - 4 * HOUR + 10 * MINUTE),
+            createFeedingRecord(now - 30 * MINUTE, now - 20 * MINUTE)
+        )
+        val solidFoodRecord = createFeedingRecord(
+            start = now - 10 * MINUTE,
+            end = now - 5 * MINUTE,
+            feedingType = FeedingType.SOLID_FOOD
+        )
+
+        val milkOnlyResult = predictor.predictNextFeeding(
+            babyAgeMonths = 3,
+            feedingRecords = milkRecords,
+            sleepRecords = null
+        )
+        val resultWithSolid = predictor.predictNextFeeding(
+            babyAgeMonths = 3,
+            feedingRecords = milkRecords + solidFoodRecord,
+            sleepRecords = null
+        )
+
+        assertNotNull(milkOnlyResult)
+        assertNotNull(resultWithSolid)
+        assertTrue(
+            "辅食记录不应影响下次喂奶预测时间",
+            abs(resultWithSolid!!.predictedTime.time - milkOnlyResult!!.predictedTime.time) <= 2 * MINUTE
+        )
+    }
+
+    @Test
+    fun `predictNextFeeding extends interval after a larger bottle amount`() {
+        val now = System.currentTimeMillis()
+        val normalAmountRecords = listOf(
+            createFeedingRecord(now - 10 * HOUR, now - 10 * HOUR + 15 * MINUTE, feedingType = FeedingType.FORMULA, feedingAmount = 120),
+            createFeedingRecord(now - 7 * HOUR, now - 7 * HOUR + 15 * MINUTE, feedingType = FeedingType.FORMULA, feedingAmount = 120),
+            createFeedingRecord(now - 4 * HOUR, now - 4 * HOUR + 15 * MINUTE, feedingType = FeedingType.FORMULA, feedingAmount = 120),
+            createFeedingRecord(now - 30 * MINUTE, now - 15 * MINUTE, feedingType = FeedingType.FORMULA, feedingAmount = 120)
+        )
+        val largerAmountRecords = normalAmountRecords.dropLast(1) + createFeedingRecord(
+            start = now - 30 * MINUTE,
+            end = now - 15 * MINUTE,
+            feedingType = FeedingType.FORMULA,
+            feedingAmount = 240
+        )
+
+        val normalResult = predictor.predictNextFeeding(3, normalAmountRecords, null)
+        val largerResult = predictor.predictNextFeeding(3, largerAmountRecords, null)
+
+        assertNotNull(normalResult)
+        assertNotNull(largerResult)
+        assertTrue(
+            "明显更大的奶量应适度延后下次喂奶预测",
+            largerResult!!.predictedTime.time - normalResult!!.predictedTime.time >= 10 * MINUTE
+        )
+    }
+
+    @Test
+    fun `predictNextFeeding keeps interval range stable when history contains an extreme gap`() {
+        val now = System.currentTimeMillis()
+        val records = listOf(
+            createFeedingRecord(now - 42 * HOUR, now - 42 * HOUR + 10 * MINUTE),
+            createFeedingRecord(now - 18 * HOUR, now - 18 * HOUR + 10 * MINUTE),
+            createFeedingRecord(now - 7 * HOUR, now - 7 * HOUR + 10 * MINUTE),
+            createFeedingRecord(now - 4 * HOUR, now - 4 * HOUR + 10 * MINUTE),
+            createFeedingRecord(now - 30 * MINUTE, now - 20 * MINUTE)
+        )
+
+        val result = predictor.predictNextFeeding(
+            babyAgeMonths = 3,
+            feedingRecords = records,
+            sleepRecords = null
+        )
+
+        assertNotNull(result)
+        val fullRange = result!!.latestTime.time - result.earliestTime.time
+        assertTrue(
+            "漏记造成的极端间隔不应让预测区间超过2小时",
+            fullRange <= 2 * HOUR
+        )
+    }
+
     // ==================== 辅助方法 ====================
 
-    private fun createFeedingRecord(start: Long, end: Long): FeedingRecord {
+    private fun createFeedingRecord(
+        start: Long,
+        end: Long,
+        feedingType: FeedingType = FeedingType.BREAST,
+        feedingAmount: Int? = null
+    ): FeedingRecord {
         return FeedingRecord().apply {
+            this.feedingType = feedingType.type
             feedingStart = start
             feedingEnd = end
             feedingDuration = end - start
+            this.feedingAmount = feedingAmount
         }
     }
 

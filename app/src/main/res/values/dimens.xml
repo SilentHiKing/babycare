@@ -19,4 +19,29 @@
     <dimen name="statistics_timeline_text_gap">12dp</dimen>
     <dimen name="statistics_timeline_item_bottom_gap">10dp</dimen>
     <dimen name="statistics_timeline_last_bottom_gap">22dp</dimen>
+
+    <!-- 事件记录页子类型卡片固定最小高度，避免长文案换行后同一行卡片高低不一。 -->
+    <dimen name="event_record_subtype_min_height">112dp</dimen>
+
+    <!-- 设置页使用窄列布局，避免平板和横屏时列表被拉得过宽、扫读路径变长。 -->
+    <dimen name="settings_content_max_width">560dp</dimen>
+    <dimen name="settings_content_bottom_padding">40dp</dimen>
+    <dimen name="settings_section_gap">24dp</dimen>
+    <dimen name="settings_section_title_gap">12dp</dimen>
+    <dimen name="settings_group_corner_radius">16dp</dimen>
+    <dimen name="settings_group_vertical_padding">0dp</dimen>
+    <dimen name="settings_row_min_height">52dp</dimen>
+    <dimen name="settings_row_vertical_padding">10dp</dimen>
+    <dimen name="settings_row_content_gap">12dp</dimen>
+    <dimen name="settings_row_arrow_gap">4dp</dimen>
+    <dimen name="settings_row_arrow_size">16dp</dimen>
+    <dimen name="settings_note_horizontal_padding">4dp</dimen>
+    <dimen name="settings_switch_track_width">44dp</dimen>
+    <dimen name="settings_switch_track_height">26dp</dimen>
+    <dimen name="settings_switch_thumb_size">22dp</dimen>
+    <dimen name="settings_switch_corner_radius">999dp</dimen>
+
+    <!-- 侧边栏菜单行复用设置页行高，图标与分割线单独定义，避免和正文间距混用。 -->
+    <dimen name="drawer_menu_icon_size">24dp</dimen>
+    <dimen name="drawer_menu_divider_start">52dp</dimen>
 </resources>

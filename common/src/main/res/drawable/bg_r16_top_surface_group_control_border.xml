@@ -12,7 +12,7 @@
         <shape>
             <solid android:color="@android:color/transparent" />
             <stroke
-                android:width="1dp"
+                android:width="@dimen/surface_stroke_width"
                 android:color="@color/control_border_default" />
             <corners
                 android:topLeftRadius="16dp"

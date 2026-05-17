@@ -1,19 +1,25 @@
 package com.zero.components.widget
 
 import android.content.Context
+import android.graphics.Color
 import android.text.Editable
+import android.text.SpannableString
+import android.text.Spanned
 import android.text.TextWatcher
 import android.text.method.DigitsKeyListener
+import android.text.style.AbsoluteSizeSpan
+import android.text.style.ForegroundColorSpan
+import android.text.style.TypefaceSpan
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.widget.AppCompatEditText
 import com.blankj.utilcode.util.ToastUtils
 import java.util.Calendar
-import java.util.Locale
 
 /**
  * 自动格式化时间输入框：
- * - 输入 4 位数字自动变成 MM-dd HH:mm:ss
+ * - 输入 4 位数字自动变成两行日期 + HH:mm:ss
  * - 校验合法时间（小时 < 24，分钟 < 60）
  * - 智能识别跨天：如果输入的时间大于当前时间，自动理解为昨天
  * - 自动收起键盘
@@ -66,19 +72,7 @@ class TimeEditText @JvmOverloads constructor(
                         isCursorVisible = false
                         val resultTimestamp = calculateSmartTimestamp(hour, minute)
                         currentTimestamp = resultTimestamp
-
-                        val calendar = Calendar.getInstance().apply { timeInMillis = resultTimestamp }
-                        val month = calendar.get(Calendar.MONTH) + 1
-                        val day = calendar.get(Calendar.DAY_OF_MONTH)
-                        val formatted = String.format(
-                            Locale.getDefault(),
-                            "%02d-%02d %02d:%02d:00",
-                            month,
-                            day,
-                            hour,
-                            minute
-                        )
-                        setText(formatted)
+                        setText(buildDisplayText(resultTimestamp))
 
                         // 延迟执行，确保 setText 完成后再操作光标
                         post {
@@ -181,17 +175,9 @@ class TimeEditText @JvmOverloads constructor(
         isEditing = true
         currentTimestamp = timestamp
         val calendar = Calendar.getInstance().apply { timeInMillis = timestamp }
-        val month = calendar.get(Calendar.MONTH) + 1
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
         val minute = calendar.get(Calendar.MINUTE)
-        val second = calendar.get(Calendar.SECOND)
-        val formatted = String.format(
-            Locale.getDefault(),
-            "%02d-%02d %02d:%02d:%02d",
-            month, day, hour, minute, second
-        )
-        setText(formatted)
+        setText(buildDisplayText(timestamp))
         
         // 延迟将光标移动到末尾
         post { moveCursorToEnd() }
@@ -263,6 +249,76 @@ class TimeEditText @JvmOverloads constructor(
 
     // ============ 私有辅助方法 ============
 
+    /**
+     * 记录表单空间较窄，完整时间戳单行展示会挤压图标并削弱扫读性。
+     * 这里把日期作为弱上下文、把 HH:mm:ss 作为主信息，保留秒级精度但降低视觉噪音。
+     */
+    private fun buildDisplayText(timestamp: Long): SpannableString {
+        val calendar = Calendar.getInstance().apply { timeInMillis = timestamp }
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH) + 1
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(Calendar.MINUTE)
+        val second = calendar.get(Calendar.SECOND)
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+        val dateText = if (year == currentYear) {
+            context.getString(com.zero.common.R.string.record_time_date_current_year_format, month, day)
+        } else {
+            context.getString(com.zero.common.R.string.record_time_date_cross_year_format, year, month, day)
+        }
+        val clockText = context.getString(
+            com.zero.common.R.string.record_time_clock_format,
+            hour,
+            minute,
+            second
+        )
+        val displayText = "$dateText\n$clockText"
+        return SpannableString(displayText).apply {
+            val clockStart = displayText.indexOf(clockText)
+            setSpan(
+                AbsoluteSizeSpan(RECORD_TIME_DATE_TEXT_SIZE_SP, true),
+                0,
+                dateText.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            setSpan(
+                ForegroundColorSpan(resolveThemeColor(com.zero.common.R.attr.colorTextHint)),
+                0,
+                dateText.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            setSpan(
+                AbsoluteSizeSpan(RECORD_TIME_CLOCK_TEXT_SIZE_SP, true),
+                clockStart,
+                displayText.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            setSpan(
+                ForegroundColorSpan(resolveThemeColor(com.zero.common.R.attr.colorTextPrimary)),
+                clockStart,
+                displayText.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            setSpan(
+                TypefaceSpan("sans-serif-medium"),
+                clockStart,
+                displayText.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+    }
+
+    private fun resolveThemeColor(attr: Int): Int {
+        val typedValue = TypedValue()
+        val resolved = context.theme.resolveAttribute(attr, typedValue, true)
+        return when {
+            !resolved -> Color.TRANSPARENT
+            typedValue.resourceId != 0 -> context.getColor(typedValue.resourceId)
+            else -> typedValue.data
+        }
+    }
+
     /** 将光标移动到文本末尾 */
     private fun moveCursorToEnd() {
         val length = text?.length ?: 0
@@ -275,5 +331,10 @@ class TimeEditText @JvmOverloads constructor(
     private fun hideKeyboard() {
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(windowToken, 0)
+    }
+
+    private companion object {
+        const val RECORD_TIME_DATE_TEXT_SIZE_SP = 11
+        const val RECORD_TIME_CLOCK_TEXT_SIZE_SP = 16
     }
 }

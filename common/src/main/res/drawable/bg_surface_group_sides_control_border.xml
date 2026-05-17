@@ -6,14 +6,14 @@
         </shape>
     </item>
     <item
-        android:width="1dp"
+        android:width="@dimen/surface_stroke_width"
         android:gravity="left">
         <shape>
             <solid android:color="@color/control_border_default" />
         </shape>
     </item>
     <item
-        android:width="1dp"
+        android:width="@dimen/surface_stroke_width"
         android:gravity="right">
         <shape>
             <solid android:color="@color/control_border_default" />

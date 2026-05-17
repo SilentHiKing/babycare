@@ -31,8 +31,14 @@ interface SleepRecordDao {
     /**
      * 获取与当天有重叠的睡眠记录（用于跨天时长统计）
      */
-    @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId AND sleepStart <= :endOfDay AND sleepEnd >= :startOfDay ORDER BY sleepStart DESC")
+    @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId AND sleepStart <= :endOfDay AND sleepEnd > :startOfDay ORDER BY sleepStart DESC")
     fun getSleepRecordsIntersectingDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<SleepRecord>
+
+    /**
+     * 获取与任意统计范围有重叠的睡眠记录。
+     */
+    @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId AND sleepStart <= :endTime AND sleepEnd > :startTime ORDER BY sleepStart ASC")
+    fun getSleepRecordsIntersectingRange(babyId: Int, startTime: Long, endTime: Long): List<SleepRecord>
 
     @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId AND sleepStart BETWEEN :startTime AND :endTime ORDER BY sleepStart ASC")
     fun getSleepRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<SleepRecord>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/control_surface_selected">
+    <!-- 使用浅暖控件态作为按压反馈，避免系统灰色 ripple 打断 Soft Utility 2.0 层级。 -->
+    <item android:drawable="@android:color/transparent" />
+    <item android:id="@android:id/mask">
+        <shape>
+            <solid android:color="@android:color/white" />
+            <corners
+                android:topLeftRadius="@dimen/settings_group_corner_radius"
+                android:topRightRadius="@dimen/settings_group_corner_radius" />
+        </shape>
+    </item>
+</ripple>

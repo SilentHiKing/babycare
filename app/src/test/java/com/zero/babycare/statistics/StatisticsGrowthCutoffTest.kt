@@ -43,13 +43,42 @@ class StatisticsGrowthCutoffTest {
         assertEquals(listOf(2, 3), result.map { it.eventId })
     }
 
-    private fun growthRecord(id: Int, time: Long): EventRecord {
+    @Test
+    fun `latest valid growth data skips malformed records before taking limit`() {
+        val zone = ZoneId.of("Asia/Shanghai")
+        val selectedDate = LocalDate.of(2026, 5, 2)
+        val records = listOf(
+            growthRecord(1, selectedDate.minusDays(4).atStartOfDay(zone).toInstant().toEpochMilli()),
+            growthRecord(2, selectedDate.minusDays(3).atStartOfDay(zone).toInstant().toEpochMilli()),
+            growthRecord(
+                id = 3,
+                time = selectedDate.minusDays(1).atStartOfDay(zone).toInstant().toEpochMilli(),
+                extraData = "broken-json"
+            ),
+            growthRecord(4, selectedDate.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli())
+        )
+
+        val result = StatisticsGrowthCutoff.latestValidGrowthDataUntil(
+            records = records,
+            selectedDate = selectedDate,
+            limit = 2,
+            zone = zone
+        )
+
+        assertEquals(listOf(2, 1), result.map { it.record.eventId })
+    }
+
+    private fun growthRecord(
+        id: Int,
+        time: Long,
+        extraData: String = """{"value":76.0,"unit":"cm"}"""
+    ): EventRecord {
         return EventRecord(
             eventId = id,
             babyId = 1,
             type = EventType.GROWTH_HEIGHT,
             time = time,
-            extraData = """{"value":76.0,"unit":"cm"}"""
+            extraData = extraData
         )
     }
 }

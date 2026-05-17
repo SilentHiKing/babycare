@@ -65,6 +65,29 @@ object UnitConverter {
     }
 
     /**
+     * 出生体重历史上以克存储，展示时跟随设置页的 kg/lb，避免直接改数据库语义导致旧数据错读。
+     */
+    fun birthWeightToDisplay(storageGrams: Double, targetUnit: String): Double {
+        val valueInKg = storageGrams / 1000.0
+        return weightToDisplay(valueInKg, UnitConfig.WEIGHT_UNIT_KG, targetUnit)
+    }
+
+    /**
+     * 出生体重保存时统一回写为克，保证既有 BabyInfo 数据和备份结构保持兼容。
+     */
+    fun birthWeightToStorageGrams(displayValue: Double, displayUnit: String): Float {
+        val valueInKg = weightToDisplay(displayValue, displayUnit, UnitConfig.WEIGHT_UNIT_KG)
+        return (valueInKg * 1000.0).toFloat()
+    }
+
+    /**
+     * 通用表单数值格式化（最多 2 位小数），用于 kg/lb/in 这类需要比趋势卡更高精度的输入回填。
+     */
+    fun formatInputDecimal(value: Double): String {
+        return DecimalFormat("0.##").format(value)
+    }
+
+    /**
      * 身高/头围：任意单位转为目标单位
      */
     fun heightToDisplay(value: Double, fromUnit: String, targetUnit: String): Double {

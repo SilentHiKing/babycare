@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1040" viewBox="0 0 1440 1040">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="18" flood-color="#12323A" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .title { font: 700 30px sans-serif; fill: #12323A; }
+      .subtitle { font: 400 16px sans-serif; fill: #3E5B63; }
+      .label { font: 700 16px sans-serif; fill: #2A74B8; }
+      .body { font: 400 15px sans-serif; fill: #12323A; }
+      .muted { font: 400 13px sans-serif; fill: #7C98A1; }
+      .caption { font: 700 18px sans-serif; fill: #12323A; }
+      .action { font: 700 14px sans-serif; fill: #2A74B8; }
+      .option { font: 500 18px sans-serif; fill: #12323A; }
+      .option-muted { font: 400 15px sans-serif; fill: #3E5B63; }
+      .num { font: 700 30px sans-serif; fill: #12323A; }
+      .small-num { font: 700 20px sans-serif; fill: #12323A; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="1040" fill="#F7FBFA"/>
+  <text class="title" x="56" y="64">BabyCare 弹框方案效果图</text>
+  <text class="subtitle" x="56" y="96">去掉 3D 滚轮，把选择与时间输入改成更平面、更清晰、更适合高频照护记录的模式</text>
+
+  <text class="label" x="56" y="150">选择弹框</text>
+  <text class="label" x="56" y="595">时间弹框</text>
+
+  <!-- Selection A -->
+  <g transform="translate(56 180)">
+    <rect width="400" height="350" rx="26" fill="#FFFFFF" filter="url(#shadow)"/>
+    <rect x="0" y="0" width="400" height="350" rx="26" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="400" height="90" rx="26" fill="#EEF7FE"/>
+    <text class="caption" x="24" y="40">A. 单选列表 Sheet</text>
+    <text class="muted" x="24" y="66">单位、性别、血型、语言</text>
+    <text class="action" x="24" y="120">取消</text>
+    <text class="caption" x="174" y="120">性别</text>
+    <text class="action" x="340" y="120">确定</text>
+    <rect x="24" y="145" width="352" height="58" rx="14" fill="#FFF3E8" stroke="#2A74B8" stroke-width="1"/>
+    <text class="option" x="44" y="181">男</text>
+    <path d="M340 170 L350 180 L368 158" fill="none" stroke="#2A74B8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="24" y="214" width="352" height="58" rx="14" fill="#FFFDFC" stroke="#E3ECEB" stroke-width="1"/>
+    <text class="option" x="44" y="250">女</text>
+    <rect x="24" y="292" width="352" height="34" rx="17" fill="#EAF7F9"/>
+    <text class="muted" x="50" y="314">优点：最清楚、实现简单、短选项不浪费空间</text>
+  </g>
+
+  <!-- Selection B -->
+  <g transform="translate(520 180)">
+    <rect width="400" height="350" rx="26" fill="#FFFFFF" filter="url(#shadow)"/>
+    <rect width="400" height="350" rx="26" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="400" height="90" rx="26" fill="#FFF7F8"/>
+    <text class="caption" x="24" y="40">B. 图标卡片 Sheet</text>
+    <text class="muted" x="24" y="66">宝宝主题、记录类型、导入方式</text>
+    <text class="action" x="24" y="120">取消</text>
+    <text class="caption" x="150" y="120">选择主题</text>
+    <text class="action" x="340" y="120">确定</text>
+    <rect x="24" y="150" width="164" height="114" rx="16" fill="#FFF3E8" stroke="#B8526C" stroke-width="1"/>
+    <circle cx="106" cy="194" r="24" fill="#FADBE1"/>
+    <path d="M94 196 C96 186 116 186 118 196 M98 203 C104 209 110 209 116 203" fill="none" stroke="#B8526C" stroke-width="3" stroke-linecap="round"/>
+    <text class="option" x="82" y="244">女孩</text>
+    <rect x="212" y="150" width="164" height="114" rx="16" fill="#FFFDFC" stroke="#E3ECEB" stroke-width="1"/>
+    <circle cx="294" cy="194" r="24" fill="#D9EAF8"/>
+    <path d="M282 196 C284 186 304 186 306 196 M286 203 C292 209 298 209 304 203" fill="none" stroke="#2A74B8" stroke-width="3" stroke-linecap="round"/>
+    <text class="option" x="270" y="244">男孩</text>
+    <rect x="24" y="292" width="352" height="34" rx="17" fill="#FCE2E8"/>
+    <text class="muted" x="50" y="314">优点：情绪更柔和，适合带图标的少量选项</text>
+  </g>
+
+  <!-- Selection C -->
+  <g transform="translate(984 180)">
+    <rect width="400" height="350" rx="26" fill="#FFFFFF" filter="url(#shadow)"/>
+    <rect width="400" height="350" rx="26" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="400" height="90" rx="26" fill="#EAF7F9"/>
+    <text class="caption" x="24" y="40">C. 搜索列表 Sheet</text>
+    <text class="muted" x="24" y="66">语言、国家、长列表</text>
+    <text class="action" x="24" y="120">取消</text>
+    <text class="caption" x="174" y="120">语言</text>
+    <text class="action" x="340" y="120">确定</text>
+    <rect x="24" y="142" width="352" height="44" rx="12" fill="#FFFDFC" stroke="#E3ECEB" stroke-width="1"/>
+    <text class="option-muted" x="46" y="170">搜索语言</text>
+    <rect x="24" y="202" width="352" height="48" rx="12" fill="#FFF3E8" stroke="#2A74B8" stroke-width="1"/>
+    <text class="option" x="44" y="233">简体中文</text>
+    <path d="M340 220 L350 230 L368 208" fill="none" stroke="#2A74B8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text class="option-muted" x="44" y="280">English</text>
+    <text class="option-muted" x="44" y="315">繁體中文</text>
+  </g>
+
+  <!-- Time T1 -->
+  <g transform="translate(56 625)">
+    <rect width="400" height="350" rx="26" fill="#FFFFFF" filter="url(#shadow)"/>
+    <rect width="400" height="350" rx="26" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="400" height="90" rx="26" fill="#EEF7FE"/>
+    <text class="caption" x="24" y="40">T1. 日历 + 时间条</text>
+    <text class="muted" x="24" y="66">生日、事件时间</text>
+    <text class="action" x="24" y="118">取消</text>
+    <text class="caption" x="154" y="118">选择生日</text>
+    <text class="action" x="340" y="118">确定</text>
+    <rect x="24" y="142" width="352" height="46" rx="14" fill="#FFFDFC" stroke="#E3ECEB"/>
+    <text class="small-num" x="48" y="172">2026年 05月</text>
+    <text class="action" x="330" y="172">›</text>
+    <g class="muted" font-size="12" transform="translate(42 210)">
+      <text x="0" y="0">一</text><text x="48" y="0">二</text><text x="96" y="0">三</text><text x="144" y="0">四</text><text x="192" y="0">五</text><text x="240" y="0">六</text><text x="288" y="0">日</text>
+    </g>
+    <g font-family="sans-serif" font-size="14" fill="#3E5B63" transform="translate(40 234)">
+      <text x="4" y="0">11</text><text x="52" y="0">12</text><text x="100" y="0">13</text><text x="148" y="0">14</text><text x="196" y="0">15</text>
+      <circle cx="252" cy="-5" r="18" fill="#2A74B8"/><text x="244" y="0" fill="#FFFFFF">16</text><text x="292" y="0">17</text>
+      <text x="4" y="38">18</text><text x="52" y="38">19</text><text x="100" y="38">20</text><text x="148" y="38">21</text><text x="196" y="38">22</text><text x="244" y="38">23</text><text x="292" y="38">24</text>
+    </g>
+    <rect x="24" y="306" width="352" height="34" rx="17" fill="#EAF7F9"/>
+    <text class="muted" x="50" y="328">下方接 20:16 时间条或点击输入精确时间</text>
+  </g>
+
+  <!-- Time T2 -->
+  <g transform="translate(520 625)">
+    <rect width="400" height="350" rx="26" fill="#FFFFFF" filter="url(#shadow)"/>
+    <rect width="400" height="350" rx="26" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="400" height="90" rx="26" fill="#FFF7F8"/>
+    <text class="caption" x="24" y="40">T2. 数字时间面板</text>
+    <text class="muted" x="24" y="66">开始/结束时间，高频记录</text>
+    <text class="action" x="24" y="118">取消</text>
+    <text class="caption" x="166" y="118">开始时间</text>
+    <text class="action" x="340" y="118">确定</text>
+    <rect x="58" y="150" width="284" height="78" rx="20" fill="#FFF3E8" stroke="#2A74B8"/>
+    <text class="num" x="144" y="200">20 : 16</text>
+    <g transform="translate(58 250)">
+      <rect width="84" height="46" rx="23" fill="#FFFDFC" stroke="#E3ECEB"/><text class="option" x="29" y="30">-1h</text>
+      <rect x="100" width="84" height="46" rx="23" fill="#EAF7F9" stroke="#247BA0"/><text class="option" x="124" y="30">现在</text>
+      <rect x="200" width="84" height="46" rx="23" fill="#FFFDFC" stroke="#E3ECEB"/><text class="option" x="229" y="30">+5m</text>
+    </g>
+    <text class="muted" x="94" y="326">点小时/分钟后用 +/- 或数字键盘调整</text>
+  </g>
+
+  <!-- Time T3 -->
+  <g transform="translate(984 625)">
+    <rect width="400" height="350" rx="26" fill="#FFFFFF" filter="url(#shadow)"/>
+    <rect width="400" height="350" rx="26" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="400" height="90" rx="26" fill="#EAF7F9"/>
+    <text class="caption" x="24" y="40">T3. 时间轴快捷 Sheet</text>
+    <text class="muted" x="24" y="66">补录刚刚/上次/固定间隔</text>
+    <text class="action" x="24" y="118">取消</text>
+    <text class="caption" x="166" y="118">记录时间</text>
+    <text class="action" x="340" y="118">确定</text>
+    <rect x="24" y="148" width="352" height="48" rx="24" fill="#FFF3E8" stroke="#2A74B8"/>
+    <text class="option" x="54" y="179">刚刚 23:17</text><path d="M340 164 L350 174 L368 152" fill="none" stroke="#2A74B8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="24" y="210" width="352" height="48" rx="24" fill="#FFFDFC" stroke="#E3ECEB"/>
+    <text class="option" x="54" y="241">10 分钟前 23:07</text>
+    <rect x="24" y="272" width="352" height="48" rx="24" fill="#FFFDFC" stroke="#E3ECEB"/>
+    <text class="option" x="54" y="303">自定义精确时间</text>
+  </g>
+</svg>

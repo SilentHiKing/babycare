@@ -4,7 +4,7 @@
     <!-- 记录页时间字段使用轻量暖白底和细边框，降低大号时间输入的压迫感。 -->
     <solid android:color="@color/control_surface_default" />
     <stroke
-        android:width="1dp"
+        android:width="@dimen/surface_stroke_width"
         android:color="@color/control_border_default" />
     <corners android:radius="12dp" />
 </shape>

@@ -101,78 +101,86 @@
             android:layout_marginTop="12dp"
             android:background="@drawable/bg_r12_secondary_bg_default"
             android:orientation="vertical"
-            android:paddingVertical="6dp">
+            android:paddingVertical="@dimen/settings_group_vertical_padding">
 
-        <!-- 所有宝宝 -->
-        <LinearLayout
-            android:id="@+id/llAllBabies"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:background="?attr/selectableItemBackground"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="16dp">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@drawable/ic_all_babies"
-                android:tint="?attr/colorBrand" />
-
-            <TextView
-                android:layout_width="0dp"
+            <!-- 所有宝宝 -->
+            <LinearLayout
+                android:id="@+id/llAllBabies"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:text="@string/all_babies"
-                android:textColor="?attr/colorTextPrimary"
-                style="@style/TextAppearance.BabyCare.Body1" />
+                android:background="@drawable/bg_setting_item_top_ripple"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/settings_row_min_height"
+                android:orientation="horizontal"
+                android:paddingHorizontal="@dimen/card_padding"
+                android:paddingVertical="@dimen/settings_row_vertical_padding">
 
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:src="@drawable/ic_arrow_right"
-                android:tint="?attr/colorTextHint" />
+                <ImageView
+                    android:layout_width="@dimen/drawer_menu_icon_size"
+                    android:layout_height="@dimen/drawer_menu_icon_size"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_all_babies"
+                    android:tint="?attr/colorBrand" />
 
-        </LinearLayout>
+                <TextView
+                    style="@style/TextAppearance.BabyCare.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/settings_row_content_gap"
+                    android:layout_weight="1"
+                    android:text="@string/all_babies"
+                    android:textColor="?attr/colorTextPrimary" />
 
-        <View
-            style="@style/divide_horizontal_line"
-            android:layout_marginStart="48dp"
-            android:layout_marginEnd="12dp" />
+                <ImageView
+                    android:layout_width="@dimen/settings_row_arrow_size"
+                    android:layout_height="@dimen/settings_row_arrow_size"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_right"
+                    android:tint="?attr/colorTextHint" />
 
-        <!-- 设置 -->
-        <LinearLayout
-            android:id="@+id/llSettings"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:background="?attr/selectableItemBackground"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="16dp">
+            </LinearLayout>
 
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@drawable/ic_settings"
-                android:tint="?attr/colorBrand" />
+            <View
+                style="@style/divide_horizontal_line"
+                android:layout_marginStart="@dimen/drawer_menu_divider_start"
+                android:layout_marginEnd="@dimen/card_padding" />
 
-            <TextView
-                android:layout_width="0dp"
+            <!-- 设置 -->
+            <LinearLayout
+                android:id="@+id/llSettings"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:text="@string/settings"
-                android:textColor="?attr/colorTextPrimary"
-                style="@style/TextAppearance.BabyCare.Body1" />
+                android:background="@drawable/bg_setting_item_bottom_ripple"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/settings_row_min_height"
+                android:orientation="horizontal"
+                android:paddingHorizontal="@dimen/card_padding"
+                android:paddingVertical="@dimen/settings_row_vertical_padding">
 
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:src="@drawable/ic_arrow_right"
-                android:tint="?attr/colorTextHint" />
+                <ImageView
+                    android:layout_width="@dimen/drawer_menu_icon_size"
+                    android:layout_height="@dimen/drawer_menu_icon_size"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_settings"
+                    android:tint="?attr/colorBrand" />
 
-        </LinearLayout>
+                <TextView
+                    style="@style/TextAppearance.BabyCare.Body1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/settings_row_content_gap"
+                    android:layout_weight="1"
+                    android:text="@string/settings"
+                    android:textColor="?attr/colorTextPrimary" />
+
+                <ImageView
+                    android:layout_width="@dimen/settings_row_arrow_size"
+                    android:layout_height="@dimen/settings_row_arrow_size"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_right"
+                    android:tint="?attr/colorTextHint" />
+
+            </LinearLayout>
 
     </LinearLayout>
 

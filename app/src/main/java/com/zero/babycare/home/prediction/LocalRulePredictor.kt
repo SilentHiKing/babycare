@@ -1,6 +1,7 @@
 package com.zero.babycare.home.prediction
 
 import com.zero.babydata.entity.FeedingRecord
+import com.zero.babydata.entity.FeedingType
 import com.zero.babydata.entity.SleepRecord
 import java.util.Calendar
 import java.util.Date
@@ -22,6 +23,14 @@ class LocalRulePredictor : Predictor {
         
         // 最小区间范围（5分钟，避免标准差为0时区间退化为单点）
         private const val MIN_INTERVAL_RANGE_MS = 5 * 60 * 1000L
+
+        // 喂奶间隔的合理边界：过滤补录、漏记导致的极端间隔，避免污染本地规律
+        private const val MIN_FEEDING_INTERVAL_MS = 20 * 60 * 1000L
+        private const val MAX_FEEDING_INTERVAL_MS = 8 * 60 * 60 * 1000L
+
+        // 清醒窗口的合理边界：过短通常是误触/重复记录，过长通常表示中间漏记了小睡
+        private const val MIN_AWAKE_WINDOW_MS = 10 * 60 * 1000L
+        private const val MAX_AWAKE_WINDOW_MS = 8 * 60 * 60 * 1000L
         
         // EWMA 平滑系数（0.3 表示最近记录权重更高，越接近1越敏感于新数据）
         private const val EWMA_ALPHA = 0.3
@@ -60,21 +69,29 @@ class LocalRulePredictor : Predictor {
         feedingRecords: List<FeedingRecord>,
         sleepRecords: List<SleepRecord>?
     ): PredictionResult? {
-        // 过滤掉进行中/无效记录（feedingEnd 必须大于 feedingStart）
-        val completedRecords = feedingRecords.filter { it.feedingEnd > it.feedingStart }
+        // 下次“喂奶”只参考奶类记录，辅食/其他会打断时间轴但不代表宝宝下一次吃奶规律。
+        val completedRecords = feedingRecords
+            .filter { it.feedingEnd > it.feedingStart }
+            .filter { it.isMilkFeeding() }
         
         // 数据不足时使用默认值
         if (completedRecords.size < MIN_RECORDS_FOR_PREDICTION) {
             return predictWithDefault(babyAgeMonths, completedRecords.lastOrNull()?.feedingEnd, isFeeding = true)
         }
+
+        val lastRecord = completedRecords.last()
         
         // 按时段分析间隔
-        val intervals = calculateIntervals(completedRecords.map { it.feedingStart to it.feedingEnd })
+        val intervals = calculateIntervals(
+            records = completedRecords.map { it.feedingStart to it.feedingEnd },
+            minIntervalMs = MIN_FEEDING_INTERVAL_MS,
+            maxIntervalMs = MAX_FEEDING_INTERVAL_MS
+        )
         val dayIntervals = intervals.filter { it.second }.map { it.first }
         val nightIntervals = intervals.filter { !it.second }.map { it.first }
         
-        // 根据当前时间选择使用哪个时段的数据
-        val isDay = isCurrentlyDay()
+        // 使用上次喂奶结束时间选择历史时段，比使用当前时间更能贴合“从这次结束后多久再喂”的规律。
+        val isDay = isTimeInDay(lastRecord.feedingEnd)
         var relevantIntervals = if (isDay) {
             dayIntervals.ifEmpty { nightIntervals }
         } else {
@@ -94,6 +111,7 @@ class LocalRulePredictor : Predictor {
                 relevantIntervals = allIntervals
             }
         }
+        relevantIntervals = filterStatisticalOutliers(relevantIntervals)
         
         // 计算统计值（使用 EWMA 时间衰减）
         val stats = calculateStats(relevantIntervals)
@@ -101,12 +119,12 @@ class LocalRulePredictor : Predictor {
         // 月龄修正因子
         val ageFactor = getAgeFactor(babyAgeMonths, isFeeding = true)
         
-        // 上次喂奶时长修正
-        val lastRecord = completedRecords.last()
+        // 上次喂奶时长和奶量共同修正：母乳更依赖时长，瓶喂更依赖实际奶量。
         val durationFactor = calculateDurationFactor(lastRecord, completedRecords)
+        val amountFactor = calculateAmountFactor(lastRecord, completedRecords)
         
         // 计算预测间隔（使用 EWMA 替代简单中位数，更关注近期规律）
-        val predictedInterval = (stats.ewma * ageFactor * durationFactor).toLong()
+        val predictedInterval = (stats.ewma * ageFactor * durationFactor * amountFactor).toLong()
         val predictedTime = lastRecord.feedingEnd + predictedInterval
         
         // 计算置信度
@@ -142,6 +160,8 @@ class LocalRulePredictor : Predictor {
         if (completedRecords.size < MIN_RECORDS_FOR_PREDICTION) {
             return predictWithDefault(babyAgeMonths, completedRecords.lastOrNull()?.sleepEnd, isFeeding = false)
         }
+
+        val lastRecord = completedRecords.last()
         
         // 按时段分析间隔（上次睡醒到下次入睡的时间）
         val awakeIntervals = mutableListOf<Pair<Long, Boolean>>()  // (interval, isDay)
@@ -149,7 +169,7 @@ class LocalRulePredictor : Predictor {
             val curr = completedRecords[i]
             val next = completedRecords[i + 1]
             val interval = next.sleepStart - curr.sleepEnd
-            if (interval > 0) {
+            if (interval in MIN_AWAKE_WINDOW_MS..MAX_AWAKE_WINDOW_MS) {
                 val isDay = isTimeInDay(curr.sleepEnd)
                 awakeIntervals.add(interval to isDay)
             }
@@ -158,7 +178,8 @@ class LocalRulePredictor : Predictor {
         val dayIntervals = awakeIntervals.filter { it.second }.map { it.first }
         val nightIntervals = awakeIntervals.filter { !it.second }.map { it.first }
         
-        val isDay = isCurrentlyDay()
+        // 睡眠预测关注“这次醒来之后多久再睡”，因此以上次醒来时间选择历史清醒窗口。
+        val isDay = isTimeInDay(lastRecord.sleepEnd)
         var relevantIntervals = if (isDay) {
             dayIntervals.ifEmpty { nightIntervals }
         } else {
@@ -177,12 +198,12 @@ class LocalRulePredictor : Predictor {
                 relevantIntervals = allIntervals
             }
         }
+        relevantIntervals = filterStatisticalOutliers(relevantIntervals)
         
         val stats = calculateStats(relevantIntervals)
         val ageFactor = getAgeFactor(babyAgeMonths, isFeeding = false)
         
         // 上次睡眠时长修正（睡得短→清醒窗口短，睡得长→清醒窗口长）
-        val lastRecord = completedRecords.last()
         val durationFactor = calculateSleepDurationFactor(lastRecord, completedRecords)
         
         val predictedInterval = (stats.ewma * ageFactor * durationFactor).toLong()
@@ -241,13 +262,17 @@ class LocalRulePredictor : Predictor {
      * 计算两次活动之间的间隔
      * @return List of (interval, isDay)
      */
-    private fun calculateIntervals(records: List<Pair<Long, Long>>): List<Pair<Long, Boolean>> {
+    private fun calculateIntervals(
+        records: List<Pair<Long, Long>>,
+        minIntervalMs: Long,
+        maxIntervalMs: Long
+    ): List<Pair<Long, Boolean>> {
         val result = mutableListOf<Pair<Long, Boolean>>()
         for (i in 0 until records.size - 1) {
             val currEnd = records[i].second
             val nextStart = records[i + 1].first
             val interval = nextStart - currEnd
-            if (interval > 0) {
+            if (interval in minIntervalMs..maxIntervalMs) {
                 val isDay = isTimeInDay(currEnd)
                 result.add(interval to isDay)
             }
@@ -301,6 +326,38 @@ class LocalRulePredictor : Predictor {
     }
 
     /**
+     * 使用 IQR 过滤统计异常值。
+     * 物理边界已经剔除明显错误，这里只处理“看似有效但明显偏离当前作息”的补录/漏记。
+     */
+    private fun filterStatisticalOutliers(intervals: List<Long>): List<Long> {
+        if (intervals.size < 4) return intervals
+
+        val sorted = intervals.sorted()
+        val q1 = percentile(sorted, 0.25)
+        val q3 = percentile(sorted, 0.75)
+        val iqr = q3 - q1
+        if (iqr <= 0) return intervals
+
+        val lower = q1 - 1.5 * iqr
+        val upper = q3 + 1.5 * iqr
+        val filtered = intervals.filter { it.toDouble() in lower..upper }
+
+        // 样本太少时保留原数据，避免为了“干净”牺牲可预测性。
+        return if (filtered.size >= MIN_PERIOD_RECORDS) filtered else intervals
+    }
+
+    private fun percentile(sortedValues: List<Long>, ratio: Double): Double {
+        if (sortedValues.isEmpty()) return 0.0
+        val index = (sortedValues.lastIndex * ratio).coerceIn(0.0, sortedValues.lastIndex.toDouble())
+        val lowerIndex = index.toInt()
+        val upperIndex = kotlin.math.ceil(index).toInt()
+        if (lowerIndex == upperIndex) return sortedValues[lowerIndex].toDouble()
+
+        val weight = index - lowerIndex
+        return sortedValues[lowerIndex] * (1 - weight) + sortedValues[upperIndex] * weight
+    }
+
+    /**
      * 月龄修正因子
      */
     private fun getAgeFactor(ageMonths: Int, isFeeding: Boolean): Double {
@@ -341,6 +398,36 @@ class LocalRulePredictor : Predictor {
         return when {
             lastDuration > avgDuration * 1.3 -> 1.08   // 喂得久，间隔延长
             lastDuration < avgDuration * 0.7 -> 0.92   // 喂得短，间隔缩短
+            else -> 1.0
+        }
+    }
+
+    /**
+     * 根据上次瓶喂奶量调整间隔。
+     * 母乳没有稳定奶量输入时继续使用时长修正；奶粉/混合喂养则优先让真实摄入量参与预测。
+     */
+    private fun calculateAmountFactor(
+        lastRecord: FeedingRecord,
+        allRecords: List<FeedingRecord>
+    ): Double {
+        val lastType = lastRecord.getFeedingTypeEnum()
+        if (lastType != FeedingType.FORMULA && lastType != FeedingType.MIXED) return 1.0
+
+        val recentBottleRecords = allRecords.takeLast(10)
+            .filter {
+                val type = it.getFeedingTypeEnum()
+                type == FeedingType.FORMULA || type == FeedingType.MIXED
+            }
+        val lastAmount = lastRecord.feedingAmount?.takeIf { it > 0 } ?: return 1.0
+        val baselineAmounts = recentBottleRecords.dropLast(1)
+            .mapNotNull { it.feedingAmount?.takeIf { amount -> amount > 0 } }
+
+        if (baselineAmounts.size < 2) return 1.0
+
+        val averageAmount = baselineAmounts.average()
+        return when {
+            lastAmount > averageAmount * 1.35 -> 1.12
+            lastAmount < averageAmount * 0.65 -> 0.90
             else -> 1.0
         }
     }
@@ -395,20 +482,22 @@ class LocalRulePredictor : Predictor {
     }
 
     /**
-     * 判断当前是否是白天
-     */
-    private fun isCurrentlyDay(): Boolean {
-        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        return hour in DAY_START_HOUR until DAY_END_HOUR
-    }
-
-    /**
      * 判断指定时间戳是否是白天
      */
     private fun isTimeInDay(timestamp: Long): Boolean {
         val cal = Calendar.getInstance().apply { timeInMillis = timestamp }
         val hour = cal.get(Calendar.HOUR_OF_DAY)
         return hour in DAY_START_HOUR until DAY_END_HOUR
+    }
+
+    private fun FeedingRecord.isMilkFeeding(): Boolean {
+        return when (getFeedingTypeEnum()) {
+            FeedingType.BREAST,
+            FeedingType.FORMULA,
+            FeedingType.MIXED -> true
+            FeedingType.SOLID_FOOD,
+            FeedingType.OTHER -> false
+        }
     }
 
     /**

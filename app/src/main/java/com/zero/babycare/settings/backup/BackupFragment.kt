@@ -10,10 +10,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.blankj.utilcode.util.StringUtils
 import com.blankj.utilcode.util.ToastUtils
-import com.lxj.xpopup.XPopup
-import com.lxj.xpopupext.listener.CommonPickerListener
-import com.lxj.xpopupext.popup.CommonPickerPopup
 import com.zero.babycare.MainViewModel
+import com.zero.babycare.R
 import com.zero.babycare.databinding.FragmentBackupBinding
 import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babycare.navigation.NavTarget
@@ -85,6 +83,8 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
      * 初始化功能项
      */
     private fun setupRows() {
+        bindGroupedRowBackgrounds()
+
         exportRow.tvTitle.text = StringUtils.getString(com.zero.common.R.string.backup_export_title)
         exportRow.tvSummary.text = StringUtils.getString(com.zero.common.R.string.backup_export_summary)
         exportRow.tvSummary.visibility = View.VISIBLE
@@ -106,6 +106,16 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
         dedupRow.root.setOnClickListener {
             showDedupPicker(vm.dedupMinutes.value)
         }
+    }
+
+    /**
+     * 备份页沿用设置页分组行规则，让首尾按压态贴合外层圆角。
+     */
+    private fun bindGroupedRowBackgrounds() {
+        exportRow.root.setBackgroundResource(R.drawable.bg_setting_item_top_ripple)
+        importRow.root.setBackgroundResource(R.drawable.bg_setting_item_middle_ripple)
+        dedupRow.root.setBackgroundResource(R.drawable.bg_setting_item_bottom_ripple)
+        reportClearRow.root.setBackgroundResource(R.drawable.bg_setting_item_top_ripple)
     }
 
     /**
@@ -423,28 +433,22 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             return
         }
         val modes = BackupImportMode.values().toList()
-        val labels = ArrayList<String?>()
-        modes.forEach { mode ->
-            labels.add(StringUtils.getString(mode.labelResId))
-        }
-
-        val popup = CommonPickerPopup(requireContext())
-        popup.setPickerData(labels)
-        popup.setCommonPickerListener(object : CommonPickerListener {
-            override fun onItemSelected(index: Int, data: String?) {
-                val mode = modes.getOrNull(index) ?: BackupImportMode.OVERWRITE
-                showImportConfirm(mode, preview)
-            }
-
-            override fun onCancel() {
+        DialogHelper.showChoiceSheet(
+            context = requireContext(),
+            title = StringUtils.getString(com.zero.common.R.string.backup_import_confirm_title),
+            options = modes.map {
+                DialogHelper.PickerOption(
+                    value = it,
+                    label = StringUtils.getString(it.labelResId)
+                )
+            },
+            selectedValue = BackupImportMode.OVERWRITE,
+            onSelected = { mode -> showImportConfirm(mode, preview) },
+            onCancel = {
                 vm.clearPendingImport()
                 ToastUtils.showShort(com.zero.common.R.string.backup_import_cancelled)
             }
-        })
-
-        XPopup.Builder(requireContext())
-            .asCustom(popup)
-            .show()
+        )
     }
 
     /**
@@ -604,25 +608,18 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
      */
     private fun showDedupPicker(current: Int) {
         val options = vm.getAllowedDedupMinutes()
-        val labels = ArrayList<String?>()
-        options.forEach { minutes ->
-            labels.add(formatDedupMinutes(minutes))
-        }
-
-        val popup = CommonPickerPopup(requireContext())
-        popup.setPickerData(labels)
-        popup.setCommonPickerListener(object : CommonPickerListener {
-            override fun onItemSelected(index: Int, data: String?) {
-                val selected = options.getOrNull(index) ?: current
-                vm.setDedupMinutes(selected)
-            }
-
-            override fun onCancel() {}
-        })
-
-        XPopup.Builder(requireContext())
-            .asCustom(popup)
-            .show()
+        DialogHelper.showChoiceSheet(
+            context = requireContext(),
+            title = StringUtils.getString(com.zero.common.R.string.backup_dedup_title),
+            options = options.map {
+                DialogHelper.PickerOption(
+                    value = it,
+                    label = formatDedupMinutes(it)
+                )
+            },
+            selectedValue = current,
+            onSelected = { vm.setDedupMinutes(it) }
+        )
     }
 
     /**

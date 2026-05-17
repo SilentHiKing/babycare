@@ -11,21 +11,26 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
+        android:id="@+id/scrollSettings"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:paddingBottom="40dp"
+        android:fillViewport="true"
+        android:paddingBottom="@dimen/settings_content_bottom_padding"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintWidth_max="@dimen/settings_content_max_width">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="12dp">
+            android:paddingHorizontal="@dimen/page_horizontal_padding"
+            android:paddingTop="@dimen/page_vertical_padding">
 
-            <!-- General Section -->
+            <!-- 通用设置：单位类选项放在同一组，用户可以连续扫读当前单位。 -->
             <TextView
                 android:id="@+id/tvGeneralTitle"
                 style="@style/TextAppearance.BabyCare.Heading2"
@@ -38,10 +43,10 @@
                 android:id="@+id/cardGeneral"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_card_prediction"
+                android:layout_marginTop="@dimen/settings_section_title_gap"
+                android:background="@drawable/bg_settings_group_surface_border"
                 android:orientation="vertical"
-                android:paddingVertical="4dp">
+                android:paddingVertical="@dimen/settings_group_vertical_padding">
 
                 <include
                     android:id="@+id/rowFeedingUnit"
@@ -49,7 +54,8 @@
 
                 <View
                     style="@style/divide_horizontal_line"
-                    android:layout_marginStart="16dp" />
+                    android:layout_marginStart="@dimen/card_padding"
+                    android:layout_marginEnd="@dimen/card_padding" />
 
                 <include
                     android:id="@+id/rowWeightUnit"
@@ -57,20 +63,21 @@
 
                 <View
                     style="@style/divide_horizontal_line"
-                    android:layout_marginStart="16dp" />
+                    android:layout_marginStart="@dimen/card_padding"
+                    android:layout_marginEnd="@dimen/card_padding" />
 
                 <include
                     android:id="@+id/rowHeightUnit"
                     layout="@layout/item_setting_row" />
             </LinearLayout>
 
-            <!-- Reminder Section -->
+            <!-- 提醒设置：保留独立分组，避免权限状态和单位设置混在一起。 -->
             <TextView
                 android:id="@+id/tvReminderTitle"
                 style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="@dimen/settings_section_gap"
                 android:text="@string/settings_reminder"
                 android:textColor="?attr/colorTextPrimary" />
 
@@ -78,23 +85,23 @@
                 android:id="@+id/cardReminder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_card_prediction"
+                android:layout_marginTop="@dimen/settings_section_title_gap"
+                android:background="@drawable/bg_settings_group_surface_border"
                 android:orientation="vertical"
-                android:paddingVertical="4dp">
+                android:paddingVertical="@dimen/settings_group_vertical_padding">
 
                 <include
                     android:id="@+id/rowReminder"
                     layout="@layout/item_setting_switch" />
             </LinearLayout>
 
-            <!-- About Section -->
+            <!-- 关于信息：只展示版本，不使用可点击样式制造错误预期。 -->
             <TextView
                 android:id="@+id/tvAboutTitle"
                 style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="@dimen/settings_section_gap"
                 android:text="@string/settings_about"
                 android:textColor="?attr/colorTextPrimary" />
 
@@ -102,23 +109,23 @@
                 android:id="@+id/cardAbout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_card_prediction"
+                android:layout_marginTop="@dimen/settings_section_title_gap"
+                android:background="@drawable/bg_settings_group_surface_border"
                 android:orientation="vertical"
-                android:paddingVertical="4dp">
+                android:paddingVertical="@dimen/settings_group_vertical_padding">
 
                 <include
                     android:id="@+id/rowVersion"
                     layout="@layout/item_setting_row" />
             </LinearLayout>
 
-            <!-- More Section -->
+            <!-- 更多入口：把低频功能放在页面末端，减少高频设置的视觉干扰。 -->
             <TextView
                 android:id="@+id/tvMoreTitle"
                 style="@style/TextAppearance.BabyCare.Heading2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="@dimen/settings_section_gap"
                 android:text="@string/settings_more"
                 android:textColor="?attr/colorTextPrimary" />
 
@@ -126,10 +133,10 @@
                 android:id="@+id/cardMore"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_card_prediction"
+                android:layout_marginTop="@dimen/settings_section_title_gap"
+                android:background="@drawable/bg_settings_group_surface_border"
                 android:orientation="vertical"
-                android:paddingVertical="4dp">
+                android:paddingVertical="@dimen/settings_group_vertical_padding">
 
                 <include
                     android:id="@+id/rowLanguage"
@@ -137,7 +144,8 @@
 
                 <View
                     style="@style/divide_horizontal_line"
-                    android:layout_marginStart="16dp" />
+                    android:layout_marginStart="@dimen/card_padding"
+                    android:layout_marginEnd="@dimen/card_padding" />
 
                 <include
                     android:id="@+id/rowBackup"
@@ -145,7 +153,8 @@
 
                 <View
                     style="@style/divide_horizontal_line"
-                    android:layout_marginStart="16dp" />
+                    android:layout_marginStart="@dimen/card_padding"
+                    android:layout_marginEnd="@dimen/card_padding" />
 
                 <include
                     android:id="@+id/rowFamily"

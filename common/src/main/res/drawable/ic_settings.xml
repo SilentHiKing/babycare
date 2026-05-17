@@ -4,10 +4,10 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 线性设置图标：使用滑杆隐喻，减少复杂齿轮的视觉噪音。 -->
+    <!-- 线性设置图标：三条滑杆表达可配置项，保持 24dp / 2dp 的导航图标语言。 -->
     <path
         android:fillColor="@android:color/transparent"
-        android:pathData="M4,7h5M15,7h5M11,7a2,2 0,1 0,0.1 0M4,12h9M19,12h1M15,12a2,2 0,1 0,0.1 0M4,17h2M12,17h8M8,17a2,2 0,1 0,0.1 0"
+        android:pathData="M4,7h4.25M13.75,7H20M11,4.75a2.25,2.25 0,1 0,0 4.5a2.25,2.25 0,0 0,0 -4.5zM4,12h8.25M17.75,12H20M15,9.75a2.25,2.25 0,1 0,0 4.5a2.25,2.25 0,0 0,0 -4.5zM4,17h2.25M11.75,17H20M9,14.75a2.25,2.25 0,1 0,0 4.5a2.25,2.25 0,0 0,0 -4.5z"
         android:strokeColor="?attr/iconColorPrimary"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"

@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="822" height="640" viewBox="0 0 822 640">
+  <rect width="822" height="640" fill="#F7FBFA"/>
+  <text x="40" y="58" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#12323A">时间字段视觉优化预览</text>
+  <text x="40" y="94" font-family="Arial, sans-serif" font-size="18" fill="#3E5B63">左侧是当前单行长时间，右侧是推荐的日期/时间分层展示</text>
+
+  <g transform="translate(40 132)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#12323A">当前效果</text>
+    <text x="0" y="32" font-family="Arial, sans-serif" font-size="15" fill="#3E5B63">问题：信息密度高，日期和秒同权重，文字贴近图标</text>
+
+    <text x="0" y="84" font-family="Arial, sans-serif" font-size="17" fill="#3E5B63">开始时间</text>
+    <text x="195" y="84" font-family="Arial, sans-serif" font-size="17" fill="#3E5B63">结束时间</text>
+
+    <g transform="translate(0 106)">
+      <rect x="0" y="0" width="180" height="52" rx="12" fill="#FFFDFC" stroke="#E3ECEB"/>
+      <text x="14" y="32" font-family="Arial, sans-serif" font-size="18" fill="#12323A">05-17 00:43:28</text>
+      <circle cx="160" cy="26" r="9" fill="none" stroke="#3E5B63" stroke-width="2"/>
+      <path d="M160 19v8l5 3" fill="none" stroke="#3E5B63" stroke-width="2" stroke-linecap="round"/>
+    </g>
+
+    <g transform="translate(195 106)">
+      <rect x="0" y="0" width="180" height="52" rx="12" fill="#FFFDFC" stroke="#E3ECEB"/>
+      <text x="14" y="32" font-family="Arial, sans-serif" font-size="18" fill="#12323A">05-17 00:55:33</text>
+      <circle cx="160" cy="26" r="9" fill="none" stroke="#3E5B63" stroke-width="2"/>
+      <path d="M160 19v8l5 3" fill="none" stroke="#3E5B63" stroke-width="2" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <g transform="translate(40 360)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#12323A">推荐方案</text>
+    <text x="0" y="32" font-family="Arial, sans-serif" font-size="15" fill="#3E5B63">日期弱化，时间强化；秒保留，但只作为时间的一部分</text>
+
+    <text x="0" y="84" font-family="Arial, sans-serif" font-size="17" fill="#3E5B63">开始时间</text>
+    <text x="195" y="84" font-family="Arial, sans-serif" font-size="17" fill="#3E5B63">结束时间</text>
+
+    <g transform="translate(0 106)">
+      <rect x="0" y="0" width="180" height="58" rx="12" fill="#FFFDFC" stroke="#E3ECEB"/>
+      <text x="14" y="22" font-family="Arial, sans-serif" font-size="14" fill="#7C98A1">05月17日</text>
+      <text x="14" y="45" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#12323A">00:43:28</text>
+      <circle cx="160" cy="29" r="9" fill="none" stroke="#3E5B63" stroke-width="2"/>
+      <path d="M160 22v8l5 3" fill="none" stroke="#3E5B63" stroke-width="2" stroke-linecap="round"/>
+    </g>
+
+    <g transform="translate(195 106)">
+      <rect x="0" y="0" width="180" height="58" rx="12" fill="#FFFDFC" stroke="#E3ECEB"/>
+      <text x="14" y="22" font-family="Arial, sans-serif" font-size="14" fill="#7C98A1">05月17日</text>
+      <text x="14" y="45" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#12323A">00:55:33</text>
+      <circle cx="160" cy="29" r="9" fill="none" stroke="#3E5B63" stroke-width="2"/>
+      <path d="M160 22v8l5 3" fill="none" stroke="#3E5B63" stroke-width="2" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <g transform="translate(450 132)">
+    <rect x="0" y="0" width="330" height="380" rx="24" fill="#FFFFFF" stroke="#E3ECEB"/>
+    <text x="28" y="48" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#12323A">落地参数</text>
+    <text x="28" y="88" font-family="Arial, sans-serif" font-size="16" fill="#3E5B63">字段高度：52-56dp</text>
+    <text x="28" y="124" font-family="Arial, sans-serif" font-size="16" fill="#3E5B63">日期：11-12sp，colorTextHint</text>
+    <text x="28" y="160" font-family="Arial, sans-serif" font-size="16" fill="#3E5B63">时间：15-16sp，colorTextPrimary</text>
+    <text x="28" y="196" font-family="Arial, sans-serif" font-size="16" fill="#3E5B63">字重：时间使用 sans-serif-medium</text>
+    <text x="28" y="232" font-family="Arial, sans-serif" font-size="16" fill="#3E5B63">数字：保留 tnum 等宽数字</text>
+    <text x="28" y="268" font-family="Arial, sans-serif" font-size="16" fill="#3E5B63">格式：日期和时间分层显示</text>
+    <text x="28" y="304" font-family="Arial, sans-serif" font-size="16" fill="#3E5B63">当前年：MM月dd日</text>
+    <text x="28" y="340" font-family="Arial, sans-serif" font-size="16" fill="#3E5B63">跨年：yyyy/MM/dd</text>
+  </g>
+</svg>

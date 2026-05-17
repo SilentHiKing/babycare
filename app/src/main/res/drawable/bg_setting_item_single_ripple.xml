@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/control_surface_selected">
+    <!-- 单行分组的按压 mask 必须完整圆角，避免和外层卡片边界割裂。 -->
+    <item android:drawable="@android:color/transparent" />
+    <item android:id="@android:id/mask">
+        <shape>
+            <solid android:color="@android:color/white" />
+            <corners android:radius="@dimen/settings_group_corner_radius" />
+        </shape>
+    </item>
+</ripple>

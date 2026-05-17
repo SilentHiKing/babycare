@@ -7,11 +7,6 @@ import androidx.fragment.app.viewModels
 import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.StringUtils
 import com.blankj.utilcode.util.ToastUtils
-import com.lxj.xpopup.XPopup
-import com.lxj.xpopupext.listener.CommonPickerListener
-import com.lxj.xpopupext.listener.TimePickerListener
-import com.lxj.xpopupext.popup.CommonPickerPopup
-import com.lxj.xpopupext.popup.TimePickerPopup
 import com.zero.babycare.MainActivity
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentUpdateInfoBinding
@@ -63,7 +58,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
 
         // 日期选择
         binding.etBirthday.setOnClickListener {
-            showTimePickerDialog()
+            showBirthdayPickerSheet()
         }
 
         // 性别选择
@@ -102,6 +97,12 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
                 }
             }
         }
+
+        launchInLifecycle {
+            vm.unitState.collect { unitState ->
+                bindUnitLabels(unitState)
+            }
+        }
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
@@ -124,6 +125,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
      * 根据导航参数决定是创建模式还是编辑模式
      */
     private fun refreshPageMode() {
+        vm.refreshUnitState()
         val navTarget = mainVm.navTarget.value
         
         when (navTarget) {
@@ -235,11 +237,15 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         }
 
         if (baby.birthWeight > 0) {
-            binding.etWeight.setText(baby.birthWeight.toString())
+            binding.etWeight.setText(vm.formatBirthWeight(baby.birthWeight))
+        } else {
+            binding.etWeight.setText("")
         }
 
         if (baby.birthHeight > 0) {
-            binding.etHeight.setText(baby.birthHeight.toString())
+            binding.etHeight.setText(vm.formatBirthHeight(baby.birthHeight))
+        } else {
+            binding.etHeight.setText("")
         }
 
         if (baby.bloodType.isNotEmpty()) {
@@ -275,13 +281,13 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         }
 
         binding.etWeight.text?.toString()?.takeIf { it.isNotEmpty() }?.let {
-            runCatching { it.toFloat() }.getOrNull()?.let { weight ->
+            vm.parseBirthWeightToStorage(it)?.let { weight ->
                 baby.birthWeight = weight
             }
         }
 
         binding.etHeight.text?.toString()?.takeIf { it.isNotEmpty() }?.let {
-            runCatching { it.toFloat() }.getOrNull()?.let { height ->
+            vm.parseBirthHeightToStorage(it)?.let { height ->
                 baby.birthHeight = height
             }
         }
@@ -370,61 +376,62 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
     }
 
     private fun showGenderDialog() {
-        val popup = CommonPickerPopup(requireContext())
-        val list = ArrayList<String?>()
-        list.add(StringUtils.getString(com.zero.common.R.string.boy))
-        list.add(StringUtils.getString(com.zero.common.R.string.girl))
-        popup.setPickerData(list)
-        popup.setCommonPickerListener(object : CommonPickerListener {
-            override fun onItemSelected(index: Int, data: String?) {
-                binding.etGender.setText(data)
-            }
-
-            override fun onCancel() {}
-        })
-        XPopup.Builder(requireContext())
-            .asCustom(popup)
-            .show()
+        val boy = StringUtils.getString(com.zero.common.R.string.boy)
+        val girl = StringUtils.getString(com.zero.common.R.string.girl)
+        DialogHelper.showChoiceSheet(
+            context = requireContext(),
+            title = StringUtils.getString(com.zero.common.R.string.babyGender),
+            options = listOf(
+                DialogHelper.PickerOption(boy, boy),
+                DialogHelper.PickerOption(girl, girl)
+            ),
+            selectedValue = binding.etGender.text?.toString()?.takeIf { it.isNotBlank() },
+            onSelected = { binding.etGender.setText(it) }
+        )
     }
 
     private fun showBloodTypeDialog() {
-        val popup = CommonPickerPopup(requireContext())
-        val list = ArrayList<String?>()
-        list.add(StringUtils.getString(com.zero.common.R.string.blood_type_a))
-        list.add(StringUtils.getString(com.zero.common.R.string.blood_type_b))
-        list.add(StringUtils.getString(com.zero.common.R.string.blood_type_ab))
-        list.add(StringUtils.getString(com.zero.common.R.string.blood_type_o))
-        list.add(StringUtils.getString(com.zero.common.R.string.blood_type_unknown))
-        popup.setPickerData(list)
-        popup.setCommonPickerListener(object : CommonPickerListener {
-            override fun onItemSelected(index: Int, data: String?) {
-                binding.etBloodType.setText(data)
-            }
-
-            override fun onCancel() {}
-        })
-        XPopup.Builder(requireContext())
-            .asCustom(popup)
-            .show()
+        val labels = listOf(
+            StringUtils.getString(com.zero.common.R.string.blood_type_a),
+            StringUtils.getString(com.zero.common.R.string.blood_type_b),
+            StringUtils.getString(com.zero.common.R.string.blood_type_ab),
+            StringUtils.getString(com.zero.common.R.string.blood_type_o),
+            StringUtils.getString(com.zero.common.R.string.blood_type_unknown)
+        )
+        DialogHelper.showChoiceSheet(
+            context = requireContext(),
+            title = StringUtils.getString(com.zero.common.R.string.babyBloodType),
+            options = labels.map { DialogHelper.PickerOption(it, it) },
+            selectedValue = binding.etBloodType.text?.toString()?.takeIf { it.isNotBlank() },
+            onSelected = { binding.etBloodType.setText(it) }
+        )
     }
 
-    private fun showTimePickerDialog() {
-        val popup = TimePickerPopup(requireContext())
-            .setMode(TimePickerPopup.Mode.YMDHMS)
-            .setTimePickerListener(object : TimePickerListener {
-                override fun onTimeChanged(date: Date?) {}
+    /**
+     * 出生体重/身高右侧单位跟随设置页，输入框里的值由 ViewModel 按同一单位换算。
+     */
+    private fun bindUnitLabels(unitState: BabyInfoUnitState) {
+        binding.tvWeightUnit.text = StringUtils.getString(unitState.weightUnitLabelResId)
+        binding.tvHeightUnit.text = StringUtils.getString(unitState.heightUnitLabelResId)
+    }
 
-                override fun onTimeConfirm(date: Date, view: View?) {
-                    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-                    binding.etBirthday.setText(dateFormat.format(date))
-                    LogUtils.d(date.toLocaleString())
-                }
+    private fun showBirthdayPickerSheet() {
+        val initialTime = binding.etBirthday.text?.toString()
+            ?.takeIf { it.isNotBlank() }
+            ?.let { CompatDateUtils.stringToTimestamp(it) }
+            ?: editingBaby?.birthDate?.takeIf { it > 0L }
+            ?: System.currentTimeMillis()
 
-                override fun onCancel() {}
-            })
-
-        XPopup.Builder(requireContext())
-            .asCustom(popup)
-            .show()
+        DialogHelper.showDateTimeSheet(
+            context = requireContext(),
+            title = StringUtils.getString(com.zero.common.R.string.babyBirthday),
+            initialTime = initialTime,
+            mode = DialogHelper.DateTimeMode.DATE_TIME,
+            maxTime = System.currentTimeMillis(),
+            onConfirm = { timestamp ->
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+                binding.etBirthday.setText(dateFormat.format(Date(timestamp)))
+            }
+        )
     }
 }

@@ -13,6 +13,26 @@ import kotlin.math.min
  */
 object DialogHelper {
 
+    /**
+     * 统一选择器选项。
+     *
+     * value 只给业务层使用，label 是已经本地化后的展示文案。
+     */
+    data class PickerOption<T>(
+        val value: T,
+        val label: String
+    )
+
+    enum class DateTimeMode {
+        DATE,
+        TIME,
+        TIME_SECOND,
+        MONTH_DAY_TIME,
+        MONTH_DAY_TIME_SECOND,
+        DATE_TIME,
+        DATE_TIME_SECOND
+    }
+
     /** 弹窗最大宽度（dp） */
     private const val MAX_POPUP_WIDTH_DP = 400
 
@@ -30,6 +50,16 @@ object DialogHelper {
         val popupWidth = calculatePopupWidth(context)
         return XPopup.Builder(context)
             .maxWidth(popupWidth)
+    }
+
+    /**
+     * 创建统一底部 Sheet Builder。
+     * 选择器属于临时覆盖层，统一保留遮罩和底部进入动效。
+     */
+    private fun createBottomSheetBuilder(context: Context): XPopup.Builder {
+        return XPopup.Builder(context)
+            .isViewMode(false)
+            .hasShadowBg(true)
     }
 
     /**
@@ -117,6 +147,167 @@ object DialogHelper {
             .show()
     }
 
+    /**
+     * 显示统一单选 Sheet。
+     *
+     * 少量固定选项使用列表而不是滚轮，减少截图中“大片空白 + 弱选中态”的问题。
+     */
+    fun <T> showChoiceSheet(
+        context: Context,
+        title: String,
+        options: List<PickerOption<T>>,
+        selectedValue: T? = null,
+        onSelected: (T) -> Unit,
+        onCancel: (() -> Unit)? = null
+    ): BasePopupView {
+        val selectedIndex = options.indexOfFirst { it.value == selectedValue }
+            .takeIf { it >= 0 }
+            ?: 0
+        val popup = BabyCareChoicePopup(
+            context = context,
+            title = title,
+            items = options,
+            initialIndex = selectedIndex,
+            onSelected = onSelected,
+            onCancel = onCancel
+        )
+        return createBottomSheetBuilder(context)
+            .asCustom(popup)
+            .show()
+    }
+
+    /**
+     * 显示统一日期/时间 Sheet。
+     *
+     * maxTime/minTime 用于组件层限制可见范围；跨天解释等业务规则由调用方继续负责。
+     */
+    fun showDateTimeSheet(
+        context: Context,
+        title: String,
+        initialTime: Long = System.currentTimeMillis(),
+        mode: DateTimeMode = DateTimeMode.DATE_TIME,
+        minTime: Long? = null,
+        maxTime: Long? = null,
+        yearRange: IntRange? = null,
+        onConfirm: (Long) -> Unit,
+        onCancel: (() -> Unit)? = null
+    ): BasePopupView {
+        val popup = BabyCareDateTimePopup(
+            context = context,
+            title = title,
+            mode = mode,
+            initialTime = initialTime,
+            minTime = minTime,
+            maxTime = maxTime,
+            yearRange = yearRange,
+            onConfirm = onConfirm,
+            onCancel = onCancel
+        )
+        return createBottomSheetBuilder(context)
+            .asCustom(popup)
+            .show()
+    }
+
+    /**
+     * 显示年月日 + 时分秒 Sheet。
+     *
+     * 只在业务确实需要秒级编辑时使用，避免普通日期时间入口增加额外列数。
+     */
+    fun showDateTimeSecondSheet(
+        context: Context,
+        title: String,
+        initialTime: Long = System.currentTimeMillis(),
+        minTime: Long? = null,
+        maxTime: Long? = null,
+        yearRange: IntRange? = null,
+        onConfirm: (Long) -> Unit,
+        onCancel: (() -> Unit)? = null
+    ): BasePopupView {
+        return showDateTimeSheet(
+            context = context,
+            title = title,
+            initialTime = initialTime,
+            mode = DateTimeMode.DATE_TIME_SECOND,
+            minTime = minTime,
+            maxTime = maxTime,
+            yearRange = yearRange,
+            onConfirm = onConfirm,
+            onCancel = onCancel
+        )
+    }
+
+    /**
+     * 显示只选择时分的 Sheet。
+     */
+    fun showTimeSheet(
+        context: Context,
+        title: String,
+        initialTime: Long = System.currentTimeMillis(),
+        onConfirm: (Long) -> Unit,
+        onCancel: (() -> Unit)? = null
+    ): BasePopupView {
+        return showDateTimeSheet(
+            context = context,
+            title = title,
+            initialTime = initialTime,
+            mode = DateTimeMode.TIME,
+            onConfirm = onConfirm,
+            onCancel = onCancel
+        )
+    }
+
+    /**
+     * 显示月日 + 时分 Sheet。
+     *
+     * 计时器场景需要用户明确选择日期和时间，避免只选时分后再由代码猜测跨天关系。
+     */
+    fun showMonthDayTimeSheet(
+        context: Context,
+        title: String,
+        initialTime: Long = System.currentTimeMillis(),
+        minTime: Long? = null,
+        maxTime: Long? = null,
+        onConfirm: (Long) -> Unit,
+        onCancel: (() -> Unit)? = null
+    ): BasePopupView {
+        return showDateTimeSheet(
+            context = context,
+            title = title,
+            initialTime = initialTime,
+            mode = DateTimeMode.MONTH_DAY_TIME,
+            minTime = minTime,
+            maxTime = maxTime,
+            onConfirm = onConfirm,
+            onCancel = onCancel
+        )
+    }
+
+    /**
+     * 显示月日 + 时分秒 Sheet。
+     *
+     * 计时器输入框本身展示秒，弹框也保留秒列，避免确认后秒被组件层静默归零。
+     */
+    fun showMonthDayTimeSecondSheet(
+        context: Context,
+        title: String,
+        initialTime: Long = System.currentTimeMillis(),
+        minTime: Long? = null,
+        maxTime: Long? = null,
+        onConfirm: (Long) -> Unit,
+        onCancel: (() -> Unit)? = null
+    ): BasePopupView {
+        return showDateTimeSheet(
+            context = context,
+            title = title,
+            initialTime = initialTime,
+            mode = DateTimeMode.MONTH_DAY_TIME_SECOND,
+            minTime = minTime,
+            maxTime = maxTime,
+            onConfirm = onConfirm,
+            onCancel = onCancel
+        )
+    }
+
     // ============ 兼容旧方法 ============
 
     @Deprecated(
@@ -127,4 +318,3 @@ object DialogHelper {
         return createLoadingDialog(context, title)
     }
 }
-

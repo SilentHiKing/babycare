@@ -1,6 +1,5 @@
 package com.zero.babycare.home.record
 
-import android.app.TimePickerDialog
 import android.content.Context
 import android.view.View
 import com.blankj.utilcode.util.StringUtils
@@ -11,7 +10,6 @@ import com.zero.components.base.util.DialogHelper
 import com.zero.components.widget.RecordView
 import com.zero.components.widget.RecordView.RecordState
 import com.zero.components.widget.TimeEditText
-import java.util.Calendar
 
 class RecordTimerController(
     private val context: Context,
@@ -170,20 +168,15 @@ class RecordTimerController(
 
     private fun setupTimePickerButtons() {
         startPicker.setOnClickListener {
-            showTimePickerWithDefault(startInput.getTimestamp()) { hour, minute ->
-                val timestamp = calculateSmartTimestampForStartTime(hour, minute)
+            showTimePickerWithDefault(startInput.getTimestamp()) { timestamp ->
                 applyStartTimeChange(timestamp)
             }
         }
 
         endPicker.setOnClickListener {
             updateEndTimeReference()
-            showTimePickerWithDefault(endInput.getTimestamp()) { hour, minute ->
-                val timestamp = calculateSmartTimestampForEndTime(
-                    hour,
-                    minute,
-                    startInput.getTimestamp()
-                )
+            val startTimestamp = startInput.getTimestamp().takeIf { it > 0L }
+            showTimePickerWithDefault(endInput.getTimestamp(), minTime = startTimestamp) { timestamp ->
                 applyEndTimeChange(timestamp)
             }
         }
@@ -291,73 +284,37 @@ class RecordTimerController(
 
     private fun showTimePickerWithDefault(
         defaultTimestamp: Long,
-        onTimeSet: (Int, Int) -> Unit
+        minTime: Long? = null,
+        onTimeSet: (Long) -> Unit
     ) {
-        val calendar = if (defaultTimestamp > 0L) {
-            Calendar.getInstance().apply { timeInMillis = defaultTimestamp }
-        } else {
-            Calendar.getInstance()
-        }
+        val now = System.currentTimeMillis()
+        val effectiveMinTime = minTime?.takeIf { it in 1L..now }
+        val initialTime = normalizePickerInitialTime(
+            defaultTimestamp = defaultTimestamp,
+            minTime = effectiveMinTime,
+            maxTime = now
+        )
 
-        TimePickerDialog(
-            context,
-            { _, hour, minute -> onTimeSet(hour, minute) },
-            calendar.get(Calendar.HOUR_OF_DAY),
-            calendar.get(Calendar.MINUTE),
-            true
-        ).show()
+        DialogHelper.showMonthDayTimeSecondSheet(
+            context = context,
+            title = StringUtils.getString(R.string.select_time),
+            initialTime = initialTime,
+            minTime = effectiveMinTime,
+            maxTime = now,
+            onConfirm = onTimeSet
+        )
     }
 
-    private fun calculateSmartTimestampForStartTime(hour: Int, minute: Int): Long {
-        val now = Calendar.getInstance()
-        val calendar = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-
-        if (calendar.timeInMillis > now.timeInMillis) {
-            calendar.add(Calendar.DAY_OF_MONTH, -1)
-        }
-
-        return calendar.timeInMillis
-    }
-
-    private fun calculateSmartTimestampForEndTime(
-        hour: Int,
-        minute: Int,
-        startTimestamp: Long
+    private fun normalizePickerInitialTime(
+        defaultTimestamp: Long,
+        minTime: Long?,
+        maxTime: Long
     ): Long {
-        val now = Calendar.getInstance()
-        val calendar = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
+        val candidate = defaultTimestamp.takeIf { it > 0L } ?: maxTime
+        return when {
+            minTime != null && candidate < minTime -> minTime
+            candidate > maxTime -> maxTime
+            else -> candidate
         }
-
-        if (startTimestamp > 0L) {
-            val startCalendar = Calendar.getInstance().apply { timeInMillis = startTimestamp }
-            val startHour = startCalendar.get(Calendar.HOUR_OF_DAY)
-            val startMinute = startCalendar.get(Calendar.MINUTE)
-
-            calendar.set(Calendar.YEAR, startCalendar.get(Calendar.YEAR))
-            calendar.set(Calendar.MONTH, startCalendar.get(Calendar.MONTH))
-            calendar.set(Calendar.DAY_OF_MONTH, startCalendar.get(Calendar.DAY_OF_MONTH))
-
-            if (hour < startHour || (hour == startHour && minute < startMinute)) {
-                calendar.add(Calendar.DAY_OF_MONTH, 1)
-                if (calendar.timeInMillis > now.timeInMillis) {
-                    calendar.add(Calendar.DAY_OF_MONTH, -1)
-                }
-            }
-        }
-
-        if (calendar.timeInMillis > now.timeInMillis) {
-            calendar.add(Calendar.DAY_OF_MONTH, -1)
-        }
-
-        return calendar.timeInMillis
     }
 }

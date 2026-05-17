@@ -36,12 +36,12 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="56dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/bg_record_time_field"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="14dp"
+                android:paddingHorizontal="12dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvStartTime">
@@ -60,8 +60,8 @@
                     android:gravity="center_vertical"
                     android:hint="@string/startTime"
                     android:includeFontPadding="false"
-                    android:maxLines="1"
-                    android:scrollHorizontally="true"
+                    android:maxLines="2"
+                    android:scrollHorizontally="false"
                     android:textColor="?attr/colorTextPrimary"
                     android:textColorHint="?attr/colorTextHint" />
 
@@ -100,12 +100,12 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="56dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/bg_record_time_field"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="14dp"
+                android:paddingHorizontal="12dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvEndTime">
@@ -124,8 +124,8 @@
                     android:gravity="center_vertical"
                     android:hint="@string/endTime"
                     android:includeFontPadding="false"
-                    android:maxLines="1"
-                    android:scrollHorizontally="true"
+                    android:maxLines="2"
+                    android:scrollHorizontally="false"
                     android:textColor="?attr/colorTextPrimary"
                     android:textColorHint="?attr/colorTextHint" />
 

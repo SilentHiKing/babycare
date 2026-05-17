@@ -1,10 +1,9 @@
 package com.zero.babycare.home.record.event
 
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.Spinner
@@ -45,6 +44,7 @@ import com.zero.common.ext.launchInLifecycle
 import com.zero.common.util.UnitConfig
 import com.zero.common.util.UnitConverter
 import com.zero.components.base.BaseFragment
+import com.zero.components.base.util.DialogHelper
 import com.zero.components.widget.RecordView.RecordState
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -67,6 +67,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private var isCategoryLocked = false
     private var pendingExtraData: com.zero.babydata.entity.EventExtraData? = null
     private var activityTimerController: RecordTimerController? = null
+    private var saveInProgress = false
 
     private val dateFormat = SimpleDateFormat("M月d日 E", Locale.CHINESE)
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -85,8 +86,8 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         if (isEditMode) {
             loadEditRecord()
         } else {
-            // 先处理预选分类，再开始观察，确保初始值正确
-            handlePreSelectedCategory()
+            // 常驻 Fragment 再次进入创建模式时，必须清掉上一次未保存的临时表单。
+            prepareCreateModeState()
         }
 
         observeViewModel()
@@ -94,15 +95,27 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
+        if (hidden) {
+            releaseActivityTimer()
+            setSaveInProgress(false)
+            return
+        }
         if (!hidden) {
             resolveEditMode()
             if (isEditMode) {
                 loadEditRecord()
             } else {
-                // Fragment 从隐藏变为显示时，处理预选分类
-                handlePreSelectedCategory()
+                prepareCreateModeState()
             }
         }
+    }
+
+    private fun prepareCreateModeState() {
+        releaseActivityTimer()
+        vm.reset()
+        binding.etNote.setText("")
+        setSaveInProgress(false)
+        handlePreSelectedCategory()
     }
 
     /**
@@ -246,37 +259,20 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     private fun showDateTimePicker() {
-        val calendar = Calendar.getInstance().apply {
-            timeInMillis = vm.eventTime.value
-        }
-
-        DatePickerDialog(
-            requireContext(),
-            { _, year, month, day ->
-                calendar.set(Calendar.YEAR, year)
-                calendar.set(Calendar.MONTH, month)
-                calendar.set(Calendar.DAY_OF_MONTH, day)
-
-                TimePickerDialog(
-                    requireContext(),
-                    { _, hour, minute ->
-                        calendar.set(Calendar.HOUR_OF_DAY, hour)
-                        calendar.set(Calendar.MINUTE, minute)
-                        vm.setEventTime(calendar.timeInMillis)
-                        val subtype = vm.selectedSubtype.value
-                        if (subtype != null && EventType.hasDuration(subtype.type)) {
-                            syncActivityStartTime(calendar.timeInMillis)
-                        }
-                    },
-                    calendar.get(Calendar.HOUR_OF_DAY),
-                    calendar.get(Calendar.MINUTE),
-                    true
-                ).show()
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
+        DialogHelper.showDateTimeSheet(
+            context = requireContext(),
+            title = StringUtils.getString(R.string.select_time),
+            initialTime = vm.eventTime.value,
+            mode = DialogHelper.DateTimeMode.DATE_TIME,
+            maxTime = System.currentTimeMillis(),
+            onConfirm = { timestamp ->
+                vm.setEventTime(timestamp)
+                val subtype = vm.selectedSubtype.value
+                if (subtype != null && EventType.hasDuration(subtype.type)) {
+                    syncActivityStartTime(timestamp)
+                }
+            }
+        )
     }
 
     private fun syncActivityStartTime(timestamp: Long) {
@@ -304,14 +300,16 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     private fun updateDetailView(subtype: EventSubtype?) {
+        releaseActivityTimer()
         binding.containerDetail.removeAllViews()
         activityTimerController = null
 
         if (subtype == null) {
-            binding.containerDetail.visibility = View.GONE
+            binding.sectionDetail.visibility = View.GONE
             return
         }
 
+        binding.sectionDetail.visibility = View.VISIBLE
         binding.containerDetail.visibility = View.VISIBLE
         val inflater = LayoutInflater.from(requireContext())
 
@@ -345,7 +343,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             }
             else -> {
                 // 简单事件无详情
-                binding.containerDetail.visibility = View.GONE
+                binding.sectionDetail.visibility = View.GONE
             }
         }
 
@@ -622,14 +620,28 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
     private fun inflateMedicineDetail(inflater: LayoutInflater) {
         val detailBinding = LayoutEventDetailMedicineBinding.inflate(inflater, binding.containerDetail, true)
-        val defaultUnit = StringUtils.getString(R.string.unit_ml_abbr)
+        val medicineUnits = listOf(
+            StringUtils.getString(R.string.unit_ml_abbr),
+            StringUtils.getString(R.string.unit_mg_abbr),
+            StringUtils.getString(R.string.unit_drop),
+            StringUtils.getString(R.string.unit_tablet)
+        )
+        val defaultUnit = medicineUnits.first()
+        detailBinding.spinnerUnit.adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            medicineUnits
+        ).apply {
+            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
 
         detailBinding.etMedicineName.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val name = detailBinding.etMedicineName.text.toString()
                 val dosage = detailBinding.etDosage.text.toString()
+                val unit = detailBinding.spinnerUnit.selectedItem?.toString()?.ifBlank { defaultUnit } ?: defaultUnit
                 if (name.isNotBlank()) {
-                    vm.setExtraData(MedicineData(name, dosage, defaultUnit))
+                    vm.setExtraData(MedicineData(name, dosage, unit))
                 }
             }
         }
@@ -785,12 +797,13 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     private fun updateUIVisibility(hasSubtype: Boolean) {
-        binding.tvNoteLabel.visibility = if (hasSubtype) View.VISIBLE else View.GONE
-        binding.etNote.visibility = if (hasSubtype) View.VISIBLE else View.GONE
+        binding.sectionNote.visibility = if (hasSubtype) View.VISIBLE else View.GONE
         binding.btnSave.visibility = if (hasSubtype) View.VISIBLE else View.GONE
     }
 
     private fun saveRecord() {
+        if (saveInProgress) return
+
         val babyId = mainVm.getCurrentBabyInfo()?.babyId
         if (babyId == null) {
             ToastUtils.showShort(R.string.no_baby_selected)
@@ -803,19 +816,29 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         // 获取备注
         vm.setNote(binding.etNote.text.toString().trim())
 
+        setSaveInProgress(true)
         vm.saveRecord(
             babyId = babyId,
             editRecordId = editRecordId,
             createdAt = editingRecord?.createdAt,
             onSuccess = {
+                setSaveInProgress(false)
                 ToastUtils.showShort(R.string.save_success)
                 vm.reset()
                 mainVm.navigateTo(getReturnTarget())
             },
             onError = { message ->
+                setSaveInProgress(false)
                 ToastUtils.showShort(message)
             }
         )
+    }
+
+    private fun setSaveInProgress(inProgress: Boolean) {
+        saveInProgress = inProgress
+        if (view == null) return
+        binding.btnSave.isEnabled = !inProgress
+        binding.btnSave.alpha = if (inProgress) 0.7f else 1f
     }
 
     private fun syncRunningActivityTimerBeforeSave() {
@@ -1027,5 +1050,21 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         subtypeAdapter.setLocked(isCategoryLocked)
         binding.rvCategory.isEnabled = !isCategoryLocked
         binding.rvSubtype.isEnabled = !isCategoryLocked
+    }
+
+    private fun releaseActivityTimer() {
+        if (activityTimerController == null) return
+        val detailRoot = binding.containerDetail.getChildAt(0)
+        if (detailRoot != null) {
+            runCatching {
+                LayoutEventDetailActivityBinding.bind(detailRoot).timerPanel.timerView.release()
+            }
+        }
+        activityTimerController = null
+    }
+
+    override fun onDestroyView() {
+        releaseActivityTimer()
+        super.onDestroyView()
     }
 }

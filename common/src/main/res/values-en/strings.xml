@@ -11,6 +11,10 @@
     <string name="girl">girl</string>
     <string name="unit_g">g</string>
     <string name="unit_cm">cm</string>
+    <string name="unit_ml_abbr">ml</string>
+    <string name="unit_mg_abbr">mg</string>
+    <string name="unit_drop">drop</string>
+    <string name="unit_tablet">tablet</string>
     <string name="updateSuccess">Update success</string>
     <string name="nameIsNullTip">Name is null</string>
     <string name="breast">breast</string>
@@ -26,6 +30,16 @@
     <string name="next">Next</string>
     <string name="startTime">start time</string>
     <string name="endTime">end time</string>
+    <string name="select_time">Select time</string>
+    <string name="record_time_date_current_year_format">%1$02d/%2$02d</string>
+    <string name="record_time_date_cross_year_format">%1$d/%2$02d/%3$02d</string>
+    <string name="record_time_clock_format">%1$02d:%2$02d:%3$02d</string>
+    <string name="picker_year_format">%1$d</string>
+    <string name="picker_month_format">%1$02d</string>
+    <string name="picker_day_format">%1$02d</string>
+    <string name="picker_hour_format">%1$02d</string>
+    <string name="picker_minute_format">%1$02d</string>
+    <string name="picker_second_format">%1$02d</string>
     <string name="dashboard">Dashboard</string>
     <string name="stool_color_red">Red</string>
     <string name="event_label_value_format">%1$s: %2$s</string>
@@ -107,6 +121,7 @@
     <string name="backup_report_deleted_format">Deleted report: %1$s</string>
     <string name="backup_report_delete_failed">Failed to delete report</string>
     <string name="backup_report_empty">No import reports</string>
+    <string name="save_failed">Save failed. Try again later.</string>
     <string name="backup_export_hint_format">Exported file: %1$s\nCheck it in your file manager</string>
     <string name="backup_import_report_export_hint_format">Exported report: %1$s\nCheck it in your file manager</string>
     <string name="statistics">Statistics</string>

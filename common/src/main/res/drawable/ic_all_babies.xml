@@ -4,10 +4,10 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- 线性宝宝列表图标：保留婴儿语义，避免厚重多人填充图标。 -->
+    <!-- 线性宝宝列表图标：前后两个头像表达“所有宝宝”，避免厚重多人填充感。 -->
     <path
         android:fillColor="@android:color/transparent"
-        android:pathData="M8.5,10.5a3.5,3.5 0,1 0,0 -7a3.5,3.5 0,0 0,0 7zM3.5,20c0,-3 2.2,-5 5,-5s5,2 5,5M16.5,10a3,3 0,1 0,0 -6a3,3 0,0 0,0 6zM14.5,14.5c2.8,0.1 5,2.1 5,5.5"
+        android:pathData="M9,10.25a3.25,3.25 0,1 0,0 -6.5a3.25,3.25 0,0 0,0 6.5zM4,19.25c0.45,-3.1 2.35,-4.75 5,-4.75s4.55,1.65 5,4.75M16.25,10.5a2.75,2.75 0,1 0,0 -5.5a2.75,2.75 0,0 0,0 5.5zM15.25,14.75c2.35,0.25 4.05,1.85 4.5,4.5"
         android:strokeColor="?attr/iconColorPrimary"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"

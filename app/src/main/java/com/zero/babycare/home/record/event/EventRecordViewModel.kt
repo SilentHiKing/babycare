@@ -215,11 +215,16 @@ class EventRecordViewModel : BaseViewModel() {
             val onComplete = Runnable {
                 ThreadUtils.runOnUiThread { onSuccess() }
             }
+            val onFailure: (Throwable) -> Unit = {
+                ThreadUtils.runOnUiThread {
+                    onError(StringUtils.getString(R.string.save_failed))
+                }
+            }
 
             if (editRecordId != null) {
-                repository.updateEventRecord(record, onComplete)
+                repository.updateEventRecord(record, onComplete, onFailure)
             } else {
-                repository.insertEventRecord(record, onComplete)
+                repository.insertEventRecord(record, onComplete, onFailure)
             }
         }
     }

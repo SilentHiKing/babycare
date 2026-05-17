@@ -391,6 +391,98 @@ class UiResourcePolicyTest {
     }
 
     @Test
+    fun `surface stroke resources use shared hairline token`() {
+        val surfaceStrokePaths = listOf(
+            "app/src/main/res/drawable/bg_event_record_section.xml",
+            "app/src/main/res/drawable/bg_settings_group_surface_border.xml",
+            "app/src/main/res/drawable/bg_setting_switch_track.xml",
+            "common/src/main/res/drawable/bg_surface_stroke_control_border.xml",
+            "common/src/main/res/drawable/bg_surface_group_sides_control_border.xml",
+            "common/src/main/res/drawable/bg_r16_surface_stroke_control_border.xml",
+            "common/src/main/res/drawable/bg_r16_top_surface_stroke_control_border.xml",
+            "common/src/main/res/drawable/bg_r16_bottom_surface_stroke_control_border.xml",
+            "common/src/main/res/drawable/bg_r16_top_surface_group_control_border.xml",
+            "common/src/main/res/drawable/bg_r16_bottom_surface_group_control_border.xml",
+            "common/src/main/res/drawable/bg_r6_block_gridview.xml",
+            "common/src/main/res/drawable/bg_r8_metric_tile.xml",
+            "common/src/main/res/drawable/bg_record_time_field.xml",
+            "common/src/main/res/drawable/selector_radio_bg.xml",
+            "common/src/main/res/drawable/selector_event_category_bg.xml",
+            "common/src/main/res/drawable/selector_solid_category_bg.xml",
+            "common/src/main/res/drawable/selector_solid_subtype_bg.xml",
+            "components/src/main/res/drawable/bg_btn_cancel.xml"
+        )
+        val legacyStrokeWidth = Regex("""android:width="(?:0\.5|0\.75|1|1\.5)dp"""")
+
+        val offenders = surfaceStrokePaths.mapNotNull { relativePath ->
+            val content = File(repoRoot(), relativePath).readText()
+            val usesSharedHairline = content.contains("@dimen/surface_stroke_width")
+            val hardcodesLegacyStrokeWidth = legacyStrokeWidth.containsMatchIn(content)
+
+            if (!usesSharedHairline || hardcodesLegacyStrokeWidth) {
+                relativePath
+            } else {
+                null
+            }
+        }
+        val commonDimens = File(repoRoot(), "common/src/main/res/values/dimens.xml").readText()
+
+        // 普通 surface/control surface 的边界统一成 0.1dp，语义强调边框和图标线宽不进入这套 token。
+        assertTrue(
+            "Surface + stroke resources should use @dimen/surface_stroke_width=0.1dp: $offenders",
+            offenders.isEmpty() && commonDimens.contains("<dimen name=\"surface_stroke_width\">0.1dp</dimen>")
+        )
+    }
+
+    @Test
+    fun `baby info birth measurement units follow settings`() {
+        val layout = File(repoRoot(), "app/src/main/res/layout/fragment_update_info.xml").readText()
+        val fragment = File(
+            repoRoot(),
+            "app/src/main/java/com/zero/babycare/babyinfo/UpdateInfoFragment.kt"
+        ).readText()
+        val viewModel = File(
+            repoRoot(),
+            "app/src/main/java/com/zero/babycare/babyinfo/UpdateInfoViewModel.kt"
+        ).readText()
+
+        val offenders = buildList {
+            if (!layout.contains("android:id=\"@+id/tvWeightUnit\"") ||
+                !layout.contains("android:id=\"@+id/tvHeightUnit\"")
+            ) {
+                add("birth weight and height unit labels should be bindable views")
+            }
+            if (layout.contains("@string/unit_g")) {
+                add("birth weight should not keep a fixed gram label in the layout")
+            }
+            if (layout.contains("@string/unit_cm")) {
+                add("birth height should not keep a fixed centimeter label in the layout")
+            }
+            if (!fragment.contains("bindUnitLabels(unitState)") ||
+                !fragment.contains("vm.formatBirthWeight") ||
+                !fragment.contains("vm.parseBirthWeightToStorage") ||
+                !fragment.contains("vm.formatBirthHeight") ||
+                !fragment.contains("vm.parseBirthHeightToStorage")
+            ) {
+                add("UpdateInfoFragment should render and save birth measurements through unit-aware ViewModel APIs")
+            }
+            if (!viewModel.contains("UnitConfig.getWeightUnit()") ||
+                !viewModel.contains("UnitConfig.getHeightUnit()") ||
+                !viewModel.contains("birthWeightToDisplay") ||
+                !viewModel.contains("birthWeightToStorageGrams")
+            ) {
+                add("UpdateInfoViewModel should read settings units and preserve BabyInfo storage units")
+            }
+        }
+
+        // 宝宝信息页不能固定写死克/厘米；显示跟随设置，存储仍保持历史兼容单位。
+        assertTrue(
+            "Baby info birth measurement units are not connected to settings: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
     fun `soft utility palette stays warm and lively`() {
         val colors = File(repoRoot(), "common/src/main/res/values/colors_base.xml").readText()
         val expectedColors = listOf(
@@ -441,6 +533,106 @@ class UiResourcePolicyTest {
         // 事件页选中态应是轻量描边和浅暖底，不能退回白字实色块或旧蓝色强调。
         assertTrue(
             "Event selection state still uses heavy or legacy accents: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
+    fun `event record page resets create state and releases activity timer`() {
+        val source = File(
+            repoRoot(),
+            "app/src/main/java/com/zero/babycare/home/record/event/EventRecordFragment.kt"
+        ).readText()
+
+        val offenders = buildList {
+            if (!source.contains("prepareCreateModeState()")) {
+                add("create mode should reset transient form state whenever the page is entered")
+            }
+            if (!source.contains("binding.etNote.setText(\"\")")) {
+                add("create mode should clear the retained note EditText")
+            }
+            if (!source.contains("releaseActivityTimer()") ||
+                !source.contains("timerPanel.timerView.release()") ||
+                !source.contains("override fun onDestroyView()")
+            ) {
+                add("activity timer should be released when detail views are removed or the page is destroyed")
+            }
+        }
+
+        // 主页面使用常驻 Fragment + show/hide，事件记录页必须主动清理临时表单和计时器状态。
+        assertTrue(
+            "Event record create lifecycle cleanup is incomplete: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
+    fun `event record save is guarded while database write is pending`() {
+        val fragment = File(
+            repoRoot(),
+            "app/src/main/java/com/zero/babycare/home/record/event/EventRecordFragment.kt"
+        ).readText()
+        val viewModel = File(
+            repoRoot(),
+            "app/src/main/java/com/zero/babycare/home/record/event/EventRecordViewModel.kt"
+        ).readText()
+        val repository = File(
+            repoRoot(),
+            "babydata/src/main/java/com/zero/babydata/room/BabyRepository.kt"
+        ).readText()
+
+        val offenders = buildList {
+            if (!fragment.contains("if (saveInProgress) return") ||
+                !fragment.contains("setSaveInProgress(true)") ||
+                !fragment.contains("setSaveInProgress(false)") ||
+                !fragment.contains("binding.btnSave.isEnabled = !inProgress")
+            ) {
+                add("save button should be disabled until the write callback returns")
+            }
+            if (!fragment.contains("if (view == null) return")) {
+                add("setSaveInProgress should not touch binding before onCreateView or after onDestroyView")
+            }
+            if (!viewModel.contains("onFailure") || !repository.contains("errorCallback")) {
+                add("event save should surface repository write failures back to the UI")
+            }
+        }
+
+        // 父母记录时可能连续点击保存；写入中需要明确防抖，并且数据库失败不能静默。
+        assertTrue(
+            "Event record save flow is not guarded: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
+    fun `event record page uses clear sections and stable event type targets`() {
+        val page = File(repoRoot(), "app/src/main/res/layout/fragment_event_record.xml").readText()
+        val category = File(repoRoot(), "app/src/main/res/layout/item_event_category.xml").readText()
+        val subtype = File(repoRoot(), "app/src/main/res/layout/item_event_subtype.xml").readText()
+
+        val offenders = buildList {
+            listOf("sectionTime", "sectionEventType", "sectionDetail", "sectionNote").forEach { id ->
+                if (!page.contains("""android:id="@+id/$id"""")) {
+                    add("event record layout should expose $id as a visual section")
+                }
+            }
+            if (!page.contains("@drawable/bg_event_record_section")) {
+                add("event record sections should use one surface + stroke container treatment")
+            }
+            if (!category.contains("""android:minHeight="48dp"""")) {
+                add("event category chips should keep a 48dp touch target")
+            }
+            if (!subtype.contains("""android:minHeight="@dimen/event_record_subtype_min_height"""")) {
+                add("event subtype cards should keep a fixed minimum height")
+            }
+            if (!subtype.contains("""android:maxLines="2"""")) {
+                add("event subtype labels should cap wrapping to keep grid rows stable")
+            }
+        }
+
+        // 记录页需要清晰分区和稳定网格，避免不同类型文案导致控件跳高、视觉散乱。
+        assertTrue(
+            "Event record layout hierarchy or targets are unstable: $offenders",
             offenders.isEmpty()
         )
     }
@@ -565,6 +757,10 @@ class UiResourcePolicyTest {
             repoRoot(),
             "common/src/main/res/drawable/bg_record_time_field.xml"
         ).readText()
+        val timeEditText = File(
+            repoRoot(),
+            "components/src/main/java/com/zero/components/widget/TimeEditText.kt"
+        ).readText()
 
         val insetLabelPattern = Regex(
             """android:paddingHorizontal="10dp"[\s\S]{0,160}android:text="@string/(solid_food_type|solid_food_name|solid_food_amount|other_food_name|feeding_amount|note)""""
@@ -582,6 +778,12 @@ class UiResourcePolicyTest {
             if (!timePanel.contains("fontFeatureSettings=\"tnum\"")) {
                 add("time values should use tabular numbers for calmer scanning")
             }
+            if (!timePanel.contains("android:layout_height=\"56dp\"") ||
+                !timePanel.contains("android:maxLines=\"2\"") ||
+                timePanel.contains("android:scrollHorizontally=\"true\"")
+            ) {
+                add("time fields should use a two-line compact date/time display instead of a cramped one-line timestamp")
+            }
             if (timePanel.contains("center_vertical|end")) {
                 add("end time label should align to its field start instead of floating to the right")
             }
@@ -590,6 +792,15 @@ class UiResourcePolicyTest {
             }
             if (!timeFieldBg.contains("control_surface_default") || !timeFieldBg.contains("control_border_default")) {
                 add("time field background should use Soft Utility control tokens")
+            }
+            if (!timeEditText.contains("SpannableString") ||
+                !timeEditText.contains("record_time_date_current_year_format") ||
+                !timeEditText.contains("record_time_clock_format") ||
+                !timeEditText.contains("AbsoluteSizeSpan(RECORD_TIME_CLOCK_TEXT_SIZE_SP") ||
+                !timeEditText.contains("ForegroundColorSpan(resolveThemeColor(com.zero.common.R.attr.colorTextHint))") ||
+                !timeEditText.contains("TypefaceSpan(\"sans-serif-medium\")")
+            ) {
+                add("TimeEditText should render date as weak context and HH:mm:ss as the primary readable value")
             }
         }
 
@@ -658,6 +869,195 @@ class UiResourcePolicyTest {
         // 弹窗的取消按钮是明确的次要操作，不能弱到像禁用态；同时确认按钮不能保留旧蓝色按压态。
         assertTrue(
             "Confirm dialog action buttons are not aligned with Soft Utility 2.0: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
+    fun `app module uses shared picker sheets instead of raw picker APIs`() {
+        val sourceRoot = File(repoRoot(), "app/src/main/java")
+        val forbiddenImports = listOf(
+            "import android.app.DatePickerDialog",
+            "import android.app.TimePickerDialog",
+            "import com.lxj.xpopup.XPopup",
+            "import com.lxj.xpopupext.listener.CommonPickerListener",
+            "import com.lxj.xpopupext.listener.TimePickerListener",
+            "import com.lxj.xpopupext.popup.CommonPickerPopup",
+            "import com.lxj.xpopupext.popup.TimePickerPopup"
+        )
+
+        val offenders = sourceRoot.walkTopDown()
+            .filter { it.isFile && it.extension == "kt" }
+            .flatMap { file ->
+                val content = file.readText()
+                forbiddenImports.mapNotNull { forbidden ->
+                    if (content.contains(forbidden)) {
+                        "${file.relativeTo(repoRoot()).invariantSeparatorsPath} uses $forbidden"
+                    } else {
+                        null
+                    }
+                }
+            }
+            .toList()
+
+        // 选择器和时间选择器必须沉淀在 components，避免业务页继续继承第三方默认视觉。
+        assertTrue(
+            "Business pages should use DialogHelper picker APIs instead of raw picker classes: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
+    fun `shared picker sheets use flat list visuals`() {
+        val dateTimeLayout = File(
+            repoRoot(),
+            "components/src/main/res/layout/popup_babycare_date_time_sheet.xml"
+        ).readText()
+        val choiceLayout = File(
+            repoRoot(),
+            "components/src/main/res/layout/popup_babycare_choice_sheet.xml"
+        ).readText()
+        val dateTimeSource = File(
+            repoRoot(),
+            "components/src/main/java/com/zero/components/base/util/BabyCareDateTimePopup.kt"
+        ).readText()
+        val dialogHelperSource = File(
+            repoRoot(),
+            "components/src/main/java/com/zero/components/base/util/DialogHelper.kt"
+        ).readText()
+        val choiceSource = File(
+            repoRoot(),
+            "components/src/main/java/com/zero/components/base/util/BabyCareChoicePopup.kt"
+        ).readText()
+        val bottomSheetSource = File(
+            repoRoot(),
+            "components/src/main/java/com/zero/components/base/util/BabyCareBottomSheetPopup.kt"
+        ).readText()
+        val timerControllerSource = File(
+            repoRoot(),
+            "app/src/main/java/com/zero/babycare/home/record/RecordTimerController.kt"
+        ).readText()
+
+        val offenders = buildList {
+            if (dateTimeLayout.contains("com.contrarywind.view.WheelView") ||
+                dateTimeSource.contains("com.contrarywind.view.WheelView") ||
+                dateTimeSource.contains("ArrayWheelAdapter")
+            ) {
+                add("date/time picker should not use the 3D wheel implementation")
+            }
+            if (!dateTimeLayout.contains("androidx.recyclerview.widget.RecyclerView")) {
+                add("date/time picker should render flat scroll columns with RecyclerView")
+            }
+            if (!dateTimeLayout.contains("@drawable/bg_picker_fade_top") ||
+                !dateTimeLayout.contains("@drawable/bg_picker_fade_bottom")
+            ) {
+                add("date/time picker should use top and bottom gradient masks")
+            }
+            if (dateTimeLayout.contains("android:id=\"@+id/tv_title\"")) {
+                add("date/time picker should hide the center title to match the quiet sheet header")
+            }
+            if (!dateTimeLayout.contains("android:layout_height=\"48dp\"")) {
+                add("date/time picker header should use the same compact 48dp height as choice picker")
+            }
+            if (!dateTimeLayout.contains("android:paddingBottom=\"8dp\"")) {
+                add("date/time picker should avoid excessive bottom whitespace")
+            }
+            if (!dateTimeSource.contains("DATE_TIME_ITEM_TEXT_SIZE_SP = 16f")) {
+                add("date/time picker column text should use the compact 16sp size")
+            }
+            if (!dialogHelperSource.contains("MONTH_DAY_TIME") ||
+                !dialogHelperSource.contains("MONTH_DAY_TIME_SECOND") ||
+                !dialogHelperSource.contains("DATE_TIME_SECOND") ||
+                !dialogHelperSource.contains("showMonthDayTimeSheet") ||
+                !dialogHelperSource.contains("showMonthDayTimeSecondSheet") ||
+                !dialogHelperSource.contains("showDateTimeSecondSheet")
+            ) {
+                add("date/time picker should expose date-time and month-day-time modes with optional seconds")
+            }
+            if (!dateTimeLayout.contains("android:id=\"@+id/picker_date_time_group_gap\"")) {
+                add("date/time picker should visually separate month/day and hour/minute groups")
+            }
+            if (!dateTimeLayout.contains("android:id=\"@+id/picker_date_group\"") ||
+                !dateTimeLayout.contains("android:id=\"@+id/picker_time_group\"") ||
+                !dateTimeLayout.contains("android:id=\"@+id/list_second\"")
+            ) {
+                add("date/time picker should lay out date columns and time columns as two explicit groups")
+            }
+            if (dateTimeLayout.contains("picker_selection_top_line") ||
+                dateTimeLayout.contains("picker_date_top_line") ||
+                dateTimeLayout.contains("picker_time_top_line")
+            ) {
+                add("date/time picker selection lines should stay continuous; grouping should come from spacing")
+            }
+            if (!dateTimeSource.contains("groupGap.visibility = if (showDateGroup && showTimeGroup)")) {
+                add("date/time picker group gap should appear only when date and time columns are both visible")
+            }
+            if (!dateTimeSource.contains("MONTH_DAY_TIME_GROUP_GAP_DP = 56") ||
+                !dateTimeSource.contains("FULL_DATE_TIME_GROUP_GAP_DP = 32") ||
+                !dateTimeSource.contains("if (showYearColumn()) FULL_DATE_TIME_GROUP_GAP_DP else MONTH_DAY_TIME_GROUP_GAP_DP")
+            ) {
+                add("date/time picker should use a larger gap for month-day/time grouping and a compact gap for full date-time")
+            }
+            if (!dateTimeSource.contains("picker_second_format")) {
+                add("date/time picker should render the optional seconds column from localized resources")
+            }
+            if (!timerControllerSource.contains("DialogHelper.showMonthDayTimeSecondSheet") ||
+                timerControllerSource.contains("calculateSmartTimestampForStartTime") ||
+                timerControllerSource.contains("calculateSmartTimestampForEndTime")
+            ) {
+                add("record timer picker should use the selected month/day/hour/minute/second timestamp directly")
+            }
+            if (choiceSource.contains("bg_picker_option_selected")) {
+                add("choice picker should use list rows and a right check mark, not a bordered selected block")
+            }
+            if (choiceLayout.contains("android:id=\"@+id/tv_title\"")) {
+                add("choice picker should hide the center title to keep the sheet header quiet")
+            }
+            if (Regex("""android:id="@\+id/option_container"[\s\S]{0,240}android:paddingHorizontal""")
+                    .containsMatchIn(choiceLayout)
+            ) {
+                add("choice picker options should not add container padding on top of row padding")
+            }
+            if (!choiceSource.contains("setPadding(dp(16), 0, dp(16), 0)")) {
+                add("choice picker rows should align labels and checks to the same 16dp header edge")
+            }
+            if (!choiceLayout.contains("android:layout_height=\"48dp\"")) {
+                add("choice picker header should be compact enough for short option lists")
+            }
+            if (!choiceLayout.contains("android:paddingBottom=\"8dp\"")) {
+                add("choice picker should avoid excessive bottom whitespace for two-item lists")
+            }
+            if (!choiceSource.contains("CHOICE_ITEM_TEXT_SIZE_SP = 15f")) {
+                add("choice picker item text should use the compact 15sp size")
+            }
+            if (!choiceSource.contains("setTextColor(context.resolveThemeColor(com.zero.common.R.attr.colorTextPrimary))") ||
+                choiceSource.contains("if (isSelected) com.zero.common.R.attr.colorBrand else")
+            ) {
+                add("choice picker item text should stay primary text color and leave brand emphasis to the check icon")
+            }
+            if (!choiceSource.contains("Typeface.create(")) {
+                add("choice picker should use font weight, not extra color blocks, to softly distinguish selected text")
+            }
+            if (!choiceSource.contains("gravity = Gravity.CENTER") ||
+                !choiceSource.contains("FrameLayout.LayoutParams") ||
+                !choiceSource.contains("Gravity.END or Gravity.CENTER_VERTICAL")
+            ) {
+                add("choice picker item text should be centered while the check icon stays right-aligned")
+            }
+            if (!dateTimeSource.contains("updateSheetDragEnabledForContentTouch(event, contentTouchArea)") ||
+                !dateTimeSource.contains("R.id.picker_frame") ||
+                !choiceSource.contains("updateSheetDragEnabledForContentTouch(event, contentTouchArea)") ||
+                !choiceSource.contains("R.id.option_container") ||
+                !bottomSheetSource.contains("bottomPopupContainer.enableDrag(!contentView.containsRawPoint") ||
+                !bottomSheetSource.contains("MotionEvent.ACTION_UP")
+            ) {
+                add("picker sheets should disable drag-to-dismiss for content touches while keeping the header draggable")
+            }
+        }
+
+        // 选择器的视觉必须统一为平面列表：选择项靠分割线和右侧勾确认，时间项靠渐变蒙层突出中心数字。
+        assertTrue(
+            "Shared picker sheets are not aligned with flat list picker visuals: $offenders",
             offenders.isEmpty()
         )
     }

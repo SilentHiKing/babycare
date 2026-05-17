@@ -167,10 +167,10 @@ BabyCare 的视觉方向是 **Soft Care + Data Clarity**。它服务的是睡眠
 
 - `control_surface_default (#FFFDFC)`：输入框、未选中分段控件、普通记录控件底。
 - `control_surface_selected (#FFF3E8)`：选中 Chip、选中事件卡、轻量当前态，搭配品牌色或业务语义色描边/文字。
-- `control_border_default (#E3ECEB)`：输入框和未选中控件 1dp 边框。
+- `control_border_default (#E3ECEB)`：输入框和未选中控件 hairline 边框，统一使用 `@dimen/surface_stroke_width`（0.1dp）。
 - `event_icon_surface (#FFF2D9)`：通用事件图标承托面；具体业务可用对应 `event_*_light`。
 
-除主按钮、保存按钮外，记录页选中态优先使用浅暖底 + 1dp 描边 + 深色文字/图标，不使用大面积品牌实色块，不使用白字浅底。
+除主按钮、保存按钮外，记录页选中态优先使用浅暖底 + 0.1dp 描边 + 深色文字/图标，不使用大面积品牌实色块，不使用白字浅底。
 
 深色模式必须单独定义颜色，不允许直接复用浅色灰阶。夜间主按钮和选中态仍需满足白字 4.5:1；若需要在深色背景上展示品牌文字或图标，应优先使用 light / accent token，而不是把浅色 token 用作按钮底色。正文对比度至少满足 WCAG AA。
 

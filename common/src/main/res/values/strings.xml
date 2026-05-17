@@ -143,7 +143,9 @@
     <string name="feeding_amount_hint">可选</string>
     <string name="unit_ml">毫升</string>
     <string name="unit_ml_abbr">ml</string>
+    <string name="unit_mg_abbr">mg</string>
     <string name="unit_drop">滴</string>
+    <string name="unit_tablet">片</string>
     <string name="left_breast">左侧</string>
     <string name="right_breast">右侧</string>
     <string name="left_breast_duration">左侧时长</string>
@@ -167,6 +169,15 @@
     <string name="last_feeding_time">上次: %1$s</string>
     <string name="yesterday">昨天</string>
     <string name="select_time">选择时间</string>
+    <string name="record_time_date_current_year_format">%1$02d月%2$02d日</string>
+    <string name="record_time_date_cross_year_format">%1$d/%2$02d/%3$02d</string>
+    <string name="record_time_clock_format">%1$02d:%2$02d:%3$02d</string>
+    <string name="picker_year_format">%1$d年</string>
+    <string name="picker_month_format">%1$02d月</string>
+    <string name="picker_day_format">%1$02d日</string>
+    <string name="picker_hour_format">%1$02d时</string>
+    <string name="picker_minute_format">%1$02d分</string>
+    <string name="picker_second_format">%1$02d秒</string>
     <string name="breast_duration_exceed">左右乳房时长之和不能超过总喂奶时长</string>
     <string name="end_time_will_be_cleared">继续计时将清空已填写的结束时间，确定继续吗？</string>
     <string name="continue_timing">继续计时</string>
@@ -331,6 +342,7 @@
     <string name="event_end_time_invalid">请设置有效的结束时间</string>
     <string name="event_value_required">请输入数值</string>
     <string name="save_success">保存成功</string>
+    <string name="save_failed">保存失败，请稍后重试</string>
     <string name="please_select_event_type">请选择事件类型</string>
 
     <!-- 事件大类 -->

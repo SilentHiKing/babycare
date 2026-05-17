@@ -1,0 +1,199 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="980" viewBox="0 0 1440 980">
+  <defs>
+    <filter id="sheetShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="-8" stdDeviation="18" flood-color="#12323A" flood-opacity="0.12"/>
+    </filter>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F7FBFA"/>
+      <stop offset="100%" stop-color="#EEF7FE"/>
+    </linearGradient>
+    <style>
+      .title { font: 600 34px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #12323A; }
+      .subtitle { font: 400 18px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #3E5B63; }
+      .note { font: 500 17px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #247BA0; }
+      .phone-title { font: 600 22px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #12323A; }
+      .phone-subtitle { font: 400 15px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #3E5B63; }
+      .nav { font: 500 17px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #2A74B8; }
+      .sheet-title { font: 600 19px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #12323A; }
+      .item { font: 400 18px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #12323A; }
+      .item-weak { font: 400 18px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #7C98A1; }
+      .item-selected { font: 600 19px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #2A74B8; }
+      .dt { font: 400 18px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #7C98A1; }
+      .dt-selected { font: 600 23px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #12323A; }
+      .label { font: 600 16px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #3E5B63; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="980" fill="url(#bg)"/>
+  <text x="72" y="74" class="title">BabyCare 弹框统一方向：平面列表式 Picker</text>
+  <text x="72" y="112" class="subtitle">核心：保留滚动选择效率，去掉 3D 滚轮透视；选中态融入列表，不再使用描边卡片。</text>
+  <text x="72" y="148" class="note">列表项 = 文本 + 下划线 / hairline 分割线；当前选中 = 品牌色文字 + 右侧对勾；时间列 = 平面 list 滚动 + 中心选中行。</text>
+
+  <!-- Phone 1 -->
+  <g transform="translate(72,198)">
+    <text x="0" y="-22" class="phone-title">方案 A：选择弹框</text>
+    <text x="0" y="4" class="phone-subtitle">单位 / 性别 / 血型 / 导入方式</text>
+    <rect x="0" y="24" width="382" height="720" rx="36" fill="#E7F0F2"/>
+    <rect x="14" y="38" width="354" height="692" rx="30" fill="#F7FBFA"/>
+    <text x="48" y="98" class="label">设置</text>
+    <rect x="42" y="130" width="298" height="90" rx="16" fill="#FFFFFF" stroke="#E3ECEB"/>
+    <text x="66" y="166" class="item">身高单位</text>
+    <text x="278" y="166" class="item-weak">cm</text>
+    <line x1="66" y1="192" x2="316" y2="192" stroke="#E3ECEB"/>
+    <text x="66" y="214" class="item">体重单位</text>
+    <text x="280" y="214" class="item-weak">kg</text>
+    <rect x="14" y="306" width="354" height="424" rx="28" fill="#FFFFFF" filter="url(#sheetShadow)"/>
+    <rect x="152" y="322" width="64" height="5" rx="2.5" fill="#D8E5E3"/>
+    <text x="48" y="370" class="nav">取消</text>
+    <text x="170" y="370" text-anchor="middle" class="sheet-title">身高单位</text>
+    <text x="310" y="370" text-anchor="end" class="nav">确定</text>
+    <line x1="30" y1="398" x2="352" y2="398" stroke="#E3ECEB"/>
+    <text x="48" y="444" class="item-selected">cm</text>
+    <path d="M305 438l8 8 18-20" fill="none" stroke="#2A74B8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="48" y1="468" x2="334" y2="468" stroke="#E3ECEB"/>
+    <text x="48" y="518" class="item">in</text>
+    <line x1="48" y1="542" x2="334" y2="542" stroke="#E3ECEB"/>
+    <text x="48" y="592" class="item">ft</text>
+    <line x1="48" y1="616" x2="334" y2="616" stroke="#E3ECEB"/>
+    <text x="48" y="674" class="phone-subtitle">无选中描边块，列表整体更统一</text>
+  </g>
+
+  <!-- Phone 2 -->
+  <g transform="translate(529,198)">
+    <text x="0" y="-22" class="phone-title">方案 B：日期时间弹框</text>
+    <text x="0" y="4" class="phone-subtitle">生日 / 事件时间：平面多列 list</text>
+    <rect x="0" y="24" width="382" height="720" rx="36" fill="#E7F0F2"/>
+    <rect x="14" y="38" width="354" height="692" rx="30" fill="#F7FBFA"/>
+    <text x="132" y="98" class="label">创建宝宝</text>
+    <rect x="42" y="130" width="298" height="240" rx="18" fill="#FFFFFF" stroke="#E3ECEB"/>
+    <text x="66" y="168" class="label">生日</text>
+    <rect x="66" y="188" width="250" height="48" rx="8" fill="#FFFDFC" stroke="#E3ECEB"/>
+    <text x="84" y="219" class="item-weak">请选择生日</text>
+    <text x="66" y="280" class="label">性别</text>
+    <rect x="66" y="300" width="250" height="48" rx="8" fill="#FFFDFC" stroke="#E3ECEB"/>
+    <text x="84" y="331" class="item-weak">请选择性别</text>
+
+    <rect x="14" y="306" width="354" height="424" rx="28" fill="#FFFFFF" filter="url(#sheetShadow)"/>
+    <rect x="152" y="322" width="64" height="5" rx="2.5" fill="#D8E5E3"/>
+    <text x="48" y="370" class="nav">取消</text>
+    <text x="178" y="370" text-anchor="middle" class="sheet-title">生日</text>
+    <text x="310" y="370" text-anchor="end" class="nav">确定</text>
+    <line x1="30" y1="398" x2="352" y2="398" stroke="#E3ECEB"/>
+
+    <rect x="30" y="506" width="322" height="52" rx="0" fill="#F7FBFA"/>
+    <line x1="30" y1="506" x2="352" y2="506" stroke="#BFD5DC"/>
+    <line x1="30" y1="558" x2="352" y2="558" stroke="#BFD5DC"/>
+
+    <g transform="translate(34,424)">
+      <text x="0" y="0" class="dt">2024年</text>
+      <line x1="0" y1="24" x2="62" y2="24" stroke="#E3ECEB"/>
+      <text x="0" y="54" class="dt">2025年</text>
+      <line x1="0" y1="78" x2="62" y2="78" stroke="#E3ECEB"/>
+      <text x="0" y="111" class="dt-selected">2026年</text>
+      <line x1="0" y1="132" x2="62" y2="132" stroke="#E3ECEB"/>
+      <text x="0" y="162" class="dt">2027年</text>
+      <line x1="0" y1="186" x2="62" y2="186" stroke="#E3ECEB"/>
+      <text x="0" y="216" class="dt">2028年</text>
+    </g>
+    <g transform="translate(106,424)">
+      <text x="0" y="0" class="dt">03月</text>
+      <line x1="0" y1="24" x2="48" y2="24" stroke="#E3ECEB"/>
+      <text x="0" y="54" class="dt">04月</text>
+      <line x1="0" y1="78" x2="48" y2="78" stroke="#E3ECEB"/>
+      <text x="0" y="111" class="dt-selected">05月</text>
+      <line x1="0" y1="132" x2="48" y2="132" stroke="#E3ECEB"/>
+      <text x="0" y="162" class="dt">06月</text>
+      <line x1="0" y1="186" x2="48" y2="186" stroke="#E3ECEB"/>
+      <text x="0" y="216" class="dt">07月</text>
+    </g>
+    <g transform="translate(171,424)">
+      <text x="0" y="0" class="dt">14日</text>
+      <line x1="0" y1="24" x2="48" y2="24" stroke="#E3ECEB"/>
+      <text x="0" y="54" class="dt">15日</text>
+      <line x1="0" y1="78" x2="48" y2="78" stroke="#E3ECEB"/>
+      <text x="0" y="111" class="dt-selected">16日</text>
+      <line x1="0" y1="132" x2="48" y2="132" stroke="#E3ECEB"/>
+      <text x="0" y="162" class="dt">17日</text>
+      <line x1="0" y1="186" x2="48" y2="186" stroke="#E3ECEB"/>
+      <text x="0" y="216" class="dt">18日</text>
+    </g>
+    <g transform="translate(236,424)">
+      <text x="0" y="0" class="dt">18时</text>
+      <line x1="0" y1="24" x2="48" y2="24" stroke="#E3ECEB"/>
+      <text x="0" y="54" class="dt">19时</text>
+      <line x1="0" y1="78" x2="48" y2="78" stroke="#E3ECEB"/>
+      <text x="0" y="111" class="dt-selected">20时</text>
+      <line x1="0" y1="132" x2="48" y2="132" stroke="#E3ECEB"/>
+      <text x="0" y="162" class="dt">21时</text>
+      <line x1="0" y1="186" x2="48" y2="186" stroke="#E3ECEB"/>
+      <text x="0" y="216" class="dt">22时</text>
+    </g>
+    <g transform="translate(301,424)">
+      <text x="0" y="0" class="dt">14分</text>
+      <line x1="0" y1="24" x2="48" y2="24" stroke="#E3ECEB"/>
+      <text x="0" y="54" class="dt">15分</text>
+      <line x1="0" y1="78" x2="48" y2="78" stroke="#E3ECEB"/>
+      <text x="0" y="111" class="dt-selected">16分</text>
+      <line x1="0" y1="132" x2="48" y2="132" stroke="#E3ECEB"/>
+      <text x="0" y="162" class="dt">17分</text>
+      <line x1="0" y1="186" x2="48" y2="186" stroke="#E3ECEB"/>
+      <text x="0" y="216" class="dt">18分</text>
+    </g>
+    <text x="30" y="682" class="phone-subtitle">所有项平面滚动，无缩放、无透视、无旋转</text>
+  </g>
+
+  <!-- Phone 3 -->
+  <g transform="translate(986,198)">
+    <text x="0" y="-22" class="phone-title">方案 C：时间弹框</text>
+    <text x="0" y="4" class="phone-subtitle">开始 / 结束时间：双列平面 list</text>
+    <rect x="0" y="24" width="382" height="720" rx="36" fill="#E7F0F2"/>
+    <rect x="14" y="38" width="354" height="692" rx="30" fill="#F7FBFA"/>
+    <text x="132" y="98" class="label">记录喂养</text>
+    <rect x="42" y="132" width="298" height="88" rx="16" fill="#FFFFFF" stroke="#E3ECEB"/>
+    <text x="66" y="168" class="label">开始时间</text>
+    <text x="228" y="170" class="item">20:16</text>
+    <rect x="42" y="238" width="298" height="88" rx="16" fill="#FFFFFF" stroke="#E3ECEB"/>
+    <text x="66" y="274" class="label">结束时间</text>
+    <text x="228" y="276" class="item">20:42</text>
+
+    <rect x="14" y="336" width="354" height="394" rx="28" fill="#FFFFFF" filter="url(#sheetShadow)"/>
+    <rect x="152" y="352" width="64" height="5" rx="2.5" fill="#D8E5E3"/>
+    <text x="48" y="400" class="nav">取消</text>
+    <text x="178" y="400" text-anchor="middle" class="sheet-title">开始时间</text>
+    <text x="310" y="400" text-anchor="end" class="nav">确定</text>
+    <line x1="30" y1="428" x2="352" y2="428" stroke="#E3ECEB"/>
+
+    <rect x="72" y="530" width="238" height="54" fill="#F7FBFA"/>
+    <line x1="72" y1="530" x2="310" y2="530" stroke="#BFD5DC"/>
+    <line x1="72" y1="584" x2="310" y2="584" stroke="#BFD5DC"/>
+
+    <g transform="translate(108,462)">
+      <text x="0" y="0" class="dt">18 时</text>
+      <line x1="-8" y1="24" x2="70" y2="24" stroke="#E3ECEB"/>
+      <text x="0" y="54" class="dt">19 时</text>
+      <line x1="-8" y1="78" x2="70" y2="78" stroke="#E3ECEB"/>
+      <text x="-1" y="115" class="dt-selected">20 时</text>
+      <line x1="-8" y1="136" x2="70" y2="136" stroke="#E3ECEB"/>
+      <text x="0" y="166" class="dt">21 时</text>
+      <line x1="-8" y1="190" x2="70" y2="190" stroke="#E3ECEB"/>
+      <text x="0" y="220" class="dt">22 时</text>
+    </g>
+    <g transform="translate(218,462)">
+      <text x="0" y="0" class="dt">14 分</text>
+      <line x1="-8" y1="24" x2="70" y2="24" stroke="#E3ECEB"/>
+      <text x="0" y="54" class="dt">15 分</text>
+      <line x1="-8" y1="78" x2="70" y2="78" stroke="#E3ECEB"/>
+      <text x="-1" y="115" class="dt-selected">16 分</text>
+      <line x1="-8" y1="136" x2="70" y2="136" stroke="#E3ECEB"/>
+      <text x="0" y="166" class="dt">17 分</text>
+      <line x1="-8" y1="190" x2="70" y2="190" stroke="#E3ECEB"/>
+      <text x="0" y="220" class="dt">18 分</text>
+    </g>
+    <text x="42" y="682" class="phone-subtitle">同一视觉语言，可用于时分 / 分秒 / 时长</text>
+  </g>
+
+  <g transform="translate(72,910)">
+    <rect x="0" y="-34" width="1296" height="54" rx="16" fill="#FFFFFF" stroke="#E3ECEB"/>
+    <text x="24" y="0" class="subtitle">建议落地：统一成 components 层的 FlatListPickerSheet。短选项用单列列表；日期时间用多列平面 RecyclerView；选中态只用文字权重、品牌色、中心线或右侧勾，不使用描边选中块。</text>
+  </g>
+</svg>

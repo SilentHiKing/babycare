@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true">
+        <shape android:shape="oval">
+            <solid android:color="?attr/colorBrandDark" />
+            <size
+                android:width="@dimen/settings_switch_thumb_size"
+                android:height="@dimen/settings_switch_thumb_size" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/control_border_default" />
+            <size
+                android:width="@dimen/settings_switch_thumb_size"
+                android:height="@dimen/settings_switch_thumb_size" />
+        </shape>
+    </item>
+</selector>

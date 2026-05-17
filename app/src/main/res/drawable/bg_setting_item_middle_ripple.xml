@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/control_surface_selected">
+    <!-- 中间行保持矩形 mask，只让首尾行承担外层圆角。 -->
+    <item android:drawable="@android:color/transparent" />
+    <item android:id="@android:id/mask">
+        <shape>
+            <solid android:color="@android:color/white" />
+        </shape>
+    </item>
+</ripple>

@@ -188,10 +188,11 @@
                         android:textColorHint="?attr/colorTextHint" />
 
                     <TextView
+                        android:id="@+id/tvWeightUnit"
                         style="@style/TextAppearance.BabyCare.Label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/unit_g"
+                        android:text="@string/weight_unit"
                         android:textColor="?attr/colorTextSecondary" />
                 </LinearLayout>
 
@@ -234,10 +235,11 @@
                         android:textColorHint="?attr/colorTextHint" />
 
                     <TextView
+                        android:id="@+id/tvHeightUnit"
                         style="@style/TextAppearance.BabyCare.Label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/unit_cm"
+                        android:text="@string/height_unit"
                         android:textColor="?attr/colorTextSecondary" />
                 </LinearLayout>
 

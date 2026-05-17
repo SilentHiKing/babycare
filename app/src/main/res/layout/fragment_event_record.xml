@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="?attr/colorBackground">
 
-    <!-- Toolbar -->
     <com.zero.components.widget.BaseToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -14,7 +13,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:toolbarTitle="@string/event_record" />
 
-    <!-- 可滚动内容区域 -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
@@ -27,31 +25,31 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="16dp">
+            android:paddingHorizontal="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="24dp">
 
-            <!-- 时间选择卡片 -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardTime"
+            <LinearLayout
+                android:id="@+id/sectionTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="16dp"
-                app:cardBackgroundColor="?attr/secondary_bg_default"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp">
+                android:background="@drawable/bg_event_record_section"
+                android:orientation="vertical"
+                android:padding="16dp">
 
                 <LinearLayout
+                    android:id="@+id/cardTime"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:foreground="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
+                    android:orientation="horizontal">
 
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/ic_time"
                         android:contentDescription="@null"
+                        android:src="@drawable/ic_time"
                         app:tint="?attr/colorBrand" />
 
                     <LinearLayout
@@ -82,97 +80,110 @@
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
-                        android:src="@drawable/ic_arrow_right"
                         android:contentDescription="@null"
+                        android:src="@drawable/ic_arrow_right"
                         app:tint="?attr/colorTextHint" />
 
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </LinearLayout>
 
-            <!-- 事件类型标题 -->
-            <TextView
-                style="@style/TextAppearance.BabyCare.Heading3"
+            <LinearLayout
+                android:id="@+id/sectionEventType"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="20dp"
-                android:text="@string/select_event_type" />
-
-            <!-- 事件大类 Tab (RecyclerView横向滚动) -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvCategory"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:clipToPadding="false"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:itemCount="7"
-                tools:listitem="@layout/item_event_category" />
-
-            <!-- 事件子类型网格 (RecyclerView) -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvSubtype"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="16dp"
-                android:nestedScrollingEnabled="false"
-                tools:itemCount="4"
-                tools:listitem="@layout/item_event_subtype" />
+                android:background="@drawable/bg_event_record_section"
+                android:orientation="vertical"
+                android:padding="16dp">
 
-            <!-- 详细信息区域（动态内容） -->
+                <TextView
+                    style="@style/TextAppearance.BabyCare.Heading3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/select_event_type" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvCategory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:itemCount="7"
+                    tools:listitem="@layout/item_event_category" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvSubtype"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:nestedScrollingEnabled="false"
+                    tools:itemCount="4"
+                    tools:listitem="@layout/item_event_subtype" />
+
+            </LinearLayout>
+
             <FrameLayout
-                android:id="@+id/containerDetail"
+                android:id="@+id/sectionDetail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
                 android:layout_marginTop="16dp"
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <!-- 动态插入不同类型的输入表单 -->
-                <include
-                    android:id="@+id/layoutDetailPlaceholder"
-                    layout="@layout/layout_event_detail_placeholder"
-                    android:visibility="gone" />
+                <FrameLayout
+                    android:id="@+id/containerDetail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
+                    <include
+                        android:id="@+id/layoutDetailPlaceholder"
+                        layout="@layout/layout_event_detail_placeholder"
+                        android:visibility="gone" />
+
+                </FrameLayout>
             </FrameLayout>
 
-            <!-- 备注 -->
-            <TextView
-                android:id="@+id/tvNoteLabel"
-                style="@style/TextAppearance.BabyCare.Body2"
+            <LinearLayout
+                android:id="@+id/sectionNote"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="20dp"
-                android:text="@string/note"
-                android:textColor="?attr/colorTextPrimary"
-                android:visibility="gone" />
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_event_record_section"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone"
+                tools:visibility="visible">
 
-            <EditText
-                android:id="@+id/etNote"
-                style="@style/TextAppearance.BabyCare.Body2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="8dp"
-                android:background="?attr/bg_r6_block_gridview"
-                android:gravity="top|start"
-                android:hint="@string/note_hint"
-                android:inputType="textMultiLine"
-                android:minHeight="80dp"
-                android:padding="12dp"
-                android:textColor="?attr/colorTextPrimary"
-                android:textColorHint="?attr/colorTextHint"
-                android:visibility="gone" />
+                <TextView
+                    android:id="@+id/tvNoteLabel"
+                    style="@style/TextAppearance.BabyCare.Body2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/note"
+                    android:textColor="?attr/colorTextPrimary" />
+
+                <EditText
+                    android:id="@+id/etNote"
+                    style="@style/TextAppearance.BabyCare.Body2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="?attr/bg_r6_block_gridview"
+                    android:gravity="top|start"
+                    android:hint="@string/note_hint"
+                    android:inputType="textMultiLine"
+                    android:minHeight="80dp"
+                    android:padding="12dp"
+                    android:textColor="?attr/colorTextPrimary"
+                    android:textColorHint="?attr/colorTextHint" />
+
+            </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- 保存按钮 -->
     <Button
         android:id="@+id/btnSave"
         style="@style/TextAppearance.BabyCare.Body1"
@@ -189,5 +200,3 @@
         tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-
-

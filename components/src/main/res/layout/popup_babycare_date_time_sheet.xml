@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_picker_sheet"
+    android:orientation="vertical"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <View
+        android:layout_width="36dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/bg_picker_drag_handle" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+
+        <TextView
+            android:id="@+id/tv_cancel"
+            style="@style/TextAppearance.BabyCare.Action"
+            android:layout_width="72dp"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:text="@string/cancel"
+            android:textColor="?attr/colorTextSecondary" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/tv_confirm"
+            style="@style/TextAppearance.BabyCare.Action"
+            android:layout_width="72dp"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical|end"
+            android:text="@string/confirm"
+            android:textColor="?attr/colorBrand" />
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/picker_frame"
+        android:layout_width="match_parent"
+        android:layout_height="232dp"
+        android:paddingHorizontal="16dp">
+
+        <LinearLayout
+            android:id="@+id/picker_column_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/picker_date_group"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/list_year"
+                    android:layout_width="64dp"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    android:scrollbars="none"
+                    tools:listitem="@android:layout/simple_list_item_1" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/list_month"
+                    android:layout_width="58dp"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    android:scrollbars="none"
+                    tools:listitem="@android:layout/simple_list_item_1" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/list_day"
+                    android:layout_width="58dp"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    android:scrollbars="none"
+                    tools:listitem="@android:layout/simple_list_item_1" />
+
+            </LinearLayout>
+
+            <View
+                android:id="@+id/picker_date_time_group_gap"
+                android:layout_width="56dp"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no" />
+
+            <LinearLayout
+                android:id="@+id/picker_time_group"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/list_hour"
+                    android:layout_width="58dp"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    android:scrollbars="none"
+                    tools:listitem="@android:layout/simple_list_item_1" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/list_minute"
+                    android:layout_width="58dp"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    android:scrollbars="none"
+                    tools:listitem="@android:layout/simple_list_item_1" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/list_second"
+                    android:layout_width="58dp"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    android:scrollbars="none"
+                    tools:listitem="@android:layout/simple_list_item_1" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:orientation="vertical">
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/control_border_default" />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="54dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/control_border_default" />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="88dp"
+            android:layout_gravity="top"
+            android:background="@drawable/bg_picker_fade_top"
+            android:importantForAccessibility="no" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="88dp"
+            android:layout_gravity="bottom"
+            android:background="@drawable/bg_picker_fade_bottom"
+            android:importantForAccessibility="no" />
+
+    </FrameLayout>
+
+</LinearLayout>

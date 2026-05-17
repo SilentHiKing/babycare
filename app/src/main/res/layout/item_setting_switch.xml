@@ -4,16 +4,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground"
-    android:minHeight="56dp"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="12dp">
+    android:background="@drawable/bg_setting_item_middle_ripple"
+    android:minHeight="@dimen/settings_row_min_height"
+    android:paddingHorizontal="@dimen/card_padding"
+    android:paddingVertical="@dimen/settings_row_vertical_padding">
 
+    <!-- 文案列预留开关间距，摘要换行时不会贴到右侧控件。 -->
     <LinearLayout
+        android:id="@+id/rowTextContent"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:layout_marginEnd="@dimen/settings_row_content_gap"
         android:gravity="center_vertical"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/switchToggle"
         app:layout_constraintStart_toStartOf="parent"
@@ -22,19 +25,23 @@
         <TextView
             android:id="@+id/tvTitle"
             style="@style/TextAppearance.BabyCare.Body1"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
             android:includeFontPadding="false"
+            android:maxLines="2"
             android:textColor="?attr/colorTextPrimary"
             tools:text="提醒开关" />
 
         <TextView
             android:id="@+id/tvSummary"
             style="@style/TextAppearance.BabyCare.Label"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
+            android:ellipsize="end"
             android:includeFontPadding="false"
+            android:maxLines="2"
             android:textColor="?attr/colorTextSecondary"
             android:visibility="gone"
             tools:text="摘要说明"
@@ -45,10 +52,10 @@
         android:id="@+id/switchToggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:showText="false"
-        android:thumb="@drawable/swtich_thumb"
-        android:track="@drawable/swtich_track"
+        android:thumb="@drawable/bg_setting_switch_thumb"
+        android:track="@drawable/bg_setting_switch_track"
+        app:splitTrack="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
