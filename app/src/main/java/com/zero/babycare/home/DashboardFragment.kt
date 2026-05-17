@@ -8,7 +8,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.blankj.utilcode.util.LogUtils
-import com.blankj.utilcode.util.StringUtils
 import com.zero.babycare.MainActivity
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentDashboardBinding
@@ -134,9 +133,9 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
     private fun updateToolbarTitle() {
         val baby = mainVm.getCurrentBabyInfo()
         binding.toolbar.title = if (baby != null) {
-            StringUtils.getString(com.zero.common.R.string.baby_dashboard_title, baby.name)
+            getString(com.zero.common.R.string.baby_dashboard_title, baby.name)
         } else {
-            StringUtils.getString(com.zero.common.R.string.dashboard)
+            getString(com.zero.common.R.string.dashboard)
         }
     }
 
@@ -293,7 +292,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             DashboardData.BabyStatus.SLEEPING -> {
                 data.ongoingSleepStart?.let { startTime ->
                     val duration = getSafeElapsedMillis(startTime, now)
-                    binding.tvStatusTime.text = StringUtils.getString(
+                    binding.tvStatusTime.text = getString(
                         com.zero.common.R.string.sleeping_duration,
                         formatDuration(duration)
                     )
@@ -302,7 +301,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             DashboardData.BabyStatus.FEEDING -> {
                 data.ongoingFeedingStart?.let { startTime ->
                     val duration = getSafeElapsedMillis(startTime, now)
-                    binding.tvStatusTime.text = StringUtils.getString(
+                    binding.tvStatusTime.text = getString(
                         com.zero.common.R.string.feeding_duration,
                         formatDuration(duration)
                     )
@@ -312,7 +311,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
                 // 醒着的情况下显示距上次睡觉的时间（实时计算）
                 data.lastSleepEndTime?.let { endTime ->
                     val awakeTime = getSafeElapsedMillis(endTime, now)
-                    binding.tvStatusTime.text = StringUtils.getString(
+                    binding.tvStatusTime.text = getString(
                         com.zero.common.R.string.awake_duration,
                         formatDuration(awakeTime)
                     )
@@ -354,7 +353,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             val remainMinutes = TimeUnit.MILLISECONDS.toMinutes(
                 feedingPrediction.getRemainingMillis()
             )
-            binding.tvPredictFeedingRemain.text = StringUtils.getString(
+            binding.tvPredictFeedingRemain.text = getString(
                 com.zero.common.R.string.remain_time,
                 formatMinutesToReadable(remainMinutes)
             )
@@ -370,7 +369,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             val remainMinutes = TimeUnit.MILLISECONDS.toMinutes(
                 sleepPrediction.getRemainingMillis()
             )
-            binding.tvPredictSleepRemain.text = StringUtils.getString(
+            binding.tvPredictSleepRemain.text = getString(
                 com.zero.common.R.string.remain_time,
                 formatMinutesToReadable(remainMinutes)
             )
@@ -402,7 +401,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
                 getSafeElapsedMillis(effectiveStart, now)
             )
             val totalMinutes = data.totalFeedingMinutes + ongoingMinutes
-            binding.tvFeedingTodayDuration.text = StringUtils.getString(
+            binding.tvFeedingTodayDuration.text = getString(
                 com.zero.common.R.string.today_duration,
                 formatMinutesToReadable(totalMinutes)
             )
@@ -416,7 +415,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
                 getSafeElapsedMillis(effectiveStart, now)
             )
             val totalMinutes = data.totalSleepMinutes + ongoingMinutes
-            binding.tvSleepTodayDuration.text = StringUtils.getString(
+            binding.tvSleepTodayDuration.text = getString(
                 com.zero.common.R.string.today_duration,
                 formatMinutesToReadable(totalMinutes)
             )
@@ -439,11 +438,11 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         } ?: run {
             binding.tvFeedingSinceTime.text = "--"
         }
-        binding.tvFeedingTodayCount.text = StringUtils.getString(
+        binding.tvFeedingTodayCount.text = getString(
             com.zero.common.R.string.today_count,
             data.feedingCount
         )
-        binding.tvFeedingTodayDuration.text = StringUtils.getString(
+        binding.tvFeedingTodayDuration.text = getString(
             com.zero.common.R.string.today_duration,
             formatMinutesToReadable(data.totalFeedingMinutes)
         )
@@ -456,11 +455,11 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         } ?: run {
             binding.tvSleepSinceTime.text = "--"
         }
-        binding.tvSleepTodayCount.text = StringUtils.getString(
+        binding.tvSleepTodayCount.text = getString(
             com.zero.common.R.string.today_count,
             data.sleepCount
         )
-        binding.tvSleepTodayDuration.text = StringUtils.getString(
+        binding.tvSleepTodayDuration.text = getString(
             com.zero.common.R.string.today_duration,
             formatMinutesToReadable(data.totalSleepMinutes)
         )
@@ -475,31 +474,31 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             DashboardData.BabyStatus.AWAKE -> {
                 binding.cardStatus.setBackgroundResource(com.zero.common.R.drawable.bg_status_card_awake)
                 binding.ivStatusIcon.setImageResource(com.zero.common.R.drawable.ic_baby_awake)
-                binding.tvStatusTitle.text = StringUtils.getString(com.zero.common.R.string.baby_awake)
+                binding.tvStatusTitle.text = getString(com.zero.common.R.string.baby_awake)
                 binding.tvStatusAction.visibility = View.GONE
                 
                 // 醒着时长（实时计算）
                 data.lastSleepEndTime?.let { endTime ->
                     val awakeTime = getSafeElapsedMillis(endTime, now)
-                    binding.tvStatusTime.text = StringUtils.getString(
+                    binding.tvStatusTime.text = getString(
                         com.zero.common.R.string.awake_duration,
                         formatDuration(awakeTime)
                     )
                 } ?: run {
                     // 无睡眠记录时显示默认提示
-                    binding.tvStatusTime.text = StringUtils.getString(com.zero.common.R.string.no_sleep_record)
+                    binding.tvStatusTime.text = getString(com.zero.common.R.string.no_sleep_record)
                 }
             }
             DashboardData.BabyStatus.SLEEPING -> {
                 binding.cardStatus.setBackgroundResource(com.zero.common.R.drawable.bg_status_card_sleeping)
                 binding.ivStatusIcon.setImageResource(com.zero.common.R.drawable.ic_baby_sleeping)
-                binding.tvStatusTitle.text = StringUtils.getString(com.zero.common.R.string.baby_sleeping)
+                binding.tvStatusTitle.text = getString(com.zero.common.R.string.baby_sleeping)
                 binding.tvStatusAction.visibility = View.VISIBLE
-                binding.tvStatusAction.text = StringUtils.getString(com.zero.common.R.string.end_record)
+                binding.tvStatusAction.text = getString(com.zero.common.R.string.end_record)
                 
                 data.ongoingSleepStart?.let { startTime ->
                     val duration = getSafeElapsedMillis(startTime, now)
-                    binding.tvStatusTime.text = StringUtils.getString(
+                    binding.tvStatusTime.text = getString(
                         com.zero.common.R.string.sleeping_duration,
                         formatDuration(duration)
                     )
@@ -508,13 +507,13 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             DashboardData.BabyStatus.FEEDING -> {
                 binding.cardStatus.setBackgroundResource(com.zero.common.R.drawable.bg_status_card_feeding)
                 binding.ivStatusIcon.setImageResource(com.zero.common.R.drawable.ic_baby_feeding)
-                binding.tvStatusTitle.text = StringUtils.getString(com.zero.common.R.string.baby_feeding)
+                binding.tvStatusTitle.text = getString(com.zero.common.R.string.baby_feeding)
                 binding.tvStatusAction.visibility = View.VISIBLE
-                binding.tvStatusAction.text = StringUtils.getString(com.zero.common.R.string.end_record)
+                binding.tvStatusAction.text = getString(com.zero.common.R.string.end_record)
                 
                 data.ongoingFeedingStart?.let { startTime ->
                     val duration = getSafeElapsedMillis(startTime, now)
-                    binding.tvStatusTime.text = StringUtils.getString(
+                    binding.tvStatusTime.text = getString(
                         com.zero.common.R.string.feeding_duration,
                         formatDuration(duration)
                     )
@@ -530,7 +529,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         val feedingPrediction = data.feedingPrediction
         if (feedingPrediction != null && !feedingPrediction.isExpired()) {
             // 显示时间区间
-            binding.tvPredictFeedingTime.text = StringUtils.getString(
+            binding.tvPredictFeedingTime.text = getString(
                 com.zero.common.R.string.predict_feeding_with_range,
                 timeFormat.format(feedingPrediction.earliestTime),
                 timeFormat.format(feedingPrediction.latestTime)
@@ -539,21 +538,21 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             val remainMinutes = TimeUnit.MILLISECONDS.toMinutes(
                 feedingPrediction.getRemainingMillis()
             )
-            binding.tvPredictFeedingRemain.text = StringUtils.getString(
+            binding.tvPredictFeedingRemain.text = getString(
                 com.zero.common.R.string.remain_time,
                 formatMinutesToReadable(remainMinutes)
             )
             // 更新置信度颜色
             updatePredictionConfidenceColor(binding.tvPredictFeedingTime, feedingPrediction.confidence)
         } else {
-            binding.tvPredictFeedingTime.text = StringUtils.getString(com.zero.common.R.string.cannotPredict)
+            binding.tvPredictFeedingTime.text = getString(com.zero.common.R.string.cannotPredict)
             binding.tvPredictFeedingRemain.text = ""
         }
 
         // 睡眠预测
         val sleepPrediction = data.sleepPrediction
         if (sleepPrediction != null && !sleepPrediction.isExpired()) {
-            binding.tvPredictSleepTime.text = StringUtils.getString(
+            binding.tvPredictSleepTime.text = getString(
                 com.zero.common.R.string.predict_sleep_with_range,
                 timeFormat.format(sleepPrediction.earliestTime),
                 timeFormat.format(sleepPrediction.latestTime)
@@ -561,13 +560,13 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             val remainMinutes = TimeUnit.MILLISECONDS.toMinutes(
                 sleepPrediction.getRemainingMillis()
             )
-            binding.tvPredictSleepRemain.text = StringUtils.getString(
+            binding.tvPredictSleepRemain.text = getString(
                 com.zero.common.R.string.remain_time,
                 formatMinutesToReadable(remainMinutes)
             )
             updatePredictionConfidenceColor(binding.tvPredictSleepTime, sleepPrediction.confidence)
         } else {
-            binding.tvPredictSleepTime.text = StringUtils.getString(com.zero.common.R.string.cannotPredict)
+            binding.tvPredictSleepTime.text = getString(com.zero.common.R.string.cannotPredict)
             binding.tvPredictSleepRemain.text = ""
         }
     }
@@ -589,9 +588,9 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         val hours = minutes / 60
         val mins = minutes % 60
         return if (hours > 0) {
-            StringUtils.getString(com.zero.common.R.string.hour_min_format, hours.toInt(), mins.toInt())
+            getString(com.zero.common.R.string.hour_min_format, hours.toInt(), mins.toInt())
         } else {
-            StringUtils.getString(com.zero.common.R.string.min_format, mins.toInt())
+            getString(com.zero.common.R.string.min_format, mins.toInt())
         }
     }
 

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="brvah_loading">로드 중...</string>
+    <string name="brvah_load_failed">로드하지 못했습니다. 다시 시도하려면 클릭하세요.</string>
+    <string name="brvah_load_end">더 이상 데이터가 없습니다</string>
+    <string name="brvah_load_complete">더 많은 내용을 로드하려면 클릭하세요.</string>
+</resources>

@@ -4,250 +4,5277 @@
   "data": {
     "common": [
       {
+        "codeKey": "back",
+        "language": {
+          "zh-Hans": "返回",
+          "en": "Back",
+          "zh-Hant": "返回",
+          "ja": "戻る",
+          "ko": "뒤로"
+        }
+      },
+      {
+        "codeKey": "menu",
+        "language": {
+          "zh-Hans": "菜单",
+          "en": "Menu",
+          "zh-Hant": "選單",
+          "ja": "メニュー",
+          "ko": "메뉴"
+        }
+      },
+      {
+        "codeKey": "loading",
+        "language": {
+          "zh-Hans": "加载中",
+          "en": "Loading",
+          "zh-Hant": "載入中",
+          "ja": "読み込み中",
+          "ko": "로딩 중"
+        }
+      },
+      {
+        "codeKey": "number_zero",
+        "language": {
+          "zh-Hans": "0",
+          "en": "0",
+          "zh-Hant": "0",
+          "ja": "0",
+          "ko": "0"
+        }
+      },
+      {
+        "codeKey": "number_decimal_zero",
+        "language": {
+          "zh-Hans": "0.00",
+          "en": "0.00",
+          "zh-Hant": "0.00",
+          "ja": "0.00",
+          "ko": "0.00"
+        }
+      },
+      {
+        "codeKey": "list_separator_dot",
+        "language": {
+          "zh-Hans": " · ",
+          "en": " · ",
+          "zh-Hant": " · ",
+          "ja": " · ",
+          "ko": " · "
+        }
+      },
+      {
+        "codeKey": "times_count_format",
+        "language": {
+          "zh-Hans": "%1$d次",
+          "en": "%1$d times",
+          "zh-Hant": "%1$d次",
+          "ja": "%1$d 回",
+          "ko": "%1$d회"
+        }
+      },
+      {
+        "codeKey": "baby_not_born_yet_playful",
+        "language": {
+          "zh-Hans": "时光机没开张，我还没出生哟！",
+          "en": "The time machine is not open yet - I have not been born!",
+          "zh-Hant": "時光機沒開張，我還沒出生喲！",
+          "ja": "タイムマシンは開かず、私はまだ生まれていませんでした。",
+          "ko": "타임머신은 열리지 않았고, 나는 아직 태어나지도 않았습니다!"
+        }
+      },
+      {
+        "codeKey": "statistics_add_birthdate_hint",
+        "language": {
+          "zh-Hans": "还没有填写宝宝生日，记得补上哦",
+          "en": "You haven’t filled in your baby’s birthday yet, please remember to fill it in.",
+          "zh-Hant": "還沒填寶寶生日，記得補上哦",
+          "ja": "赤ちゃんの誕生日をまだ記入していない場合は、忘れずに記入してください。",
+          "ko": "아직 아기의 생일을 입력하지 않으셨으니 꼭 입력해주세요."
+        }
+      },
+      {
         "codeKey": "babyName",
         "language": {
           "zh-Hans": "姓名",
-          "en": "Name"
+          "en": "Name",
+          "zh-Hant": "姓名",
+          "ja": "名前",
+          "ko": "이름"
         }
       },
       {
         "codeKey": "babyBirthday",
         "language": {
           "zh-Hans": "生日",
-          "en": "Birthday"
+          "en": "Birthday",
+          "zh-Hant": "生日",
+          "ja": "誕生日",
+          "ko": "생일"
         }
       },
       {
         "codeKey": "babyGender",
         "language": {
           "zh-Hans": "性别",
-          "en": "Gender"
+          "en": "Gender",
+          "zh-Hant": "性別",
+          "ja": "性別",
+          "ko": "성별"
         }
       },
       {
         "codeKey": "babyWeight",
         "language": {
           "zh-Hans": "出生体重",
-          "en": "Weight at birth"
+          "en": "Weight at birth",
+          "zh-Hant": "出生體重",
+          "ja": "出生体重",
+          "ko": "출생 체중"
         }
       },
       {
         "codeKey": "babyHeight",
         "language": {
           "zh-Hans": "出生身高",
-          "en": "Height at birth"
+          "en": "Height at birth",
+          "zh-Hant": "出生身高",
+          "ja": "出生時の身長",
+          "ko": "출생시 키"
+        }
+      },
+      {
+        "codeKey": "babyBloodType",
+        "language": {
+          "zh-Hans": "血型",
+          "en": "Blood type",
+          "zh-Hant": "血型",
+          "ja": "血液型",
+          "ko": "혈액형"
         }
       },
       {
         "codeKey": "babyInfo",
         "language": {
           "zh-Hans": "婴儿信息",
-          "en": "Baby Info"
+          "en": "Baby Info",
+          "zh-Hant": "嬰兒資訊",
+          "ja": "赤ちゃん情報",
+          "ko": "아기 정보"
         }
       },
       {
         "codeKey": "finish",
         "language": {
           "zh-Hans": "完成",
-          "en": "Finish"
+          "en": "Finish",
+          "zh-Hant": "完成",
+          "ja": "完了",
+          "ko": "완료"
         }
       },
       {
         "codeKey": "babyNameHint",
         "language": {
-          "zh-Hans": "请输入姓名"
+          "zh-Hans": "请输入姓名",
+          "en": "Please enter name",
+          "zh-Hant": "請輸入姓名",
+          "ja": "名前を入力してください",
+          "ko": "이름을 입력하세요"
         }
       },
       {
         "codeKey": "babyBirthdayHint",
         "language": {
-          "zh-Hans": "请输入生日"
+          "zh-Hans": "请输入生日",
+          "en": "Please enter birthday",
+          "zh-Hant": "請輸入生日",
+          "ja": "誕生日を入力してください",
+          "ko": "생일을 입력해주세요"
         }
       },
       {
         "codeKey": "babyGenderHint",
         "language": {
-          "zh-Hans": "请输入性别"
+          "zh-Hans": "请输入性别",
+          "en": "Please enter gender",
+          "zh-Hant": "請輸入性別",
+          "ja": "性別を入力してください",
+          "ko": "성별을 입력해주세요"
         }
       },
       {
         "codeKey": "babyHeightHint",
         "language": {
-          "zh-Hans": "请输入出生身高"
+          "zh-Hans": "请输入出生身高",
+          "en": "Please enter birth height",
+          "zh-Hant": "請輸入出生身高",
+          "ja": "出生時の身長を入力してください",
+          "ko": "출생키를 입력해주세요"
         }
       },
       {
         "codeKey": "babyWeightHint",
         "language": {
-          "zh-Hans": "请输入出生体重"
+          "zh-Hans": "请输入出生体重",
+          "en": "Please enter birth weight",
+          "zh-Hant": "請輸入出生體重",
+          "ja": "出生体重を入力してください",
+          "ko": "출생 체중을 입력하세요."
+        }
+      },
+      {
+        "codeKey": "babyBloodTypeHint",
+        "language": {
+          "zh-Hans": "请选择血型",
+          "en": "Please select blood type",
+          "zh-Hant": "請選擇血型",
+          "ja": "血液型を選択してください",
+          "ko": "혈액형을 선택해주세요"
+        }
+      },
+      {
+        "codeKey": "blood_type_a",
+        "language": {
+          "zh-Hans": "A型",
+          "en": "Type A",
+          "zh-Hant": "A型",
+          "ja": "タイプA",
+          "ko": "A형"
+        }
+      },
+      {
+        "codeKey": "blood_type_b",
+        "language": {
+          "zh-Hans": "B型",
+          "en": "Type B",
+          "zh-Hant": "B型",
+          "ja": "タイプB",
+          "ko": "B형"
+        }
+      },
+      {
+        "codeKey": "blood_type_ab",
+        "language": {
+          "zh-Hans": "AB型",
+          "en": "AB type",
+          "zh-Hant": "AB型",
+          "ja": "AB型",
+          "ko": "AB형"
+        }
+      },
+      {
+        "codeKey": "blood_type_o",
+        "language": {
+          "zh-Hans": "O型",
+          "en": "O type",
+          "zh-Hant": "O型",
+          "ja": "O型",
+          "ko": "O형"
+        }
+      },
+      {
+        "codeKey": "blood_type_unknown",
+        "language": {
+          "zh-Hans": "未知",
+          "en": "Unknown",
+          "zh-Hant": "未知",
+          "ja": "不明",
+          "ko": "알 수 없음"
         }
       },
       {
         "codeKey": "boy",
         "language": {
           "zh-Hans": "男",
-          "en": "boy"
+          "en": "Boy",
+          "zh-Hant": "男",
+          "ja": "男の子",
+          "ko": "남아"
         }
       },
       {
         "codeKey": "girl",
         "language": {
           "zh-Hans": "女",
-          "en": "girl"
+          "en": "Girl",
+          "zh-Hant": "女",
+          "ja": "女の子",
+          "ko": "여아"
         }
       },
       {
         "codeKey": "unit_g",
         "language": {
           "zh-Hans": "克",
-          "en": "g"
+          "en": "g",
+          "zh-Hant": "克",
+          "ja": "グラム",
+          "ko": "그램"
+        }
+      },
+      {
+        "codeKey": "unit_g_abbr",
+        "language": {
+          "zh-Hans": "g",
+          "en": "g",
+          "zh-Hant": "g",
+          "ja": "g",
+          "ko": "g"
         }
       },
       {
         "codeKey": "unit_cm",
         "language": {
           "zh-Hans": "厘米",
-          "en": "cm"
+          "en": "cm",
+          "zh-Hant": "公分",
+          "ja": "センチメートル",
+          "ko": "센티미터"
         }
       },
       {
         "codeKey": "updateSuccess",
         "language": {
           "zh-Hans": "更新成功",
-          "en": "Update success"
+          "en": "Update success",
+          "zh-Hant": "更新成功",
+          "ja": "更新に成功しました",
+          "ko": "업데이트 성공"
         }
       },
       {
         "codeKey": "nameIsNullTip",
         "language": {
           "zh-Hans": "请给孩子取个名字吧",
-          "en": "Name is null"
+          "en": "Name is null",
+          "zh-Hant": "請給孩子取名字吧",
+          "ja": "お子様の名前を付けてください",
+          "ko": "아이에게 이름을 지어주세요"
         }
       },
       {
         "codeKey": "breast",
         "language": {
           "zh-Hans": "母乳",
-          "en": "breast"
+          "en": "Breast milk",
+          "zh-Hant": "母乳",
+          "ja": "母乳",
+          "ko": "모유"
         }
       },
       {
         "codeKey": "formula",
         "language": {
           "zh-Hans": "奶粉",
-          "en": "formula"
+          "en": "Formula",
+          "zh-Hant": "奶粉",
+          "ja": "ミルク",
+          "ko": "분유"
         }
       },
       {
         "codeKey": "solidFood",
         "language": {
           "zh-Hans": "辅食（米糊、蔬菜泥、水果泥等）",
-          "en": "Solid food"
+          "en": "Solid food (rice cereal, vegetable puree, fruit puree, etc.)",
+          "zh-Hant": "輔食（米糊、蔬菜泥、水果泥等）",
+          "ja": "離乳食（米がゆ、野菜ピューレ、果物ピューレなど）",
+          "ko": "이유식(쌀미음, 채소 퓨레, 과일 퓨레 등)"
         }
       },
       {
         "codeKey": "mixedFeeding",
         "language": {
           "zh-Hans": "混合喂养",
-          "en": "Mixed feeding"
+          "en": "Mixed feeding",
+          "zh-Hant": "混合餵養",
+          "ja": "混合栄養",
+          "ko": "혼합 수유"
         }
       },
       {
         "codeKey": "other",
         "language": {
           "zh-Hans": "其他",
-          "en": "other"
+          "en": "Other",
+          "zh-Hant": "其他",
+          "ja": "その他",
+          "ko": "기타"
         }
       },
       {
         "codeKey": "feeding",
         "language": {
           "zh-Hans": "喂养",
-          "en": "Feeding"
+          "en": "Feeding",
+          "zh-Hant": "餵養",
+          "ja": "授乳",
+          "ko": "수유"
         }
       },
       {
         "codeKey": "sleeping",
         "language": {
           "zh-Hans": "睡眠",
-          "en": "Sleeping"
+          "en": "Sleep",
+          "zh-Hant": "睡眠",
+          "ja": "睡眠",
+          "ko": "수면"
+        }
+      },
+      {
+        "codeKey": "more_events",
+        "language": {
+          "zh-Hans": "更多",
+          "en": "More",
+          "zh-Hant": "更多",
+          "ja": "もっと見る",
+          "ko": "더보기"
+        }
+      },
+      {
+        "codeKey": "quick_record",
+        "language": {
+          "zh-Hans": "快速记录",
+          "en": "Quick record",
+          "zh-Hant": "快速記錄",
+          "ja": "クイック記録",
+          "ko": "빠른 기록"
+        }
+      },
+      {
+        "codeKey": "sleep_record",
+        "language": {
+          "zh-Hans": "睡眠记录",
+          "en": "Sleep record",
+          "zh-Hant": "睡眠記錄",
+          "ja": "睡眠記録",
+          "ko": "수면 기록"
+        }
+      },
+      {
+        "codeKey": "sleep_start_time",
+        "language": {
+          "zh-Hans": "入睡时间",
+          "en": "Sleep start time",
+          "zh-Hant": "入睡時間",
+          "ja": "入眠時間",
+          "ko": "잠든 시간"
+        }
+      },
+      {
+        "codeKey": "sleep_end_time",
+        "language": {
+          "zh-Hans": "醒来时间",
+          "en": "Wake time",
+          "zh-Hant": "醒來時間",
+          "ja": "起床時間",
+          "ko": "깨어난 시간"
+        }
+      },
+      {
+        "codeKey": "sleep_duration",
+        "language": {
+          "zh-Hans": "睡眠时长",
+          "en": "sleep duration",
+          "zh-Hant": "睡眠時長",
+          "ja": "睡眠時間",
+          "ko": "수면 시간"
+        }
+      },
+      {
+        "codeKey": "sleep_duration_format",
+        "language": {
+          "zh-Hans": "%1$d小时%2$d分钟",
+          "en": "%1$d hours %2$d minutes",
+          "zh-Hant": "%1$d小時%2$d分鐘",
+          "ja": "%1$d時間 %2$d分",
+          "ko": "%1$d시간 %2$d분"
+        }
+      },
+      {
+        "codeKey": "sleep_duration_hours",
+        "language": {
+          "zh-Hans": "%1$d小时",
+          "en": "%1$d hours",
+          "zh-Hant": "%1$d小時",
+          "ja": "%1$d時間",
+          "ko": "%1$d시간"
+        }
+      },
+      {
+        "codeKey": "sleep_duration_minutes",
+        "language": {
+          "zh-Hans": "%1$d分钟",
+          "en": "%1$d minutes",
+          "zh-Hant": "%1$d分鐘",
+          "ja": "%1$d分",
+          "ko": "%1$d분"
+        }
+      },
+      {
+        "codeKey": "timeline_end_time_format",
+        "language": {
+          "zh-Hans": "- %1$s",
+          "en": "- %1$s",
+          "zh-Hant": "- %1$s",
+          "ja": "- %1$s",
+          "ko": "- %1$s"
+        }
+      },
+      {
+        "codeKey": "sleep_save_success",
+        "language": {
+          "zh-Hans": "睡眠记录保存成功",
+          "en": "Sleep record saved successfully",
+          "zh-Hant": "睡眠記錄保存成功",
+          "ja": "睡眠記録が正常に保存されました",
+          "ko": "수면 기록이 저장되었습니다"
+        }
+      },
+      {
+        "codeKey": "sleep_start_required",
+        "language": {
+          "zh-Hans": "请输入入睡时间",
+          "en": "Please enter bedtime",
+          "zh-Hant": "請輸入入睡時間",
+          "ja": "就寝時間を入力してください",
+          "ko": "취침 시간을 입력하세요."
+        }
+      },
+      {
+        "codeKey": "sleep_end_required",
+        "language": {
+          "zh-Hans": "请输入醒来时间",
+          "en": "Please enter wake up time",
+          "zh-Hant": "請輸入醒來時間",
+          "ja": "起床時間を入力してください",
+          "ko": "기상시간을 입력해주세요"
+        }
+      },
+      {
+        "codeKey": "sleep_end_must_after_start",
+        "language": {
+          "zh-Hans": "醒来时间必须晚于入睡时间",
+          "en": "Wake up time must be later than bedtime",
+          "zh-Hant": "醒來時間必須晚於入睡時間",
+          "ja": "起床時間は就寝時間より遅くなければなりません",
+          "ko": "기상 시간은 취침 시간보다 늦어야 합니다."
+        }
+      },
+      {
+        "codeKey": "last_sleep",
+        "language": {
+          "zh-Hans": "上次睡眠",
+          "en": "last sleep",
+          "zh-Hant": "上次睡眠",
+          "ja": "最後の睡眠",
+          "ko": "마지막 잠"
+        }
+      },
+      {
+        "codeKey": "last_sleep_time",
+        "language": {
+          "zh-Hans": "上次: %1$s",
+          "en": "Last time: %1$s",
+          "zh-Hant": "上次: %1$s",
+          "ja": "前回: %1$s",
+          "ko": "마지막 시간: %1$s"
         }
       },
       {
         "codeKey": "today",
         "language": {
           "zh-Hans": "今天",
-          "en": "Today"
+          "en": "Today",
+          "zh-Hant": "今天",
+          "ja": "今日",
+          "ko": "오늘"
+        }
+      },
+      {
+        "codeKey": "calendar_previous",
+        "language": {
+          "zh-Hans": "上一周期",
+          "en": "Previous period",
+          "zh-Hant": "上一周期",
+          "ja": "前の期間",
+          "ko": "이전 기간"
+        }
+      },
+      {
+        "codeKey": "calendar_next",
+        "language": {
+          "zh-Hans": "下一周期",
+          "en": "Next period",
+          "zh-Hant": "下一週期",
+          "ja": "次の期間",
+          "ko": "다음 기간"
         }
       },
       {
         "codeKey": "next",
         "language": {
           "zh-Hans": "下一次",
-          "en": "Next"
+          "en": "Next",
+          "zh-Hant": "下一次",
+          "ja": "次回",
+          "ko": "다음번에는"
         }
       },
       {
         "codeKey": "countAndTotalTime",
         "language": {
-          "zh-Hans": "次数:%@,总时长:%@分钟（白天:%@;夜里:%@）"
+          "zh-Hans": "次数:%1$s,总时长:%2$s分钟（白天:%3$s;夜里:%4$s）",
+          "en": "Number of times: %1$s, total duration: %2$s minutes (day: %3$s; night: %4$s)",
+          "zh-Hant": "次數:%1$s,總時長:%2$s分鐘（白天:%3$s;夜裡:%4$s）",
+          "ja": "回数：%1$s、合計所要時間：%2$s分（昼：%3$s、夜：%4$s）",
+          "ko": "횟수: %1$s, 총 소요 시간: %2$s분(낮: %3$s, 밤: %4$s)"
         }
       },
       {
         "codeKey": "avgTime",
         "language": {
-          "zh-Hans": "平均每次时长:%@"
+          "zh-Hans": "平均每次时长:%1$s",
+          "en": "Average duration:%1$s",
+          "zh-Hant": "平均每次時長:%1$s",
+          "ja": "平均継続時間:%1$s",
+          "ko": "평균 소요 시간:%1$s"
         }
       },
       {
         "codeKey": "preGap",
         "language": {
-          "zh-Hans": "距上次的时间%@"
+          "zh-Hans": "距上次的时间%1$s",
+          "en": "Time since last time %1$s",
+          "zh-Hant": "距離上次的時間%1$s",
+          "ja": "前回からの経過時間 %1$s",
+          "ko": "지난번 이후의 시간 %1$s"
         }
       },
       {
         "codeKey": "cannotPredict",
         "language": {
-          "zh-Hans": "无法预测"
+          "zh-Hans": "无法预测",
+          "en": "Unpredictable",
+          "zh-Hant": "無法預測",
+          "ja": "予測不能",
+          "ko": "예측할 수 없음"
         }
       },
       {
         "codeKey": "predictNextIn",
         "language": {
-          "zh-Hans": "预测下一次在"
+          "zh-Hans": "预测下一次在",
+          "en": "Predict next time",
+          "zh-Hant": "預測下一次在",
+          "ja": "次回を予測する",
+          "ko": "다음 시간을 예측해 보세요"
         }
       },
       {
         "codeKey": "timeThis",
         "language": {
-          "zh-Hans": "时长:"
+          "zh-Hans": "时长:",
+          "en": "Duration:",
+          "zh-Hant": "時長:",
+          "ja": "期間:",
+          "ko": "기간:"
         }
       },
       {
         "codeKey": "min",
         "language": {
-          "zh-Hans": "分钟"
+          "zh-Hans": "分钟",
+          "en": "min",
+          "zh-Hant": "分鐘",
+          "ja": "分",
+          "ko": "분"
         }
       },
       {
         "codeKey": "startTime",
         "language": {
           "zh-Hans": "开始时间",
-          "en": "start time"
+          "en": "Start time",
+          "zh-Hant": "開始時間",
+          "ja": "開始時間",
+          "ko": "시작 시간"
         }
       },
       {
         "codeKey": "endTime",
         "language": {
           "zh-Hans": "结束时间",
-          "en": "end time"
+          "en": "End time",
+          "zh-Hant": "結束時間",
+          "ja": "終了時間",
+          "ko": "종료 시간"
         }
       },
       {
         "codeKey": "dashboard",
         "language": {
           "zh-Hans": "概况",
-          "en": "Dashboard"
+          "en": "Dashboard",
+          "zh-Hant": "概況",
+          "ja": "概要",
+          "ko": "개요"
+        }
+      },
+      {
+        "codeKey": "baby_dashboard_title",
+        "language": {
+          "zh-Hans": "%1$s的概况",
+          "en": "Overview of %1$s",
+          "zh-Hant": "%1$s的概況",
+          "ja": "%1$s の概要",
+          "ko": "%1$s 개요"
+        }
+      },
+      {
+        "codeKey": "feeding_type",
+        "language": {
+          "zh-Hans": "喂养类型",
+          "en": "Feeding type",
+          "zh-Hant": "餵食類型",
+          "ja": "給餌タイプ",
+          "ko": "먹이는 유형"
+        }
+      },
+      {
+        "codeKey": "feeding_type_breast",
+        "language": {
+          "zh-Hans": "母乳",
+          "en": "Breast milk",
+          "zh-Hant": "母乳",
+          "ja": "母乳",
+          "ko": "모유"
+        }
+      },
+      {
+        "codeKey": "feeding_type_formula",
+        "language": {
+          "zh-Hans": "配方奶",
+          "en": "Formula",
+          "zh-Hant": "配方奶",
+          "ja": "ミルク",
+          "ko": "분유"
+        }
+      },
+      {
+        "codeKey": "feeding_type_mixed",
+        "language": {
+          "zh-Hans": "混合",
+          "en": "Mixed",
+          "zh-Hant": "混合",
+          "ja": "混合",
+          "ko": "혼합"
+        }
+      },
+      {
+        "codeKey": "feeding_type_solid",
+        "language": {
+          "zh-Hans": "辅食",
+          "en": "Solid food",
+          "zh-Hant": "輔食",
+          "ja": "離乳食",
+          "ko": "이유식"
+        }
+      },
+      {
+        "codeKey": "feeding_type_other",
+        "language": {
+          "zh-Hans": "其他",
+          "en": "Other",
+          "zh-Hant": "其他",
+          "ja": "その他",
+          "ko": "기타"
+        }
+      },
+      {
+        "codeKey": "feeding_type_title_format",
+        "language": {
+          "zh-Hans": "%1$s喂养",
+          "en": "%1$s feeding",
+          "zh-Hant": "%1$s餵養",
+          "ja": "%1$sの授乳",
+          "ko": "%1$s 수유"
+        }
+      },
+      {
+        "codeKey": "feeding_amount",
+        "language": {
+          "zh-Hans": "喂奶量",
+          "en": "Feeding volume",
+          "zh-Hant": "餵奶量",
+          "ja": "給餌量",
+          "ko": "먹이는 양"
+        }
+      },
+      {
+        "codeKey": "feeding_breast_side_minutes_format",
+        "language": {
+          "zh-Hans": "%1$s%2$d分钟",
+          "en": "%1$s%2$d minutes",
+          "zh-Hant": "%1$s%2$d分鐘",
+          "ja": "%1$s%2$d分",
+          "ko": "%1$s%2$d분"
+        }
+      },
+      {
+        "codeKey": "feeding_total_minutes_format",
+        "language": {
+          "zh-Hans": "共%1$d分钟",
+          "en": "Total %1$d minutes",
+          "zh-Hant": "共%1$d分鐘",
+          "ja": "合計 %1$d 分",
+          "ko": "총 %1$d분"
+        }
+      },
+      {
+        "codeKey": "feeding_amount_unit_format",
+        "language": {
+          "zh-Hans": "%1$s%2$s",
+          "en": "%1$s%2$s",
+          "zh-Hant": "%1$s%2$s",
+          "ja": "%1$s%2$s",
+          "ko": "%1$s%2$s"
+        }
+      },
+      {
+        "codeKey": "solid_food_type",
+        "language": {
+          "zh-Hans": "辅食类型",
+          "en": "Solid food type",
+          "zh-Hant": "輔食類型",
+          "ja": "補完食の種類",
+          "ko": "보완 식품 유형"
+        }
+      },
+      {
+        "codeKey": "solid_food_name",
+        "language": {
+          "zh-Hans": "食物名称",
+          "en": "Food name",
+          "zh-Hant": "食物名稱",
+          "ja": "食べ物の名前",
+          "ko": "음식 이름"
+        }
+      },
+      {
+        "codeKey": "solid_food_name_hint",
+        "language": {
+          "zh-Hans": "如：胡萝卜泥",
+          "en": "Such as: carrot puree",
+          "zh-Hant": "如：胡蘿蔔泥",
+          "ja": "例：ニンジンピューレ",
+          "ko": "같은: 당근 퓌레"
+        }
+      },
+      {
+        "codeKey": "solid_food_amount",
+        "language": {
+          "zh-Hans": "食用量",
+          "en": "Amount eaten",
+          "zh-Hant": "食用量",
+          "ja": "食べた量",
+          "ko": "섭취량"
+        }
+      },
+      {
+        "codeKey": "solid_food_first_time",
+        "language": {
+          "zh-Hans": "首次尝试此食物",
+          "en": "First time trying this food",
+          "zh-Hant": "首次嘗試此食物",
+          "ja": "初めてこの食べ物を試しました",
+          "ko": "이런 음식은 처음 먹어보네요"
+        }
+      },
+      {
+        "codeKey": "solid_food_allergen_tip",
+        "language": {
+          "zh-Hans": "⚠️ 此食物有过敏风险，请注意观察",
+          "en": "⚠️ This food may cause allergies, please pay attention",
+          "zh-Hant": "⚠️ 此食物有過敏風險，請留意觀察",
+          "ja": "⚠️アレルギーを引き起こす可能性のある食品ですのでご注意ください",
+          "ko": "⚠️ 알레르기를 일으킬 수 있는 음식이니 주의해주세요."
+        }
+      },
+      {
+        "codeKey": "other_food_name",
+        "language": {
+          "zh-Hans": "食物名称",
+          "en": "food name",
+          "zh-Hant": "食物名稱",
+          "ja": "食べ物の名前",
+          "ko": "음식 이름"
+        }
+      },
+      {
+        "codeKey": "other_food_name_hint",
+        "language": {
+          "zh-Hans": "请输入食物名称",
+          "en": "Please enter the food name",
+          "zh-Hant": "請輸入食物名稱",
+          "ja": "料理名を入力してください",
+          "ko": "음식 이름을 입력해주세요"
+        }
+      },
+      {
+        "codeKey": "solid_category_staple",
+        "language": {
+          "zh-Hans": "主食",
+          "en": "Staples",
+          "zh-Hant": "主食",
+          "ja": "主食",
+          "ko": "주식"
+        }
+      },
+      {
+        "codeKey": "solid_category_vegetable",
+        "language": {
+          "zh-Hans": "蔬菜",
+          "en": "Vegetables",
+          "zh-Hant": "蔬菜",
+          "ja": "野菜",
+          "ko": "채소"
+        }
+      },
+      {
+        "codeKey": "solid_category_fruit",
+        "language": {
+          "zh-Hans": "水果",
+          "en": "Fruit",
+          "zh-Hant": "水果",
+          "ja": "果物",
+          "ko": "과일"
+        }
+      },
+      {
+        "codeKey": "solid_category_protein",
+        "language": {
+          "zh-Hans": "蛋白质",
+          "en": "Protein",
+          "zh-Hant": "蛋白質",
+          "ja": "たんぱく質",
+          "ko": "단백질"
+        }
+      },
+      {
+        "codeKey": "solid_category_dairy",
+        "language": {
+          "zh-Hans": "奶制品",
+          "en": "Dairy",
+          "zh-Hant": "乳製品",
+          "ja": "乳製品",
+          "ko": "유제품"
+        }
+      },
+      {
+        "codeKey": "solid_category_drink",
+        "language": {
+          "zh-Hans": "饮品",
+          "en": "Drinks",
+          "zh-Hant": "飲品",
+          "ja": "飲み物",
+          "ko": "음료"
+        }
+      },
+      {
+        "codeKey": "solid_category_supplement",
+        "language": {
+          "zh-Hans": "营养剂",
+          "en": "Supplements",
+          "zh-Hant": "營養劑",
+          "ja": "栄養補助",
+          "ko": "영양제"
+        }
+      },
+      {
+        "codeKey": "solid_category_snack",
+        "language": {
+          "zh-Hans": "零食",
+          "en": "Snacks",
+          "zh-Hant": "點心",
+          "ja": "おやつ",
+          "ko": "간식"
+        }
+      },
+      {
+        "codeKey": "solid_category_other",
+        "language": {
+          "zh-Hans": "其他",
+          "en": "other",
+          "zh-Hant": "其他",
+          "ja": "その他",
+          "ko": "기타"
+        }
+      },
+      {
+        "codeKey": "solid_rice_cereal",
+        "language": {
+          "zh-Hans": "米糊/米粉",
+          "en": "Rice cereal",
+          "zh-Hant": "米糊/米粉",
+          "ja": "米がゆ/米粉",
+          "ko": "쌀미음/쌀가루"
+        }
+      },
+      {
+        "codeKey": "solid_noodle",
+        "language": {
+          "zh-Hans": "面条",
+          "en": "Noodles",
+          "zh-Hant": "麵條",
+          "ja": "麺",
+          "ko": "면"
+        }
+      },
+      {
+        "codeKey": "solid_porridge",
+        "language": {
+          "zh-Hans": "粥",
+          "en": "Porridge",
+          "zh-Hant": "粥",
+          "ja": "お粥",
+          "ko": "죽"
+        }
+      },
+      {
+        "codeKey": "solid_bread",
+        "language": {
+          "zh-Hans": "馒头/面包",
+          "en": "Steamed buns/bread",
+          "zh-Hant": "饅頭/麵包",
+          "ja": "蒸しパン・パン",
+          "ko": "찐빵/빵"
+        }
+      },
+      {
+        "codeKey": "solid_rice",
+        "language": {
+          "zh-Hans": "米饭",
+          "en": "Rice",
+          "zh-Hant": "米飯",
+          "ja": "ご飯",
+          "ko": "밥"
+        }
+      },
+      {
+        "codeKey": "solid_vegetable_puree",
+        "language": {
+          "zh-Hans": "蔬菜泥",
+          "en": "Vegetable puree",
+          "zh-Hant": "蔬菜泥",
+          "ja": "野菜ピューレ",
+          "ko": "야채 퓨레"
+        }
+      },
+      {
+        "codeKey": "solid_vegetable_pieces",
+        "language": {
+          "zh-Hans": "蔬菜块",
+          "en": "Vegetable cubes",
+          "zh-Hant": "蔬菜塊",
+          "ja": "野菜キューブ",
+          "ko": "야채 큐브"
+        }
+      },
+      {
+        "codeKey": "solid_fruit_puree",
+        "language": {
+          "zh-Hans": "水果泥",
+          "en": "Fruit puree",
+          "zh-Hant": "水果泥",
+          "ja": "果物ピューレ",
+          "ko": "과일 퓨레"
+        }
+      },
+      {
+        "codeKey": "solid_fruit_pieces",
+        "language": {
+          "zh-Hans": "水果块",
+          "en": "Fruit pieces",
+          "zh-Hant": "水果塊",
+          "ja": "果物の小片",
+          "ko": "과일 조각"
+        }
+      },
+      {
+        "codeKey": "solid_egg_yolk",
+        "language": {
+          "zh-Hans": "蛋黄",
+          "en": "Egg yolk",
+          "zh-Hant": "蛋黃",
+          "ja": "卵黄",
+          "ko": "달걀노른자"
+        }
+      },
+      {
+        "codeKey": "solid_whole_egg",
+        "language": {
+          "zh-Hans": "全蛋",
+          "en": "Whole egg",
+          "zh-Hant": "全蛋",
+          "ja": "全卵",
+          "ko": "전란"
+        }
+      },
+      {
+        "codeKey": "solid_meat_puree",
+        "language": {
+          "zh-Hans": "肉泥",
+          "en": "Meat paste",
+          "zh-Hant": "肉泥",
+          "ja": "ミートペースト",
+          "ko": "고기 페이스트"
+        }
+      },
+      {
+        "codeKey": "solid_fish_puree",
+        "language": {
+          "zh-Hans": "鱼泥",
+          "en": "Fish puree",
+          "zh-Hant": "魚泥",
+          "ja": "魚のすり身",
+          "ko": "생선 퓨레"
+        }
+      },
+      {
+        "codeKey": "solid_shrimp_puree",
+        "language": {
+          "zh-Hans": "虾泥",
+          "en": "Shrimp puree",
+          "zh-Hant": "蝦泥",
+          "ja": "えびのすり身",
+          "ko": "새우 퓨레"
+        }
+      },
+      {
+        "codeKey": "solid_tofu",
+        "language": {
+          "zh-Hans": "豆腐",
+          "en": "Tofu",
+          "zh-Hant": "豆腐",
+          "ja": "豆腐",
+          "ko": "두부"
+        }
+      },
+      {
+        "codeKey": "solid_yogurt",
+        "language": {
+          "zh-Hans": "酸奶",
+          "en": "yogurt",
+          "zh-Hant": "優格",
+          "ja": "ヨーグルト",
+          "ko": "요구르트"
+        }
+      },
+      {
+        "codeKey": "solid_cheese",
+        "language": {
+          "zh-Hans": "奶酪",
+          "en": "cheese",
+          "zh-Hant": "起司",
+          "ja": "チーズ",
+          "ko": "치즈"
+        }
+      },
+      {
+        "codeKey": "solid_water",
+        "language": {
+          "zh-Hans": "水",
+          "en": "water",
+          "zh-Hant": "水",
+          "ja": "水",
+          "ko": "물"
+        }
+      },
+      {
+        "codeKey": "solid_juice",
+        "language": {
+          "zh-Hans": "果汁",
+          "en": "juice",
+          "zh-Hant": "果汁",
+          "ja": "ジュース",
+          "ko": "주스"
+        }
+      },
+      {
+        "codeKey": "solid_soup",
+        "language": {
+          "zh-Hans": "汤",
+          "en": "Soup",
+          "zh-Hant": "湯",
+          "ja": "スープ",
+          "ko": "수프"
+        }
+      },
+      {
+        "codeKey": "solid_vitamin_d",
+        "language": {
+          "zh-Hans": "维生素D",
+          "en": "Vitamin D",
+          "zh-Hant": "維生素D",
+          "ja": "ビタミンD",
+          "ko": "비타민 D"
+        }
+      },
+      {
+        "codeKey": "solid_iron",
+        "language": {
+          "zh-Hans": "铁剂",
+          "en": "iron supplement",
+          "zh-Hant": "鐵劑",
+          "ja": "鉄分補給",
+          "ko": "철분 보충제"
+        }
+      },
+      {
+        "codeKey": "solid_calcium",
+        "language": {
+          "zh-Hans": "钙",
+          "en": "calcium",
+          "zh-Hant": "鈣",
+          "ja": "カルシウム",
+          "ko": "칼슘"
+        }
+      },
+      {
+        "codeKey": "solid_dha",
+        "language": {
+          "zh-Hans": "DHA",
+          "en": "DHA",
+          "zh-Hant": "DHA",
+          "ja": "DHA",
+          "ko": "DHA"
+        }
+      },
+      {
+        "codeKey": "solid_probiotic",
+        "language": {
+          "zh-Hans": "益生菌",
+          "en": "Probiotics",
+          "zh-Hant": "益生菌",
+          "ja": "プロバイオティクス",
+          "ko": "프로바이오틱스"
+        }
+      },
+      {
+        "codeKey": "solid_supplement_other",
+        "language": {
+          "zh-Hans": "其他营养剂",
+          "en": "Other nutritional supplements",
+          "zh-Hant": "其他營養劑",
+          "ja": "その他の栄養補助食品",
+          "ko": "기타 영양 보충제"
+        }
+      },
+      {
+        "codeKey": "solid_puff",
+        "language": {
+          "zh-Hans": "溶豆",
+          "en": "Yogurt melts",
+          "zh-Hant": "溶豆",
+          "ja": "ヨーグルトメルト",
+          "ko": "요거트 멜트"
+        }
+      },
+      {
+        "codeKey": "solid_teething_biscuit",
+        "language": {
+          "zh-Hans": "磨牙棒",
+          "en": "Teething biscuit",
+          "zh-Hant": "磨牙棒",
+          "ja": "歯固めビスケット",
+          "ko": "치발 과자"
+        }
+      },
+      {
+        "codeKey": "solid_rice_cracker",
+        "language": {
+          "zh-Hans": "米饼",
+          "en": "Rice cracker",
+          "zh-Hant": "米餅",
+          "ja": "米せんべい",
+          "ko": "쌀과자"
+        }
+      },
+      {
+        "codeKey": "feeding_amount_hint",
+        "language": {
+          "zh-Hans": "可选",
+          "en": "Optional",
+          "zh-Hant": "可選",
+          "ja": "オプション",
+          "ko": "선택사항"
+        }
+      },
+      {
+        "codeKey": "unit_ml",
+        "language": {
+          "zh-Hans": "毫升",
+          "en": "ml",
+          "zh-Hant": "毫升",
+          "ja": "ミリリットル",
+          "ko": "밀리리터"
+        }
+      },
+      {
+        "codeKey": "unit_ml_abbr",
+        "language": {
+          "zh-Hans": "ml",
+          "en": "ml",
+          "zh-Hant": "ml",
+          "ja": "ml",
+          "ko": "ml"
+        }
+      },
+      {
+        "codeKey": "unit_mg_abbr",
+        "language": {
+          "zh-Hans": "mg",
+          "en": "mg",
+          "zh-Hant": "mg",
+          "ja": "mg",
+          "ko": "mg"
+        }
+      },
+      {
+        "codeKey": "unit_drop",
+        "language": {
+          "zh-Hans": "滴",
+          "en": "drop",
+          "zh-Hant": "滴",
+          "ja": "滴",
+          "ko": "방울"
+        }
+      },
+      {
+        "codeKey": "unit_tablet",
+        "language": {
+          "zh-Hans": "片",
+          "en": "tablet",
+          "zh-Hant": "片",
+          "ja": "錠",
+          "ko": "정"
+        }
+      },
+      {
+        "codeKey": "left_breast",
+        "language": {
+          "zh-Hans": "左侧",
+          "en": "Left side",
+          "zh-Hant": "左側",
+          "ja": "左側",
+          "ko": "왼쪽"
+        }
+      },
+      {
+        "codeKey": "right_breast",
+        "language": {
+          "zh-Hans": "右侧",
+          "en": "Right side",
+          "zh-Hant": "右側",
+          "ja": "右側",
+          "ko": "오른쪽"
+        }
+      },
+      {
+        "codeKey": "left_breast_duration",
+        "language": {
+          "zh-Hans": "左侧时长",
+          "en": "Left side duration",
+          "zh-Hant": "左側時長",
+          "ja": "左側の時間",
+          "ko": "왼쪽 시간"
+        }
+      },
+      {
+        "codeKey": "right_breast_duration",
+        "language": {
+          "zh-Hans": "右侧时长",
+          "en": "Right side duration",
+          "zh-Hant": "右側時長",
+          "ja": "右側の時間",
+          "ko": "오른쪽 시간"
+        }
+      },
+      {
+        "codeKey": "note",
+        "language": {
+          "zh-Hans": "备注",
+          "en": "Remark",
+          "zh-Hant": "備註",
+          "ja": "備考",
+          "ko": "비고"
+        }
+      },
+      {
+        "codeKey": "note_hint",
+        "language": {
+          "zh-Hans": "添加备注（可选）",
+          "en": "Add notes (optional)",
+          "zh-Hant": "新增備註（可選）",
+          "ja": "メモを追加する (オプション)",
+          "ko": "메모 추가(선택사항)"
+        }
+      },
+      {
+        "codeKey": "invalid_time",
+        "language": {
+          "zh-Hans": "请输入有效的时间",
+          "en": "Please enter a valid time",
+          "zh-Hant": "請輸入有效的時間",
+          "ja": "有効な時間を入力してください",
+          "ko": "올바른 시간을 입력하세요."
+        }
+      },
+      {
+        "codeKey": "start_time_required",
+        "language": {
+          "zh-Hans": "请输入开始时间",
+          "en": "Please enter start time",
+          "zh-Hant": "請輸入開始時間",
+          "ja": "開始時間を入力してください",
+          "ko": "시작 시간을 입력하세요."
+        }
+      },
+      {
+        "codeKey": "end_time_required",
+        "language": {
+          "zh-Hans": "请输入结束时间",
+          "en": "Please enter end time",
+          "zh-Hant": "請輸入結束時間",
+          "ja": "終了時間を入力してください",
+          "ko": "종료 시간을 입력하세요."
+        }
+      },
+      {
+        "codeKey": "end_time_must_after_start",
+        "language": {
+          "zh-Hans": "结束时间必须晚于开始时间",
+          "en": "End time must be later than start time",
+          "zh-Hant": "結束時間必須晚於開始時間",
+          "ja": "終了時間は開始時間より遅くする必要があります",
+          "ko": "종료 시간은 시작 시간보다 이후여야 합니다."
+        }
+      },
+      {
+        "codeKey": "time_cannot_be_future",
+        "language": {
+          "zh-Hans": "时间不能是未来时间",
+          "en": "Time cannot be future time",
+          "zh-Hant": "時間不能是未來時間",
+          "ja": "時間を未来の時間にすることはできません",
+          "ko": "시간은 미래의 시간이 될 수 없습니다"
+        }
+      },
+      {
+        "codeKey": "feeding_duration_too_long",
+        "language": {
+          "zh-Hans": "喂奶时长超过2小时，确定保存吗？",
+          "en": "The feeding lasted more than 2 hours, are you sure you want to save it?",
+          "zh-Hant": "餵奶時長超過2小時，確定保存嗎？",
+          "ja": "給餌は 2 時間以上続きました。保存してもよろしいですか?",
+          "ko": "먹이주기가 2시간 이상 지속되었습니다. 저장하시겠습니까?"
+        }
+      },
+      {
+        "codeKey": "no_baby_selected",
+        "language": {
+          "zh-Hans": "请先选择宝宝",
+          "en": "Please select your baby first",
+          "zh-Hant": "請先選擇寶寶",
+          "ja": "最初に赤ちゃんを選択してください",
+          "ko": "먼저 아기를 선택해주세요."
+        }
+      },
+      {
+        "codeKey": "confirm_save",
+        "language": {
+          "zh-Hans": "确认保存",
+          "en": "Confirm to save",
+          "zh-Hant": "確認保存",
+          "ja": "保存を確認してください",
+          "ko": "저장하려면 확인하세요."
+        }
+      },
+      {
+        "codeKey": "feeding_summary",
+        "language": {
+          "zh-Hans": "喂奶时长: %1$s 分钟\\n开始: %2$s\\n结束: %3$s",
+          "en": "Feeding duration: %1$s minutes\\nStart: %2$s\\nEnd: %3$s",
+          "zh-Hant": "餵奶時間： %1$s 分鐘\\n開始: %2$s\\n結束: %3$s",
+          "ja": "授乳時間: %1$s 分\\n開始: %2$s\\n終了: %3$s",
+          "ko": "수유 시간: %1$s분\\n시작: %2$s\\n끝: %3$s"
+        }
+      },
+      {
+        "codeKey": "unsaved_record_tip",
+        "language": {
+          "zh-Hans": "有未保存的记录，确定退出吗？",
+          "en": "There are unsaved records. Are you sure you want to exit?",
+          "zh-Hant": "有未儲存的記錄，確定退出嗎？",
+          "ja": "未保存のレコードがあります。終了してもよろしいですか?",
+          "ko": "저장되지 않은 기록이 있습니다. 종료하시겠습니까?"
+        }
+      },
+      {
+        "codeKey": "confirm",
+        "language": {
+          "zh-Hans": "确定",
+          "en": "OK",
+          "zh-Hant": "確定",
+          "ja": "OK",
+          "ko": "확인"
+        }
+      },
+      {
+        "codeKey": "cancel",
+        "language": {
+          "zh-Hans": "取消",
+          "en": "Cancel",
+          "zh-Hant": "取消",
+          "ja": "キャンセル",
+          "ko": "취소"
+        }
+      },
+      {
+        "codeKey": "fill_current_time",
+        "language": {
+          "zh-Hans": "当前时间",
+          "en": "current time",
+          "zh-Hant": "目前時間",
+          "ja": "現在時刻",
+          "ko": "현재 시간"
+        }
+      },
+      {
+        "codeKey": "last_feeding",
+        "language": {
+          "zh-Hans": "上次喂奶",
+          "en": "last feeding",
+          "zh-Hant": "上次餵奶",
+          "ja": "最後の授乳",
+          "ko": "마지막 수유"
+        }
+      },
+      {
+        "codeKey": "last_feeding_time",
+        "language": {
+          "zh-Hans": "上次: %1$s",
+          "en": "Last time: %1$s",
+          "zh-Hant": "上次: %1$s",
+          "ja": "前回: %1$s",
+          "ko": "마지막 시간: %1$s"
+        }
+      },
+      {
+        "codeKey": "yesterday",
+        "language": {
+          "zh-Hans": "昨天",
+          "en": "yesterday",
+          "zh-Hant": "昨天",
+          "ja": "昨日",
+          "ko": "어제"
+        }
+      },
+      {
+        "codeKey": "select_time",
+        "language": {
+          "zh-Hans": "选择时间",
+          "en": "Select time",
+          "zh-Hant": "選擇時間",
+          "ja": "時間を選択してください",
+          "ko": "시간 선택"
+        }
+      },
+      {
+        "codeKey": "record_time_date_current_year_format",
+        "language": {
+          "zh-Hans": "%1$02d月%2$02d日",
+          "en": "%1$02d/%2$02d",
+          "zh-Hant": "%1$02d月%2$02d日",
+          "ja": "%1$02d月%2$02d日",
+          "ko": "%1$02d월%2$02d일"
+        }
+      },
+      {
+        "codeKey": "record_time_date_cross_year_format",
+        "language": {
+          "zh-Hans": "%1$d/%2$02d/%3$02d",
+          "en": "%1$d/%2$02d/%3$02d",
+          "zh-Hant": "%1$d/%2$02d/%3$02d",
+          "ja": "%1$d/%2$02d/%3$02d",
+          "ko": "%1$d/%2$02d/%3$02d"
+        }
+      },
+      {
+        "codeKey": "record_time_clock_format",
+        "language": {
+          "zh-Hans": "%1$02d:%2$02d:%3$02d",
+          "en": "%1$02d:%2$02d:%3$02d",
+          "zh-Hant": "%1$02d:%2$02d:%3$02d",
+          "ja": "%1$02d:%2$02d:%3$02d",
+          "ko": "%1$02d:%2$02d:%3$02d"
+        }
+      },
+      {
+        "codeKey": "picker_year_format",
+        "language": {
+          "zh-Hans": "%1$d年",
+          "en": "%1$d",
+          "zh-Hant": "%1$d年",
+          "ja": "%1$d年",
+          "ko": "%1$d년"
+        }
+      },
+      {
+        "codeKey": "picker_month_format",
+        "language": {
+          "zh-Hans": "%1$02d月",
+          "en": "%1$02d",
+          "zh-Hant": "%1$02d月",
+          "ja": "%1$02d月",
+          "ko": "%1$02d월"
+        }
+      },
+      {
+        "codeKey": "picker_day_format",
+        "language": {
+          "zh-Hans": "%1$02d日",
+          "en": "%1$02d",
+          "zh-Hant": "%1$02d日",
+          "ja": "%1$02d日",
+          "ko": "%1$02d일"
+        }
+      },
+      {
+        "codeKey": "picker_hour_format",
+        "language": {
+          "zh-Hans": "%1$02d时",
+          "en": "%1$02d",
+          "zh-Hant": "%1$02d時",
+          "ja": "%1$02d時間",
+          "ko": "%1$02d시간"
+        }
+      },
+      {
+        "codeKey": "picker_minute_format",
+        "language": {
+          "zh-Hans": "%1$02d分",
+          "en": "%1$02d",
+          "zh-Hant": "%1$02d分",
+          "ja": "%1$02d ポイント",
+          "ko": "%1$02d 포인트"
+        }
+      },
+      {
+        "codeKey": "picker_second_format",
+        "language": {
+          "zh-Hans": "%1$02d秒",
+          "en": "%1$02d",
+          "zh-Hant": "%1$02d秒",
+          "ja": "%1$02d 秒",
+          "ko": "%1$02d초"
+        }
+      },
+      {
+        "codeKey": "breast_duration_exceed",
+        "language": {
+          "zh-Hans": "左右乳房时长之和不能超过总喂奶时长",
+          "en": "The sum of the duration of the left and right breasts cannot exceed the total breastfeeding duration",
+          "zh-Hant": "左右乳房時長和不能超過總餵奶時長",
+          "ja": "左右の乳房の持続期間の合計が、合計授乳期間を超えることはできません。",
+          "ko": "왼쪽 가슴과 오른쪽 가슴의 지속 시간의 합은 총 모유 수유 시간을 초과할 수 없습니다."
+        }
+      },
+      {
+        "codeKey": "end_time_will_be_cleared",
+        "language": {
+          "zh-Hans": "继续计时将清空已填写的结束时间，确定继续吗？",
+          "en": "Continuing to time will clear the filled-in end time. Are you sure you want to continue?",
+          "zh-Hant": "繼續計時將清空已填寫的結束時間，確定繼續嗎？",
+          "ja": "時間を続けると、入力された終了時間がクリアされます。続行してもよろしいですか?",
+          "ko": "시간을 계속 진행하면 채워져 있던 종료 시간이 지워집니다. 계속하시겠습니까?"
+        }
+      },
+      {
+        "codeKey": "continue_timing",
+        "language": {
+          "zh-Hans": "继续计时",
+          "en": "Continue timing",
+          "zh-Hant": "繼續計時",
+          "ja": "計時を続ける",
+          "ko": "계속 기록"
+        }
+      },
+      {
+        "codeKey": "tip",
+        "language": {
+          "zh-Hans": "提示",
+          "en": "Tip",
+          "zh-Hant": "提示",
+          "ja": "ヒント",
+          "ko": "팁"
+        }
+      },
+      {
+        "codeKey": "record_timer_default",
+        "language": {
+          "zh-Hans": "00:00",
+          "en": "00:00",
+          "zh-Hant": "00:00",
+          "ja": "00:00",
+          "ko": "00:00"
+        }
+      },
+      {
+        "codeKey": "tap_to_start",
+        "language": {
+          "zh-Hans": "点击开始计时",
+          "en": "Click to start timing",
+          "zh-Hant": "點擊開始計時",
+          "ja": "クリックして計測を開始",
+          "ko": "타이밍을 시작하려면 클릭하세요."
+        }
+      },
+      {
+        "codeKey": "tap_to_pause",
+        "language": {
+          "zh-Hans": "点击暂停",
+          "en": "Click to pause",
+          "zh-Hant": "點擊暫停",
+          "ja": "クリックして一時停止します",
+          "ko": "일시중지하려면 클릭하세요."
+        }
+      },
+      {
+        "codeKey": "tap_to_continue",
+        "language": {
+          "zh-Hans": "点击继续",
+          "en": "Click to continue",
+          "zh-Hant": "點擊繼續",
+          "ja": "クリックして続行します",
+          "ko": "계속하려면 클릭하세요"
+        }
+      },
+      {
+        "codeKey": "all_babies",
+        "language": {
+          "zh-Hans": "所有宝宝",
+          "en": "All babies",
+          "zh-Hant": "所有寶寶",
+          "ja": "すべての赤ちゃん",
+          "ko": "모든 아기"
+        }
+      },
+      {
+        "codeKey": "data_statistics",
+        "language": {
+          "zh-Hans": "数据统计",
+          "en": "Statistics",
+          "zh-Hant": "數據統計",
+          "ja": "統計",
+          "ko": "통계"
+        }
+      },
+      {
+        "codeKey": "settings",
+        "language": {
+          "zh-Hans": "设置",
+          "en": "Settings",
+          "zh-Hant": "設定",
+          "ja": "設定",
+          "ko": "설정"
+        }
+      },
+      {
+        "codeKey": "help_feedback",
+        "language": {
+          "zh-Hans": "帮助与反馈",
+          "en": "Help and feedback",
+          "zh-Hant": "幫助與回饋",
+          "ja": "ヘルプとフィードバック",
+          "ko": "도움말 및 피드백"
+        }
+      },
+      {
+        "codeKey": "days_born",
+        "language": {
+          "zh-Hans": "已出生 %1$d 天",
+          "en": "Born %1$d days",
+          "zh-Hant": "已出生 %1$d 天",
+          "ja": "%1$d日生まれ",
+          "ko": "%1$d일에 태어났습니다."
+        }
+      },
+      {
+        "codeKey": "no_baby_yet",
+        "language": {
+          "zh-Hans": "还没有宝宝",
+          "en": "No baby yet",
+          "zh-Hant": "還沒有寶寶",
+          "ja": "まだ赤ちゃんはいない",
+          "ko": "아직 아기는 없어"
+        }
+      },
+      {
+        "codeKey": "add_baby",
+        "language": {
+          "zh-Hans": "添加宝宝",
+          "en": "Add baby",
+          "zh-Hant": "加入寶寶",
+          "ja": "赤ちゃんを追加",
+          "ko": "아기 추가"
+        }
+      },
+      {
+        "codeKey": "view_detail",
+        "language": {
+          "zh-Hans": "查看详情",
+          "en": "View details",
+          "zh-Hant": "看詳情",
+          "ja": "詳細を見る",
+          "ko": "상세 보기"
+        }
+      },
+      {
+        "codeKey": "settings_general",
+        "language": {
+          "zh-Hans": "通用",
+          "en": "General",
+          "zh-Hant": "一般",
+          "ja": "一般",
+          "ko": "일반"
+        }
+      },
+      {
+        "codeKey": "settings_reminder",
+        "language": {
+          "zh-Hans": "提醒",
+          "en": "Reminders",
+          "zh-Hant": "提醒",
+          "ja": "リマインダー",
+          "ko": "알림"
+        }
+      },
+      {
+        "codeKey": "settings_about",
+        "language": {
+          "zh-Hans": "关于",
+          "en": "About",
+          "zh-Hant": "關於",
+          "ja": "について",
+          "ko": "소개"
+        }
+      },
+      {
+        "codeKey": "settings_reminder_switch_title",
+        "language": {
+          "zh-Hans": "记录提醒",
+          "en": "Record reminders",
+          "zh-Hant": "記錄提醒",
+          "ja": "記録リマインダー",
+          "ko": "기록 알림"
+        }
+      },
+      {
+        "codeKey": "settings_reminder_switch_summary",
+        "language": {
+          "zh-Hans": "开启后可接收喂养与睡眠提醒",
+          "en": "Enable feeding and sleep reminders",
+          "zh-Hant": "開啟後可接收餵食與睡眠提醒",
+          "ja": "オンにすると、授乳と睡眠のリマインダーを受信できます",
+          "ko": "수유 및 수면 알림을 받으려면 켜세요."
+        }
+      },
+      {
+        "codeKey": "settings_notification_permission_rationale",
+        "language": {
+          "zh-Hans": "用于提醒喂养与睡眠记录，请允许通知权限",
+          "en": "Allow notifications to receive feeding and sleep reminders",
+          "zh-Hant": "用於提醒餵食與睡眠記錄，請允許通知權限",
+          "ja": "摂食と睡眠の記録をリマインドするために使用されます。通知の許可を許可してください",
+          "ko": "수유 및 수면 기록 알림에 사용됩니다. 알림 권한을 허용해 주세요."
+        }
+      },
+      {
+        "codeKey": "settings_notification_permission_denied",
+        "language": {
+          "zh-Hans": "未授予通知权限，提醒已保持关闭",
+          "en": "Notification permission denied. Reminders stay off.",
+          "zh-Hant": "未授予通知權限，提醒已保持關閉",
+          "ja": "通知許可が付与されていないため、リマインダーは閉じられたままです",
+          "ko": "알림 권한이 부여되지 않았으며 알림이 닫힌 상태로 유지됩니다."
+        }
+      },
+      {
+        "codeKey": "settings_unit_feeding_title",
+        "language": {
+          "zh-Hans": "喂养单位",
+          "en": "Feeding unit",
+          "zh-Hant": "餵食單位",
+          "ja": "授乳単位",
+          "ko": "수유 단위"
+        }
+      },
+      {
+        "codeKey": "settings_unit_weight_title",
+        "language": {
+          "zh-Hans": "体重单位",
+          "en": "Weight unit",
+          "zh-Hant": "體重單位",
+          "ja": "体重単位",
+          "ko": "체중 단위"
+        }
+      },
+      {
+        "codeKey": "settings_unit_height_title",
+        "language": {
+          "zh-Hans": "身高单位",
+          "en": "Height unit",
+          "zh-Hant": "身高單位",
+          "ja": "身長単位",
+          "ko": "키 단위"
+        }
+      },
+      {
+        "codeKey": "settings_about_version",
+        "language": {
+          "zh-Hans": "版本",
+          "en": "Version",
+          "zh-Hant": "版本",
+          "ja": "バージョン",
+          "ko": "버전"
+        }
+      },
+      {
+        "codeKey": "settings_more",
+        "language": {
+          "zh-Hans": "更多",
+          "en": "More",
+          "zh-Hant": "更多",
+          "ja": "もっと見る",
+          "ko": "더보기"
+        }
+      },
+      {
+        "codeKey": "settings_language",
+        "language": {
+          "zh-Hans": "语言",
+          "en": "Language",
+          "zh-Hant": "語言",
+          "ja": "言語",
+          "ko": "언어"
+        }
+      },
+      {
+        "codeKey": "settings_language_system",
+        "language": {
+          "zh-Hans": "跟随系统",
+          "en": "System default",
+          "zh-Hant": "跟隨系統",
+          "ja": "システムに従ってください",
+          "ko": "시스템을 따르세요"
+        }
+      },
+      {
+        "codeKey": "settings_language_zh",
+        "language": {
+          "zh-Hans": "简体中文",
+          "en": "Simplified Chinese",
+          "zh-Hant": "簡體中文",
+          "ja": "簡体字中国語",
+          "ko": "중국어 간체"
+        }
+      },
+      {
+        "codeKey": "settings_language_en",
+        "language": {
+          "zh-Hans": "English",
+          "en": "English",
+          "zh-Hant": "English",
+          "ja": "英語",
+          "ko": "영어"
+        }
+      },
+      {
+        "codeKey": "settings_backup",
+        "language": {
+          "zh-Hans": "数据备份",
+          "en": "Backup",
+          "zh-Hant": "資料備份",
+          "ja": "データのバックアップ",
+          "ko": "데이터 백업"
+        }
+      },
+      {
+        "codeKey": "settings_backup_summary",
+        "language": {
+          "zh-Hans": "导出数据到文件",
+          "en": "Export data to a file",
+          "zh-Hant": "匯出資料到文件",
+          "ja": "データをファイルにエクスポート",
+          "ko": "데이터를 파일로 내보내기"
+        }
+      },
+      {
+        "codeKey": "settings_family_share",
+        "language": {
+          "zh-Hans": "家庭共享",
+          "en": "Family sharing",
+          "zh-Hant": "家庭共享",
+          "ja": "家族共有",
+          "ko": "가족 공유"
+        }
+      },
+      {
+        "codeKey": "settings_feature_coming_soon",
+        "language": {
+          "zh-Hans": "即将支持",
+          "en": "Coming soon",
+          "zh-Hant": "即將支持",
+          "ja": "近日公開予定",
+          "ko": "곧 출시 예정"
+        }
+      },
+      {
+        "codeKey": "backup_export_title",
+        "language": {
+          "zh-Hans": "导出数据",
+          "en": "Export data",
+          "zh-Hant": "匯出數據",
+          "ja": "データのエクスポート",
+          "ko": "데이터 내보내기"
+        }
+      },
+      {
+        "codeKey": "backup_export_summary",
+        "language": {
+          "zh-Hans": "生成 JSON 备份文件，便于迁移与保存",
+          "en": "Generate a JSON backup file for migration or storage",
+          "zh-Hant": "產生 JSON 備份文件，方便遷移與保存",
+          "ja": "JSON バックアップ ファイルを生成して移行と保存を容易にします",
+          "ko": "간편한 마이그레이션 및 저장을 위해 JSON 백업 파일 생성"
+        }
+      },
+      {
+        "codeKey": "backup_import_title",
+        "language": {
+          "zh-Hans": "导入备份",
+          "en": "Import backup",
+          "zh-Hant": "導入備份",
+          "ja": "バックアップのインポート",
+          "ko": "백업 가져오기"
+        }
+      },
+      {
+        "codeKey": "backup_import_summary",
+        "language": {
+          "zh-Hans": "从备份文件恢复记录，支持覆盖或合并",
+          "en": "Restore records from a backup file (overwrite or merge)",
+          "zh-Hant": "從備份檔案還原記錄，支援覆蓋或合併",
+          "ja": "バックアップ ファイルからレコードを復元し、上書きまたはマージをサポート",
+          "ko": "백업 파일에서 기록을 복원하고 덮어쓰기 또는 병합을 지원합니다."
+        }
+      },
+      {
+        "codeKey": "backup_dedup_title",
+        "language": {
+          "zh-Hans": "合并去重容差",
+          "en": "Merge dedup tolerance",
+          "zh-Hant": "合併去重容差",
+          "ja": "マージ重複排除耐性",
+          "ko": "중복 제거 허용 오차 병합"
+        }
+      },
+      {
+        "codeKey": "backup_dedup_summary",
+        "language": {
+          "zh-Hans": "时间差在容差内视为同一条记录",
+          "en": "Records within the tolerance are treated as the same",
+          "zh-Hant": "時間差在容差內視為同一筆記錄",
+          "ja": "時差は許容範囲内で同一記録とみなされます",
+          "ko": "시간차는 허용오차 내에서 동일한 기록으로 간주됩니다."
+        }
+      },
+      {
+        "codeKey": "backup_dedup_off",
+        "language": {
+          "zh-Hans": "不使用容差",
+          "en": "No tolerance",
+          "zh-Hant": "不使用容差",
+          "ja": "公差を使用しないでください",
+          "ko": "공차를 사용하지 마십시오"
+        }
+      },
+      {
+        "codeKey": "backup_dedup_value_format",
+        "language": {
+          "zh-Hans": "%1$d分钟",
+          "en": "%1$d min",
+          "zh-Hant": "%1$d分鐘",
+          "ja": "%1$d分",
+          "ko": "%1$d분"
+        }
+      },
+      {
+        "codeKey": "backup_note",
+        "language": {
+          "zh-Hans": "仅导出宝宝与记录数据，不包含设置项",
+          "en": "Only baby and record data are exported. Settings are excluded.",
+          "zh-Hant": "僅匯出寶寶與記錄數據，不含設定項",
+          "ja": "設定を除く、赤ちゃんと記録データのみをエクスポートします",
+          "ko": "설정을 제외한 아기 및 기록 데이터만 내보내기"
+        }
+      },
+      {
+        "codeKey": "backup_exporting",
+        "language": {
+          "zh-Hans": "正在生成备份...",
+          "en": "Preparing backup...",
+          "zh-Hant": "正在產生備份...",
+          "ja": "バックアップを生成しています...",
+          "ko": "백업 생성 중..."
+        }
+      },
+      {
+        "codeKey": "backup_export_success",
+        "language": {
+          "zh-Hans": "备份已保存",
+          "en": "Backup saved",
+          "zh-Hant": "備份已儲存",
+          "ja": "バックアップが保存されました",
+          "ko": "백업이 저장되었습니다"
+        }
+      },
+      {
+        "codeKey": "backup_export_failed",
+        "language": {
+          "zh-Hans": "备份失败",
+          "en": "Backup failed",
+          "zh-Hant": "備份失敗",
+          "ja": "バックアップに失敗しました",
+          "ko": "백업 실패"
+        }
+      },
+      {
+        "codeKey": "backup_export_cancelled",
+        "language": {
+          "zh-Hans": "已取消备份",
+          "en": "Backup cancelled",
+          "zh-Hant": "已取消備份",
+          "ja": "バックアップがキャンセルされました",
+          "ko": "백업이 취소되었습니다."
+        }
+      },
+      {
+        "codeKey": "backup_file_name_format",
+        "language": {
+          "zh-Hans": "backup_%1$s.json",
+          "en": "backup_%1$s.json",
+          "zh-Hant": "backup_%1$s.json",
+          "ja": "バックアップ_%1$s.json",
+          "ko": "백업_%1$s.json"
+        }
+      },
+      {
+        "codeKey": "backup_import_confirm_title",
+        "language": {
+          "zh-Hans": "导入备份",
+          "en": "Import backup",
+          "zh-Hant": "導入備份",
+          "ja": "バックアップのインポート",
+          "ko": "백업 가져오기"
+        }
+      },
+      {
+        "codeKey": "backup_import_mode_overwrite",
+        "language": {
+          "zh-Hans": "覆盖导入",
+          "en": "Overwrite import",
+          "zh-Hant": "覆蓋導入",
+          "ja": "インポートを上書きする",
+          "ko": "가져오기 재정의"
+        }
+      },
+      {
+        "codeKey": "backup_import_mode_merge",
+        "language": {
+          "zh-Hans": "合并导入",
+          "en": "Merge import",
+          "zh-Hant": "合併導入",
+          "ja": "マージインポート",
+          "ko": "병합 가져오기"
+        }
+      },
+      {
+        "codeKey": "backup_import_confirm_overwrite_format",
+        "language": {
+          "zh-Hans": "导入方式：%1$s\\n将清空当前数据，并写入以下内容：\\n宝宝 %2$d 个，喂养 %3$d 条，睡眠 %4$d 条，事件 %5$d 条，成长 %6$d 条。\\n确定继续吗？",
+          "en": "Import mode: %1$s\\nThis will clear existing data and add:\\nBabies %2$d, Feedings %3$d, Sleeps %4$d, Events %5$d, Growth %6$d.\\nContinue?",
+          "zh-Hant": "導入方式：%1$s\\n將清空當前數據，並寫入以下內容：\\n寶寶 %2$d 個，餵食 %3$d 條，睡眠 %4$d 條，事件 %5$d 條，成長 %6$d 條。 \\n確定繼續嗎？",
+          "ja": "インポート方法: %1$s\\n現在のデータがクリアされ、次の内容が書き込まれます:\\n赤ちゃん %2$d、授乳 %3$d、睡眠 %4$d、イベント %5$d、成長 %6$d。 \\n続行してもよろしいですか?",
+          "ko": "가져오기 방법: %1$s\\n현재 데이터가 지워지고 다음 내용이 기록됩니다:\\n아기 %2$d, 수유 %3$d, 수면 %4$d, 이벤트 %5$d, 성장 %6$d. \\n계속하시겠습니까?"
+        }
+      },
+      {
+        "codeKey": "backup_import_confirm_merge_format",
+        "language": {
+          "zh-Hans": "导入方式：%1$s\\n将保留当前数据，并追加以下内容：\\n宝宝 %2$d 个，喂养 %3$d 条，睡眠 %4$d 条，事件 %5$d 条，成长 %6$d 条。\\n可能产生重复记录，确定继续吗？",
+          "en": "Import mode: %1$s\\nThis will keep existing data and add:\\nBabies %2$d, Feedings %3$d, Sleeps %4$d, Events %5$d, Growth %6$d.\\nDuplicates may occur. Continue?",
+          "zh-Hant": "導入方式：%1$s\\n將保留當前數據，並追加以下內容：\\n寶寶 %2$d 個，餵養 %3$d 條，睡眠 %4$d 條，事件 %5$d 條，成長 %6$d 條。 \\n可能產生重複記錄，確定繼續嗎？",
+          "ja": "インポート方法: %1$s\\n現在のデータは保持され、次のコンテンツが追加されます:\\n赤ちゃん %2$d アイテム、授乳 %3$d アイテム、睡眠 %4$d アイテム、イベント %5$d アイテム、成長 %6$d アイテム。 \\n重複したレコードが生成される可能性があります。続行してもよろしいですか?",
+          "ko": "가져오기 방법: %1$s\\n현재 데이터는 유지되고 다음 콘텐츠가 추가됩니다:\\n아기 %2$d 항목, 먹이 %3$d 항목, 수면 %4$d 항목, 이벤트 %5$d 항목 및 성장 %6$d 항목. \\n중복 레코드가 생성될 수 있습니다. 계속하시겠습니까?"
+        }
+      },
+      {
+        "codeKey": "backup_importing",
+        "language": {
+          "zh-Hans": "正在导入备份...",
+          "en": "Importing backup...",
+          "zh-Hant": "正在導入備份...",
+          "ja": "バックアップをインポートしています...",
+          "ko": "백업을 가져오는 중..."
+        }
+      },
+      {
+        "codeKey": "backup_import_parsing",
+        "language": {
+          "zh-Hans": "正在解析备份...",
+          "en": "Parsing backup...",
+          "zh-Hant": "正在解析備份...",
+          "ja": "バックアップを解析中...",
+          "ko": "백업 구문 분석 중..."
+        }
+      },
+      {
+        "codeKey": "backup_import_success",
+        "language": {
+          "zh-Hans": "导入完成",
+          "en": "Import completed",
+          "zh-Hant": "導入完成",
+          "ja": "インポートが完了しました",
+          "ko": "가져오기 완료"
+        }
+      },
+      {
+        "codeKey": "backup_import_failed",
+        "language": {
+          "zh-Hans": "导入失败",
+          "en": "Import failed",
+          "zh-Hant": "導入失敗",
+          "ja": "インポートに失敗しました",
+          "ko": "가져오기 실패"
+        }
+      },
+      {
+        "codeKey": "backup_import_cancelled",
+        "language": {
+          "zh-Hans": "已取消导入",
+          "en": "Import cancelled",
+          "zh-Hant": "已取消導入",
+          "ja": "輸入がキャンセルされました",
+          "ko": "가져오기가 취소되었습니다."
+        }
+      },
+      {
+        "codeKey": "backup_import_invalid_file",
+        "language": {
+          "zh-Hans": "备份文件无效",
+          "en": "Invalid backup file",
+          "zh-Hant": "備份檔案無效",
+          "ja": "バックアップファイルが無効です",
+          "ko": "백업 파일이 잘못되었습니다"
+        }
+      },
+      {
+        "codeKey": "backup_import_unsupported_version",
+        "language": {
+          "zh-Hans": "备份版本不支持",
+          "en": "Unsupported backup version",
+          "zh-Hant": "備份版本不支援",
+          "ja": "バックアップバージョンはサポートされていません",
+          "ko": "백업 버전은 지원되지 않습니다."
+        }
+      },
+      {
+        "codeKey": "backup_import_empty",
+        "language": {
+          "zh-Hans": "备份中没有可导入的数据",
+          "en": "No data to import",
+          "zh-Hant": "備份中沒有可匯入的數據",
+          "ja": "バックアップにインポートするデータがありません",
+          "ko": "백업에 가져올 데이터가 없습니다."
+        }
+      },
+      {
+        "codeKey": "backup_import_report_title",
+        "language": {
+          "zh-Hans": "导入完成",
+          "en": "Import completed",
+          "zh-Hant": "導入完成",
+          "ja": "インポートが完了しました",
+          "ko": "가져오기 완료"
+        }
+      },
+      {
+        "codeKey": "backup_import_report_format",
+        "language": {
+          "zh-Hans": "导入方式：%1$s\\n宝宝：新增 %2$d，匹配 %3$d，备份重复 %4$d\\n喂养：新增 %5$d，去重 %6$d\\n睡眠：新增 %7$d，去重 %8$d\\n事件：新增 %9$d，去重 %10$d\\n成长：新增 %11$d，覆盖 %12$d",
+          "en": "Mode: %1$s\\nBabies: added %2$d, matched %3$d, duplicate in backup %4$d\\nFeedings: added %5$d, deduped %6$d\\nSleeps: added %7$d, deduped %8$d\\nEvents: added %9$d, deduped %10$d\\nGrowth: added %11$d, updated %12$d",
+          "zh-Hant": "导入方式：%1$s\\n宝宝：新增 %2$d，匹配 %3$d，备份重复 %4$d\\n喂养：新增 %5$d，去重 %6$d\\n睡眠：新增 %7$d，去重 %8$d\\n事件：新增 %9$d，去重 %10$d\\n成长：新增 %11$d，覆盖 %12$d",
+          "ja": "インポート方法: %1$s\\n乳児: %2$d を追加、%3$d と一致、重複 %4$d をバックアップ\\n授乳: %5$d を追加、重複 %6$d を削除\\n睡眠: %7$d を追加、重複 %8$d を削除\\nイベント: %9$d を追加、重複 %10$d を削除\\n成長: %11$d を追加、%12$d を上書き",
+          "ko": "가져오기 방법: %1$s\\n아기: %2$d 추가, %3$d 일치, 중복 백업 %4$d\\n먹이기: %5$d 추가, 중복 %6$d 제거\\n수면: %7$d 추가, 중복 %8$d 제거\\n이벤트: %9$d 추가, 중복 %10$d 제거\\n성장: %11$d 추가, %12$d 덮어쓰기"
+        }
+      },
+      {
+        "codeKey": "backup_import_report_saved",
+        "language": {
+          "zh-Hans": "导入报告已保存：%1$s",
+          "en": "Import report saved: %1$s",
+          "zh-Hant": "導入報告已儲存：%1$s",
+          "ja": "インポートレポートが保存されました: %1$s",
+          "ko": "가져오기 보고서가 저장되었습니다: %1$s"
+        }
+      },
+      {
+        "codeKey": "backup_import_report_save_failed",
+        "language": {
+          "zh-Hans": "导入报告保存失败",
+          "en": "Failed to save import report",
+          "zh-Hant": "導入報告保存失敗",
+          "ja": "インポートレポートの保存に失敗しました",
+          "ko": "가져오기 보고서를 저장하지 못했습니다."
+        }
+      },
+      {
+        "codeKey": "backup_import_report_file_name_format",
+        "language": {
+          "zh-Hans": "import_report_%1$s.json",
+          "en": "import_report_%1$s.json",
+          "zh-Hant": "import_report_%1$s.json",
+          "ja": "import_report_%1$s.json",
+          "ko": "import_report_%1$s.json"
+        }
+      },
+      {
+        "codeKey": "backup_import_report_title_section",
+        "language": {
+          "zh-Hans": "导入报告",
+          "en": "Import reports",
+          "zh-Hant": "導入報告",
+          "ja": "レポートのインポート",
+          "ko": "보고서 가져오기"
+        }
+      },
+      {
+        "codeKey": "backup_import_report_detail_title",
+        "language": {
+          "zh-Hans": "报告详情",
+          "en": "Report details",
+          "zh-Hant": "報告詳情",
+          "ja": "レポートの詳細",
+          "ko": "보고서 세부정보"
+        }
+      },
+      {
+        "codeKey": "backup_import_report_export",
+        "language": {
+          "zh-Hans": "导出报告",
+          "en": "Export report",
+          "zh-Hant": "匯出報告",
+          "ja": "レポートのエクスポート",
+          "ko": "보고서 내보내기"
+        }
+      },
+      {
+        "codeKey": "backup_import_report_exported",
+        "language": {
+          "zh-Hans": "报告已导出",
+          "en": "Report exported",
+          "zh-Hant": "報告已匯出",
+          "ja": "レポートがエクスポートされました",
+          "ko": "보고서를 내보냈습니다."
+        }
+      },
+      {
+        "codeKey": "backup_import_report_export_failed",
+        "language": {
+          "zh-Hans": "报告导出失败",
+          "en": "Report export failed",
+          "zh-Hant": "報告匯出失敗",
+          "ja": "レポートのエクスポートに失敗しました",
+          "ko": "보고서 내보내기 실패"
+        }
+      },
+      {
+        "codeKey": "backup_import_report_list_failed",
+        "language": {
+          "zh-Hans": "报告列表加载失败",
+          "en": "Failed to load report list",
+          "zh-Hant": "報告清單載入失敗",
+          "ja": "レポートリストの読み込みに失敗しました",
+          "ko": "보고서 목록 로드 실패"
+        }
+      },
+      {
+        "codeKey": "backup_import_report_load_failed",
+        "language": {
+          "zh-Hans": "报告内容读取失败",
+          "en": "Failed to load report",
+          "zh-Hant": "報告內容讀取失敗",
+          "ja": "レポート内容の読み取りに失敗しました",
+          "ko": "신고 내용을 읽지 못했습니다."
+        }
+      },
+      {
+        "codeKey": "backup_report_clear_title",
+        "language": {
+          "zh-Hans": "清理报告",
+          "en": "Clear reports",
+          "zh-Hant": "清理報告",
+          "ja": "クリーンアップレポート",
+          "ko": "정리 보고서"
+        }
+      },
+      {
+        "codeKey": "backup_report_clear_summary",
+        "language": {
+          "zh-Hans": "删除历史导入报告",
+          "en": "Delete historical import reports",
+          "zh-Hant": "刪除歷史導入報告",
+          "ja": "履歴インポートレポートを削除する",
+          "ko": "이전 수입 보고서 삭제"
+        }
+      },
+      {
+        "codeKey": "backup_report_clear_confirm",
+        "language": {
+          "zh-Hans": "将删除所有导入报告，确定继续吗？",
+          "en": "This will delete all import reports. Continue?",
+          "zh-Hant": "將刪除所有匯入報告，確定繼續嗎？",
+          "ja": "インポートされたレポートはすべて削除されます。続行してもよろしいですか?",
+          "ko": "가져온 보고서는 모두 삭제됩니다. 계속하시겠습니까?"
+        }
+      },
+      {
+        "codeKey": "backup_report_cleared_format",
+        "language": {
+          "zh-Hans": "已清理 %1$d 条报告",
+          "en": "Cleared %1$d reports",
+          "zh-Hant": "已清理 %1$d 筆報告",
+          "ja": "%1$d レポートをクリーンアップしました",
+          "ko": "%1$d 보고서를 정리했습니다."
+        }
+      },
+      {
+        "codeKey": "backup_report_clear_failed",
+        "language": {
+          "zh-Hans": "清理报告失败",
+          "en": "Failed to clear reports",
+          "zh-Hant": "清理報告失敗",
+          "ja": "クリーンアップレポートが失敗しました",
+          "ko": "정리 보고서 실패"
+        }
+      },
+      {
+        "codeKey": "backup_report_delete_title",
+        "language": {
+          "zh-Hans": "删除报告",
+          "en": "Delete report",
+          "zh-Hant": "刪除報告",
+          "ja": "レポートの削除",
+          "ko": "보고서 삭제"
+        }
+      },
+      {
+        "codeKey": "backup_report_delete_confirm_format",
+        "language": {
+          "zh-Hans": "确定删除报告：%1$s？",
+          "en": "Delete report: %1$s?",
+          "zh-Hant": "確定刪除報告：%1$s？",
+          "ja": "レポート %1$s を削除してもよろしいですか?",
+          "ko": "보고서(%1$s)를 삭제하시겠습니까?"
+        }
+      },
+      {
+        "codeKey": "backup_report_deleted_format",
+        "language": {
+          "zh-Hans": "已删除报告：%1$s",
+          "en": "Deleted report: %1$s",
+          "zh-Hant": "已刪除報告：%1$s",
+          "ja": "削除されたレポート: %1$s",
+          "ko": "삭제된 보고서: %1$s"
+        }
+      },
+      {
+        "codeKey": "backup_report_delete_failed",
+        "language": {
+          "zh-Hans": "删除报告失败",
+          "en": "Failed to delete report",
+          "zh-Hant": "刪除報告失敗",
+          "ja": "レポートの削除に失敗しました",
+          "ko": "보고서 삭제 실패"
+        }
+      },
+      {
+        "codeKey": "backup_report_empty",
+        "language": {
+          "zh-Hans": "暂无导入报告",
+          "en": "No import reports",
+          "zh-Hant": "暫無導入報告",
+          "ja": "輸入レポートはまだありません",
+          "ko": "아직 수입신고가 없습니다."
+        }
+      },
+      {
+        "codeKey": "backup_export_hint_format",
+        "language": {
+          "zh-Hans": "已导出文件：%1$s\\n请在系统文件管理器中查看",
+          "en": "Exported file: %1$s\\nCheck it in your file manager",
+          "zh-Hant": "已匯出檔案：%1$s\\n請在系統檔案管理器中查看",
+          "ja": "エクスポートされたファイル: %1$s\\nシステム ファイル マネージャーで表示してください",
+          "ko": "내보낸 파일: %1$s\\n시스템 파일 관리자에서 확인하세요."
+        }
+      },
+      {
+        "codeKey": "backup_import_report_export_hint_format",
+        "language": {
+          "zh-Hans": "已导出报告：%1$s\\n请在系统文件管理器中查看",
+          "en": "Exported report: %1$s\\nCheck it in your file manager",
+          "zh-Hant": "已匯出報告：%1$s\\n請在系統檔案管理器中查看",
+          "ja": "エクスポートされたレポート: %1$s\\nシステム ファイル マネージャーで表示してください",
+          "ko": "내보낸 보고서: %1$s\\n시스템 파일 관리자에서 확인하십시오."
+        }
+      },
+      {
+        "codeKey": "unit_oz_abbr",
+        "language": {
+          "zh-Hans": "oz",
+          "en": "oz",
+          "zh-Hant": "oz",
+          "ja": "oz",
+          "ko": "oz"
+        }
+      },
+      {
+        "codeKey": "unit_lb_abbr",
+        "language": {
+          "zh-Hans": "lb",
+          "en": "lb",
+          "zh-Hant": "lb",
+          "ja": "lb",
+          "ko": "lb"
+        }
+      },
+      {
+        "codeKey": "unit_in_abbr",
+        "language": {
+          "zh-Hans": "in",
+          "en": "in",
+          "zh-Hant": "in",
+          "ja": "in",
+          "ko": "in"
+        }
+      },
+      {
+        "codeKey": "reminder_channel_name",
+        "language": {
+          "zh-Hans": "记录提醒",
+          "en": "Record reminders",
+          "zh-Hant": "記錄提醒",
+          "ja": "記録リマインダー",
+          "ko": "기록 알림"
+        }
+      },
+      {
+        "codeKey": "reminder_channel_description",
+        "language": {
+          "zh-Hans": "用于喂养与睡眠的记录提醒",
+          "en": "Reminders for feeding and sleep records",
+          "zh-Hant": "用於餵食與睡眠的記錄提醒",
+          "ja": "食事と睡眠の記録のリマインダー",
+          "ko": "수유 및 수면 기록 알림"
+        }
+      },
+      {
+        "codeKey": "reminder_notification_title",
+        "language": {
+          "zh-Hans": "记录提醒",
+          "en": "Record reminder",
+          "zh-Hant": "記錄提醒",
+          "ja": "記録リマインダー",
+          "ko": "기록 알림"
+        }
+      },
+      {
+        "codeKey": "reminder_feeding_content",
+        "language": {
+          "zh-Hans": "%1$s 可能该喂奶了，记得记录哦",
+          "en": "Time to feed %1$s. Don't forget to log it.",
+          "zh-Hant": "%1$s 可能該餵奶了，記得記錄哦",
+          "ja": "%1$s 授乳の時期かもしれません。忘れずに記録してください",
+          "ko": "%1$s 모유수유를 해야 할 때일 수도 있으니 기록하는 것을 잊지 마세요"
+        }
+      },
+      {
+        "codeKey": "reminder_sleep_content",
+        "language": {
+          "zh-Hans": "%1$s 可能该睡觉了，记得记录哦",
+          "en": "Time for %1$s to sleep. Don't forget to log it.",
+          "zh-Hant": "%1$s 可能該睡覺了，記得記錄哦",
+          "ja": "%1$s もう寝る時間でしょう、忘れずに録音してください",
+          "ko": "%1$s 아마도 잠자리에 들 시간입니다. 녹음하는 것을 잊지 마세요"
+        }
+      },
+      {
+        "codeKey": "baby_list",
+        "language": {
+          "zh-Hans": "宝宝列表",
+          "en": "Baby list",
+          "zh-Hant": "寶寶列表",
+          "ja": "赤ちゃん一覧",
+          "ko": "아기 목록"
+        }
+      },
+      {
+        "codeKey": "add_new_baby",
+        "language": {
+          "zh-Hans": "添加新宝宝",
+          "en": "Add new baby",
+          "zh-Hant": "新增寶寶",
+          "ja": "新しい赤ちゃんを追加",
+          "ko": "새 아기 추가"
+        }
+      },
+      {
+        "codeKey": "edit_baby_info",
+        "language": {
+          "zh-Hans": "编辑宝宝信息",
+          "en": "Edit baby information",
+          "zh-Hant": "編輯寶寶資訊",
+          "ja": "赤ちゃんの情報を編集する",
+          "ko": "아기 정보 수정"
+        }
+      },
+      {
+        "codeKey": "delete_baby",
+        "language": {
+          "zh-Hans": "删除宝宝",
+          "en": "Delete baby",
+          "zh-Hant": "刪除寶寶",
+          "ja": "赤ちゃんを削除",
+          "ko": "아기 삭제"
+        }
+      },
+      {
+        "codeKey": "delete_baby_confirm",
+        "language": {
+          "zh-Hans": "确定要删除 %1$s 的信息吗？\\n删除后所有相关记录也将被删除，且无法恢复。",
+          "en": "Are you sure you want to delete %1$s's information? \\nAfter deletion, all related records will also be deleted and cannot be recovered.",
+          "zh-Hant": "確定要刪除 %1$s 的資訊嗎？ \\n刪除後所有相關記錄也將被刪除，且無法恢復。",
+          "ja": "%1$s さんの情報を削除してもよろしいですか? \\n削除後は、関連するレコードもすべて削除され、復元できなくなります。",
+          "ko": "%1$s님의 정보를 삭제하시겠습니까? \\n삭제 후에는 관련 기록도 모두 삭제되며 복구할 수 없습니다."
+        }
+      },
+      {
+        "codeKey": "delete_success",
+        "language": {
+          "zh-Hans": "删除成功",
+          "en": "Delete successfully",
+          "zh-Hant": "刪除成功",
+          "ja": "正常に削除されました",
+          "ko": "성공적으로 삭제되었습니다"
+        }
+      },
+      {
+        "codeKey": "current_baby",
+        "language": {
+          "zh-Hans": "当前宝宝",
+          "en": "Current baby",
+          "zh-Hant": "目前寶寶",
+          "ja": "現在の赤ちゃん",
+          "ko": "현재 아기"
+        }
+      },
+      {
+        "codeKey": "switch_baby",
+        "language": {
+          "zh-Hans": "切换宝宝",
+          "en": "Switch baby",
+          "zh-Hant": "切換寶寶",
+          "ja": "赤ちゃんを切り替え",
+          "ko": "아기 전환"
+        }
+      },
+      {
+        "codeKey": "baby_detail",
+        "language": {
+          "zh-Hans": "宝宝详情",
+          "en": "Baby details",
+          "zh-Hant": "寶寶詳情",
+          "ja": "赤ちゃんの詳細",
+          "ko": "아기 세부 사항"
+        }
+      },
+      {
+        "codeKey": "edit",
+        "language": {
+          "zh-Hans": "编辑",
+          "en": "Edit",
+          "zh-Hant": "編輯",
+          "ja": "編集",
+          "ko": "편집"
+        }
+      },
+      {
+        "codeKey": "save",
+        "language": {
+          "zh-Hans": "保存",
+          "en": "Save",
+          "zh-Hant": "儲存",
+          "ja": "保存",
+          "ko": "저장"
+        }
+      },
+      {
+        "codeKey": "create_baby",
+        "language": {
+          "zh-Hans": "创建宝宝",
+          "en": "Create baby",
+          "zh-Hant": "創建寶寶",
+          "ja": "赤ちゃんを登録",
+          "ko": "아기 등록"
+        }
+      },
+      {
+        "codeKey": "baby_awake",
+        "language": {
+          "zh-Hans": "宝宝醒着",
+          "en": "Baby is awake",
+          "zh-Hant": "寶寶醒著",
+          "ja": "赤ちゃんは起きています",
+          "ko": "아기가 깨어 있어요"
+        }
+      },
+      {
+        "codeKey": "baby_sleeping",
+        "language": {
+          "zh-Hans": "宝宝正在睡觉",
+          "en": "Baby is sleeping",
+          "zh-Hant": "寶寶正在睡覺",
+          "ja": "赤ちゃんは寝ています",
+          "ko": "아기가 자고 있어요"
+        }
+      },
+      {
+        "codeKey": "baby_feeding",
+        "language": {
+          "zh-Hans": "正在喂奶",
+          "en": "Feeding now",
+          "zh-Hant": "正在餵奶",
+          "ja": "授乳中",
+          "ko": "수유 중"
+        }
+      },
+      {
+        "codeKey": "awake_duration",
+        "language": {
+          "zh-Hans": "已醒 %1$s",
+          "en": "Awakened %1$s",
+          "zh-Hant": "已醒 %1$s",
+          "ja": "目覚めた%1$s",
+          "ko": "깨어남 %1$s"
+        }
+      },
+      {
+        "codeKey": "sleeping_duration",
+        "language": {
+          "zh-Hans": "已睡 %1$s",
+          "en": "Already asleep %1$s",
+          "zh-Hant": "已睡 %1$s",
+          "ja": "もう寝ています %1$s",
+          "ko": "이미 자고 있어요 %1$s"
+        }
+      },
+      {
+        "codeKey": "no_sleep_record",
+        "language": {
+          "zh-Hans": "暂无睡眠记录",
+          "en": "No sleep records yet",
+          "zh-Hant": "暫無睡眠紀錄",
+          "ja": "睡眠記録はまだありません",
+          "ko": "아직 수면 기록이 없습니다."
+        }
+      },
+      {
+        "codeKey": "no_feeding_record",
+        "language": {
+          "zh-Hans": "暂无喂养记录",
+          "en": "No feeding record yet",
+          "zh-Hant": "暫無餵食紀錄",
+          "ja": "まだ給餌記録がありません",
+          "ko": "아직 수유 기록이 없습니다."
+        }
+      },
+      {
+        "codeKey": "feeding_duration",
+        "language": {
+          "zh-Hans": "喂奶中 %1$s",
+          "en": "Feeding %1$s",
+          "zh-Hant": "餵奶中 %1$s",
+          "ja": "授乳中 %1$s",
+          "ko": "수유 중 %1$s"
+        }
+      },
+      {
+        "codeKey": "end_record",
+        "language": {
+          "zh-Hans": "结束记录",
+          "en": "End record",
+          "zh-Hant": "結束記錄",
+          "ja": "記録を終了",
+          "ko": "기록 종료"
+        }
+      },
+      {
+        "codeKey": "since_last",
+        "language": {
+          "zh-Hans": "距上次",
+          "en": "since last time",
+          "zh-Hant": "距離上次",
+          "ja": "前回から",
+          "ko": "지난번부터"
+        }
+      },
+      {
+        "codeKey": "today_count",
+        "language": {
+          "zh-Hans": "今日 %1$d次",
+          "en": "Today %1$d times",
+          "zh-Hant": "今天 %1$d次",
+          "ja": "今日は%1$d回",
+          "ko": "오늘 %1$d회"
+        }
+      },
+      {
+        "codeKey": "today_duration",
+        "language": {
+          "zh-Hans": "共 %1$s",
+          "en": "Total %1$s",
+          "zh-Hant": "共 %1$s",
+          "ja": "合計 %1$s",
+          "ko": "합계 %1$s"
+        }
+      },
+      {
+        "codeKey": "next_prediction",
+        "language": {
+          "zh-Hans": "下次预测",
+          "en": "next prediction",
+          "zh-Hant": "下次預測",
+          "ja": "次の予測",
+          "ko": "다음 예측"
+        }
+      },
+      {
+        "codeKey": "predict_feeding",
+        "language": {
+          "zh-Hans": "下次喂奶 约 %1$s",
+          "en": "The next feeding will be around %1$s",
+          "zh-Hant": "下次餵奶 約 %1$s",
+          "ja": "次の給餌は%1$s頃になります",
+          "ko": "다음 수유 시간은 %1$s쯤 될 것입니다."
+        }
+      },
+      {
+        "codeKey": "predict_feeding_with_range",
+        "language": {
+          "zh-Hans": "下次喂奶 %1$s~%2$s",
+          "en": "Next feeding %1$s~%2$s",
+          "zh-Hant": "下次餵奶 %1$s~%2$s",
+          "ja": "次の給餌 %1$s~%2$s",
+          "ko": "다음 수유 %1$s~%2$s"
+        }
+      },
+      {
+        "codeKey": "predict_sleep",
+        "language": {
+          "zh-Hans": "下次睡觉 约 %1$s",
+          "en": "Next sleep around %1$s",
+          "zh-Hant": "下次睡覺 約 %1$s",
+          "ja": "次の睡眠は約 %1$s",
+          "ko": "다음 수면 약 %1$s"
+        }
+      },
+      {
+        "codeKey": "predict_sleep_with_range",
+        "language": {
+          "zh-Hans": "下次睡觉 %1$s~%2$s",
+          "en": "Next sleep %1$s~%2$s",
+          "zh-Hant": "下次睡覺 %1$s~%2$s",
+          "ja": "次の睡眠 %1$s~%2$s",
+          "ko": "다음 수면 %1$s~%2$s"
+        }
+      },
+      {
+        "codeKey": "remain_time",
+        "language": {
+          "zh-Hans": "最晚还有%1$s",
+          "en": "At most %1$s left",
+          "zh-Hant": "最晚還有%1$s",
+          "ja": "最長あと %1$s",
+          "ko": "최대 %1$s 남음"
+        }
+      },
+      {
+        "codeKey": "confidence_high",
+        "language": {
+          "zh-Hans": "准确度高",
+          "en": "High accuracy",
+          "zh-Hant": "準確度高",
+          "ja": "高精度",
+          "ko": "높은 정확도"
+        }
+      },
+      {
+        "codeKey": "confidence_medium",
+        "language": {
+          "zh-Hans": "准确度中",
+          "en": "Moderate accuracy",
+          "zh-Hant": "準確度中",
+          "ja": "中程度の精度",
+          "ko": "보통의 정확도"
+        }
+      },
+      {
+        "codeKey": "confidence_low",
+        "language": {
+          "zh-Hans": "准确度低",
+          "en": "low accuracy",
+          "zh-Hant": "準確度低",
+          "ja": "精度が低い",
+          "ko": "낮은 정확도"
+        }
+      },
+      {
+        "codeKey": "confidence_very_low",
+        "language": {
+          "zh-Hans": "仅供参考",
+          "en": "For reference only",
+          "zh-Hant": "僅供參考",
+          "ja": "参照のみ",
+          "ko": "참고용으로만 사용하세요"
+        }
+      },
+      {
+        "codeKey": "no_data",
+        "language": {
+          "zh-Hans": "暂无数据",
+          "en": "No data yet",
+          "zh-Hant": "暫無數據",
+          "ja": "まだデータがありません",
+          "ko": "아직 데이터가 없습니다"
+        }
+      },
+      {
+        "codeKey": "start_first_record",
+        "language": {
+          "zh-Hans": "开始记录第一条数据吧",
+          "en": "Let’s start recording the first piece of data",
+          "zh-Hant": "開始記錄第一筆數據吧",
+          "ja": "最初のデータの記録を始めましょう",
+          "ko": "첫 번째 데이터 기록을 시작해 보겠습니다."
+        }
+      },
+      {
+        "codeKey": "hour_min_format",
+        "language": {
+          "zh-Hans": "%1$d小时%2$d分",
+          "en": "%1$d hours %2$d minutes",
+          "zh-Hant": "%1$d小時%2$d分",
+          "ja": "%1$d時間 %2$d分",
+          "ko": "%1$d시간 %2$d분"
+        }
+      },
+      {
+        "codeKey": "min_format",
+        "language": {
+          "zh-Hans": "%1$d分钟",
+          "en": "%1$d minutes",
+          "zh-Hant": "%1$d分鐘",
+          "ja": "%1$d分",
+          "ko": "%1$d분"
+        }
+      },
+      {
+        "codeKey": "event_record",
+        "language": {
+          "zh-Hans": "记录事件",
+          "en": "Record event",
+          "zh-Hant": "記錄事件",
+          "ja": "イベントを記録",
+          "ko": "이벤트 기록"
+        }
+      },
+      {
+        "codeKey": "event_diaper_wet_title",
+        "language": {
+          "zh-Hans": "换尿布（小便）",
+          "en": "Diaper change (wet)",
+          "zh-Hant": "換尿布（小便）",
+          "ja": "おむつ交換（おしっこ）",
+          "ko": "기저귀 갈기(오줌 누기)"
+        }
+      },
+      {
+        "codeKey": "event_diaper_dirty_title",
+        "language": {
+          "zh-Hans": "换尿布（大便）",
+          "en": "Diaper change (dirty)",
+          "zh-Hant": "換尿布（大便）",
+          "ja": "おむつ交換（うんち）",
+          "ko": "기저귀 갈아주기 (똥)"
+        }
+      },
+      {
+        "codeKey": "event_diaper_mixed_title",
+        "language": {
+          "zh-Hans": "换尿布（混合）",
+          "en": "Diaper change (mixed)",
+          "zh-Hant": "換尿布（混合）",
+          "ja": "おむつ交換（混合）",
+          "ko": "기저귀 교환(혼합)"
+        }
+      },
+      {
+        "codeKey": "event_diaper_dry_title",
+        "language": {
+          "zh-Hans": "换尿布（干净）",
+          "en": "Diaper change (dry)",
+          "zh-Hant": "換尿布（乾淨）",
+          "ja": "おむつ交換（清潔）",
+          "ko": "기저귀 갈아주기 (깨끗하게)"
+        }
+      },
+      {
+        "codeKey": "event_measure_title_format",
+        "language": {
+          "zh-Hans": "测量%1$s",
+          "en": "Measure %1$s",
+          "zh-Hant": "測量%1$s",
+          "ja": "%1$sを測定する",
+          "ko": "%1$s 측정"
+        }
+      },
+      {
+        "codeKey": "event_record_title_format",
+        "language": {
+          "zh-Hans": "%1$s记录",
+          "en": "%1$s record",
+          "zh-Hant": "%1$s記錄",
+          "ja": "%1$s記録",
+          "ko": "%1$s 기록"
+        }
+      },
+      {
+        "codeKey": "event_milestone_title_format",
+        "language": {
+          "zh-Hans": "里程碑：%1$s",
+          "en": "Milestone: %1$s",
+          "zh-Hant": "里程碑：%1$s",
+          "ja": "マイルストーン: %1$s",
+          "ko": "마일스톤: %1$s"
+        }
+      },
+      {
+        "codeKey": "event_vaccine_title",
+        "language": {
+          "zh-Hans": "疫苗接种",
+          "en": "Vaccination",
+          "zh-Hant": "疫苗接種",
+          "ja": "予防接種",
+          "ko": "예방접종"
+        }
+      },
+      {
+        "codeKey": "event_doctor_title",
+        "language": {
+          "zh-Hans": "就医检查",
+          "en": "Medical examination",
+          "zh-Hant": "就醫檢查",
+          "ja": "健康診断",
+          "ko": "건강진단"
+        }
+      },
+      {
+        "codeKey": "event_other_title",
+        "language": {
+          "zh-Hans": "其他事件",
+          "en": "Other events",
+          "zh-Hant": "其他事件",
+          "ja": "その他のイベント",
+          "ko": "기타 이벤트"
+        }
+      },
+      {
+        "codeKey": "event_duration_minutes_format",
+        "language": {
+          "zh-Hans": "时长 %1$d分钟",
+          "en": "Duration %1$d min",
+          "zh-Hant": "時長 %1$d分鐘",
+          "ja": "時間 %1$d分",
+          "ko": "시간 %1$d분"
+        }
+      },
+      {
+        "codeKey": "select_event_type",
+        "language": {
+          "zh-Hans": "选择事件类型",
+          "en": "Select event type",
+          "zh-Hant": "選擇事件類型",
+          "ja": "イベントタイプの選択",
+          "ko": "이벤트 유형 선택"
+        }
+      },
+      {
+        "codeKey": "event_detail",
+        "language": {
+          "zh-Hans": "详细信息",
+          "en": "Details",
+          "zh-Hant": "詳細資訊",
+          "ja": "詳細",
+          "ko": "세부정보"
+        }
+      },
+      {
+        "codeKey": "event_time",
+        "language": {
+          "zh-Hans": "事件时间",
+          "en": "event time",
+          "zh-Hant": "事件時間",
+          "ja": "イベント時間",
+          "ko": "이벤트 시간"
+        }
+      },
+      {
+        "codeKey": "start_time",
+        "language": {
+          "zh-Hans": "开始时间",
+          "en": "Start time",
+          "zh-Hant": "開始時間",
+          "ja": "開始時間",
+          "ko": "시작 시간"
+        }
+      },
+      {
+        "codeKey": "event_end_time",
+        "language": {
+          "zh-Hans": "结束时间",
+          "en": "End time",
+          "zh-Hant": "結束時間",
+          "ja": "終了時間",
+          "ko": "종료 시간"
+        }
+      },
+      {
+        "codeKey": "event_duration",
+        "language": {
+          "zh-Hans": "持续时长",
+          "en": "Duration",
+          "zh-Hant": "持續時長",
+          "ja": "期間",
+          "ko": "기간"
+        }
+      },
+      {
+        "codeKey": "event_end_time_invalid",
+        "language": {
+          "zh-Hans": "请设置有效的结束时间",
+          "en": "Please set a valid end time",
+          "zh-Hant": "請設定有效的結束時間",
+          "ja": "有効な終了時刻を設定してください",
+          "ko": "유효한 종료 시간을 설정하세요."
+        }
+      },
+      {
+        "codeKey": "event_value_required",
+        "language": {
+          "zh-Hans": "请输入数值",
+          "en": "Please enter a value",
+          "zh-Hant": "請輸入數值",
+          "ja": "値を入力してください",
+          "ko": "값을 입력하세요."
+        }
+      },
+      {
+        "codeKey": "save_success",
+        "language": {
+          "zh-Hans": "保存成功",
+          "en": "Saved successfully",
+          "zh-Hant": "保存成功",
+          "ja": "正常に保存されました",
+          "ko": "성공적으로 저장되었습니다"
+        }
+      },
+      {
+        "codeKey": "save_failed",
+        "language": {
+          "zh-Hans": "保存失败，请稍后重试",
+          "en": "Save failed. Try again later.",
+          "zh-Hant": "儲存失敗，請稍後重試",
+          "ja": "保存に失敗しました。後でもう一度お試しください",
+          "ko": "저장하지 못했습니다. 나중에 다시 시도해 주세요."
+        }
+      },
+      {
+        "codeKey": "please_select_event_type",
+        "language": {
+          "zh-Hans": "请选择事件类型",
+          "en": "Please select event type",
+          "zh-Hant": "請選擇事件類型",
+          "ja": "イベントの種類を選択してください",
+          "ko": "이벤트 종류를 선택해주세요"
+        }
+      },
+      {
+        "codeKey": "event_category_diaper",
+        "language": {
+          "zh-Hans": "排泄",
+          "en": "Diaper",
+          "zh-Hant": "排泄",
+          "ja": "排泄",
+          "ko": "배설"
+        }
+      },
+      {
+        "codeKey": "event_category_health",
+        "language": {
+          "zh-Hans": "健康",
+          "en": "Health",
+          "zh-Hant": "健康",
+          "ja": "健康",
+          "ko": "건강"
+        }
+      },
+      {
+        "codeKey": "event_category_growth",
+        "language": {
+          "zh-Hans": "生长",
+          "en": "Growth",
+          "zh-Hant": "生長",
+          "ja": "成長",
+          "ko": "성장"
+        }
+      },
+      {
+        "codeKey": "event_category_milestone",
+        "language": {
+          "zh-Hans": "里程碑",
+          "en": "Milestone",
+          "zh-Hant": "里程碑",
+          "ja": "マイルストーン",
+          "ko": "마일스톤"
+        }
+      },
+      {
+        "codeKey": "event_category_care",
+        "language": {
+          "zh-Hans": "护理",
+          "en": "Care",
+          "zh-Hant": "護理",
+          "ja": "ケア",
+          "ko": "케어"
+        }
+      },
+      {
+        "codeKey": "event_category_activity",
+        "language": {
+          "zh-Hans": "活动",
+          "en": "Activity",
+          "zh-Hant": "活動",
+          "ja": "活動内容",
+          "ko": "활동"
+        }
+      },
+      {
+        "codeKey": "event_category_other",
+        "language": {
+          "zh-Hans": "其他",
+          "en": "Other",
+          "zh-Hant": "其他",
+          "ja": "その他",
+          "ko": "기타"
+        }
+      },
+      {
+        "codeKey": "event_diaper_wet",
+        "language": {
+          "zh-Hans": "小便",
+          "en": "Wet diaper",
+          "zh-Hant": "小便",
+          "ja": "おしっこ",
+          "ko": "오줌"
+        }
+      },
+      {
+        "codeKey": "event_diaper_dirty",
+        "language": {
+          "zh-Hans": "大便",
+          "en": "Dirty diaper",
+          "zh-Hant": "大便",
+          "ja": "排便する",
+          "ko": "배변하다"
+        }
+      },
+      {
+        "codeKey": "event_diaper_mixed",
+        "language": {
+          "zh-Hans": "混合",
+          "en": "Mixed diaper",
+          "zh-Hant": "混合",
+          "ja": "混ぜる",
+          "ko": "섞다"
+        }
+      },
+      {
+        "codeKey": "event_diaper_dry",
+        "language": {
+          "zh-Hans": "干净换尿布",
+          "en": "Dry diaper",
+          "zh-Hant": "乾淨換尿布",
+          "ja": "きれいなおむつ交換",
+          "ko": "깨끗한 기저귀 교환"
+        }
+      },
+      {
+        "codeKey": "stool_consistency",
+        "language": {
+          "zh-Hans": "大便性状",
+          "en": "Stool characteristics",
+          "zh-Hant": "大便性狀",
+          "ja": "便の特徴",
+          "ko": "대변 특성"
+        }
+      },
+      {
+        "codeKey": "stool_consistency_watery",
+        "language": {
+          "zh-Hans": "稀",
+          "en": "Watery",
+          "zh-Hant": "稀",
+          "ja": "水っぽい",
+          "ko": "묽음"
+        }
+      },
+      {
+        "codeKey": "stool_consistency_soft",
+        "language": {
+          "zh-Hans": "软",
+          "en": "Soft",
+          "zh-Hant": "軟",
+          "ja": "やわらかい",
+          "ko": "부드러움"
+        }
+      },
+      {
+        "codeKey": "stool_consistency_hard",
+        "language": {
+          "zh-Hans": "硬",
+          "en": "Hard",
+          "zh-Hant": "硬",
+          "ja": "硬い",
+          "ko": "딱딱함"
+        }
+      },
+      {
+        "codeKey": "stool_color",
+        "language": {
+          "zh-Hans": "大便颜色",
+          "en": "Stool color",
+          "zh-Hant": "大便顏色",
+          "ja": "便の色",
+          "ko": "의자 색상"
+        }
+      },
+      {
+        "codeKey": "stool_color_yellow",
+        "language": {
+          "zh-Hans": "黄色",
+          "en": "yellow",
+          "zh-Hant": "黃色",
+          "ja": "黄色",
+          "ko": "노란색"
+        }
+      },
+      {
+        "codeKey": "stool_color_green",
+        "language": {
+          "zh-Hans": "绿色",
+          "en": "green",
+          "zh-Hant": "綠色",
+          "ja": "緑",
+          "ko": "녹색"
+        }
+      },
+      {
+        "codeKey": "stool_color_brown",
+        "language": {
+          "zh-Hans": "棕色",
+          "en": "brown",
+          "zh-Hant": "棕色",
+          "ja": "茶色の",
+          "ko": "갈색"
+        }
+      },
+      {
+        "codeKey": "stool_color_black",
+        "language": {
+          "zh-Hans": "黑色",
+          "en": "black",
+          "zh-Hant": "黑色",
+          "ja": "黒",
+          "ko": "검정색"
+        }
+      },
+      {
+        "codeKey": "stool_color_red",
+        "language": {
+          "zh-Hans": "红色",
+          "en": "Red",
+          "zh-Hant": "紅色",
+          "ja": "赤",
+          "ko": "빨간색"
+        }
+      },
+      {
+        "codeKey": "urine_amount",
+        "language": {
+          "zh-Hans": "小便量",
+          "en": "urine volume",
+          "zh-Hant": "小便量",
+          "ja": "尿量",
+          "ko": "소변량"
+        }
+      },
+      {
+        "codeKey": "urine_amount_little",
+        "language": {
+          "zh-Hans": "少",
+          "en": "Low",
+          "zh-Hant": "少",
+          "ja": "少ない",
+          "ko": "적음"
+        }
+      },
+      {
+        "codeKey": "urine_amount_normal",
+        "language": {
+          "zh-Hans": "中",
+          "en": "Normal",
+          "zh-Hant": "中",
+          "ja": "普通",
+          "ko": "보통"
+        }
+      },
+      {
+        "codeKey": "urine_amount_much",
+        "language": {
+          "zh-Hans": "多",
+          "en": "High",
+          "zh-Hant": "多",
+          "ja": "多い",
+          "ko": "많음"
+        }
+      },
+      {
+        "codeKey": "event_label_value_format",
+        "language": {
+          "zh-Hans": "%1$s：%2$s",
+          "en": "%1$s: %2$s",
+          "zh-Hant": "%1$s：%2$s",
+          "ja": "%1$s:%2$s",
+          "ko": "%1$s:%2$s"
+        }
+      },
+      {
+        "codeKey": "event_health_temperature",
+        "language": {
+          "zh-Hans": "体温",
+          "en": "Temperature",
+          "zh-Hant": "體溫",
+          "ja": "体温",
+          "ko": "체온"
+        }
+      },
+      {
+        "codeKey": "event_health_medicine",
+        "language": {
+          "zh-Hans": "用药",
+          "en": "Medication",
+          "zh-Hant": "用藥",
+          "ja": "薬",
+          "ko": "약물치료"
+        }
+      },
+      {
+        "codeKey": "event_health_vaccine",
+        "language": {
+          "zh-Hans": "疫苗",
+          "en": "vaccine",
+          "zh-Hant": "疫苗",
+          "ja": "ワクチン",
+          "ko": "백신"
+        }
+      },
+      {
+        "codeKey": "event_health_doctor",
+        "language": {
+          "zh-Hans": "就医",
+          "en": "Doctor visit",
+          "zh-Hant": "就醫",
+          "ja": "受診",
+          "ko": "진료"
+        }
+      },
+      {
+        "codeKey": "event_health_symptom",
+        "language": {
+          "zh-Hans": "症状",
+          "en": "symptom",
+          "zh-Hant": "症狀",
+          "ja": "症状",
+          "ko": "증상"
+        }
+      },
+      {
+        "codeKey": "temperature_value",
+        "language": {
+          "zh-Hans": "体温值",
+          "en": "Body temperature value",
+          "zh-Hant": "體溫值",
+          "ja": "体温値",
+          "ko": "체온 값"
+        }
+      },
+      {
+        "codeKey": "temperature_unit",
+        "language": {
+          "zh-Hans": "℃",
+          "en": "℃",
+          "zh-Hant": "℃",
+          "ja": "℃",
+          "ko": "℃"
+        }
+      },
+      {
+        "codeKey": "temperature_value_hint",
+        "language": {
+          "zh-Hans": "36.5",
+          "en": "36.5",
+          "zh-Hant": "36.5",
+          "ja": "36.5",
+          "ko": "36.5"
+        }
+      },
+      {
+        "codeKey": "temperature_value_required",
+        "language": {
+          "zh-Hans": "请输入体温值",
+          "en": "Please enter a temperature",
+          "zh-Hant": "請輸入體溫值",
+          "ja": "体温値を入力してください",
+          "ko": "체온 값을 입력하세요."
+        }
+      },
+      {
+        "codeKey": "temperature_normal",
+        "language": {
+          "zh-Hans": "正常",
+          "en": "normal",
+          "zh-Hant": "正常",
+          "ja": "普通の",
+          "ko": "정상"
+        }
+      },
+      {
+        "codeKey": "temperature_low_fever",
+        "language": {
+          "zh-Hans": "低烧",
+          "en": "low fever",
+          "zh-Hant": "低燒",
+          "ja": "微熱",
+          "ko": "저열"
+        }
+      },
+      {
+        "codeKey": "temperature_high_fever",
+        "language": {
+          "zh-Hans": "高烧",
+          "en": "high fever",
+          "zh-Hant": "高燒",
+          "ja": "高熱",
+          "ko": "고열"
+        }
+      },
+      {
+        "codeKey": "temperature_warning",
+        "language": {
+          "zh-Hans": "体温偏高，请注意观察",
+          "en": "The body temperature is high, please pay attention",
+          "zh-Hant": "體溫偏高，請注意觀察",
+          "ja": "体温が高いので注意してください",
+          "ko": "체온이 높으니 주의해주세요"
+        }
+      },
+      {
+        "codeKey": "temperature_danger",
+        "language": {
+          "zh-Hans": "体温过高，建议就医",
+          "en": "The body temperature is too high, it is recommended to seek medical treatment",
+          "zh-Hant": "體溫過高，建議就醫",
+          "ja": "体温が高すぎるため、医師の治療を受けることをお勧めします",
+          "ko": "체온이 너무 높으므로 진료를 받는 것이 좋습니다."
+        }
+      },
+      {
+        "codeKey": "temperature_location_label",
+        "language": {
+          "zh-Hans": "测量部位",
+          "en": "Location",
+          "zh-Hant": "測量部位",
+          "ja": "測定部",
+          "ko": "측정부"
+        }
+      },
+      {
+        "codeKey": "temperature_location_ear",
+        "language": {
+          "zh-Hans": "耳温",
+          "en": "Ear",
+          "zh-Hant": "耳溫",
+          "ja": "耳の温度",
+          "ko": "귀 온도"
+        }
+      },
+      {
+        "codeKey": "temperature_location_forehead",
+        "language": {
+          "zh-Hans": "额温",
+          "en": "Forehead",
+          "zh-Hant": "額溫",
+          "ja": "額の温度",
+          "ko": "이마 온도"
+        }
+      },
+      {
+        "codeKey": "temperature_location_armpit",
+        "language": {
+          "zh-Hans": "腋温",
+          "en": "Armpit",
+          "zh-Hant": "腋溫",
+          "ja": "腋窩温",
+          "ko": "겨드랑이 온도"
+        }
+      },
+      {
+        "codeKey": "temperature_location_oral",
+        "language": {
+          "zh-Hans": "口温",
+          "en": "Oral",
+          "zh-Hant": "口溫",
+          "ja": "口腔温度",
+          "ko": "구강 온도"
+        }
+      },
+      {
+        "codeKey": "temperature_location_rectal",
+        "language": {
+          "zh-Hans": "肛温",
+          "en": "Rectal",
+          "zh-Hant": "肛溫",
+          "ja": "直腸温",
+          "ko": "직장 온도"
+        }
+      },
+      {
+        "codeKey": "medicine_name",
+        "language": {
+          "zh-Hans": "药品名称",
+          "en": "Drug name",
+          "zh-Hant": "藥品名稱",
+          "ja": "薬剤名",
+          "ko": "약명"
+        }
+      },
+      {
+        "codeKey": "medicine_name_hint",
+        "language": {
+          "zh-Hans": "请输入药品名称",
+          "en": "Please enter the drug name",
+          "zh-Hant": "請輸入藥品名稱",
+          "ja": "薬剤名を入力してください",
+          "ko": "약품명을 입력해주세요"
+        }
+      },
+      {
+        "codeKey": "medicine_dosage",
+        "language": {
+          "zh-Hans": "剂量",
+          "en": "Dosage",
+          "zh-Hant": "劑量",
+          "ja": "用量",
+          "ko": "용량"
+        }
+      },
+      {
+        "codeKey": "medicine_unit",
+        "language": {
+          "zh-Hans": "单位",
+          "en": "unit",
+          "zh-Hant": "單位",
+          "ja": "単位",
+          "ko": "단위"
+        }
+      },
+      {
+        "codeKey": "vaccine_name",
+        "language": {
+          "zh-Hans": "疫苗名称",
+          "en": "Vaccine name",
+          "zh-Hant": "疫苗名稱",
+          "ja": "ワクチン名",
+          "ko": "백신명"
+        }
+      },
+      {
+        "codeKey": "vaccine_name_hint",
+        "language": {
+          "zh-Hans": "请输入疫苗名称",
+          "en": "Please enter vaccine name",
+          "zh-Hant": "請輸入疫苗名稱",
+          "ja": "ワクチン名を入力してください",
+          "ko": "백신 이름을 입력하세요."
+        }
+      },
+      {
+        "codeKey": "vaccine_dose",
+        "language": {
+          "zh-Hans": "剂次",
+          "en": "Dose",
+          "zh-Hant": "劑次",
+          "ja": "回数",
+          "ko": "차수"
+        }
+      },
+      {
+        "codeKey": "vaccine_dose_hint",
+        "language": {
+          "zh-Hans": "请输入剂次",
+          "en": "Enter dose",
+          "zh-Hant": "請輸入劑次",
+          "ja": "投与回数を入力してください",
+          "ko": "투여횟수를 입력해 주세요"
+        }
+      },
+      {
+        "codeKey": "vaccine_dose_format",
+        "language": {
+          "zh-Hans": "第%1$d剂",
+          "en": "Dose %1$d",
+          "zh-Hant": "第%1$d劑",
+          "ja": "%1$d回目",
+          "ko": "%1$d차"
+        }
+      },
+      {
+        "codeKey": "vaccine_site",
+        "language": {
+          "zh-Hans": "接种部位",
+          "en": "Injection site",
+          "zh-Hant": "接種部位",
+          "ja": "接種部位",
+          "ko": "접종 부위"
+        }
+      },
+      {
+        "codeKey": "vaccine_site_hint",
+        "language": {
+          "zh-Hans": "如：左上臂",
+          "en": "e.g. left arm",
+          "zh-Hant": "如：左上臂",
+          "ja": "例：左上腕",
+          "ko": "예: 왼쪽 팔뚝"
+        }
+      },
+      {
+        "codeKey": "vaccine_clinic",
+        "language": {
+          "zh-Hans": "接种机构",
+          "en": "Clinic",
+          "zh-Hant": "接種機構",
+          "ja": "ワクチン接種機関",
+          "ko": "예방접종 기관"
+        }
+      },
+      {
+        "codeKey": "vaccine_clinic_hint",
+        "language": {
+          "zh-Hans": "请输入接种机构",
+          "en": "Enter clinic",
+          "zh-Hant": "請輸入接種機構",
+          "ja": "予防接種機関を入力してください",
+          "ko": "예방접종 기관을 입력해주세요."
+        }
+      },
+      {
+        "codeKey": "vaccine_batch",
+        "language": {
+          "zh-Hans": "疫苗批号",
+          "en": "Batch No.",
+          "zh-Hant": "疫苗批號",
+          "ja": "ワクチンのバッチ番号",
+          "ko": "백신 배치 번호"
+        }
+      },
+      {
+        "codeKey": "vaccine_batch_hint",
+        "language": {
+          "zh-Hans": "请输入疫苗批号",
+          "en": "Enter batch number",
+          "zh-Hant": "請輸入疫苗批號",
+          "ja": "ワクチンのバッチ番号を入力してください",
+          "ko": "백신 배치 번호를 입력하세요."
+        }
+      },
+      {
+        "codeKey": "symptom_description",
+        "language": {
+          "zh-Hans": "症状描述",
+          "en": "Symptom description",
+          "zh-Hant": "症狀描述",
+          "ja": "症状の説明",
+          "ko": "증상 설명"
+        }
+      },
+      {
+        "codeKey": "symptom_hint",
+        "language": {
+          "zh-Hans": "请描述症状",
+          "en": "Please describe symptoms",
+          "zh-Hant": "請描述症狀",
+          "ja": "症状を説明してください",
+          "ko": "증상을 설명해 주세요"
+        }
+      },
+      {
+        "codeKey": "event_growth_weight",
+        "language": {
+          "zh-Hans": "体重",
+          "en": "Weight",
+          "zh-Hant": "體重",
+          "ja": "体重",
+          "ko": "체중"
+        }
+      },
+      {
+        "codeKey": "event_growth_height",
+        "language": {
+          "zh-Hans": "身高",
+          "en": "Height",
+          "zh-Hant": "身高",
+          "ja": "身長",
+          "ko": "키"
+        }
+      },
+      {
+        "codeKey": "event_growth_head",
+        "language": {
+          "zh-Hans": "头围",
+          "en": "Head circumference",
+          "zh-Hant": "頭圍",
+          "ja": "頭囲",
+          "ko": "머리 둘레"
+        }
+      },
+      {
+        "codeKey": "weight_unit",
+        "language": {
+          "zh-Hans": "kg",
+          "en": "kg",
+          "zh-Hant": "kg",
+          "ja": "kg",
+          "ko": "kg"
+        }
+      },
+      {
+        "codeKey": "height_unit",
+        "language": {
+          "zh-Hans": "cm",
+          "en": "cm",
+          "zh-Hant": "cm",
+          "ja": "cm",
+          "ko": "cm"
+        }
+      },
+      {
+        "codeKey": "last_record",
+        "language": {
+          "zh-Hans": "上次记录",
+          "en": "last record",
+          "zh-Hant": "上次記錄",
+          "ja": "最後の記録",
+          "ko": "마지막 기록"
+        }
+      },
+      {
+        "codeKey": "growth_change",
+        "language": {
+          "zh-Hans": "变化",
+          "en": "Change",
+          "zh-Hant": "變化",
+          "ja": "変化",
+          "ko": "변화"
+        }
+      },
+      {
+        "codeKey": "event_milestone_roll",
+        "language": {
+          "zh-Hans": "翻身",
+          "en": "Roll over",
+          "zh-Hant": "翻身",
+          "ja": "寝返り",
+          "ko": "뒤집기"
+        }
+      },
+      {
+        "codeKey": "event_milestone_sit",
+        "language": {
+          "zh-Hans": "独坐",
+          "en": "Sit independently",
+          "zh-Hant": "獨坐",
+          "ja": "ひとり座り",
+          "ko": "혼자 앉기"
+        }
+      },
+      {
+        "codeKey": "event_milestone_crawl",
+        "language": {
+          "zh-Hans": "爬行",
+          "en": "Crawl",
+          "zh-Hant": "爬行",
+          "ja": "はいはい",
+          "ko": "기기"
+        }
+      },
+      {
+        "codeKey": "event_milestone_stand",
+        "language": {
+          "zh-Hans": "站立",
+          "en": "Stand",
+          "zh-Hant": "站立",
+          "ja": "立つ",
+          "ko": "서기"
+        }
+      },
+      {
+        "codeKey": "event_milestone_walk",
+        "language": {
+          "zh-Hans": "行走",
+          "en": "Walk",
+          "zh-Hant": "行走",
+          "ja": "歩く",
+          "ko": "걷기"
+        }
+      },
+      {
+        "codeKey": "event_milestone_first_word",
+        "language": {
+          "zh-Hans": "第一个词",
+          "en": "first word",
+          "zh-Hant": "第一個字",
+          "ja": "最初の言葉",
+          "ko": "첫 번째 단어"
+        }
+      },
+      {
+        "codeKey": "event_milestone_first_tooth",
+        "language": {
+          "zh-Hans": "第一颗牙",
+          "en": "first tooth",
+          "zh-Hant": "第一顆牙",
+          "ja": "最初の歯",
+          "ko": "첫 번째 치아"
+        }
+      },
+      {
+        "codeKey": "event_milestone_custom",
+        "language": {
+          "zh-Hans": "自定义",
+          "en": "Customize",
+          "zh-Hant": "自訂",
+          "ja": "カスタマイズ",
+          "ko": "사용자 정의"
+        }
+      },
+      {
+        "codeKey": "milestone_congratulation",
+        "language": {
+          "zh-Hans": "🎉 恭喜！宝宝又进步了！",
+          "en": "🎉 Congratulations! The baby is making progress again!",
+          "zh-Hant": "🎉 恭喜！寶寶又進步了！",
+          "ja": "🎉 おめでとうございます！赤ちゃんはまた進歩しています！",
+          "ko": "🎉 축하합니다! 아기가 다시 발전하고 있어요!"
+        }
+      },
+      {
+        "codeKey": "milestone_name",
+        "language": {
+          "zh-Hans": "里程碑名称",
+          "en": "Milestone name",
+          "zh-Hant": "里程碑名稱",
+          "ja": "マイルストーン名",
+          "ko": "마일스톤 이름"
+        }
+      },
+      {
+        "codeKey": "milestone_name_hint",
+        "language": {
+          "zh-Hans": "请输入里程碑名称",
+          "en": "Please enter a milestone name",
+          "zh-Hant": "請輸入里程碑名稱",
+          "ja": "マイルストーン名を入力してください",
+          "ko": "마일스톤 이름을 입력하세요."
+        }
+      },
+      {
+        "codeKey": "milestone_description",
+        "language": {
+          "zh-Hans": "记录这个珍贵时刻",
+          "en": "record this precious moment",
+          "zh-Hant": "記錄這個珍貴時刻",
+          "ja": "この貴重な瞬間を記録します",
+          "ko": "이 소중한 순간을 기록해 보세요"
+        }
+      },
+      {
+        "codeKey": "milestone_description_hint",
+        "language": {
+          "zh-Hans": "今天宝宝…",
+          "en": "Today baby...",
+          "zh-Hant": "今天寶寶…",
+          "ja": "今日、赤ちゃんは…",
+          "ko": "오늘 아기는…"
+        }
+      },
+      {
+        "codeKey": "event_care_bath",
+        "language": {
+          "zh-Hans": "洗澡",
+          "en": "Bath",
+          "zh-Hant": "洗澡",
+          "ja": "入浴",
+          "ko": "목욕"
+        }
+      },
+      {
+        "codeKey": "event_care_nail",
+        "language": {
+          "zh-Hans": "剪指甲",
+          "en": "Trim nails",
+          "zh-Hant": "剪指甲",
+          "ja": "爪切り",
+          "ko": "손톱 깎기"
+        }
+      },
+      {
+        "codeKey": "event_care_skincare",
+        "language": {
+          "zh-Hans": "护肤",
+          "en": "Skin care",
+          "zh-Hant": "保養",
+          "ja": "スキンケア",
+          "ko": "스킨 케어"
+        }
+      },
+      {
+        "codeKey": "event_care_massage",
+        "language": {
+          "zh-Hans": "抚触按摩",
+          "en": "Baby massage",
+          "zh-Hant": "撫觸按摩",
+          "ja": "ベビーマッサージ",
+          "ko": "베이비 마사지"
+        }
+      },
+      {
+        "codeKey": "event_care_nose",
+        "language": {
+          "zh-Hans": "清洁鼻腔",
+          "en": "Clean nasal cavity",
+          "zh-Hant": "清潔鼻腔",
+          "ja": "鼻腔をきれいにする",
+          "ko": "깨끗한 비강"
+        }
+      },
+      {
+        "codeKey": "event_care_ear",
+        "language": {
+          "zh-Hans": "清洁耳朵",
+          "en": "clean ears",
+          "zh-Hant": "清潔耳朵",
+          "ja": "耳をきれいにする",
+          "ko": "깨끗한 귀"
+        }
+      },
+      {
+        "codeKey": "event_activity_outdoor",
+        "language": {
+          "zh-Hans": "户外活动",
+          "en": "outdoor activities",
+          "zh-Hant": "戶外活動",
+          "ja": "アウトドアアクティビティ",
+          "ko": "야외 활동"
+        }
+      },
+      {
+        "codeKey": "event_activity_tummy",
+        "language": {
+          "zh-Hans": "趴趴时间",
+          "en": "Tummy time",
+          "zh-Hant": "趴趴時間",
+          "ja": "うつぶせ遊び",
+          "ko": "터미 타임"
+        }
+      },
+      {
+        "codeKey": "event_activity_swimming",
+        "language": {
+          "zh-Hans": "游泳",
+          "en": "swim",
+          "zh-Hant": "游泳",
+          "ja": "水泳",
+          "ko": "수영"
+        }
+      },
+      {
+        "codeKey": "event_activity_play",
+        "language": {
+          "zh-Hans": "亲子游戏",
+          "en": "Parent-child play",
+          "zh-Hant": "親子遊戲",
+          "ja": "親子遊び",
+          "ko": "부모-아이 놀이"
+        }
+      },
+      {
+        "codeKey": "use_timer",
+        "language": {
+          "zh-Hans": "使用计时器",
+          "en": "Use a timer",
+          "zh-Hant": "使用計時器",
+          "ja": "タイマーを使用する",
+          "ko": "타이머를 사용하세요"
+        }
+      },
+      {
+        "codeKey": "event_other_burp",
+        "language": {
+          "zh-Hans": "拍嗝",
+          "en": "burp",
+          "zh-Hant": "拍嗝",
+          "ja": "ゲップ",
+          "ko": "트림"
+        }
+      },
+      {
+        "codeKey": "event_other_cry",
+        "language": {
+          "zh-Hans": "哭闹",
+          "en": "crying",
+          "zh-Hant": "哭鬧",
+          "ja": "泣いている",
+          "ko": "울고"
+        }
+      },
+      {
+        "codeKey": "event_other_spit_up",
+        "language": {
+          "zh-Hans": "吐奶",
+          "en": "Spit-up",
+          "zh-Hant": "吐奶",
+          "ja": "吐き戻し",
+          "ko": "토함"
+        }
+      },
+      {
+        "codeKey": "event_other_custom",
+        "language": {
+          "zh-Hans": "自定义",
+          "en": "Customize",
+          "zh-Hant": "自訂",
+          "ja": "カスタマイズ",
+          "ko": "사용자 정의"
+        }
+      },
+      {
+        "codeKey": "custom_event_name",
+        "language": {
+          "zh-Hans": "事件名称",
+          "en": "Event name",
+          "zh-Hant": "事件名稱",
+          "ja": "イベント名",
+          "ko": "이벤트 이름"
+        }
+      },
+      {
+        "codeKey": "custom_event_hint",
+        "language": {
+          "zh-Hans": "请输入事件名称",
+          "en": "Please enter event name",
+          "zh-Hant": "請輸入事件名稱",
+          "ja": "イベント名を入力してください",
+          "ko": "이벤트 이름을 입력해주세요"
+        }
+      },
+      {
+        "codeKey": "custom_event_description",
+        "language": {
+          "zh-Hans": "事件描述",
+          "en": "Description",
+          "zh-Hant": "事件描述",
+          "ja": "イベントの説明",
+          "ko": "이벤트 설명"
+        }
+      },
+      {
+        "codeKey": "custom_event_description_hint",
+        "language": {
+          "zh-Hans": "请输入事件描述",
+          "en": "Enter description",
+          "zh-Hant": "請輸入事件描述",
+          "ja": "イベントの説明を入力してください",
+          "ko": "이벤트 설명을 입력하세요."
+        }
+      },
+      {
+        "codeKey": "custom_event_required",
+        "language": {
+          "zh-Hans": "请输入事件名称或描述",
+          "en": "Enter a name or description",
+          "zh-Hant": "請輸入事件名稱或描述",
+          "ja": "イベント名または説明を入力してください",
+          "ko": "이벤트 이름이나 설명을 입력하세요."
+        }
+      },
+      {
+        "codeKey": "statistics",
+        "language": {
+          "zh-Hans": "统计",
+          "en": "Statistics",
+          "zh-Hant": "統計",
+          "ja": "統計",
+          "ko": "통계"
+        }
+      },
+      {
+        "codeKey": "statistics_growth_title",
+        "language": {
+          "zh-Hans": "生长趋势",
+          "en": "Growth trends",
+          "zh-Hant": "生長趨勢",
+          "ja": "成長傾向",
+          "ko": "성장 추세"
+        }
+      },
+      {
+        "codeKey": "statistics_growth_weight",
+        "language": {
+          "zh-Hans": "体重",
+          "en": "Weight",
+          "zh-Hant": "體重",
+          "ja": "重量",
+          "ko": "무게"
+        }
+      },
+      {
+        "codeKey": "statistics_growth_height",
+        "language": {
+          "zh-Hans": "身高",
+          "en": "Height",
+          "zh-Hant": "身高",
+          "ja": "身長",
+          "ko": "신장"
+        }
+      },
+      {
+        "codeKey": "statistics_growth_head",
+        "language": {
+          "zh-Hans": "头围",
+          "en": "Head",
+          "zh-Hant": "頭圍",
+          "ja": "頭囲",
+          "ko": "머리 둘레"
+        }
+      },
+      {
+        "codeKey": "statistics_growth_no_record",
+        "language": {
+          "zh-Hans": "暂无记录",
+          "en": "No record",
+          "zh-Hant": "暫無紀錄",
+          "ja": "まだ記録がありません",
+          "ko": "아직 기록이 없습니다"
+        }
+      },
+      {
+        "codeKey": "statistics_growth_no_change",
+        "language": {
+          "zh-Hans": "较上次 无变化",
+          "en": "No change vs last",
+          "zh-Hant": "較上次 無變化",
+          "ja": "前回から変化なし",
+          "ko": "지난번과 변함이 없네요"
+        }
+      },
+      {
+        "codeKey": "statistics_growth_diff_format",
+        "language": {
+          "zh-Hans": "较上次 %1$s",
+          "en": "Vs last %1$s",
+          "zh-Hant": "較上次 %1$s",
+          "ja": "前回との比較 %1$s",
+          "ko": "지난번과 비교하면 %1$s"
+        }
+      },
+      {
+        "codeKey": "statistics_growth_placeholder",
+        "language": {
+          "zh-Hans": "--",
+          "en": "--",
+          "zh-Hant": "--",
+          "ja": "--",
+          "ko": "--"
+        }
+      },
+      {
+        "codeKey": "statistics_value_with_unit_format",
+        "language": {
+          "zh-Hans": "%1$s%2$s",
+          "en": "%1$s%2$s",
+          "zh-Hant": "%1$s%2$s",
+          "ja": "%1$s%2$s",
+          "ko": "%1$s%2$s"
+        }
+      },
+      {
+        "codeKey": "statistics_trend_title",
+        "language": {
+          "zh-Hans": "趋势概览",
+          "en": "Trend overview",
+          "zh-Hant": "趨勢概覽",
+          "ja": "トレンドの概要",
+          "ko": "트렌드 개요"
+        }
+      },
+      {
+        "codeKey": "statistics_trend_week",
+        "language": {
+          "zh-Hans": "本周",
+          "en": "This week",
+          "zh-Hant": "本週",
+          "ja": "今週",
+          "ko": "이번 주"
+        }
+      },
+      {
+        "codeKey": "statistics_trend_month",
+        "language": {
+          "zh-Hans": "本月",
+          "en": "This month",
+          "zh-Hant": "本月",
+          "ja": "今月",
+          "ko": "이번 달"
+        }
+      },
+      {
+        "codeKey": "statistics_trend_year",
+        "language": {
+          "zh-Hans": "本年",
+          "en": "This year",
+          "zh-Hant": "本年",
+          "ja": "今年は",
+          "ko": "올해"
+        }
+      },
+      {
+        "codeKey": "statistics_trend_range_format",
+        "language": {
+          "zh-Hans": "%1$s-%2$s",
+          "en": "%1$s-%2$s",
+          "zh-Hant": "%1$s-%2$s",
+          "ja": "%1$s-%2$s",
+          "ko": "%1$s-%2$s"
+        }
+      },
+      {
+        "codeKey": "statistics_trend_metric_feeding",
+        "language": {
+          "zh-Hans": "喂养",
+          "en": "Feeding",
+          "zh-Hant": "餵食",
+          "ja": "授乳",
+          "ko": "수유"
+        }
+      },
+      {
+        "codeKey": "statistics_trend_metric_sleep",
+        "language": {
+          "zh-Hans": "睡眠",
+          "en": "Sleep",
+          "zh-Hant": "睡眠",
+          "ja": "睡眠",
+          "ko": "수면"
+        }
+      },
+      {
+        "codeKey": "statistics_trend_metric_diaper",
+        "language": {
+          "zh-Hans": "尿布",
+          "en": "Diaper",
+          "zh-Hant": "尿布",
+          "ja": "おむつ",
+          "ko": "기저귀"
+        }
+      },
+      {
+        "codeKey": "statistics_trend_metric_event",
+        "language": {
+          "zh-Hans": "其他事件",
+          "en": "Other events",
+          "zh-Hant": "其他事件",
+          "ja": "その他のイベント",
+          "ko": "기타 이벤트"
+        }
+      },
+      {
+        "codeKey": "statistics_trend_feeding_value_format",
+        "language": {
+          "zh-Hans": "%1$d次 · %2$s",
+          "en": "%1$d times / %2$s",
+          "zh-Hant": "%1$d次 · %2$s",
+          "ja": "%1$d 回 · %2$s",
+          "ko": "%1$d회 · %2$s"
+        }
+      },
+      {
+        "codeKey": "statistics_trend_sleep_value_format",
+        "language": {
+          "zh-Hans": "%1$d次 · %2$s",
+          "en": "%1$d times / %2$s",
+          "zh-Hant": "%1$d次 · %2$s",
+          "ja": "%1$d 回 · %2$s",
+          "ko": "%1$d회 · %2$s"
+        }
+      },
+      {
+        "codeKey": "statistics_trend_count_format",
+        "language": {
+          "zh-Hans": "%1$d次",
+          "en": "%1$d times",
+          "zh-Hant": "%1$d次",
+          "ja": "%1$d 回",
+          "ko": "%1$d회"
+        }
+      },
+      {
+        "codeKey": "statistics_trend_placeholder",
+        "language": {
+          "zh-Hans": "--",
+          "en": "--",
+          "zh-Hant": "--",
+          "ja": "--",
+          "ko": "--"
+        }
+      },
+      {
+        "codeKey": "statistics_structure_title",
+        "language": {
+          "zh-Hans": "结构图",
+          "en": "Structure",
+          "zh-Hant": "結構圖",
+          "ja": "構造図",
+          "ko": "구조도"
+        }
+      },
+      {
+        "codeKey": "statistics_structure_feeding_title",
+        "language": {
+          "zh-Hans": "喂养结构",
+          "en": "Feeding mix",
+          "zh-Hant": "餵食結構",
+          "ja": "授乳構成",
+          "ko": "수유 구성"
+        }
+      },
+      {
+        "codeKey": "statistics_structure_diaper_title",
+        "language": {
+          "zh-Hans": "排泄结构",
+          "en": "Diaper mix",
+          "zh-Hant": "排泄結構",
+          "ja": "おむつ構成",
+          "ko": "기저귀 구성"
+        }
+      },
+      {
+        "codeKey": "statistics_structure_health_title",
+        "language": {
+          "zh-Hans": "健康结构",
+          "en": "Health mix",
+          "zh-Hant": "健康結構",
+          "ja": "健康構成",
+          "ko": "건강 구성"
+        }
+      },
+      {
+        "codeKey": "statistics_structure_empty",
+        "language": {
+          "zh-Hans": "暂无结构数据",
+          "en": "No structure data",
+          "zh-Hant": "暫無結構數據",
+          "ja": "構造データはまだありません",
+          "ko": "아직 구조 데이터가 없습니다."
+        }
+      },
+      {
+        "codeKey": "statistics_structure_legend_format",
+        "language": {
+          "zh-Hans": "%1$d次 · %2$d%%",
+          "en": "%1$d times / %2$d%%",
+          "zh-Hant": "%1$d次 · %2$d%%",
+          "ja": "%1$d 回 · %2$d%%",
+          "ko": "%1$d회 · %2$d%%"
+        }
+      },
+      {
+        "codeKey": "statistics_growth_percentile_title",
+        "language": {
+          "zh-Hans": "成长曲线百分位",
+          "en": "Growth percentiles",
+          "zh-Hant": "成長曲線百分位",
+          "ja": "成長曲線のパーセンタイル",
+          "ko": "성장 곡선 백분위수"
+        }
+      },
+      {
+        "codeKey": "statistics_growth_percentile_note",
+        "language": {
+          "zh-Hans": "基于当前宝宝历史记录计算",
+          "en": "Based on this baby's history",
+          "zh-Hant": "基於當前寶寶歷史記錄計算",
+          "ja": "現在の赤ちゃんの病歴に基づいて計算されます",
+          "ko": "현재 아기 이력을 기준으로 계산됨"
+        }
+      },
+      {
+        "codeKey": "statistics_growth_percentile_note_who",
+        "language": {
+          "zh-Hans": "基于 WHO 0-5 岁标准计算",
+          "en": "Based on WHO 0-5 years standards",
+          "zh-Hant": "基於 WHO 0-5 歲標準計算",
+          "ja": "0～5歳を対象としたWHO基準に基づいて算出",
+          "ko": "0~5세에 대한 WHO 기준에 따라 계산됨"
+        }
+      },
+      {
+        "codeKey": "statistics_growth_percentile_note_missing_info",
+        "language": {
+          "zh-Hans": "填写宝宝性别与生日后显示 WHO 百分位",
+          "en": "Set gender and birthday to show WHO percentiles",
+          "zh-Hant": "填寫寶寶性別與生日後顯示 WHO 百分位",
+          "ja": "赤ちゃんの性別と誕生日を入力すると、WHOのパーセンタイルが表示されます。",
+          "ko": "아기의 성별과 생일을 입력하면 WHO 백분위수가 표시됩니다."
+        }
+      },
+      {
+        "codeKey": "statistics_growth_percentile_empty",
+        "language": {
+          "zh-Hans": "暂无百分位",
+          "en": "No percentile",
+          "zh-Hant": "暫無百分位",
+          "ja": "まだパーセンタイルがありません",
+          "ko": "아직 백분위수 없음"
+        }
+      },
+      {
+        "codeKey": "statistics_growth_percentile_rank_format",
+        "language": {
+          "zh-Hans": "P%1$d",
+          "en": "P%1$d",
+          "zh-Hant": "P%1$d",
+          "ja": "P%1$d",
+          "ko": "P%1$d"
+        }
+      },
+      {
+        "codeKey": "statistics_health_title",
+        "language": {
+          "zh-Hans": "健康与疫苗",
+          "en": "Health & vaccines",
+          "zh-Hant": "健康與疫苗",
+          "ja": "健康とワクチン",
+          "ko": "건강과 백신"
+        }
+      },
+      {
+        "codeKey": "statistics_health_range_format",
+        "language": {
+          "zh-Hans": "统计范围：%1$s",
+          "en": "Range: %1$s",
+          "zh-Hant": "統計範圍：%1$s",
+          "ja": "統計範囲: %1$s",
+          "ko": "통계 범위: %1$s"
+        }
+      },
+      {
+        "codeKey": "statistics_health_total_format",
+        "language": {
+          "zh-Hans": "健康事件 %1$d次",
+          "en": "Health events %1$d times",
+          "zh-Hant": "健康事件 %1$d次",
+          "ja": "健康関連イベント %1$d 回",
+          "ko": "건강 관련 이벤트 %1$d회"
+        }
+      },
+      {
+        "codeKey": "statistics_health_temperature_format",
+        "language": {
+          "zh-Hans": "体温 %1$d次",
+          "en": "Temperature %1$d times",
+          "zh-Hant": "體溫 %1$d次",
+          "ja": "体温%1$d回",
+          "ko": "체온 %1$d회"
+        }
+      },
+      {
+        "codeKey": "statistics_health_medicine_format",
+        "language": {
+          "zh-Hans": "用药 %1$d次",
+          "en": "Medicine %1$d times",
+          "zh-Hant": "用藥 %1$d次",
+          "ja": "%1$d回の投薬",
+          "ko": "약물 치료 %1$d회"
+        }
+      },
+      {
+        "codeKey": "statistics_health_doctor_format",
+        "language": {
+          "zh-Hans": "就医 %1$d次",
+          "en": "Doctor %1$d times",
+          "zh-Hant": "就醫 %1$d次",
+          "ja": "医療処置%1$d回",
+          "ko": "진료 %1$d회"
+        }
+      },
+      {
+        "codeKey": "statistics_health_symptom_format",
+        "language": {
+          "zh-Hans": "症状 %1$d次",
+          "en": "Symptoms %1$d times",
+          "zh-Hant": "症狀 %1$d次",
+          "ja": "症状が%1$d回発生",
+          "ko": "증상 %1$d회"
+        }
+      },
+      {
+        "codeKey": "statistics_health_vaccine_format",
+        "language": {
+          "zh-Hans": "疫苗 %1$d次",
+          "en": "Vaccines %1$d times",
+          "zh-Hant": "疫苗 %1$d次",
+          "ja": "ワクチンを%1$d回",
+          "ko": "백신 %1$d회"
+        }
+      },
+      {
+        "codeKey": "statistics_health_last_vaccine_format",
+        "language": {
+          "zh-Hans": "上次接种：%1$s",
+          "en": "Last shot: %1$s",
+          "zh-Hant": "最後接種：%1$s",
+          "ja": "前回のワクチン接種: %1$s",
+          "ko": "마지막 예방접종: %1$s"
+        }
+      },
+      {
+        "codeKey": "statistics_health_last_vaccine_empty",
+        "language": {
+          "zh-Hans": "暂无接种记录",
+          "en": "No vaccine record",
+          "zh-Hant": "暫無接種紀錄",
+          "ja": "ワクチン接種記録はまだありません",
+          "ko": "아직 예방접종 기록이 없습니다."
+        }
+      },
+      {
+        "codeKey": "statistics_day_record_count_format",
+        "language": {
+          "zh-Hans": "当天 %1$d 条记录",
+          "en": "%1$d records that day",
+          "zh-Hant": "當天 %1$d 條記錄",
+          "ja": "当日 %1$d 件の記録",
+          "ko": "해당 날짜 기록 %1$d개"
+        }
+      },
+      {
+        "codeKey": "statistics_summary_other_scope",
+        "language": {
+          "zh-Hans": "护理/活动/健康",
+          "en": "Care/activity/health",
+          "zh-Hant": "護理/活動/健康",
+          "ja": "ケア/活動/健康",
+          "ko": "케어/활동/건강"
+        }
+      },
+      {
+        "codeKey": "statistics_insight_title",
+        "language": {
+          "zh-Hans": "规律洞察",
+          "en": "Routine insights",
+          "zh-Hant": "規律洞察",
+          "ja": "リズムの洞察",
+          "ko": "패턴 인사이트"
+        }
+      },
+      {
+        "codeKey": "statistics_insight_based_on_format",
+        "language": {
+          "zh-Hans": "基于 %1$s",
+          "en": "Based on %1$s",
+          "zh-Hant": "基於 %1$s",
+          "ja": "%1$s に基づく",
+          "ko": "%1$s 기준"
+        }
+      },
+      {
+        "codeKey": "statistics_until_selected_date_format",
+        "language": {
+          "zh-Hans": "截至 %1$s",
+          "en": "Until %1$s",
+          "zh-Hant": "截至 %1$s",
+          "ja": "%1$s まで",
+          "ko": "%1$s까지"
+        }
+      },
+      {
+        "codeKey": "statistics_load_failed",
+        "language": {
+          "zh-Hans": "加载失败",
+          "en": "Load failed",
+          "zh-Hant": "載入失敗",
+          "ja": "読み込みに失敗しました",
+          "ko": "로드 실패"
+        }
+      },
+      {
+        "codeKey": "daily_records",
+        "language": {
+          "zh-Hans": "生活记录",
+          "en": "Daily records",
+          "zh-Hant": "生活記錄",
+          "ja": "毎日の記録",
+          "ko": "일상 기록"
+        }
+      },
+      {
+        "codeKey": "no_records_today",
+        "language": {
+          "zh-Hans": "这一天还没有记录",
+          "en": "There are no records for this day yet",
+          "zh-Hant": "這一天還沒有記錄",
+          "ja": "この日の記録はまだありません",
+          "ko": "아직 이 날의 기록이 없습니다."
+        }
+      },
+      {
+        "codeKey": "add_record",
+        "language": {
+          "zh-Hans": "添加记录",
+          "en": "Add record",
+          "zh-Hant": "新增記錄",
+          "ja": "レコードの追加",
+          "ko": "레코드 추가"
+        }
+      },
+      {
+        "codeKey": "diaper",
+        "language": {
+          "zh-Hans": "尿布",
+          "en": "Diaper",
+          "zh-Hant": "尿布",
+          "ja": "おむつ",
+          "ko": "기저귀"
+        }
+      },
+      {
+        "codeKey": "count_times",
+        "language": {
+          "zh-Hans": "%d次",
+          "en": "%d times",
+          "zh-Hant": "%d次",
+          "ja": "%d 回",
+          "ko": "%d회"
+        }
+      },
+      {
+        "codeKey": "duration_format_short",
+        "language": {
+          "zh-Hans": "%1$dh%2$dm",
+          "en": "%1$dh%2$dm",
+          "zh-Hant": "%1$dh%2$dm",
+          "ja": "%1$dh%2$dm",
+          "ko": "%1$dh%2$dm"
+        }
+      },
+      {
+        "codeKey": "left_side",
+        "language": {
+          "zh-Hans": "左侧",
+          "en": "left side",
+          "zh-Hant": "左側",
+          "ja": "左側",
+          "ko": "왼쪽"
+        }
+      },
+      {
+        "codeKey": "right_side",
+        "language": {
+          "zh-Hans": "右侧",
+          "en": "right side",
+          "zh-Hant": "右側",
+          "ja": "右側",
+          "ko": "오른쪽"
+        }
+      },
+      {
+        "codeKey": "duration_min",
+        "language": {
+          "zh-Hans": "%d分钟",
+          "en": "%d minutes",
+          "zh-Hant": "%d分鐘",
+          "ja": "%d分",
+          "ko": "%d분"
+        }
+      },
+      {
+        "codeKey": "amount_ml",
+        "language": {
+          "zh-Hans": "%dml",
+          "en": "%dml",
+          "zh-Hant": "%dml",
+          "ja": "%dml",
+          "ko": "%dml"
+        }
+      },
+      {
+        "codeKey": "sleep_started",
+        "language": {
+          "zh-Hans": "开始睡觉",
+          "en": "Started sleeping",
+          "zh-Hant": "開始睡覺",
+          "ja": "睡眠開始",
+          "ko": "수면 시작"
+        }
+      },
+      {
+        "codeKey": "sleep_ended",
+        "language": {
+          "zh-Hans": "睡醒了",
+          "en": "Woke up",
+          "zh-Hant": "睡醒了",
+          "ja": "起床",
+          "ko": "깨어남"
+        }
+      },
+      {
+        "codeKey": "sleep_in_progress",
+        "language": {
+          "zh-Hans": "睡眠中",
+          "en": "Sleeping",
+          "zh-Hant": "睡眠中",
+          "ja": "睡眠中",
+          "ko": "수면 중"
+        }
+      },
+      {
+        "codeKey": "baby_gender_boy_label",
+        "language": {
+          "zh-Hans": "♂ 男孩",
+          "en": "♂ Boy",
+          "zh-Hant": "♂ 男孩",
+          "ja": "♂ 男の子",
+          "ko": "♂ 남아"
+        }
+      },
+      {
+        "codeKey": "baby_gender_girl_label",
+        "language": {
+          "zh-Hans": "♀ 女孩",
+          "en": "♀ Girl",
+          "zh-Hant": "♀ 女孩",
+          "ja": "♀ 女の子",
+          "ko": "♀ 여아"
+        }
+      },
+      {
+        "codeKey": "baby_age_days_format",
+        "language": {
+          "zh-Hans": "%1$d天",
+          "en": "%1$d days",
+          "zh-Hant": "%1$d天",
+          "ja": "%1$d日",
+          "ko": "%1$d일"
+        }
+      },
+      {
+        "codeKey": "baby_info_gender_age_format",
+        "language": {
+          "zh-Hans": "%1$s · %2$s",
+          "en": "%1$s · %2$s",
+          "zh-Hant": "%1$s · %2$s",
+          "ja": "%1$s · %2$s",
+          "ko": "%1$s · %2$s"
+        }
+      },
+      {
+        "codeKey": "baby_birth_date_format",
+        "language": {
+          "zh-Hans": "出生: %1$s",
+          "en": "Born: %1$s",
+          "zh-Hant": "出生：%1$s",
+          "ja": "誕生日: %1$s",
+          "ko": "출생: %1$s"
+        }
+      },
+      {
+        "codeKey": "calendar_month_title_pattern",
+        "language": {
+          "zh-Hans": "yyyy年M月",
+          "en": "MMMM yyyy",
+          "zh-Hant": "yyyy年M月",
+          "ja": "yyyy年M月",
+          "ko": "yyyy년 M월"
+        }
+      },
+      {
+        "codeKey": "calendar_week_title_format",
+        "language": {
+          "zh-Hans": "%1$s 第%2$d周",
+          "en": "%1$s Week %2$d",
+          "zh-Hant": "%1$s 第%2$d週",
+          "ja": "%1$s 第%2$d週",
+          "ko": "%1$s %2$d주차"
+        }
+      },
+      {
+        "codeKey": "calendar_weekday_sunday_short",
+        "language": {
+          "zh-Hans": "日",
+          "en": "Sun",
+          "zh-Hant": "日",
+          "ja": "日",
+          "ko": "일"
+        }
+      },
+      {
+        "codeKey": "calendar_weekday_monday_short",
+        "language": {
+          "zh-Hans": "一",
+          "en": "Mon",
+          "zh-Hant": "一",
+          "ja": "月",
+          "ko": "월"
+        }
+      },
+      {
+        "codeKey": "calendar_weekday_tuesday_short",
+        "language": {
+          "zh-Hans": "二",
+          "en": "Tue",
+          "zh-Hant": "二",
+          "ja": "火",
+          "ko": "화"
+        }
+      },
+      {
+        "codeKey": "calendar_weekday_wednesday_short",
+        "language": {
+          "zh-Hans": "三",
+          "en": "Wed",
+          "zh-Hant": "三",
+          "ja": "水",
+          "ko": "수"
+        }
+      },
+      {
+        "codeKey": "calendar_weekday_thursday_short",
+        "language": {
+          "zh-Hans": "四",
+          "en": "Thu",
+          "zh-Hant": "四",
+          "ja": "木",
+          "ko": "목"
+        }
+      },
+      {
+        "codeKey": "calendar_weekday_friday_short",
+        "language": {
+          "zh-Hans": "五",
+          "en": "Fri",
+          "zh-Hant": "五",
+          "ja": "金",
+          "ko": "금"
+        }
+      },
+      {
+        "codeKey": "calendar_weekday_saturday_short",
+        "language": {
+          "zh-Hans": "六",
+          "en": "Sat",
+          "zh-Hant": "六",
+          "ja": "土",
+          "ko": "토"
+        }
+      },
+      {
+        "codeKey": "summary_duration_hours_minutes_compact",
+        "language": {
+          "zh-Hans": "%1$d小时%2$d分",
+          "en": "%1$dh %2$dm",
+          "zh-Hant": "%1$d小時%2$d分",
+          "ja": "%1$d時間%2$d分",
+          "ko": "%1$d시간 %2$d분"
+        }
+      },
+      {
+        "codeKey": "summary_duration_hours_compact",
+        "language": {
+          "zh-Hans": "%1$d小时",
+          "en": "%1$dh",
+          "zh-Hant": "%1$d小時",
+          "ja": "%1$d時間",
+          "ko": "%1$d시간"
+        }
+      },
+      {
+        "codeKey": "summary_duration_minutes_compact",
+        "language": {
+          "zh-Hans": "%1$d分钟",
+          "en": "%1$dm",
+          "zh-Hant": "%1$d分鐘",
+          "ja": "%1$d分",
+          "ko": "%1$d분"
+        }
+      },
+      {
+        "codeKey": "summary_duration_zero_compact",
+        "language": {
+          "zh-Hans": "0分钟",
+          "en": "0m",
+          "zh-Hant": "0分鐘",
+          "ja": "0分",
+          "ko": "0분"
+        }
+      },
+      {
+        "codeKey": "summary_diaper_wet_count_short",
+        "language": {
+          "zh-Hans": "湿%1$d",
+          "en": "Wet %1$d",
+          "zh-Hant": "濕%1$d",
+          "ja": "おしっこ%1$d",
+          "ko": "젖음 %1$d"
+        }
+      },
+      {
+        "codeKey": "summary_diaper_dirty_count_short",
+        "language": {
+          "zh-Hans": "脏%1$d",
+          "en": "Dirty %1$d",
+          "zh-Hant": "髒%1$d",
+          "ja": "うんち%1$d",
+          "ko": "대변 %1$d"
+        }
+      },
+      {
+        "codeKey": "summary_diaper_mixed_count_short",
+        "language": {
+          "zh-Hans": "混合%1$d",
+          "en": "Mixed %1$d",
+          "zh-Hant": "混合%1$d",
+          "ja": "混合%1$d",
+          "ko": "혼합 %1$d"
+        }
+      },
+      {
+        "codeKey": "event_record_date_title_pattern",
+        "language": {
+          "zh-Hans": "M月d日 E",
+          "en": "MMM d, E",
+          "zh-Hant": "M月d日 E",
+          "ja": "M月d日 E",
+          "ko": "M월 d일 E"
+        }
+      },
+      {
+        "codeKey": "relative_time_just_now",
+        "language": {
+          "zh-Hans": "刚刚",
+          "en": "Just now",
+          "zh-Hant": "剛剛",
+          "ja": "たった今",
+          "ko": "방금"
+        }
+      },
+      {
+        "codeKey": "relative_time_minutes_ago_format",
+        "language": {
+          "zh-Hans": "%1$d分钟前",
+          "en": "%1$d minutes ago",
+          "zh-Hant": "%1$d分鐘前",
+          "ja": "%1$d分前",
+          "ko": "%1$d분 전"
+        }
+      },
+      {
+        "codeKey": "relative_time_minutes_later_format",
+        "language": {
+          "zh-Hans": "%1$d分钟后",
+          "en": "in %1$d minutes",
+          "zh-Hant": "%1$d分鐘後",
+          "ja": "%1$d分後",
+          "ko": "%1$d분 후"
+        }
+      },
+      {
+        "codeKey": "relative_time_hours_ago_format",
+        "language": {
+          "zh-Hans": "%1$d小时前",
+          "en": "%1$d hours ago",
+          "zh-Hant": "%1$d小時前",
+          "ja": "%1$d時間前",
+          "ko": "%1$d시간 전"
+        }
+      },
+      {
+        "codeKey": "relative_time_hours_later_format",
+        "language": {
+          "zh-Hans": "%1$d小时后",
+          "en": "in %1$d hours",
+          "zh-Hant": "%1$d小時後",
+          "ja": "%1$d時間後",
+          "ko": "%1$d시간 후"
+        }
+      },
+      {
+        "codeKey": "relative_time_days_ago_format",
+        "language": {
+          "zh-Hans": "%1$d天前",
+          "en": "%1$d days ago",
+          "zh-Hant": "%1$d天前",
+          "ja": "%1$d日前",
+          "ko": "%1$d일 전"
+        }
+      },
+      {
+        "codeKey": "relative_time_days_later_format",
+        "language": {
+          "zh-Hans": "%1$d天后",
+          "en": "in %1$d days",
+          "zh-Hant": "%1$d天後",
+          "ja": "%1$d日後",
+          "ko": "%1$d일 후"
+        }
+      },
+      {
+        "codeKey": "relative_time_months_ago_format",
+        "language": {
+          "zh-Hans": "%1$d个月前",
+          "en": "%1$d months ago",
+          "zh-Hant": "%1$d個月前",
+          "ja": "%1$dか月前",
+          "ko": "%1$d개월 전"
+        }
+      },
+      {
+        "codeKey": "relative_time_months_later_format",
+        "language": {
+          "zh-Hans": "%1$d个月后",
+          "en": "in %1$d months",
+          "zh-Hant": "%1$d個月後",
+          "ja": "%1$dか月後",
+          "ko": "%1$d개월 후"
+        }
+      }
+    ],
+    "app": [
+      {
+        "codeKey": "app_name",
+        "language": {
+          "zh-Hans": "babycare",
+          "en": "babycare",
+          "zh-Hant": "babycare",
+          "ja": "babycare",
+          "ko": "babycare"
+        }
+      }
+    ],
+    "baby_recyclerview": [
+      {
+        "codeKey": "brvah_loading",
+        "language": {
+          "zh-Hans": "加载中...",
+          "en": "Loading...",
+          "zh-Hant": "加載中...",
+          "ja": "読み込み中...",
+          "ko": "로드 중..."
+        }
+      },
+      {
+        "codeKey": "brvah_load_failed",
+        "language": {
+          "zh-Hans": "加载失败，点击重试",
+          "en": "Load failed, click retry",
+          "zh-Hant": "加載失敗，點擊重試",
+          "ja": "読み込みに失敗しました。クリックして再試行してください",
+          "ko": "로드하지 못했습니다. 다시 시도하려면 클릭하세요."
+        }
+      },
+      {
+        "codeKey": "brvah_load_end",
+        "language": {
+          "zh-Hans": "没有更多数据",
+          "en": "No more data",
+          "zh-Hant": "沒有更多數據",
+          "ja": "もうデータはありません",
+          "ko": "더 이상 데이터가 없습니다"
+        }
+      },
+      {
+        "codeKey": "brvah_load_complete",
+        "language": {
+          "zh-Hans": "点击加载更多",
+          "en": "Click to load more",
+          "zh-Hant": "點擊加載更多",
+          "ja": "クリックしてさらに読み込む",
+          "ko": "더 많은 내용을 로드하려면 클릭하세요."
         }
       }
     ]

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="brvah_loading">Loading...</string>
     <string name="brvah_load_failed">Load failed, click retry</string>

@@ -1,5 +1,7 @@
 package com.zero.babydata.entity
 
+import androidx.annotation.StringRes
+
 /**
  * 喂养类型枚举
  */
@@ -29,15 +31,16 @@ enum class FeedingType(val type: Int) {
     OTHER(4);
 
     /**
-     * 获取显示名称
+     * 获取展示名称资源，由 UI 层通过当前 context 解析。
      */
-    val displayName: String
+    @get:StringRes
+    val displayNameResId: Int
         get() = when (this) {
-            BREAST -> "母乳喂养"
-            FORMULA -> "奶粉喂养"
-            MIXED -> "混合喂养"
-            SOLID_FOOD -> "辅食"
-            OTHER -> "其他"
+            BREAST -> com.zero.common.R.string.feeding_type_breast
+            FORMULA -> com.zero.common.R.string.feeding_type_formula
+            MIXED -> com.zero.common.R.string.feeding_type_mixed
+            SOLID_FOOD -> com.zero.common.R.string.feeding_type_solid
+            OTHER -> com.zero.common.R.string.feeding_type_other
         }
 
     companion object {

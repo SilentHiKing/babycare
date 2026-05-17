@@ -1,7 +1,7 @@
 package com.zero.babycare.statistics.mapper
 
 import com.zero.babycare.statistics.standard.WhoSex
-import java.util.Locale
+import com.zero.common.util.BabyGender
 
 /**
  * WHO 标准只区分男孩/女孩。这里把用户资料中的本地化性别文案收敛为标准枚举，
@@ -10,10 +10,9 @@ import java.util.Locale
 object WhoSexParser {
 
     fun parse(gender: String?): WhoSex {
-        val value = gender?.trim()?.lowercase(Locale.ROOT) ?: return WhoSex.UNKNOWN
-        return when {
-            value.contains("女") || value.contains("girl") || value.contains("female") -> WhoSex.GIRL
-            value.contains("男") || value.contains("boy") || value.contains("male") -> WhoSex.BOY
+        return when (BabyGender.normalize(gender)) {
+            BabyGender.GIRL -> WhoSex.GIRL
+            BabyGender.BOY -> WhoSex.BOY
             else -> WhoSex.UNKNOWN
         }
     }

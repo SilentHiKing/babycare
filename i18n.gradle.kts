@@ -24,7 +24,9 @@ import com.google.gson.JsonObject
 
 // 直接在脚本中配置路径
 val projectPaths = mapOf(
+    "app" to File(project(":app").projectDir, "src/main/res/").absolutePath,
     "common" to File(project(":common").projectDir, "src/main/res/").absolutePath,
+    "baby_recyclerview" to File(project(":baby_recyclerview").projectDir, "src/main/res/").absolutePath,
 )
 
 val googleplayPaths = mapOf(
@@ -218,11 +220,13 @@ fun processProjectData(
 
     // 删除原来的 string.xml 文件
     languageMap.forEach { langCode ->
-        val valuesDirPath = File(resDir, getValuesDirName(langCode, isGooglePlay))
-        if (valuesDirPath.exists()) {
-            val stringsFile = File(valuesDirPath, "strings.xml")
-            if (stringsFile.exists()) {
-                stringsFile.delete()
+        getValuesDirNames(langCode, isGooglePlay).forEach { valuesDirName ->
+            val valuesDirPath = File(resDir, valuesDirName)
+            if (valuesDirPath.exists()) {
+                val stringsFile = File(valuesDirPath, "strings.xml")
+                if (stringsFile.exists()) {
+                    stringsFile.delete()
+                }
             }
         }
     }
@@ -235,51 +239,58 @@ fun processProjectData(
         languageMap.forEach { langCode ->
             val languageValue = languages.get(langCode)?.asString
             if (languageValue != null) {
-                val valuesDirPath = File(resDir, getValuesDirName(langCode, isGooglePlay))
-                if (!valuesDirPath.exists()) {
-                    valuesDirPath.mkdirs()
+                getValuesDirNames(langCode, isGooglePlay).forEach { valuesDirName ->
+                    val valuesDirPath = File(resDir, valuesDirName)
+                    if (!valuesDirPath.exists()) {
+                        valuesDirPath.mkdirs()
+                    }
+                    val stringsFile = File(valuesDirPath, "strings.xml")
+                    if (!stringsFile.exists()) {
+                        stringsFile.writeText("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n")
+                    }
+                    // 写入翻译项
+                    var convertedString = convertToAndroidString(languageValue)
+                    convertedString = convertedString.replace("%ld", "%d")
+                    val convertedStr = escapeSingleQuote(convertedString)
+                    stringsFile.appendText("    <string name=\"$codeKey\">$convertedStr</string>\n")
                 }
-                val stringsFile = File(valuesDirPath, "strings.xml")
-                if (!stringsFile.exists()) {
-                    stringsFile.writeText("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n")
-                }
-                // 写入翻译项
-                var convertedString = convertToAndroidString(languageValue)
-                convertedString = convertedString.replace("%ld", "%d")
-                val convertedStr = escapeSingleQuote(convertedString)
-                stringsFile.appendText("    <string name=\"$codeKey\">$convertedStr</string>\n")
             }
         }
     }
 
     // 完成后关闭所有文件资源
     languageMap.forEach { langCode ->
-        val valuesDirPath = File(resDir, getValuesDirName(langCode, isGooglePlay))
-        val stringsFile = File(valuesDirPath, "strings.xml")
-        if (stringsFile.exists()) {
-            stringsFile.appendText("</resources>\n")
+        getValuesDirNames(langCode, isGooglePlay).forEach { valuesDirName ->
+            val valuesDirPath = File(resDir, valuesDirName)
+            val stringsFile = File(valuesDirPath, "strings.xml")
+            if (stringsFile.exists()) {
+                stringsFile.appendText("</resources>\n")
+            }
         }
     }
 }
 
 /**
  * 获取 values 目录名称
+ *
+ * 繁体中文历史上同时存在台湾与香港资源目录，因此统一由同一份 zh-Hant
+ * 翻译生成两个目录，避免其中一个目录继续依赖手写 XML。
  */
-fun getValuesDirName(langCode: String, isGooglePlay: Boolean): String {
+fun getValuesDirNames(langCode: String, isGooglePlay: Boolean): List<String> {
     return when {
         isGooglePlay -> {
             when (langCode) {
-                "en" -> "values"
-                "zh-Hant" -> "values-zh-rTW"
-                "zh-Hans" -> "values-zh"
-                else -> "values-$langCode"
+                "en" -> listOf("values")
+                "zh-Hant" -> listOf("values-zh-rTW", "values-zh-rHK")
+                "zh-Hans" -> listOf("values-zh")
+                else -> listOf("values-$langCode")
             }
         }
         else -> {
             when (langCode) {
-                "zh-Hans" -> "values"
-                "zh-Hant" -> "values-zh-rTW"
-                else -> "values-$langCode"
+                "zh-Hans" -> listOf("values")
+                "zh-Hant" -> listOf("values-zh-rTW", "values-zh-rHK")
+                else -> listOf("values-$langCode")
             }
         }
     }
@@ -304,7 +315,8 @@ fun convertToAndroidString(inputString: String): String {
  */
 fun escapeSingleQuote(inputString: String): String {
     return if (inputString.contains("'")) {
-        inputString.replace("'", "\\\\'")
+        // Android XML 中单引号只需要一个反斜杠；写两个会把反斜杠显示到界面上。
+        inputString.replace("'", "\\'")
     } else {
         inputString
     }

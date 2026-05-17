@@ -9,7 +9,6 @@ import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.blankj.utilcode.util.LogUtils
-import com.blankj.utilcode.util.StringUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentFeedingRecordBinding
@@ -95,7 +94,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
-        binding.btn.title = StringUtils.getString(R.string.feeding)
+        binding.btn.title = getString(R.string.feeding)
 
         setupFeedingTypeSelector()
         setupTimerController()
@@ -217,7 +216,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             val radioButton = android.widget.RadioButton(requireContext()).apply {
                 id = View.generateViewId()
                 tag = type
-                text = StringUtils.getString(stringResId)
+                text = getString(stringResId)
                 layoutParams = android.widget.RadioGroup.LayoutParams(
                     android.widget.RadioGroup.LayoutParams.WRAP_CONTENT,
                     subtypeHeight
@@ -273,7 +272,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      */
     private fun updateSolidUnit() {
         val subtype = selectedSolidSubtype ?: return
-        binding.tvSolidUnit.text = SolidFoodType.getDefaultUnit(subtype)
+        binding.tvSolidUnit.text = getString(SolidFoodType.getDefaultUnitResId(subtype))
     }
 
     /**
@@ -281,7 +280,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      */
     private fun updateFeedingUnitDisplay() {
         val unit = UnitConfig.getFeedingUnit()
-        binding.tvFeedingAmountUnit.text = StringUtils.getString(UnitConfig.getFeedingUnitLabelResId())
+        binding.tvFeedingAmountUnit.text = getString(UnitConfig.getFeedingUnitLabelResId())
         updateFeedingAmountInput(unit)
     }
 
@@ -707,10 +706,10 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
     ) {
         DialogHelper.showConfirmDialog(
             context = requireContext(),
-            title = StringUtils.getString(R.string.confirm_save),
-            content = StringUtils.getString(R.string.feeding_duration_too_long),
-            confirmText = StringUtils.getString(R.string.confirm),
-            cancelText = StringUtils.getString(R.string.cancel),
+            title = getString(R.string.confirm_save),
+            content = getString(R.string.feeding_duration_too_long),
+            confirmText = getString(R.string.confirm),
+            cancelText = getString(R.string.cancel),
             onConfirm = { showSaveConfirmDialog(babyId, startTime, endTime, duration) }
         )
     }
@@ -728,7 +727,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         val startTimeStr = timestampToMMddHHmm(startTime)
         val endTimeStr = timestampToMMddHHmm(endTime)
 
-        val message = StringUtils.getString(
+        val message = getString(
             R.string.feeding_summary,
             durationMinutes,
             startTimeStr,
@@ -737,10 +736,10 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
 
         DialogHelper.showConfirmDialog(
             context = requireContext(),
-            title = StringUtils.getString(R.string.confirm_save),
+            title = getString(R.string.confirm_save),
             content = message,
-            confirmText = StringUtils.getString(R.string.confirm),
-            cancelText = StringUtils.getString(R.string.cancel),
+            confirmText = getString(R.string.confirm),
+            cancelText = getString(R.string.cancel),
             onConfirm = { doSaveRecord(babyId, startTime, endTime, duration) }
         )
     }
@@ -838,10 +837,10 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
     private fun showExitConfirmDialog() {
         DialogHelper.showConfirmDialog(
             context = requireContext(),
-            title = StringUtils.getString(R.string.tip),
-            content = StringUtils.getString(R.string.unsaved_record_tip),
-            confirmText = StringUtils.getString(R.string.confirm),
-            cancelText = StringUtils.getString(R.string.cancel),
+            title = getString(R.string.tip),
+            content = getString(R.string.unsaved_record_tip),
+            confirmText = getString(R.string.confirm),
+            cancelText = getString(R.string.cancel),
             onConfirm = {
                 hasUnsavedChanges = false
                 if (!isEditMode) {
@@ -987,7 +986,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             vm.lastFeedingRecord.observe(viewLifecycleOwner) { lastRecord ->
                 lastRecord?.let {
                     val lastTimeStr = timestampToMMddHHmm(it.feedingEnd)
-                    binding.tvLastFeeding.text = StringUtils.getString(
+                    binding.tvLastFeeding.text = getString(
                         R.string.last_feeding_time,
                         lastTimeStr
                     )

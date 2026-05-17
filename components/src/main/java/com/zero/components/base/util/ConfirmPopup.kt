@@ -4,7 +4,6 @@ import android.content.Context
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.blankj.utilcode.util.StringUtils
 import com.lxj.xpopup.core.CenterPopupView
 import com.zero.components.R
 
@@ -16,8 +15,8 @@ class ConfirmPopup(context: Context) : CenterPopupView(context) {
 
     private var title: String = ""
     private var content: String = ""
-    private var cancelText: String = StringUtils.getString(com.zero.common.R.string.cancel)
-    private var confirmText: String = StringUtils.getString(com.zero.common.R.string.confirm)
+    private var cancelText: String = context.getString(com.zero.common.R.string.cancel)
+    private var confirmText: String = context.getString(com.zero.common.R.string.confirm)
     private var onConfirmListener: (() -> Unit)? = null
     private var onCancelListener: (() -> Unit)? = null
     private var hideCancel: Boolean = false

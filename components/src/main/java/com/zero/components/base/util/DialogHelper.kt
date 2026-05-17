@@ -1,7 +1,6 @@
 package com.zero.components.base.util
 
 import android.content.Context
-import com.blankj.utilcode.util.StringUtils
 import com.lxj.xpopup.XPopup
 import com.lxj.xpopup.core.BasePopupView
 import com.lxj.xpopup.impl.LoadingPopupView
@@ -103,8 +102,8 @@ object DialogHelper {
         context: Context,
         title: String,
         content: String,
-        confirmText: String = StringUtils.getString(com.zero.common.R.string.confirm),
-        cancelText: String = StringUtils.getString(com.zero.common.R.string.cancel),
+        confirmText: String = context.getString(com.zero.common.R.string.confirm),
+        cancelText: String = context.getString(com.zero.common.R.string.cancel),
         onConfirm: () -> Unit,
         onCancel: (() -> Unit)? = null,
         isHideCancel: Boolean = false
@@ -131,7 +130,7 @@ object DialogHelper {
         context: Context,
         title: String,
         content: String,
-        confirmText: String = StringUtils.getString(com.zero.common.R.string.confirm),
+        confirmText: String = context.getString(com.zero.common.R.string.confirm),
         onConfirm: (() -> Unit)? = null
     ): BasePopupView {
         val popup = ConfirmPopup(context)

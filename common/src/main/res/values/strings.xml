@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 通用 -->
     <string name="back">返回</string>
     <string name="menu">菜单</string>
     <string name="loading">加载中</string>
@@ -10,7 +9,6 @@
     <string name="times_count_format">%1$d次</string>
     <string name="baby_not_born_yet_playful">时光机没开张，我还没出生哟！</string>
     <string name="statistics_add_birthdate_hint">还没有填写宝宝生日，记得补上哦</string>
-    
     <string name="babyName">姓名</string>
     <string name="babyBirthday">生日</string>
     <string name="babyGender">性别</string>
@@ -75,8 +73,6 @@
     <string name="endTime">结束时间</string>
     <string name="dashboard">概况</string>
     <string name="baby_dashboard_title">%1$s的概况</string>
-
-    <!-- 喂养记录相关 -->
     <string name="feeding_type">喂养类型</string>
     <string name="feeding_type_breast">母乳</string>
     <string name="feeding_type_formula">配方奶</string>
@@ -88,8 +84,6 @@
     <string name="feeding_breast_side_minutes_format">%1$s%2$d分钟</string>
     <string name="feeding_total_minutes_format">共%1$d分钟</string>
     <string name="feeding_amount_unit_format">%1$s%2$s</string>
-    
-    <!-- 辅食相关 -->
     <string name="solid_food_type">辅食类型</string>
     <string name="solid_food_name">食物名称</string>
     <string name="solid_food_name_hint">如：胡萝卜泥</string>
@@ -98,8 +92,6 @@
     <string name="solid_food_allergen_tip">⚠️ 此食物有过敏风险，请注意观察</string>
     <string name="other_food_name">食物名称</string>
     <string name="other_food_name_hint">请输入食物名称</string>
-    
-    <!-- 辅食分类 -->
     <string name="solid_category_staple">主食</string>
     <string name="solid_category_vegetable">蔬菜</string>
     <string name="solid_category_fruit">水果</string>
@@ -109,8 +101,6 @@
     <string name="solid_category_supplement">营养剂</string>
     <string name="solid_category_snack">零食</string>
     <string name="solid_category_other">其他</string>
-    
-    <!-- 辅食子类 -->
     <string name="solid_rice_cereal">米糊/米粉</string>
     <string name="solid_noodle">面条</string>
     <string name="solid_porridge">粥</string>
@@ -186,8 +176,6 @@
     <string name="tap_to_start">点击开始计时</string>
     <string name="tap_to_pause">点击暂停</string>
     <string name="tap_to_continue">点击继续</string>
-
-    <!-- 侧边栏相关 -->
     <string name="all_babies">所有宝宝</string>
     <string name="data_statistics">数据统计</string>
     <string name="settings">设置</string>
@@ -196,8 +184,6 @@
     <string name="no_baby_yet">还没有宝宝</string>
     <string name="add_baby">添加宝宝</string>
     <string name="view_detail">查看详情</string>
-
-    <!-- 设置页面 -->
     <string name="settings_general">通用</string>
     <string name="settings_reminder">提醒</string>
     <string name="settings_about">关于</string>
@@ -277,8 +263,6 @@
     <string name="reminder_notification_title">记录提醒</string>
     <string name="reminder_feeding_content">%1$s 可能该喂奶了，记得记录哦</string>
     <string name="reminder_sleep_content">%1$s 可能该睡觉了，记得记录哦</string>
-
-    <!-- 宝宝管理相关 -->
     <string name="baby_list">宝宝列表</string>
     <string name="add_new_baby">添加新宝宝</string>
     <string name="edit_baby_info">编辑宝宝信息</string>
@@ -291,8 +275,6 @@
     <string name="edit">编辑</string>
     <string name="save">保存</string>
     <string name="create_baby">创建宝宝</string>
-
-    <!-- Dashboard 首页 -->
     <string name="baby_awake">宝宝醒着</string>
     <string name="baby_sleeping">宝宝正在睡觉</string>
     <string name="baby_feeding">正在喂奶</string>
@@ -319,8 +301,6 @@
     <string name="start_first_record">开始记录第一条数据吧</string>
     <string name="hour_min_format">%1$d小时%2$d分</string>
     <string name="min_format">%1$d分钟</string>
-
-    <!-- ==================== 事件记录相关 ==================== -->
     <string name="event_record">记录事件</string>
     <string name="event_diaper_wet_title">换尿布（小便）</string>
     <string name="event_diaper_dirty_title">换尿布（大便）</string>
@@ -344,8 +324,6 @@
     <string name="save_success">保存成功</string>
     <string name="save_failed">保存失败，请稍后重试</string>
     <string name="please_select_event_type">请选择事件类型</string>
-
-    <!-- 事件大类 -->
     <string name="event_category_diaper">排泄</string>
     <string name="event_category_health">健康</string>
     <string name="event_category_growth">生长</string>
@@ -353,8 +331,6 @@
     <string name="event_category_care">护理</string>
     <string name="event_category_activity">活动</string>
     <string name="event_category_other">其他</string>
-
-    <!-- 排泄类事件 -->
     <string name="event_diaper_wet">小便</string>
     <string name="event_diaper_dirty">大便</string>
     <string name="event_diaper_mixed">混合</string>
@@ -374,8 +350,6 @@
     <string name="urine_amount_normal">中</string>
     <string name="urine_amount_much">多</string>
     <string name="event_label_value_format">%1$s：%2$s</string>
-
-    <!-- 健康类事件 -->
     <string name="event_health_temperature">体温</string>
     <string name="event_health_medicine">用药</string>
     <string name="event_health_vaccine">疫苗</string>
@@ -413,8 +387,6 @@
     <string name="vaccine_batch_hint">请输入疫苗批号</string>
     <string name="symptom_description">症状描述</string>
     <string name="symptom_hint">请描述症状</string>
-
-    <!-- 生长类事件 -->
     <string name="event_growth_weight">体重</string>
     <string name="event_growth_height">身高</string>
     <string name="event_growth_head">头围</string>
@@ -422,8 +394,6 @@
     <string name="height_unit">cm</string>
     <string name="last_record">上次记录</string>
     <string name="growth_change">变化</string>
-
-    <!-- 里程碑事件 -->
     <string name="event_milestone_roll">翻身</string>
     <string name="event_milestone_sit">独坐</string>
     <string name="event_milestone_crawl">爬行</string>
@@ -437,23 +407,17 @@
     <string name="milestone_name_hint">请输入里程碑名称</string>
     <string name="milestone_description">记录这个珍贵时刻</string>
     <string name="milestone_description_hint">今天宝宝…</string>
-
-    <!-- 护理类事件 -->
     <string name="event_care_bath">洗澡</string>
     <string name="event_care_nail">剪指甲</string>
     <string name="event_care_skincare">护肤</string>
     <string name="event_care_massage">抚触按摩</string>
     <string name="event_care_nose">清洁鼻腔</string>
     <string name="event_care_ear">清洁耳朵</string>
-
-    <!-- 活动类事件 -->
     <string name="event_activity_outdoor">户外活动</string>
     <string name="event_activity_tummy">趴趴时间</string>
     <string name="event_activity_swimming">游泳</string>
     <string name="event_activity_play">亲子游戏</string>
     <string name="use_timer">使用计时器</string>
-
-    <!-- 其他事件 -->
     <string name="event_other_burp">拍嗝</string>
     <string name="event_other_cry">哭闹</string>
     <string name="event_other_spit_up">吐奶</string>
@@ -463,8 +427,6 @@
     <string name="custom_event_description">事件描述</string>
     <string name="custom_event_description_hint">请输入事件描述</string>
     <string name="custom_event_required">请输入事件名称或描述</string>
-
-    <!-- 统计页面 -->
     <string name="statistics">统计</string>
     <string name="statistics_growth_title">生长趋势</string>
     <string name="statistics_growth_weight">体重</string>
@@ -529,4 +491,35 @@
     <string name="sleep_started">开始睡觉</string>
     <string name="sleep_ended">睡醒了</string>
     <string name="sleep_in_progress">睡眠中</string>
+    <string name="baby_gender_boy_label">♂ 男孩</string>
+    <string name="baby_gender_girl_label">♀ 女孩</string>
+    <string name="baby_age_days_format">%1$d天</string>
+    <string name="baby_info_gender_age_format">%1$s · %2$s</string>
+    <string name="baby_birth_date_format">出生: %1$s</string>
+    <string name="calendar_month_title_pattern">yyyy年M月</string>
+    <string name="calendar_week_title_format">%1$s 第%2$d周</string>
+    <string name="calendar_weekday_sunday_short">日</string>
+    <string name="calendar_weekday_monday_short">一</string>
+    <string name="calendar_weekday_tuesday_short">二</string>
+    <string name="calendar_weekday_wednesday_short">三</string>
+    <string name="calendar_weekday_thursday_short">四</string>
+    <string name="calendar_weekday_friday_short">五</string>
+    <string name="calendar_weekday_saturday_short">六</string>
+    <string name="summary_duration_hours_minutes_compact">%1$d小时%2$d分</string>
+    <string name="summary_duration_hours_compact">%1$d小时</string>
+    <string name="summary_duration_minutes_compact">%1$d分钟</string>
+    <string name="summary_duration_zero_compact">0分钟</string>
+    <string name="summary_diaper_wet_count_short">湿%1$d</string>
+    <string name="summary_diaper_dirty_count_short">脏%1$d</string>
+    <string name="summary_diaper_mixed_count_short">混合%1$d</string>
+    <string name="event_record_date_title_pattern">M月d日 E</string>
+    <string name="relative_time_just_now">刚刚</string>
+    <string name="relative_time_minutes_ago_format">%1$d分钟前</string>
+    <string name="relative_time_minutes_later_format">%1$d分钟后</string>
+    <string name="relative_time_hours_ago_format">%1$d小时前</string>
+    <string name="relative_time_hours_later_format">%1$d小时后</string>
+    <string name="relative_time_days_ago_format">%1$d天前</string>
+    <string name="relative_time_days_later_format">%1$d天后</string>
+    <string name="relative_time_months_ago_format">%1$d个月前</string>
+    <string name="relative_time_months_later_format">%1$d个月后</string>
 </resources>

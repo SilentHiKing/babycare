@@ -8,7 +8,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.blankj.utilcode.util.StringUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.R
@@ -74,7 +73,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
      * 初始化工具栏
      */
     private fun setupToolbar() {
-        binding.toolbar.title = StringUtils.getString(com.zero.common.R.string.settings_backup)
+        binding.toolbar.title = getString(com.zero.common.R.string.settings_backup)
         binding.toolbar.showBackButton { handleBack() }
         binding.toolbar.hideAction()
     }
@@ -85,22 +84,22 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     private fun setupRows() {
         bindGroupedRowBackgrounds()
 
-        exportRow.tvTitle.text = StringUtils.getString(com.zero.common.R.string.backup_export_title)
-        exportRow.tvSummary.text = StringUtils.getString(com.zero.common.R.string.backup_export_summary)
+        exportRow.tvTitle.text = getString(com.zero.common.R.string.backup_export_title)
+        exportRow.tvSummary.text = getString(com.zero.common.R.string.backup_export_summary)
         exportRow.tvSummary.visibility = View.VISIBLE
         exportRow.tvValue.text = ""
         exportRow.root.setOnClickListener { vm.prepareExport() }
 
-        importRow.tvTitle.text = StringUtils.getString(com.zero.common.R.string.backup_import_title)
-        importRow.tvSummary.text = StringUtils.getString(com.zero.common.R.string.backup_import_summary)
+        importRow.tvTitle.text = getString(com.zero.common.R.string.backup_import_title)
+        importRow.tvSummary.text = getString(com.zero.common.R.string.backup_import_summary)
         importRow.tvSummary.visibility = View.VISIBLE
         importRow.tvValue.text = ""
         importRow.root.setOnClickListener {
             openDocumentLauncher.launch(arrayOf("application/json", "text/plain"))
         }
 
-        dedupRow.tvTitle.text = StringUtils.getString(com.zero.common.R.string.backup_dedup_title)
-        dedupRow.tvSummary.text = StringUtils.getString(com.zero.common.R.string.backup_dedup_summary)
+        dedupRow.tvTitle.text = getString(com.zero.common.R.string.backup_dedup_title)
+        dedupRow.tvSummary.text = getString(com.zero.common.R.string.backup_dedup_summary)
         dedupRow.tvSummary.visibility = View.VISIBLE
         dedupRow.tvValue.text = formatDedupMinutes(vm.dedupMinutes.value)
         dedupRow.root.setOnClickListener {
@@ -129,8 +128,8 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     }
 
     private fun setupReportClearRow() {
-        reportClearRow.tvTitle.text = StringUtils.getString(com.zero.common.R.string.backup_report_clear_title)
-        reportClearRow.tvSummary.text = StringUtils.getString(com.zero.common.R.string.backup_report_clear_summary)
+        reportClearRow.tvTitle.text = getString(com.zero.common.R.string.backup_report_clear_title)
+        reportClearRow.tvSummary.text = getString(com.zero.common.R.string.backup_report_clear_summary)
         reportClearRow.tvSummary.visibility = View.VISIBLE
         reportClearRow.tvValue.text = ""
         reportClearRow.root.setOnClickListener { showClearReportsConfirm() }
@@ -144,7 +143,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             vm.exportState.collect { state ->
                 when (state) {
                     is UiState.None -> Unit
-                    is UiState.Loading -> showLoading(StringUtils.getString(com.zero.common.R.string.backup_exporting))
+                    is UiState.Loading -> showLoading(getString(com.zero.common.R.string.backup_exporting))
                     is UiState.Success -> {
                         hideLoading()
                         startCreateDocument(state.data)
@@ -162,7 +161,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             vm.importPreviewState.collect { state ->
                 when (state) {
                     is UiState.None -> Unit
-                    is UiState.Loading -> showLoading(StringUtils.getString(com.zero.common.R.string.backup_import_parsing))
+                    is UiState.Loading -> showLoading(getString(com.zero.common.R.string.backup_import_parsing))
                     is UiState.Success -> {
                         hideLoading()
                         vm.resetImportPreviewState()
@@ -181,7 +180,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             vm.importState.collect { state ->
                 when (state) {
                     is UiState.None -> Unit
-                    is UiState.Loading -> showLoading(StringUtils.getString(com.zero.common.R.string.backup_importing))
+                    is UiState.Loading -> showLoading(getString(com.zero.common.R.string.backup_importing))
                     is UiState.Success -> {
                         hideLoading()
                         vm.resetImportState()
@@ -210,7 +209,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
                     is UiState.Loading -> Unit
                     is UiState.Success -> {
                         ToastUtils.showShort(
-                            StringUtils.getString(
+                            getString(
                                 com.zero.common.R.string.backup_import_report_saved,
                                 state.data
                             )
@@ -284,7 +283,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
                     is UiState.Loading -> Unit
                     is UiState.Success -> {
                         ToastUtils.showShort(
-                            StringUtils.getString(
+                            getString(
                                 com.zero.common.R.string.backup_report_deleted_format,
                                 state.data
                             )
@@ -307,7 +306,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
                     is UiState.Loading -> Unit
                     is UiState.Success -> {
                         ToastUtils.showShort(
-                            StringUtils.getString(
+                            getString(
                                 com.zero.common.R.string.backup_report_cleared_format,
                                 state.data ?: 0
                             )
@@ -435,11 +434,11 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
         val modes = BackupImportMode.values().toList()
         DialogHelper.showChoiceSheet(
             context = requireContext(),
-            title = StringUtils.getString(com.zero.common.R.string.backup_import_confirm_title),
+            title = getString(com.zero.common.R.string.backup_import_confirm_title),
             options = modes.map {
                 DialogHelper.PickerOption(
                     value = it,
-                    label = StringUtils.getString(it.labelResId)
+                    label = getString(it.labelResId)
                 )
             },
             selectedValue = BackupImportMode.OVERWRITE,
@@ -455,12 +454,12 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
      * 导入确认弹窗
      */
     private fun showImportConfirm(mode: BackupImportMode, preview: BackupImportPreview) {
-        val modeLabel = StringUtils.getString(mode.labelResId)
+        val modeLabel = getString(mode.labelResId)
         val contentResId = when (mode) {
             BackupImportMode.OVERWRITE -> com.zero.common.R.string.backup_import_confirm_overwrite_format
             BackupImportMode.MERGE -> com.zero.common.R.string.backup_import_confirm_merge_format
         }
-        val content = StringUtils.getString(
+        val content = getString(
             contentResId,
             modeLabel,
             preview.babyCount,
@@ -471,10 +470,10 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
         )
         DialogHelper.showConfirmDialog(
             context = requireContext(),
-            title = StringUtils.getString(com.zero.common.R.string.backup_import_confirm_title),
+            title = getString(com.zero.common.R.string.backup_import_confirm_title),
             content = content,
-            confirmText = StringUtils.getString(com.zero.common.R.string.confirm),
-            cancelText = StringUtils.getString(com.zero.common.R.string.cancel),
+            confirmText = getString(com.zero.common.R.string.confirm),
+            cancelText = getString(com.zero.common.R.string.cancel),
             onConfirm = {
                 when (mode) {
                     BackupImportMode.OVERWRITE -> vm.executeImportOverwrite()
@@ -494,10 +493,10 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             return
         }
         val modeLabel = when (report.strategy) {
-            BackupImportStrategy.OVERWRITE -> StringUtils.getString(com.zero.common.R.string.backup_import_mode_overwrite)
-            BackupImportStrategy.MERGE -> StringUtils.getString(com.zero.common.R.string.backup_import_mode_merge)
+            BackupImportStrategy.OVERWRITE -> getString(com.zero.common.R.string.backup_import_mode_overwrite)
+            BackupImportStrategy.MERGE -> getString(com.zero.common.R.string.backup_import_mode_merge)
         }
-        val content = StringUtils.getString(
+        val content = getString(
             com.zero.common.R.string.backup_import_report_format,
             modeLabel,
             report.babyInserted,
@@ -514,7 +513,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
         )
         DialogHelper.showAlertDialog(
             context = requireContext(),
-            title = StringUtils.getString(com.zero.common.R.string.backup_import_report_title),
+            title = getString(com.zero.common.R.string.backup_import_report_title),
             content = content
         )
         vm.saveImportReport(report)
@@ -525,16 +524,16 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     }
 
     private fun handleReportLongClick(item: BackupReportItem) {
-        val content = StringUtils.getString(
+        val content = getString(
             com.zero.common.R.string.backup_report_delete_confirm_format,
             item.fileName
         )
         DialogHelper.showConfirmDialog(
             context = requireContext(),
-            title = StringUtils.getString(com.zero.common.R.string.backup_report_delete_title),
+            title = getString(com.zero.common.R.string.backup_report_delete_title),
             content = content,
-            confirmText = StringUtils.getString(com.zero.common.R.string.confirm),
-            cancelText = StringUtils.getString(com.zero.common.R.string.cancel),
+            confirmText = getString(com.zero.common.R.string.confirm),
+            cancelText = getString(com.zero.common.R.string.cancel),
             onConfirm = { vm.deleteReport(item) }
         )
     }
@@ -542,10 +541,10 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     private fun showClearReportsConfirm() {
         DialogHelper.showConfirmDialog(
             context = requireContext(),
-            title = StringUtils.getString(com.zero.common.R.string.backup_report_clear_title),
-            content = StringUtils.getString(com.zero.common.R.string.backup_report_clear_confirm),
-            confirmText = StringUtils.getString(com.zero.common.R.string.confirm),
-            cancelText = StringUtils.getString(com.zero.common.R.string.cancel),
+            title = getString(com.zero.common.R.string.backup_report_clear_title),
+            content = getString(com.zero.common.R.string.backup_report_clear_confirm),
+            confirmText = getString(com.zero.common.R.string.confirm),
+            cancelText = getString(com.zero.common.R.string.cancel),
             onConfirm = { vm.clearReports() }
         )
     }
@@ -565,11 +564,11 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
         val report = item.report
         val modeLabel = when (report.strategy) {
             com.zero.babydata.backup.BackupImportStrategy.OVERWRITE ->
-                StringUtils.getString(com.zero.common.R.string.backup_import_mode_overwrite)
+                getString(com.zero.common.R.string.backup_import_mode_overwrite)
             com.zero.babydata.backup.BackupImportStrategy.MERGE ->
-                StringUtils.getString(com.zero.common.R.string.backup_import_mode_merge)
+                getString(com.zero.common.R.string.backup_import_mode_merge)
         }
-        val content = StringUtils.getString(
+        val content = getString(
             com.zero.common.R.string.backup_import_report_format,
             modeLabel,
             report.babyInserted,
@@ -586,10 +585,10 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
         )
         DialogHelper.showConfirmDialog(
             context = requireContext(),
-            title = StringUtils.getString(com.zero.common.R.string.backup_import_report_detail_title),
+            title = getString(com.zero.common.R.string.backup_import_report_detail_title),
             content = content,
-            confirmText = StringUtils.getString(com.zero.common.R.string.backup_import_report_export),
-            cancelText = StringUtils.getString(com.zero.common.R.string.cancel),
+            confirmText = getString(com.zero.common.R.string.backup_import_report_export),
+            cancelText = getString(com.zero.common.R.string.cancel),
             onConfirm = { vm.prepareReportExport(item) },
             onCancel = {}
         )
@@ -598,8 +597,8 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     private fun showExportHint(fileName: String, hintResId: Int) {
         DialogHelper.showAlertDialog(
             context = requireContext(),
-            title = StringUtils.getString(com.zero.common.R.string.tip),
-            content = StringUtils.getString(hintResId, fileName)
+            title = getString(com.zero.common.R.string.tip),
+            content = getString(hintResId, fileName)
         )
     }
 
@@ -610,7 +609,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
         val options = vm.getAllowedDedupMinutes()
         DialogHelper.showChoiceSheet(
             context = requireContext(),
-            title = StringUtils.getString(com.zero.common.R.string.backup_dedup_title),
+            title = getString(com.zero.common.R.string.backup_dedup_title),
             options = options.map {
                 DialogHelper.PickerOption(
                     value = it,
@@ -627,9 +626,9 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
      */
     private fun formatDedupMinutes(minutes: Int): String {
         return if (minutes <= 0) {
-            StringUtils.getString(com.zero.common.R.string.backup_dedup_off)
+            getString(com.zero.common.R.string.backup_dedup_off)
         } else {
-            StringUtils.getString(com.zero.common.R.string.backup_dedup_value_format, minutes)
+            getString(com.zero.common.R.string.backup_dedup_value_format, minutes)
         }
     }
 

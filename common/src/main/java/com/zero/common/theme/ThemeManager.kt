@@ -3,6 +3,7 @@ package com.zero.common.theme
 import android.app.Activity
 import com.zero.common.R
 import com.zero.common.mmkv.MMKVStore
+import com.zero.common.util.BabyGender
 
 /**
  * 主题管理器
@@ -25,15 +26,14 @@ object ThemeManager {
     private const val KEY_THEME = "baby_theme"
 
     /**
-     * 根据性别字符串获取对应主题
-     * @param gender 性别字符串，如 "男"、"女"、"boy"、"girl" 等
+     * 根据性别编码获取对应主题
+     * @param gender 性别编码，兼容历史保存的本地化展示值
      * @return 对应的主题枚举
      */
     fun getThemeByGender(gender: String?): BabyTheme {
-        return when {
-            gender.isNullOrEmpty() -> BabyTheme.BOY
-            gender.contains("男") || gender.lowercase().contains("boy") -> BabyTheme.BOY
-            gender.contains("女") || gender.lowercase().contains("girl") -> BabyTheme.GIRL
+        return when (BabyGender.normalize(gender)) {
+            BabyGender.GIRL -> BabyTheme.GIRL
+            BabyGender.BOY -> BabyTheme.BOY
             // 未识别性别不再进入中性主题，统一回退到男孩主题以保持主题集合只有两种。
             else -> BabyTheme.BOY
         }

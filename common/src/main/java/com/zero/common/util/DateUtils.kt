@@ -1,5 +1,7 @@
 package com.zero.common.util
 
+import android.content.Context
+import com.zero.common.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -15,6 +17,7 @@ object DateUtils {
      * 计算两个时间戳之间的时间差（友好显示）
      */
     fun getTimeDifference(
+        context: Context,
         startTimestamp: Long,
         endTimestamp: Long = System.currentTimeMillis()
     ): String {
@@ -22,25 +25,37 @@ object DateUtils {
         val diffAbs = Math.abs(diff)
 
         return when {
-            diffAbs < TimeUnit.MINUTES.toMillis(1) -> "刚刚"
+            diffAbs < TimeUnit.MINUTES.toMillis(1) -> context.getString(R.string.relative_time_just_now)
             diffAbs < TimeUnit.HOURS.toMillis(1) -> {
                 val minutes = TimeUnit.MILLISECONDS.toMinutes(diffAbs)
-                "${minutes}分钟${if (diff < 0) "后" else "前"}"
+                context.getString(
+                    if (diff < 0) R.string.relative_time_minutes_later_format else R.string.relative_time_minutes_ago_format,
+                    minutes
+                )
             }
 
             diffAbs < TimeUnit.DAYS.toMillis(1) -> {
                 val hours = TimeUnit.MILLISECONDS.toHours(diffAbs)
-                "${hours}小时${if (diff < 0) "后" else "前"}"
+                context.getString(
+                    if (diff < 0) R.string.relative_time_hours_later_format else R.string.relative_time_hours_ago_format,
+                    hours
+                )
             }
 
             diffAbs < TimeUnit.DAYS.toMillis(30) -> {
                 val days = TimeUnit.MILLISECONDS.toDays(diffAbs)
-                "${days}天${if (diff < 0) "后" else "前"}"
+                context.getString(
+                    if (diff < 0) R.string.relative_time_days_later_format else R.string.relative_time_days_ago_format,
+                    days
+                )
             }
 
             else -> {
                 val months = diffAbs / (TimeUnit.DAYS.toMillis(30))
-                "${months}个月${if (diff < 0) "后" else "前"}"
+                context.getString(
+                    if (diff < 0) R.string.relative_time_months_later_format else R.string.relative_time_months_ago_format,
+                    months
+                )
             }
         }
     }
@@ -70,18 +85,9 @@ object DateUtils {
     /**
      * 获取时间戳对应的星期几
      */
-    fun getDayOfWeek(timestamp: Long): String {
-        val calendar = Calendar.getInstance().apply { timeInMillis = timestamp }
-        return when (calendar.get(Calendar.DAY_OF_WEEK)) {
-            Calendar.SUNDAY -> "星期日"
-            Calendar.MONDAY -> "星期一"
-            Calendar.TUESDAY -> "星期二"
-            Calendar.WEDNESDAY -> "星期三"
-            Calendar.THURSDAY -> "星期四"
-            Calendar.FRIDAY -> "星期五"
-            Calendar.SATURDAY -> "星期六"
-            else -> ""
-        }
+    fun getDayOfWeek(context: Context, timestamp: Long): String {
+        val locale = context.resources.configuration.locales[0] ?: Locale.getDefault()
+        return SimpleDateFormat("EEEE", locale).format(Date(timestamp))
     }
 
     // 工具方法：计算当天起止时间
@@ -243,15 +249,15 @@ object DateUtils {
     /**
      * 格式化时长为可读字符串（如：1小时30分钟）
      */
-    fun formatDuration(milliseconds: Long): String {
+    fun formatDuration(context: Context, milliseconds: Long): String {
         val totalMinutes = milliseconds / 60000
         val hours = totalMinutes / 60
         val minutes = totalMinutes % 60
 
         return when {
-            hours > 0 && minutes > 0 -> "${hours}小时${minutes}分钟"
-            hours > 0 -> "${hours}小时"
-            else -> "${minutes}分钟"
+            hours > 0 && minutes > 0 -> context.getString(R.string.hour_min_format, hours, minutes)
+            hours > 0 -> context.getString(R.string.sleep_duration_hours, hours)
+            else -> context.getString(R.string.min_format, minutes)
         }
     }
 

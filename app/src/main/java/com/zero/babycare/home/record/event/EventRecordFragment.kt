@@ -12,7 +12,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.blankj.utilcode.util.SizeUtils
-import com.blankj.utilcode.util.StringUtils
 import com.zero.components.widget.GridSpacingItemDecoration
 import com.blankj.utilcode.util.ToastUtils
 import com.zero.babycare.MainViewModel
@@ -70,7 +69,10 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private var activityTimerController: RecordTimerController? = null
     private var saveInProgress = false
 
-    private val dateFormat = SimpleDateFormat("M月d日 E", Locale.CHINESE)
+    private val dateFormat by lazy {
+        // 日期标题跟随应用内语言，避免英文环境下仍显示中文“月/日”格式。
+        SimpleDateFormat(getString(com.zero.common.R.string.event_record_date_title_pattern), Locale.getDefault())
+    }
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
@@ -177,7 +179,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     private fun setupToolbar() {
-        binding.toolbar.title = StringUtils.getString(R.string.event_record)
+        binding.toolbar.title = getString(R.string.event_record)
         binding.toolbar.showBackButton { handleBack() }
         binding.toolbar.hideAction()
     }
@@ -269,7 +271,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private fun showDateTimePicker() {
         DialogHelper.showDateTimeSheet(
             context = requireContext(),
-            title = StringUtils.getString(R.string.select_time),
+            title = getString(R.string.select_time),
             initialTime = vm.eventTime.value,
             mode = DialogHelper.DateTimeMode.DATE_TIME,
             maxTime = System.currentTimeMillis(),
@@ -558,7 +560,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         // 设置单位
         val unitResId = getGrowthUnitLabelResId(type)
         val unitValue = getGrowthUnitValue(type)
-        detailBinding.tvUnit.text = StringUtils.getString(unitResId)
+        detailBinding.tvUnit.text = getString(unitResId)
 
         // 监听输入变化
         detailBinding.etValue.setOnFocusChangeListener { _, hasFocus ->
@@ -624,10 +626,10 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
     private fun updateTemperatureStatus(detailBinding: LayoutEventDetailTemperatureBinding, temp: Double) {
         val (statusText, statusColor, showWarning) = when {
-            temp < 36.0 -> Triple(StringUtils.getString(R.string.temperature_normal), R.color.temp_normal, false)
-            temp <= 37.5 -> Triple(StringUtils.getString(R.string.temperature_normal), R.color.temp_normal, false)
-            temp <= 38.5 -> Triple(StringUtils.getString(R.string.temperature_low_fever), R.color.temp_warning, true)
-            else -> Triple(StringUtils.getString(R.string.temperature_high_fever), R.color.temp_danger, true)
+            temp < 36.0 -> Triple(getString(R.string.temperature_normal), R.color.temp_normal, false)
+            temp <= 37.5 -> Triple(getString(R.string.temperature_normal), R.color.temp_normal, false)
+            temp <= 38.5 -> Triple(getString(R.string.temperature_low_fever), R.color.temp_warning, true)
+            else -> Triple(getString(R.string.temperature_high_fever), R.color.temp_danger, true)
         }
 
         detailBinding.tvStatus.text = statusText
@@ -644,10 +646,10 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private fun inflateMedicineDetail(inflater: LayoutInflater) {
         val detailBinding = LayoutEventDetailMedicineBinding.inflate(inflater, binding.containerDetail, true)
         val medicineUnits = listOf(
-            StringUtils.getString(R.string.unit_ml_abbr),
-            StringUtils.getString(R.string.unit_mg_abbr),
-            StringUtils.getString(R.string.unit_drop),
-            StringUtils.getString(R.string.unit_tablet)
+            getString(R.string.unit_ml_abbr),
+            getString(R.string.unit_mg_abbr),
+            getString(R.string.unit_drop),
+            getString(R.string.unit_tablet)
         )
         val defaultUnit = medicineUnits.first()
         detailBinding.spinnerUnit.adapter = ArrayAdapter(
@@ -853,7 +855,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             },
             onError = { message ->
                 setSaveInProgress(false)
-                ToastUtils.showShort(message)
+                ToastUtils.showShort(getString(message))
             }
         )
     }
@@ -953,7 +955,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                 val unitView = root.findViewById<Spinner>(com.zero.babycare.R.id.spinnerUnit)
                 val name = nameView?.text?.toString()?.trim().orEmpty()
                 val dosage = dosageView?.text?.toString()?.trim().orEmpty()
-                val defaultUnit = StringUtils.getString(R.string.unit_ml_abbr)
+                val defaultUnit = getString(R.string.unit_ml_abbr)
                 val unit = unitView?.selectedItem?.toString()?.ifBlank { defaultUnit } ?: defaultUnit
                 if (name.isNotBlank()) {
                     vm.setExtraData(MedicineData(name, dosage, unit))

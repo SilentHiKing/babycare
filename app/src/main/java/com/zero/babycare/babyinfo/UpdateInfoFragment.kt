@@ -5,7 +5,6 @@ import android.view.View
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.blankj.utilcode.util.LogUtils
-import com.blankj.utilcode.util.StringUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.zero.babycare.MainActivity
 import com.zero.babycare.MainViewModel
@@ -14,6 +13,7 @@ import com.zero.babycare.navigation.NavTarget
 import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.ext.launchInLifecycle
+import com.zero.common.util.BabyGender
 import com.zero.common.util.CompatDateUtils
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
@@ -44,6 +44,9 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
 
     /** 当前编辑的宝宝信息（编辑模式时有值） */
     private var editingBaby: BabyInfo? = null
+
+    /** 表单内部保存稳定性别 code，展示文案只在 UI 层按当前语言解析。 */
+    private var selectedGenderCode: String = ""
 
     /** 是否是编辑模式 */
     private val isEditMode: Boolean
@@ -177,9 +180,9 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
      */
     private fun setupCreateMode() {
         // 标题
-        binding.toolbar.title = StringUtils.getString(com.zero.common.R.string.create_baby)
+        binding.toolbar.title = getString(com.zero.common.R.string.create_baby)
         // 右侧按钮
-        setPrimaryAction(StringUtils.getString(com.zero.common.R.string.finish))
+        setPrimaryAction(getString(com.zero.common.R.string.finish))
         // 隐藏删除按钮
         binding.tvDelete.visibility = View.GONE
         // 返回按钮：首次创建时隐藏
@@ -200,9 +203,9 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         val baby = editingBaby ?: return
 
         // 标题
-        binding.toolbar.title = StringUtils.getString(com.zero.common.R.string.edit_baby_info)
+        binding.toolbar.title = getString(com.zero.common.R.string.edit_baby_info)
         // 右侧按钮
-        setPrimaryAction(StringUtils.getString(com.zero.common.R.string.save))
+        setPrimaryAction(getString(com.zero.common.R.string.save))
         // 显示删除按钮（如果不是唯一的宝宝）
         binding.tvDelete.visibility = if (mainVm.getAllBabies().size > 1) View.VISIBLE else View.GONE
         // 显示返回按钮
@@ -216,6 +219,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
      * 清空表单
      */
     private fun clearForm() {
+        selectedGenderCode = ""
         binding.etName.setText("")
         binding.etBirthday.setText("")
         binding.etGender.setText("")
@@ -229,7 +233,8 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
      */
     private fun fillForm(baby: BabyInfo) {
         binding.etName.setText(baby.name)
-        binding.etGender.setText(baby.gender)
+        selectedGenderCode = BabyGender.normalize(baby.gender)
+        binding.etGender.setText(getGenderLabel(selectedGenderCode))
 
         if (baby.birthDate > 0) {
             val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
@@ -274,7 +279,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
 
         val baby = editingBaby?.copy() ?: BabyInfo()
         baby.name = name
-        baby.gender = binding.etGender.text.toString()
+        baby.gender = selectedGenderCode
 
         binding.etBirthday.text?.toString()?.takeIf { it.isNotEmpty() }?.let {
             baby.birthDate = CompatDateUtils.stringToTimestamp(it) ?: 0L
@@ -331,10 +336,10 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
 
         DialogHelper.showConfirmDialog(
             context = requireContext(),
-            title = StringUtils.getString(com.zero.common.R.string.delete_baby),
-            content = StringUtils.getString(com.zero.common.R.string.delete_baby_confirm, baby.name),
-            confirmText = StringUtils.getString(com.zero.common.R.string.confirm),
-            cancelText = StringUtils.getString(com.zero.common.R.string.cancel),
+            title = getString(com.zero.common.R.string.delete_baby),
+            content = getString(com.zero.common.R.string.delete_baby_confirm, baby.name),
+            confirmText = getString(com.zero.common.R.string.confirm),
+            cancelText = getString(com.zero.common.R.string.cancel),
             onConfirm = {
                 mainVm.deleteBaby(baby) {
                     ToastUtils.showShort(com.zero.common.R.string.delete_success)
@@ -376,31 +381,36 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
     }
 
     private fun showGenderDialog() {
-        val boy = StringUtils.getString(com.zero.common.R.string.boy)
-        val girl = StringUtils.getString(com.zero.common.R.string.girl)
         DialogHelper.showChoiceSheet(
             context = requireContext(),
-            title = StringUtils.getString(com.zero.common.R.string.babyGender),
+            title = getString(com.zero.common.R.string.babyGender),
             options = listOf(
-                DialogHelper.PickerOption(boy, boy),
-                DialogHelper.PickerOption(girl, girl)
+                DialogHelper.PickerOption(BabyGender.BOY, getString(com.zero.common.R.string.boy)),
+                DialogHelper.PickerOption(BabyGender.GIRL, getString(com.zero.common.R.string.girl))
             ),
-            selectedValue = binding.etGender.text?.toString()?.takeIf { it.isNotBlank() },
-            onSelected = { binding.etGender.setText(it) }
+            selectedValue = selectedGenderCode.takeIf { it.isNotBlank() },
+            onSelected = { code ->
+                selectedGenderCode = code
+                binding.etGender.setText(getGenderLabel(code))
+            }
         )
+    }
+
+    private fun getGenderLabel(code: String): String {
+        return BabyGender.labelResId(code)?.let { getString(it) }.orEmpty()
     }
 
     private fun showBloodTypeDialog() {
         val labels = listOf(
-            StringUtils.getString(com.zero.common.R.string.blood_type_a),
-            StringUtils.getString(com.zero.common.R.string.blood_type_b),
-            StringUtils.getString(com.zero.common.R.string.blood_type_ab),
-            StringUtils.getString(com.zero.common.R.string.blood_type_o),
-            StringUtils.getString(com.zero.common.R.string.blood_type_unknown)
+            getString(com.zero.common.R.string.blood_type_a),
+            getString(com.zero.common.R.string.blood_type_b),
+            getString(com.zero.common.R.string.blood_type_ab),
+            getString(com.zero.common.R.string.blood_type_o),
+            getString(com.zero.common.R.string.blood_type_unknown)
         )
         DialogHelper.showChoiceSheet(
             context = requireContext(),
-            title = StringUtils.getString(com.zero.common.R.string.babyBloodType),
+            title = getString(com.zero.common.R.string.babyBloodType),
             options = labels.map { DialogHelper.PickerOption(it, it) },
             selectedValue = binding.etBloodType.text?.toString()?.takeIf { it.isNotBlank() },
             onSelected = { binding.etBloodType.setText(it) }
@@ -411,8 +421,8 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
      * 出生体重/身高右侧单位跟随设置页，输入框里的值由 ViewModel 按同一单位换算。
      */
     private fun bindUnitLabels(unitState: BabyInfoUnitState) {
-        binding.tvWeightUnit.text = StringUtils.getString(unitState.weightUnitLabelResId)
-        binding.tvHeightUnit.text = StringUtils.getString(unitState.heightUnitLabelResId)
+        binding.tvWeightUnit.text = getString(unitState.weightUnitLabelResId)
+        binding.tvHeightUnit.text = getString(unitState.heightUnitLabelResId)
     }
 
     private fun showBirthdayPickerSheet() {
@@ -424,7 +434,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
 
         DialogHelper.showDateTimeSheet(
             context = requireContext(),
-            title = StringUtils.getString(com.zero.common.R.string.babyBirthday),
+            title = getString(com.zero.common.R.string.babyBirthday),
             initialTime = initialTime,
             mode = DialogHelper.DateTimeMode.DATE_TIME,
             maxTime = System.currentTimeMillis(),

@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import com.blankj.utilcode.util.StringUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentSleepRecordBinding
@@ -72,7 +71,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
-        binding.btn.title = StringUtils.getString(R.string.sleep_record)
+        binding.btn.title = getString(R.string.sleep_record)
 
         setupTimerController()
         setupToolbar()
@@ -306,7 +305,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
         vm.loadLastSleepRecord(babyId)
         vm.lastSleepRecord.observe(viewLifecycleOwner) { record ->
             if (record != null) {
-                binding.tvLastSleep.text = StringUtils.getString(
+                binding.tvLastSleep.text = getString(
                     R.string.last_sleep_time,
                     DateUtils.timestampToMMddHHmm(record.sleepEnd)
                 )
@@ -354,10 +353,10 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
         if (hasUnsavedChanges) {
             DialogHelper.showConfirmDialog(
                 context = requireContext(),
-                title = StringUtils.getString(R.string.tip),
-                content = StringUtils.getString(R.string.unsaved_record_tip),
-                confirmText = StringUtils.getString(R.string.confirm),
-                cancelText = StringUtils.getString(R.string.cancel),
+                title = getString(R.string.tip),
+                content = getString(R.string.unsaved_record_tip),
+                confirmText = getString(R.string.confirm),
+                cancelText = getString(R.string.cancel),
                 onConfirm = {
                     hasUnsavedChanges = false
                     if (!isEditMode) {

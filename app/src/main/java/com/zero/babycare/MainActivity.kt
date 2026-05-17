@@ -10,7 +10,6 @@ import androidx.fragment.app.Fragment
 import com.blankj.utilcode.util.AppUtils
 import com.blankj.utilcode.util.FragmentUtils
 import com.blankj.utilcode.util.LogUtils
-import com.blankj.utilcode.util.StringUtils
 import com.zero.babycare.babies.AllChildrenFragment
 import com.zero.babycare.babyinfo.UpdateInfoFragment
 import com.zero.babycare.databinding.ActivityMainBinding
@@ -27,6 +26,7 @@ import com.zero.babycare.statistics.StatisticsFragment
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.ext.launchInLifecycle
 import com.zero.common.theme.ThemeManager
+import com.zero.common.util.BabyGender
 import com.zero.common.util.DeviceUtils
 import com.zero.components.base.BaseActivity
 import kotlinx.coroutines.flow.collectLatest
@@ -177,18 +177,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // 计算出生天数
         if (babyInfo.birthDate > 0) {
             val days = TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - babyInfo.birthDate)
-            drawerBinding.tvBabyDays.text = StringUtils.getString(com.zero.common.R.string.days_born, days.toInt())
+            drawerBinding.tvBabyDays.text = getString(com.zero.common.R.string.days_born, days.toInt())
         } else {
             drawerBinding.tvBabyDays.visibility = View.GONE
         }
         
         // 性别图标
-        when {
-            babyInfo.gender.contains("男") || babyInfo.gender.lowercase().contains("boy") -> {
+        when (BabyGender.normalize(babyInfo.gender)) {
+            BabyGender.BOY -> {
                 drawerBinding.ivGender.setImageResource(com.zero.common.R.drawable.ic_gender_boy)
                 drawerBinding.ivGender.visibility = View.VISIBLE
             }
-            babyInfo.gender.contains("女") || babyInfo.gender.lowercase().contains("girl") -> {
+            BabyGender.GIRL -> {
                 drawerBinding.ivGender.setImageResource(com.zero.common.R.drawable.ic_gender_girl)
                 drawerBinding.ivGender.visibility = View.VISIBLE
             }
@@ -202,8 +202,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      * 显示无宝宝状态
      */
     private fun showNoBabyState() {
-        drawerBinding.tvBabyName.text = StringUtils.getString(com.zero.common.R.string.no_baby_yet)
-        drawerBinding.tvBabyDays.text = StringUtils.getString(com.zero.common.R.string.add_baby)
+        drawerBinding.tvBabyName.text = getString(com.zero.common.R.string.no_baby_yet)
+        drawerBinding.tvBabyDays.text = getString(com.zero.common.R.string.add_baby)
         drawerBinding.ivGender.visibility = View.GONE
     }
 

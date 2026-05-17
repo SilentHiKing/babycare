@@ -13,7 +13,6 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.view.animation.DecelerateInterpolator
 import androidx.core.content.ContextCompat
-import com.zero.babycare.R
 import com.zero.babycare.statistics.mapper.StatisticsDateRange
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -494,14 +493,17 @@ class BabyCalendarView @JvmOverloads constructor(
      * 周视图：用“本周中间那天”决定月份与周数，避免跨月周标题跳回上个月。
      */
     fun getFormattedTitle(): String {
-        val monthFormatter = DateTimeFormatter.ofPattern("yyyy年M月", Locale.CHINESE)
+        val monthFormatter = DateTimeFormatter.ofPattern(
+            context.getString(com.zero.common.R.string.calendar_month_title_pattern),
+            Locale.getDefault()
+        )
         return when (currentMode) {
             ViewMode.WEEK -> {
                 val midDate = displayWeekStart.plusDays(3) // 7 天中的中间值
                 val ym = YearMonth.from(midDate)
                 val monthStr = ym.format(monthFormatter)
                 val weekOfMonth = midDate.get(weekFields.weekOfMonth())
-                "$monthStr 第${weekOfMonth}周"
+                context.getString(com.zero.common.R.string.calendar_week_title_format, monthStr, weekOfMonth)
             }
             ViewMode.MONTH -> displayMonth.format(monthFormatter)
         }
@@ -558,8 +560,16 @@ class BabyCalendarView @JvmOverloads constructor(
     }
 
     private fun buildWeekDayLabels(first: DayOfWeek): Array<String> {
-        // 中文显示：日一二三四五六（顺序按 firstDayOfWeek 旋转）
-        val base = listOf("日", "一", "二", "三", "四", "五", "六")
+        // 星期缩写按资源读取，再根据 firstDayOfWeek 旋转，避免应用内语言切换后仍显示中文。
+        val base = listOf(
+            context.getString(com.zero.common.R.string.calendar_weekday_sunday_short),
+            context.getString(com.zero.common.R.string.calendar_weekday_monday_short),
+            context.getString(com.zero.common.R.string.calendar_weekday_tuesday_short),
+            context.getString(com.zero.common.R.string.calendar_weekday_wednesday_short),
+            context.getString(com.zero.common.R.string.calendar_weekday_thursday_short),
+            context.getString(com.zero.common.R.string.calendar_weekday_friday_short),
+            context.getString(com.zero.common.R.string.calendar_weekday_saturday_short)
+        )
         // DayOfWeek: MONDAY=1 ... SUNDAY=7；base: 0=日 ... 6=六
         val firstIndexInBase = when (first) {
             DayOfWeek.SUNDAY -> 0

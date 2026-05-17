@@ -1,6 +1,6 @@
 package com.zero.babydata.entity
 
-import com.blankj.utilcode.util.StringUtils
+import androidx.annotation.StringRes
 
 /**
  * 辅食类型
@@ -127,12 +127,13 @@ object SolidFoodType {
     }
     
     /**
-     * 获取默认单位
+     * 获取默认单位文案资源，由 UI 层通过当前 context 解析，避免数据层直接输出本地化字符串。
      */
-    fun getDefaultUnit(type: Int): String = when (getCategory(type)) {
-        CATEGORY_DRINK -> StringUtils.getString(com.zero.common.R.string.unit_ml_abbr)
-        CATEGORY_SUPPLEMENT -> StringUtils.getString(com.zero.common.R.string.unit_drop)
-        else -> StringUtils.getString(com.zero.common.R.string.unit_g_abbr)
+    @StringRes
+    fun getDefaultUnitResId(type: Int): Int = when (getCategory(type)) {
+        CATEGORY_DRINK -> com.zero.common.R.string.unit_ml_abbr
+        CATEGORY_SUPPLEMENT -> com.zero.common.R.string.unit_drop
+        else -> com.zero.common.R.string.unit_g_abbr
     }
     
     /**

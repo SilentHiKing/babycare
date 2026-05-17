@@ -34,45 +34,6 @@ data class DaySummary(
     val totalDiaperCount: Int
         get() = diaperWetCount + diaperDirtyCount + diaperMixedCount + diaperDryCount
 
-    /**
-     * 格式化喂养时长
-     */
-    fun formatFeedingDuration(): String {
-        val hours = feedingTotalMinutes / 60
-        val minutes = feedingTotalMinutes % 60
-        return when {
-            hours > 0 && minutes > 0 -> "${hours}小时${minutes}分"
-            hours > 0 -> "${hours}小时"
-            minutes > 0 -> "${minutes}分钟"
-            else -> "0分钟"
-        }
-    }
-
-    /**
-     * 格式化睡眠时长
-     */
-    fun formatSleepDuration(): String {
-        val hours = sleepTotalMinutes / 60
-        val minutes = sleepTotalMinutes % 60
-        return when {
-            hours > 0 && minutes > 0 -> "${hours}h${minutes}m"
-            hours > 0 -> "${hours}h"
-            minutes > 0 -> "${minutes}m"
-            else -> "0m"
-        }
-    }
-
-    /**
-     * 格式化尿布详情
-     */
-    fun formatDiaperDetail(): String {
-        val parts = mutableListOf<String>()
-        if (diaperWetCount > 0) parts.add("湿$diaperWetCount")
-        if (diaperDirtyCount > 0) parts.add("脏$diaperDirtyCount")
-        if (diaperMixedCount > 0) parts.add("混合$diaperMixedCount")
-        return if (parts.isEmpty()) "" else "(${parts.joinToString("/")})"
-    }
-
     companion object {
         /**
          * 创建空的摘要

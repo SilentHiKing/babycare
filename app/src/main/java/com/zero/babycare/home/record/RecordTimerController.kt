@@ -2,7 +2,6 @@ package com.zero.babycare.home.record
 
 import android.content.Context
 import android.view.View
-import com.blankj.utilcode.util.StringUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.zero.common.R
 import com.zero.common.util.DateUtils
@@ -264,10 +263,10 @@ class RecordTimerController(
     private fun showResumeTimerConfirmDialog() {
         DialogHelper.showConfirmDialog(
             context = context,
-            title = StringUtils.getString(R.string.continue_timing),
-            content = StringUtils.getString(R.string.end_time_will_be_cleared),
-            confirmText = StringUtils.getString(R.string.confirm),
-            cancelText = StringUtils.getString(R.string.cancel),
+            title = context.getString(R.string.continue_timing),
+            content = context.getString(R.string.end_time_will_be_cleared),
+            confirmText = context.getString(R.string.confirm),
+            cancelText = context.getString(R.string.cancel),
             onConfirm = {
                 continueTimerAfterPause()
             }
@@ -297,7 +296,7 @@ class RecordTimerController(
 
         DialogHelper.showMonthDayTimeSecondSheet(
             context = context,
-            title = StringUtils.getString(R.string.select_time),
+            title = context.getString(R.string.select_time),
             initialTime = initialTime,
             minTime = effectiveMinTime,
             maxTime = now,

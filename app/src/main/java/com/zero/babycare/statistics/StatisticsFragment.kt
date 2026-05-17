@@ -6,7 +6,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.blankj.utilcode.util.StringUtils
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentStatisticsBinding
 import com.zero.babycare.navigation.NavTarget
@@ -60,7 +59,7 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
         super.initView(view, savedInstanceState)
 
         // 设置标题
-        binding.toolbar.title = StringUtils.getString(com.zero.common.R.string.statistics)
+        binding.toolbar.title = getString(com.zero.common.R.string.statistics)
         
         // 左侧返回按钮 - 返回到入口页面
         binding.toolbar.showBackButton {

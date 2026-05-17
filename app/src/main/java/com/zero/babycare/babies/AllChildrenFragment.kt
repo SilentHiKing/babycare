@@ -5,9 +5,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.StringRes
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.RecyclerView
-import com.blankj.utilcode.util.StringUtils
 import com.chad.library.adapter4.BaseQuickAdapter
 import com.zero.babycare.MainActivity
 import com.zero.babycare.MainViewModel
@@ -16,6 +16,7 @@ import com.zero.babycare.databinding.ItemBabyCardBinding
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babydata.entity.BabyInfo
+import com.zero.common.util.BabyGender
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
 import com.zero.components.widget.ToolbarAction
@@ -55,7 +56,7 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
             listOf(
                 ToolbarAction(
                     iconRes = com.zero.common.R.drawable.ic_add,
-                    contentDescription = StringUtils.getString(com.zero.common.R.string.add_baby)
+                    contentDescription = localizedString(com.zero.common.R.string.add_baby)
                 )
             )
         ) { goToAddBaby() }
@@ -139,10 +140,10 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
     private fun deleteBaby(baby: BabyInfo) {
         DialogHelper.showConfirmDialog(
             context = requireContext(),
-            title = StringUtils.getString(com.zero.common.R.string.delete_baby),
-            content = StringUtils.getString(com.zero.common.R.string.delete_baby_confirm, baby.name),
-            confirmText = StringUtils.getString(com.zero.common.R.string.confirm),
-            cancelText = StringUtils.getString(com.zero.common.R.string.cancel),
+            title = localizedString(com.zero.common.R.string.delete_baby),
+            content = localizedString(com.zero.common.R.string.delete_baby_confirm, baby.name),
+            confirmText = localizedString(com.zero.common.R.string.confirm),
+            cancelText = localizedString(com.zero.common.R.string.cancel),
             onConfirm = {
                 mainVm.deleteBaby(baby) {
                     loadBabies()
@@ -150,6 +151,13 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
                 }
             }
         )
+    }
+
+    /**
+     * 使用当前 Fragment context 获取资源，保证应用内语言切换后列表入口文案同步刷新。
+     */
+    private fun localizedString(@StringRes resId: Int, vararg args: Any): String {
+        return if (args.isEmpty()) getString(resId) else getString(resId, *args)
     }
 
     /**
@@ -179,27 +187,34 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
             if (item == null) return
 
             with(holder.binding) {
+                val itemContext = root.context
+
                 // 名字
                 tvName.text = item.name
 
                 // 性别和天数
-                val genderText = when {
-                    item.gender.contains("男") -> "♂ 男孩"
-                    item.gender.contains("女") -> "♀ 女孩"
+                val genderCode = BabyGender.normalize(item.gender)
+                val genderText = when (genderCode) {
+                    BabyGender.BOY -> itemContext.getString(com.zero.common.R.string.baby_gender_boy_label)
+                    BabyGender.GIRL -> itemContext.getString(com.zero.common.R.string.baby_gender_girl_label)
                     else -> ""
                 }
                 val days = if (item.birthDate > 0) {
                     TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - item.birthDate)
                 } else 0
+                val daysText = itemContext.getString(com.zero.common.R.string.baby_age_days_format, days)
                 tvInfo.text = if (genderText.isNotEmpty()) {
-                    "$genderText · ${days}天"
+                    itemContext.getString(com.zero.common.R.string.baby_info_gender_age_format, genderText, daysText)
                 } else {
-                    "${days}天"
+                    daysText
                 }
 
                 // 出生日期
                 if (item.birthDate > 0) {
-                    tvBirthDate.text = "出生: ${dateFormat.format(Date(item.birthDate))}"
+                    tvBirthDate.text = itemContext.getString(
+                        com.zero.common.R.string.baby_birth_date_format,
+                        dateFormat.format(Date(item.birthDate))
+                    )
                     tvBirthDate.visibility = View.VISIBLE
                 } else {
                     tvBirthDate.visibility = View.GONE
@@ -209,16 +224,16 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
                 ivSelected.visibility = if (item.babyId == currentBabyId) View.VISIBLE else View.GONE
 
                 // 头像颜色根据性别
-                when {
-                    item.gender.contains("男") -> {
-                        ivAvatar.setColorFilter(context.getColor(com.zero.common.R.color.boy_brand))
+                when (genderCode) {
+                    BabyGender.BOY -> {
+                        ivAvatar.setColorFilter(itemContext.getColor(com.zero.common.R.color.boy_brand))
                     }
-                    item.gender.contains("女") -> {
-                        ivAvatar.setColorFilter(context.getColor(com.zero.common.R.color.girl_brand))
+                    BabyGender.GIRL -> {
+                        ivAvatar.setColorFilter(itemContext.getColor(com.zero.common.R.color.girl_brand))
                     }
                     else -> {
                         // 未识别性别不再使用中性主题色，保持默认品牌色。
-                        ivAvatar.setColorFilter(context.getColor(com.zero.common.R.color.boy_brand))
+                        ivAvatar.setColorFilter(itemContext.getColor(com.zero.common.R.color.boy_brand))
                     }
                 }
 

@@ -1,9 +1,9 @@
 package com.zero.babycare.home.record.event
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import com.blankj.utilcode.util.ThreadUtils
 import com.zero.babydata.domain.BabyDataHelper.repository
-import com.blankj.utilcode.util.StringUtils
 import com.zero.babydata.entity.EventExtraData
 import com.zero.babydata.entity.EventRecord
 import com.zero.babydata.entity.EventType
@@ -136,17 +136,17 @@ class EventRecordViewModel : BaseViewModel() {
      */
     fun validateData(): ValidationResult {
         val subtype = _selectedSubtype.value
-            ?: return ValidationResult.Error(StringUtils.getString(R.string.please_select_event_type))
+            ?: return ValidationResult.Error(R.string.please_select_event_type)
 
         // 需要时长的事件验证结束时间
         if (requiresDuration()) {
             val start = _durationStartTime.value
             if (start == null || start <= 0L) {
-                return ValidationResult.Error(StringUtils.getString(R.string.start_time_required))
+                return ValidationResult.Error(R.string.start_time_required)
             }
             val end = _endTime.value
             if (end == null || end <= start) {
-                return ValidationResult.Error(StringUtils.getString(R.string.event_end_time_invalid))
+                return ValidationResult.Error(R.string.event_end_time_invalid)
             }
         }
 
@@ -154,7 +154,7 @@ class EventRecordViewModel : BaseViewModel() {
         if (EventType.isGrowth(subtype.type)) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.GrowthData) {
-                return ValidationResult.Error(StringUtils.getString(R.string.event_value_required))
+                return ValidationResult.Error(R.string.event_value_required)
             }
         }
 
@@ -162,7 +162,7 @@ class EventRecordViewModel : BaseViewModel() {
         if (subtype.type == EventType.HEALTH_TEMPERATURE) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.TemperatureData) {
-                return ValidationResult.Error(StringUtils.getString(R.string.temperature_value_required))
+                return ValidationResult.Error(R.string.temperature_value_required)
             }
         }
 
@@ -170,7 +170,7 @@ class EventRecordViewModel : BaseViewModel() {
         if (subtype.type == EventType.HEALTH_MEDICINE) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.MedicineData || data.name.isBlank()) {
-                return ValidationResult.Error(StringUtils.getString(R.string.medicine_name_hint))
+                return ValidationResult.Error(R.string.medicine_name_hint)
             }
         }
 
@@ -178,7 +178,7 @@ class EventRecordViewModel : BaseViewModel() {
         if (subtype.type == EventType.HEALTH_VACCINE) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.VaccineData || data.name.isBlank()) {
-                return ValidationResult.Error(StringUtils.getString(R.string.vaccine_name_hint))
+                return ValidationResult.Error(R.string.vaccine_name_hint)
             }
         }
 
@@ -186,7 +186,7 @@ class EventRecordViewModel : BaseViewModel() {
         if (subtype.type == EventType.HEALTH_SYMPTOM) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.SymptomData || data.description.isNullOrBlank()) {
-                return ValidationResult.Error(StringUtils.getString(R.string.symptom_hint))
+                return ValidationResult.Error(R.string.symptom_hint)
             }
         }
 
@@ -194,7 +194,7 @@ class EventRecordViewModel : BaseViewModel() {
         if (subtype.type == EventType.MILESTONE_CUSTOM) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.MilestoneData || data.name.isNullOrBlank()) {
-                return ValidationResult.Error(StringUtils.getString(R.string.milestone_name_hint))
+                return ValidationResult.Error(R.string.milestone_name_hint)
             }
         }
 
@@ -204,7 +204,7 @@ class EventRecordViewModel : BaseViewModel() {
             val hasValue = data is com.zero.babydata.entity.CustomEventData &&
                 (!data.name.isNullOrBlank() || !data.description.isNullOrBlank())
             if (!hasValue) {
-                return ValidationResult.Error(StringUtils.getString(R.string.custom_event_required))
+                return ValidationResult.Error(R.string.custom_event_required)
             }
         }
 
@@ -219,11 +219,11 @@ class EventRecordViewModel : BaseViewModel() {
         editRecordId: Int? = null,
         createdAt: Long? = null,
         onSuccess: () -> Unit,
-        onError: (String) -> Unit
+        onError: (Int) -> Unit
     ) {
         val validation = validateData()
         if (validation is ValidationResult.Error) {
-            onError(validation.message)
+            onError(validation.messageResId)
             return
         }
 
@@ -251,7 +251,7 @@ class EventRecordViewModel : BaseViewModel() {
             }
             val onFailure: (Throwable) -> Unit = {
                 ThreadUtils.runOnUiThread {
-                    onError(StringUtils.getString(R.string.save_failed))
+                    onError(R.string.save_failed)
                 }
             }
 
@@ -285,6 +285,6 @@ class EventRecordViewModel : BaseViewModel() {
      */
     sealed class ValidationResult {
         object Success : ValidationResult()
-        data class Error(val message: String) : ValidationResult()
+        data class Error(@StringRes val messageResId: Int) : ValidationResult()
     }
 }

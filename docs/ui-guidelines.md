@@ -176,6 +176,10 @@ XML 中优先使用语义属性：
 
 所有用户可见文本必须来自 `strings.xml`。`tools:text` 仅用于预览，可以写示例文本。Kotlin 中拼接用户可见文本时必须通过字符串资源和占位符完成。
 
+多语言维护以 `tools/language/多语言对照表.xlsx` 为唯一源数据。新增或修改用户可见字符串时，先在 Excel 中补齐简体中文、English、繁体中文、日文、韩文，再运行 `./gradlew updateAllLanguages` 生成 `strings.xml`；不要直接把新文案写进 XML 后结束工作。
+
+字符串放置遵循模块边界：`baby_recyclerview` 自用文案写入 Excel 的 `baby_recyclerview` sheet；其他文案能共享就优先写入 `common` sheet，仅 app 私有且不适合复用的文案才写入 `app` sheet。新增 key 必须语义稳定，优先使用 snake_case，并保留 `%1$s`、`%1$d`、`%%`、`\n` 等占位符和转义形式。
+
 ## MVVM 与列表规则
 
 - Fragment 只渲染状态、转发事件、执行导航。

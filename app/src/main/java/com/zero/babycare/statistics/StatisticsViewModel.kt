@@ -983,7 +983,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                 type = SummaryMetricType.FEEDING,
                 titleResId = com.zero.common.R.string.feeding,
                 primaryText = app.getString(com.zero.common.R.string.times_count_format, summary.feedingCount),
-                secondaryText = summary.formatFeedingDuration(),
+                secondaryText = formatSummaryDuration(app, summary.feedingTotalMinutes),
                 iconResId = com.zero.common.R.drawable.ic_feeding,
                 colorResId = com.zero.common.R.color.feeding_primary,
                 surfaceColorResId = com.zero.common.R.color.feeding_bg
@@ -992,7 +992,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                 type = SummaryMetricType.SLEEP,
                 titleResId = com.zero.common.R.string.sleeping,
                 primaryText = app.getString(com.zero.common.R.string.times_count_format, summary.sleepCount),
-                secondaryText = summary.formatSleepDuration(),
+                secondaryText = formatSummaryDuration(app, summary.sleepTotalMinutes),
                 iconResId = com.zero.common.R.drawable.ic_sleep,
                 colorResId = com.zero.common.R.color.sleep_primary,
                 surfaceColorResId = com.zero.common.R.color.sleep_bg
@@ -1001,7 +1001,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                 type = SummaryMetricType.DIAPER,
                 titleResId = com.zero.common.R.string.diaper,
                 primaryText = app.getString(com.zero.common.R.string.times_count_format, summary.totalDiaperCount),
-                secondaryText = summary.formatDiaperDetail().ifBlank {
+                secondaryText = formatDiaperDetail(app, summary).ifBlank {
                     app.getString(com.zero.common.R.string.statistics_growth_no_record)
                 },
                 iconResId = com.zero.common.R.drawable.ic_event_diaper,
@@ -1018,6 +1018,41 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                 surfaceColorResId = com.zero.common.R.color.event_other_light
             )
         )
+    }
+
+    /**
+     * 统计摘要属于 UI 文案，放在 ViewModel 统一组装，避免数据模型直接拼接中文。
+     */
+    private fun formatSummaryDuration(app: Application, totalMinutes: Int): String {
+        val hours = totalMinutes / 60
+        val minutes = totalMinutes % 60
+        return when {
+            hours > 0 && minutes > 0 -> app.getString(
+                com.zero.common.R.string.summary_duration_hours_minutes_compact,
+                hours,
+                minutes
+            )
+            hours > 0 -> app.getString(com.zero.common.R.string.summary_duration_hours_compact, hours)
+            minutes > 0 -> app.getString(com.zero.common.R.string.summary_duration_minutes_compact, minutes)
+            else -> app.getString(com.zero.common.R.string.summary_duration_zero_compact)
+        }
+    }
+
+    /**
+     * 尿布详情按存在的分类组合，分类名称来自资源，连接符只承担结构表达。
+     */
+    private fun formatDiaperDetail(app: Application, summary: DaySummary): String {
+        val parts = mutableListOf<String>()
+        if (summary.diaperWetCount > 0) {
+            parts.add(app.getString(com.zero.common.R.string.summary_diaper_wet_count_short, summary.diaperWetCount))
+        }
+        if (summary.diaperDirtyCount > 0) {
+            parts.add(app.getString(com.zero.common.R.string.summary_diaper_dirty_count_short, summary.diaperDirtyCount))
+        }
+        if (summary.diaperMixedCount > 0) {
+            parts.add(app.getString(com.zero.common.R.string.summary_diaper_mixed_count_short, summary.diaperMixedCount))
+        }
+        return if (parts.isEmpty()) "" else "(${parts.joinToString("/")})"
     }
 
     private fun buildTimelineMapper(): StatisticsTimelineMapper {

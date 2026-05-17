@@ -6,11 +6,11 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.blankj.utilcode.util.AppUtils
-import com.blankj.utilcode.util.StringUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.R
@@ -50,7 +50,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
                 vm.setReminderEnabled(true)
             } else {
                 bindReminderSwitch(false)
-                ToastUtils.showShort(com.zero.common.R.string.settings_notification_permission_denied)
+                ToastUtils.showShort(localizedString(com.zero.common.R.string.settings_notification_permission_denied))
             }
         }
 
@@ -65,7 +65,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
      * 初始化工具栏
      */
     private fun setupToolbar() {
-        binding.toolbar.title = StringUtils.getString(com.zero.common.R.string.settings)
+        binding.toolbar.title = localizedString(com.zero.common.R.string.settings)
         binding.toolbar.showBackButton { handleBack() }
         binding.toolbar.hideAction()
     }
@@ -133,10 +133,10 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
         launchInLifecycle {
             vm.settingsState.collect { state ->
                 bindReminderSwitch(state.reminderEnabled)
-                feedingUnitRow.tvValue.text = StringUtils.getString(state.feedingUnit.labelResId)
-                weightUnitRow.tvValue.text = StringUtils.getString(state.weightUnit.labelResId)
-                heightUnitRow.tvValue.text = StringUtils.getString(state.heightUnit.labelResId)
-                languageRow.tvValue.text = StringUtils.getString(state.languageOption.labelResId)
+                feedingUnitRow.tvValue.text = localizedString(state.feedingUnit.labelResId)
+                weightUnitRow.tvValue.text = localizedString(state.weightUnit.labelResId)
+                heightUnitRow.tvValue.text = localizedString(state.heightUnit.labelResId)
+                languageRow.tvValue.text = localizedString(state.languageOption.labelResId)
                 bindRowTexts()
             }
         }
@@ -191,7 +191,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
             return
         }
         if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
-            ToastUtils.showShort(com.zero.common.R.string.settings_notification_permission_rationale)
+            ToastUtils.showShort(localizedString(com.zero.common.R.string.settings_notification_permission_rationale))
         }
         notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
@@ -201,7 +201,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
      */
     private fun showFeedingUnitPicker(current: FeedingUnit) {
         showUnitPicker(
-            title = StringUtils.getString(com.zero.common.R.string.settings_unit_feeding_title),
+            title = localizedString(com.zero.common.R.string.settings_unit_feeding_title),
             options = FeedingUnit.values().toList(),
             current = current,
             onSelected = { vm.setFeedingUnit(it) }
@@ -213,7 +213,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
      */
     private fun showWeightUnitPicker(current: WeightUnit) {
         showUnitPicker(
-            title = StringUtils.getString(com.zero.common.R.string.settings_unit_weight_title),
+            title = localizedString(com.zero.common.R.string.settings_unit_weight_title),
             options = WeightUnit.values().toList(),
             current = current,
             onSelected = { vm.setWeightUnit(it) }
@@ -225,7 +225,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
      */
     private fun showHeightUnitPicker(current: HeightUnit) {
         showUnitPicker(
-            title = StringUtils.getString(com.zero.common.R.string.settings_unit_height_title),
+            title = localizedString(com.zero.common.R.string.settings_unit_height_title),
             options = HeightUnit.values().toList(),
             current = current,
             onSelected = { vm.setHeightUnit(it) }
@@ -239,11 +239,11 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
         val options = LanguageOption.values().toList()
         DialogHelper.showChoiceSheet(
             context = requireContext(),
-            title = StringUtils.getString(com.zero.common.R.string.settings_language),
+            title = localizedString(com.zero.common.R.string.settings_language),
             options = options.map {
                 DialogHelper.PickerOption(
                     value = it,
-                    label = StringUtils.getString(it.labelResId)
+                    label = localizedString(it.labelResId)
                 )
             },
             selectedValue = current,
@@ -276,7 +276,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
                 }
                 DialogHelper.PickerOption(
                     value = option,
-                    label = labelResId?.let { StringUtils.getString(it) } ?: ""
+                    label = labelResId?.let { localizedString(it) } ?: ""
                 )
             },
             selectedValue = current,
@@ -301,23 +301,23 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
      * 通用占位项
      */
     private fun setupComingSoonRow(row: ItemSettingRowBinding, titleResId: Int) {
-        row.tvTitle.text = StringUtils.getString(titleResId)
-        row.tvSummary.text = StringUtils.getString(com.zero.common.R.string.settings_feature_coming_soon)
+        row.tvTitle.text = localizedString(titleResId)
+        row.tvSummary.text = localizedString(com.zero.common.R.string.settings_feature_coming_soon)
         row.tvSummary.visibility = View.VISIBLE
         row.tvValue.text = ""
         row.root.setOnClickListener { showComingSoonToast() }
     }
 
     private fun showComingSoonToast() {
-        ToastUtils.showShort(com.zero.common.R.string.settings_feature_coming_soon)
+        ToastUtils.showShort(localizedString(com.zero.common.R.string.settings_feature_coming_soon))
     }
 
     /**
      * 数据备份入口
      */
     private fun setupBackupRow() {
-        backupRow.tvTitle.text = StringUtils.getString(com.zero.common.R.string.settings_backup)
-        backupRow.tvSummary.text = StringUtils.getString(com.zero.common.R.string.settings_backup_summary)
+        backupRow.tvTitle.text = localizedString(com.zero.common.R.string.settings_backup)
+        backupRow.tvSummary.text = localizedString(com.zero.common.R.string.settings_backup_summary)
         backupRow.tvSummary.visibility = View.VISIBLE
         backupRow.tvValue.text = ""
         backupRow.root.setOnClickListener {
@@ -329,21 +329,28 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
      * 统一刷新行文案，保证语言切换后即时更新
      */
     private fun bindRowTexts() {
-        binding.tvGeneralTitle.text = StringUtils.getString(com.zero.common.R.string.settings_general)
-        binding.tvReminderTitle.text = StringUtils.getString(com.zero.common.R.string.settings_reminder)
-        binding.tvAboutTitle.text = StringUtils.getString(com.zero.common.R.string.settings_about)
-        binding.tvMoreTitle.text = StringUtils.getString(com.zero.common.R.string.settings_more)
+        binding.tvGeneralTitle.text = localizedString(com.zero.common.R.string.settings_general)
+        binding.tvReminderTitle.text = localizedString(com.zero.common.R.string.settings_reminder)
+        binding.tvAboutTitle.text = localizedString(com.zero.common.R.string.settings_about)
+        binding.tvMoreTitle.text = localizedString(com.zero.common.R.string.settings_more)
 
-        reminderRow.tvTitle.text = StringUtils.getString(com.zero.common.R.string.settings_reminder_switch_title)
-        reminderRow.tvSummary.text = StringUtils.getString(com.zero.common.R.string.settings_reminder_switch_summary)
-        feedingUnitRow.tvTitle.text = StringUtils.getString(com.zero.common.R.string.settings_unit_feeding_title)
-        weightUnitRow.tvTitle.text = StringUtils.getString(com.zero.common.R.string.settings_unit_weight_title)
-        heightUnitRow.tvTitle.text = StringUtils.getString(com.zero.common.R.string.settings_unit_height_title)
-        versionRow.tvTitle.text = StringUtils.getString(com.zero.common.R.string.settings_about_version)
-        languageRow.tvTitle.text = StringUtils.getString(com.zero.common.R.string.settings_language)
-        backupRow.tvTitle.text = StringUtils.getString(com.zero.common.R.string.settings_backup)
-        backupRow.tvSummary.text = StringUtils.getString(com.zero.common.R.string.settings_backup_summary)
+        reminderRow.tvTitle.text = localizedString(com.zero.common.R.string.settings_reminder_switch_title)
+        reminderRow.tvSummary.text = localizedString(com.zero.common.R.string.settings_reminder_switch_summary)
+        feedingUnitRow.tvTitle.text = localizedString(com.zero.common.R.string.settings_unit_feeding_title)
+        weightUnitRow.tvTitle.text = localizedString(com.zero.common.R.string.settings_unit_weight_title)
+        heightUnitRow.tvTitle.text = localizedString(com.zero.common.R.string.settings_unit_height_title)
+        versionRow.tvTitle.text = localizedString(com.zero.common.R.string.settings_about_version)
+        languageRow.tvTitle.text = localizedString(com.zero.common.R.string.settings_language)
+        backupRow.tvTitle.text = localizedString(com.zero.common.R.string.settings_backup)
+        backupRow.tvSummary.text = localizedString(com.zero.common.R.string.settings_backup_summary)
         backupRow.tvSummary.visibility = View.VISIBLE
         setupComingSoonRow(familyRow, com.zero.common.R.string.settings_family_share)
+    }
+
+    /**
+     * 使用当前 Fragment context 获取资源，避免全局 App context 绕过 AppCompat 的应用内语言。
+     */
+    private fun localizedString(@StringRes resId: Int, vararg args: Any): String {
+        return if (args.isEmpty()) getString(resId) else getString(resId, *args)
     }
 }
