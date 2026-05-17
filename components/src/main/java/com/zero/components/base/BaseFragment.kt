@@ -9,8 +9,12 @@ import com.zero.components.base.util.DialogHelper
 
 open class BaseFragment<VB : ViewBinding> : BaseBindingFragment<VB>() {
     private var loadingPop: BasePopupView? = null
+    private var keyboardSafeScrollDelegate: KeyboardSafeScrollDelegate? = null
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        ScrollBoundaryEffectDelegate.applyTo(view)
+        keyboardSafeScrollDelegate = KeyboardSafeScrollDelegate.install(view)
         initView(view, savedInstanceState)
         initData(view, savedInstanceState)
     }
@@ -39,6 +43,8 @@ open class BaseFragment<VB : ViewBinding> : BaseBindingFragment<VB>() {
     }
 
     override fun onDestroyView() {
+        keyboardSafeScrollDelegate?.dispose()
+        keyboardSafeScrollDelegate = null
         super.onDestroyView()
         loadingPop?.dismiss()
         loadingPop = null

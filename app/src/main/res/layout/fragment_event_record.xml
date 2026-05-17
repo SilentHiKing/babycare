@@ -41,7 +41,6 @@
                     android:id="@+id/cardTime"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:foreground="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -108,6 +107,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
                     android:orientation="horizontal"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                     tools:itemCount="7"
@@ -150,7 +150,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:background="@drawable/bg_event_record_section"
+                android:background="@drawable/bg_event_record_note_section"
                 android:orientation="vertical"
                 android:padding="16dp"
                 android:visibility="gone"

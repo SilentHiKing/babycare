@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- 备注区内部 EditText 已有边框，外层只保留柔和承托面，避免形成双描边。 -->
+    <solid android:color="@color/control_surface_default" />
+    <corners android:radius="16dp" />
+</shape>

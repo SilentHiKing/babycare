@@ -609,6 +609,10 @@ class UiResourcePolicyTest {
         val page = File(repoRoot(), "app/src/main/res/layout/fragment_event_record.xml").readText()
         val category = File(repoRoot(), "app/src/main/res/layout/item_event_category.xml").readText()
         val subtype = File(repoRoot(), "app/src/main/res/layout/item_event_subtype.xml").readText()
+        val noteSectionBg = File(
+            repoRoot(),
+            "app/src/main/res/drawable/bg_event_record_note_section.xml"
+        ).takeIf { it.isFile }?.readText().orEmpty()
 
         val offenders = buildList {
             listOf("sectionTime", "sectionEventType", "sectionDetail", "sectionNote").forEach { id ->
@@ -628,11 +632,284 @@ class UiResourcePolicyTest {
             if (!subtype.contains("""android:maxLines="2"""")) {
                 add("event subtype labels should cap wrapping to keep grid rows stable")
             }
+            if (Regex("""android:id="@\+id/cardTime"[\s\S]{0,240}selectableItemBackground""")
+                    .containsMatchIn(page)
+            ) {
+                add("event record time card should not show a broad pressed overlay")
+            }
+            if (!page.contains("""android:background="@drawable/bg_event_record_note_section"""") ||
+                noteSectionBg.isBlank() ||
+                noteSectionBg.contains("<stroke")
+            ) {
+                add("event record note section should use a fill-only outer surface and leave the border to the EditText")
+            }
         }
 
         // 记录页需要清晰分区和稳定网格，避免不同类型文案导致控件跳高、视觉散乱。
         assertTrue(
             "Event record layout hierarchy or targets are unstable: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
+    fun `event category horizontal list keeps parent from stealing horizontal swipes`() {
+        val page = File(repoRoot(), "app/src/main/res/layout/fragment_event_record.xml").readText()
+        val fragment = File(
+            repoRoot(),
+            "app/src/main/java/com/zero/babycare/home/record/event/EventRecordFragment.kt"
+        ).readText()
+        val touchDelegateFile = File(
+            repoRoot(),
+            "components/src/main/java/com/zero/components/touch/HorizontalNestedScrollTouchDelegate.kt"
+        )
+        val touchDelegate = touchDelegateFile.takeIf { it.isFile }?.readText().orEmpty()
+        val rvCategoryBlock = Regex(
+            """<androidx\.recyclerview\.widget\.RecyclerView[\s\S]*?android:id="@\+id/rvCategory"[\s\S]*?/>"""
+        ).find(page)?.value.orEmpty()
+
+        val offenders = buildList {
+            if (!rvCategoryBlock.contains("""android:nestedScrollingEnabled="false"""")) {
+                add("event category RecyclerView should disable nested scrolling inside NestedScrollView")
+            }
+            if (!fragment.contains("HorizontalNestedScrollTouchDelegate.attachTo(binding.rvCategory)")) {
+                add("EventRecordFragment should use the shared horizontal nested scroll touch delegate")
+            }
+            if (!fragment.contains("binding.rvCategory.itemAnimator = null")) {
+                add("event category RecyclerView should disable item change animations for instant selected state")
+            }
+            if (!touchDelegateFile.isFile ||
+                !touchDelegate.contains("RecyclerView.SimpleOnItemTouchListener") ||
+                !touchDelegate.contains("ViewConfiguration.get(recyclerView.context).scaledTouchSlop") ||
+                !touchDelegate.contains("ScrollDirectionLock") ||
+                !touchDelegate.contains("HORIZONTAL_INTENT_RATIO")
+            ) {
+                add("horizontal touch delegate should use RecyclerView item touch dispatch with touchSlop direction locking")
+            }
+            if (!touchDelegate.contains("MotionEvent.ACTION_DOWN") ||
+                !touchDelegate.contains("MotionEvent.ACTION_MOVE") ||
+                !touchDelegate.contains("MotionEvent.ACTION_UP") ||
+                !touchDelegate.contains("MotionEvent.ACTION_CANCEL") ||
+                !touchDelegate.contains("requestDisallowInterceptTouchEvent(true)") ||
+                !touchDelegate.contains("requestDisallowInterceptTouchEvent(false)")
+            ) {
+                add("horizontal touch delegate should keep parent intercept disabled until the gesture is resolved")
+            }
+            if (!touchDelegate.contains("absDx < touchSlop && absDy < touchSlop") ||
+                !touchDelegate.contains("directionLock = ScrollDirectionLock.HORIZONTAL") ||
+                !touchDelegate.contains("directionLock = ScrollDirectionLock.VERTICAL") ||
+                !touchDelegate.contains("canScrollHorizontally")
+            ) {
+                add("horizontal touch delegate should not release the parent from raw dx/dy noise before touchSlop")
+            }
+        }
+
+        // 事件大类横向列表在纵向表单里，必须显式降低父级 NestedScrollView 的手势抢占。
+        assertTrue(
+            "Event category horizontal scrolling can still conflict with vertical scrolling: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
+    fun `event detail numeric inputs keep units inside left aligned fields`() {
+        val temperature = File(
+            repoRoot(),
+            "app/src/main/res/layout/layout_event_detail_temperature.xml"
+        ).readText()
+        val growth = File(repoRoot(), "app/src/main/res/layout/layout_event_detail_growth.xml").readText()
+        val medicine = File(repoRoot(), "app/src/main/res/layout/layout_event_detail_medicine.xml").readText()
+
+        val offenders = buildList {
+            if (!temperature.contains("""android:id="@+id/layoutTemperatureInput"""") ||
+                !temperature.contains("""android:id="@+id/tvTemperatureUnit"""") ||
+                temperature.contains("""android:id="@+id/etTemperature"""") &&
+                Regex("""android:id="@\+id/etTemperature"[\s\S]{0,260}android:gravity="center"""")
+                    .containsMatchIn(temperature) ||
+                !Regex("""android:id="@\+id/etTemperature"[\s\S]{0,260}android:background="@null"""")
+                    .containsMatchIn(temperature) ||
+                !Regex("""android:id="@\+id/etTemperature"[\s\S]{0,260}android:gravity="start\|center_vertical"""")
+                    .containsMatchIn(temperature)
+            ) {
+                add("temperature input should be one left-aligned field with the unit inside")
+            }
+            if (!growth.contains("""android:id="@+id/layoutGrowthValueInput"""") ||
+                !Regex("""android:id="@\+id/etValue"[\s\S]{0,260}android:background="@null"""")
+                    .containsMatchIn(growth) ||
+                !Regex("""android:id="@\+id/etValue"[\s\S]{0,260}android:gravity="start\|center_vertical"""")
+                    .containsMatchIn(growth) ||
+                Regex("""android:id="@\+id/etValue"[\s\S]{0,260}android:gravity="center"""")
+                    .containsMatchIn(growth)
+            ) {
+                add("growth value input should match the birth measurement inline unit treatment")
+            }
+            if (!medicine.contains("""android:id="@+id/layoutDosageInput"""") ||
+                !Regex("""android:id="@\+id/etDosage"[\s\S]{0,260}android:background="@null"""")
+                    .containsMatchIn(medicine) ||
+                !Regex("""android:id="@\+id/etDosage"[\s\S]{0,260}android:gravity="start\|center_vertical"""")
+                    .containsMatchIn(medicine) ||
+                Regex("""android:id="@\+id/etDosage"[\s\S]{0,260}android:gravity="center"""")
+                    .containsMatchIn(medicine)
+            ) {
+                add("medicine dosage input should keep the editable value left-aligned with the unit selector inside")
+            }
+        }
+
+        // 带单位的数值输入要和出生体重一致：左侧输入，右侧单位在同一个输入框承托面里。
+        assertTrue(
+            "Event detail unit inputs are not aligned with the shared inline unit pattern: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
+    fun `main window applies ime insets for keyboard safe forms`() {
+        val manifest = File(repoRoot(), "app/src/main/AndroidManifest.xml").readText()
+        val activityMain = File(repoRoot(), "app/src/main/res/layout/activity_main.xml").readText()
+        val statusBarUtil = File(
+            repoRoot(),
+            "common/src/main/java/com/zero/common/util/StatusBarUtil.kt"
+        ).readText()
+
+        val offenders = buildList {
+            if (!manifest.contains("""android:windowSoftInputMode="adjustResize"""")) {
+                add("MainActivity should request adjustResize for legacy IME behavior")
+            }
+            if (activityMain.contains("""android:fitsSystemWindows="true"""")) {
+                add("activity root should not consume window insets before shared IME handling")
+            }
+            if (!statusBarUtil.contains("WindowInsetsCompat.Type.ime()") ||
+                !statusBarUtil.contains("WindowInsetsCompat.Type.navigationBars()") ||
+                !statusBarUtil.contains("coerceAtLeast") ||
+                !statusBarUtil.contains("SOFT_INPUT_ADJUST_RESIZE")
+            ) {
+                add("edge-to-edge setup should apply IME and navigation-bar bottom insets to the root view")
+            }
+        }
+
+        // 全屏窗口不能只依赖 adjustResize；需要把 IME inset 作为根布局 bottom padding 统一下发。
+        assertTrue(
+            "Keyboard-safe window inset handling is incomplete: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
+    fun `base fragments scroll focused edit texts above the ime`() {
+        val baseFragment = File(
+            repoRoot(),
+            "components/src/main/java/com/zero/components/base/BaseFragment.kt"
+        ).readText()
+        val delegateFile = File(
+            repoRoot(),
+            "components/src/main/java/com/zero/components/base/KeyboardSafeScrollDelegate.kt"
+        )
+        val delegate = delegateFile.takeIf { it.isFile }?.readText().orEmpty()
+
+        val offenders = buildList {
+            if (!baseFragment.contains("KeyboardSafeScrollDelegate.install(view)") ||
+                !baseFragment.contains("keyboardSafeScrollDelegate?.dispose()")
+            ) {
+                add("BaseFragment should install and dispose the shared keyboard-safe scroll delegate")
+            }
+            if (!delegateFile.isFile) {
+                add("KeyboardSafeScrollDelegate should live in components base for project-wide form pages")
+            }
+            if (!delegate.contains("OnGlobalFocusChangeListener") ||
+                !delegate.contains("newFocus as? EditText") ||
+                delegate.contains("setOnFocusChangeListener")
+            ) {
+                add("keyboard-safe scrolling should observe focus globally without overwriting business focus listeners")
+            }
+            if (!delegate.contains("setOnTouchListener(touchRevealListener)") ||
+                !delegate.contains("MotionEvent.ACTION_UP") ||
+                !delegate.contains("attachEditTextTouchListeners(root)") ||
+                !delegate.contains("WeakHashMap<EditText, Boolean>")
+            ) {
+                add("delegate should reveal focused inputs again when the same EditText is tapped while IME is already open")
+            }
+            if (!delegate.contains("WindowInsetsCompat.Type.ime()") ||
+                !delegate.contains("NestedScrollView") ||
+                !delegate.contains("ScrollView") ||
+                !delegate.contains("getGlobalVisibleRect") ||
+                !delegate.contains("offsetDescendantRectToMyCoords") ||
+                !delegate.contains("scrollTo(0, scrollParent.scrollY + deltaY)") ||
+                !delegate.contains("getWindowVisibleDisplayFrame") ||
+                !delegate.contains("visibleFrameBottom") ||
+                !delegate.contains("lastStableWindowBottom")
+            ) {
+                add("delegate should combine IME insets, stable window bounds, legacy visible display frame, and unclipped descendant coordinates")
+            }
+            if (!delegate.contains("applyKeyboardScrollPadding(scrollParent)") ||
+                !delegate.contains("restoreKeyboardScrollPadding()") ||
+                !delegate.contains("ScrollPaddingState") ||
+                !delegate.contains("clipToPadding = false") ||
+                !delegate.contains("setPadding(")
+            ) {
+                add("delegate should add temporary bottom scroll padding so bottom fields can scroll above the keyboard")
+            }
+            if (!delegate.contains("containsDescendant(editText)") ||
+                !delegate.contains("hasUsableGlobalRect()") ||
+                delegate.contains("editText.getGlobalVisibleRect(inputRect)")
+            ) {
+                add("delegate should ignore inactive fragment roots and must not depend on clipped EditText visible rects")
+            }
+            if (!delegate.contains("BabyCareKeyboard") ||
+                !delegate.contains("Log.isLoggable") ||
+                !delegate.contains("Log.d(TAG")
+            ) {
+                add("delegate should expose opt-in keyboard geometry logs for device-specific diagnosis")
+            }
+            if (!delegate.contains("removeOnGlobalFocusChangeListener") ||
+                !delegate.contains("removeOnLayoutChangeListener")
+            ) {
+                add("delegate should remove listeners with the fragment view lifecycle")
+            }
+        }
+
+        // adjustResize 只能改变可用区域，输入框是否滚到键盘上方要由 Fragment 统一处理。
+        assertTrue(
+            "Focused EditText keyboard reveal behavior is not project-wide safe: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
+    fun `base fragments disable scroll boundary effects project wide`() {
+        val baseFragment = File(
+            repoRoot(),
+            "components/src/main/java/com/zero/components/base/BaseFragment.kt"
+        ).readText()
+        val delegateFile = File(
+            repoRoot(),
+            "components/src/main/java/com/zero/components/base/ScrollBoundaryEffectDelegate.kt"
+        )
+        val delegate = delegateFile.takeIf { it.isFile }?.readText().orEmpty()
+        val uiGuidelines = File(repoRoot(), "docs/ui-guidelines.md").readText()
+
+        val offenders = buildList {
+            if (!baseFragment.contains("ScrollBoundaryEffectDelegate.applyTo(view)")) {
+                add("BaseFragment should apply the project-wide scroll boundary policy")
+            }
+            if (!delegateFile.isFile ||
+                !delegate.contains("View.OVER_SCROLL_NEVER") ||
+                !delegate.contains("root.post") ||
+                !delegate.contains("ViewGroup") ||
+                !delegate.contains("childCount")
+            ) {
+                add("scroll boundary delegate should recursively disable overscroll for the current view tree")
+            }
+            if (!uiGuidelines.contains("滚动到内容边界时不得显示发光、拉伸或回弹到头动画") ||
+                !uiGuidelines.contains("android:overScrollMode=\"never\"") ||
+                !uiGuidelines.contains("View.OVER_SCROLL_NEVER")
+            ) {
+                add("UI guidelines should document the no-overscroll-edge-effect rule")
+            }
+        }
+
+        // Android 12+ 的 stretch 和旧系统 glow 都属于边界 EdgeEffect，BabyCare 页面统一关闭。
+        assertTrue(
+            "Scroll boundary edge effects should be disabled project-wide: $offenders",
             offenders.isEmpty()
         )
     }

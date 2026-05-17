@@ -45,6 +45,7 @@ import com.zero.common.util.UnitConfig
 import com.zero.common.util.UnitConverter
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
+import com.zero.components.touch.HorizontalNestedScrollTouchDelegate
 import com.zero.components.widget.RecordView.RecordState
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -191,6 +192,8 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             }
         }
         binding.rvCategory.adapter = categoryAdapter
+        binding.rvCategory.itemAnimator = null
+        HorizontalNestedScrollTouchDelegate.attachTo(binding.rvCategory)
         applyCategoryLockState()
     }
 

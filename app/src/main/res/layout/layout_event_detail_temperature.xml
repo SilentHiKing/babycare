@@ -9,26 +9,32 @@
 
     <!-- 体温输入 -->
     <LinearLayout
+        android:id="@+id/layoutTemperatureInput"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal">
+        android:layout_height="56dp"
+        android:background="?attr/bg_r6_block_gridview"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp">
 
         <EditText
             android:id="@+id/etTemperature"
             style="@style/TextAppearance.BabyCare.Display2"
             android:layout_width="0dp"
-            android:layout_height="56dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="?attr/bg_r6_block_gridview"
-            android:gravity="center"
+            android:background="@null"
+            android:gravity="start|center_vertical"
             android:hint="@string/temperature_value_hint"
             android:inputType="numberDecimal"
             android:maxLength="4"
+            android:maxLines="1"
+            android:singleLine="true"
             android:textColor="?attr/colorTextPrimary"
             android:textColorHint="?attr/colorTextHint" />
 
         <TextView
+            android:id="@+id/tvTemperatureUnit"
             style="@style/TextAppearance.BabyCare.Heading1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
