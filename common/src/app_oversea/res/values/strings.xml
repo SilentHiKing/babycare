@@ -505,8 +505,8 @@
     <string name="calendar_weekday_thursday_short">Thu</string>
     <string name="calendar_weekday_friday_short">Fri</string>
     <string name="calendar_weekday_saturday_short">Sat</string>
-    <string name="summary_duration_hours_minutes_compact">%1$dh %2$dm</string>
-    <string name="summary_duration_hours_compact">%1$dh</string>
+    <string name="summary_duration_hours_minutes_compact">%1$dH %2$dm</string>
+    <string name="summary_duration_hours_compact">%1$dH</string>
     <string name="summary_duration_minutes_compact">%1$dm</string>
     <string name="summary_duration_zero_compact">0m</string>
     <string name="summary_diaper_wet_count_short">Wet %1$d</string>

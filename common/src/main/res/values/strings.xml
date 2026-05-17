@@ -507,8 +507,8 @@
     <string name="calendar_weekday_saturday_short">六</string>
     <string name="summary_duration_hours_minutes_compact">%1$d小时%2$d分</string>
     <string name="summary_duration_hours_compact">%1$d小时</string>
-    <string name="summary_duration_minutes_compact">%1$d分钟</string>
-    <string name="summary_duration_zero_compact">0分钟</string>
+    <string name="summary_duration_minutes_compact">%1$d分</string>
+    <string name="summary_duration_zero_compact">0分</string>
     <string name="summary_diaper_wet_count_short">湿%1$d</string>
     <string name="summary_diaper_dirty_count_short">脏%1$d</string>
     <string name="summary_diaper_mixed_count_short">混合%1$d</string>

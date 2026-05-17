@@ -330,13 +330,13 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         // 距上次喂奶
         data.lastFeedingEndTime?.let { endTime ->
             val minutes = TimeUnit.MILLISECONDS.toMinutes(now - endTime)
-            binding.tvFeedingSinceTime.text = formatMinutesToReadable(minutes)
+            binding.tvFeedingSinceTime.text = formatMinutesCompact(minutes)
         }
 
         // 距上次睡觉
         data.lastSleepEndTime?.let { endTime ->
             val minutes = TimeUnit.MILLISECONDS.toMinutes(now - endTime)
-            binding.tvSleepSinceTime.text = formatMinutesToReadable(minutes)
+            binding.tvSleepSinceTime.text = formatMinutesCompact(minutes)
         }
     }
 
@@ -434,7 +434,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         val now = System.currentTimeMillis()
         data.lastFeedingEndTime?.let { endTime ->
             val minutes = TimeUnit.MILLISECONDS.toMinutes(now - endTime)
-            binding.tvFeedingSinceTime.text = formatMinutesToReadable(minutes)
+            binding.tvFeedingSinceTime.text = formatMinutesCompact(minutes)
         } ?: run {
             binding.tvFeedingSinceTime.text = "--"
         }
@@ -451,7 +451,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         // 距上次时间（实时计算）
         data.lastSleepEndTime?.let { endTime ->
             val minutes = TimeUnit.MILLISECONDS.toMinutes(now - endTime)
-            binding.tvSleepSinceTime.text = formatMinutesToReadable(minutes)
+            binding.tvSleepSinceTime.text = formatMinutesCompact(minutes)
         } ?: run {
             binding.tvSleepSinceTime.text = "--"
         }
@@ -591,6 +591,31 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             getString(com.zero.common.R.string.hour_min_format, hours.toInt(), mins.toInt())
         } else {
             getString(com.zero.common.R.string.min_format, mins.toInt())
+        }
+    }
+
+    /**
+     * 首页概览卡空间较窄，英文使用 22H 37m 这类短格式，避免大号时长换行后显得拥挤。
+     */
+    private fun formatMinutesCompact(minutes: Long?): String {
+        if (minutes == null || minutes < 0) return "--"
+        val hours = minutes / 60
+        val mins = minutes % 60
+        return when {
+            hours > 0 && mins > 0 -> getString(
+                com.zero.common.R.string.summary_duration_hours_minutes_compact,
+                hours.toInt(),
+                mins.toInt()
+            )
+            hours > 0 -> getString(
+                com.zero.common.R.string.summary_duration_hours_compact,
+                hours.toInt()
+            )
+            mins > 0 -> getString(
+                com.zero.common.R.string.summary_duration_minutes_compact,
+                mins.toInt()
+            )
+            else -> getString(com.zero.common.R.string.summary_duration_zero_compact)
         }
     }
 

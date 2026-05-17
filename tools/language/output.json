@@ -5057,7 +5057,7 @@
         "codeKey": "summary_duration_hours_minutes_compact",
         "language": {
           "zh-Hans": "%1$d小时%2$d分",
-          "en": "%1$dh %2$dm",
+          "en": "%1$dH %2$dm",
           "zh-Hant": "%1$d小時%2$d分",
           "ja": "%1$d時間%2$d分",
           "ko": "%1$d시간 %2$d분"
@@ -5067,7 +5067,7 @@
         "codeKey": "summary_duration_hours_compact",
         "language": {
           "zh-Hans": "%1$d小时",
-          "en": "%1$dh",
+          "en": "%1$dH",
           "zh-Hant": "%1$d小時",
           "ja": "%1$d時間",
           "ko": "%1$d시간"
@@ -5076,9 +5076,9 @@
       {
         "codeKey": "summary_duration_minutes_compact",
         "language": {
-          "zh-Hans": "%1$d分钟",
+          "zh-Hans": "%1$d分",
           "en": "%1$dm",
-          "zh-Hant": "%1$d分鐘",
+          "zh-Hant": "%1$d分",
           "ja": "%1$d分",
           "ko": "%1$d분"
         }
@@ -5086,9 +5086,9 @@
       {
         "codeKey": "summary_duration_zero_compact",
         "language": {
-          "zh-Hans": "0分钟",
+          "zh-Hans": "0分",
           "en": "0m",
-          "zh-Hant": "0分鐘",
+          "zh-Hant": "0分",
           "ja": "0分",
           "ko": "0분"
         }
