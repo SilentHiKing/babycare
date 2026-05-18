@@ -41,10 +41,11 @@
 
 - 首页宝宝名：18sp medium，`?attr/colorTextPrimary`，它是当前对象识别，不做品牌色强调。
 - 卡片内部主标题：14sp medium，建议使用 `TextAppearance.BabyCare.Action` 的字重思路，但颜色改为 `?attr/colorTextPrimary`。如果实现上复用 `Body2`，需要显式设置 medium 字重或新增局部样式。
-- 卡片内部右侧辅助说明：12sp regular / medium，使用 `TextAppearance.BabyCare.Label`，颜色使用 `?attr/colorTextHint`。
+- 卡片标题行只保留左侧主标题，不添加右侧说明文案，避免在小卡片里形成新的干扰信息。
 - 预测和快速记录标题不得继续使用 `Heading1`（20sp），也不得使用品牌色或业务功能色。
 - 标题与卡片内容的距离控制在 8dp 左右，避免形成新的大段留白。
 - 卡片标题行和内容同属一个 surface，视觉上应像“内容说明”，而不是新的页面章节。
+- 不在标题行右侧添加“基于近期记录”“常用入口”等文案；如果未来需要解释预测依据，应放到预测详情或空态说明里，不放在首页卡片标题层。
 
 这样处理后，首页视觉焦点顺序应为：
 
@@ -59,7 +60,7 @@
 删除外部 `tvPredictionTitle`。在 `cardPrediction` 内部顶部新增标题行：
 
 - 左侧：`next_prediction`
-- 右侧：新增文案 `based_on_recent_records`，简体中文为“基于近期记录”
+- 右侧：不放任何文案或图标
 
 标题行下面继续展示喂养预测和睡眠预测。预测结果的图标、文本、剩余时间逻辑不变。
 
@@ -68,7 +69,7 @@
 删除外部 `tvQuickRecordTitle`。为 `rvQuickRecord` 增加一个外层 `cardQuickRecord` 容器：
 
 - 背景沿用 `bg_card_prediction` 或统一 surface + 0.1dp stroke 的圆角卡片。
-- 内部顶部标题行左侧显示 `quick_record`，右侧新增文案 `common_entry`，简体中文为“常用入口”。
+- 内部顶部标题行左侧显示 `quick_record`，右侧不放任何文案或图标。
 - `rvQuickRecord` 保持 `baby_recyclerview` 适配器与现有点击逻辑，不把业务判断写入 Adapter。
 
 ### 侧边栏手势
@@ -105,18 +106,9 @@
 
 ## 本地化
 
-新增用户可见文案必须先写入 `tools/language/多语言对照表.xlsx` 的 `common` sheet，再运行 `updateAllLanguages`。
+本次设计不新增用户可见文案，复用现有 `next_prediction`、`quick_record`、`no_baby_yet` 等字符串资源。
 
-建议新增 key：
-
-- `based_on_recent_records`
-- `common_entry`
-
-翻译语义：
-
-- 简体中文：基于近期记录 / 常用入口
-- English：Based on recent records / Common entries
-- 繁体中文、日文、韩文需按 BabyCare 高频记录语境补齐。
+如果实现时发现必须新增文案，必须先写入 `tools/language/多语言对照表.xlsx` 的 `common` sheet，再运行 `updateAllLanguages`，不得直接手改 `strings.xml`。
 
 ## 测试与验证
 
@@ -133,7 +125,7 @@
 2. 点击宝宝身份区域进入所有宝宝页或创建宝宝流程。
 3. 首页左边缘右滑可打开侧边栏。
 4. 首页纵向滚动、卡片点击、快速记录点击不被右滑检测误伤。
-5. `下次预测` 与 `快速记录` 标题在卡片内部，字号和颜色弱于内容主数据。
+5. `下次预测` 与 `快速记录` 标题在卡片内部，字号和颜色弱于内容主数据，标题行右侧无辅助文案。
 6. 男孩 / 女孩主题、浅色 / 深色模式下标题颜色和对比度正常。
 7. 无硬编码用户可见字符串，无页面级硬编码颜色。
 
