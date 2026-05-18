@@ -25,13 +25,22 @@ internal abstract class BabyCareBottomSheetPopup(context: Context) : BottomPopup
 
     protected fun updateSheetDragEnabledForContentTouch(event: MotionEvent, contentView: View) {
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
-            bottomPopupContainer.enableDrag(!contentView.containsRawPoint(event.rawX, event.rawY))
-        }
-    }
-
-    protected fun restoreSheetDragAfterContentTouch(event: MotionEvent) {
-        if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
-            bottomPopupContainer.enableDrag(true)
+            val isContentTouch = contentView.containsRawPoint(event.rawX, event.rawY)
+            val enableSheetDrag = !isContentTouch
+            bottomPopupContainer.enableDrag(enableSheetDrag)
+            Log.d(
+                TAG,
+                "Picker sheet drag handoff: contentTouch=$isContentTouch, " +
+                    "enableDrag=$enableSheetDrag, scrollY=${bottomPopupContainer.scrollY}"
+            )
+        } else if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+            // RecyclerView 抬手后可能继续惯性滚动，不能在这里恢复父 Sheet 拖拽，否则父容器会接走残余滚动。
+            Log.d(
+                TAG,
+                "Picker sheet touch finished: action=${event.actionMasked}, " +
+                    "scrollY=${bottomPopupContainer.scrollY}, " +
+                    "contentTranslationY=${getPopupContentView().translationY}"
+            )
         }
     }
 

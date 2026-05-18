@@ -1357,10 +1357,15 @@ class UiResourcePolicyTest {
                 !dateTimeSource.contains("R.id.picker_frame") ||
                 !choiceSource.contains("updateSheetDragEnabledForContentTouch(event, contentTouchArea)") ||
                 !choiceSource.contains("R.id.option_container") ||
-                !bottomSheetSource.contains("bottomPopupContainer.enableDrag(!contentView.containsRawPoint") ||
-                !bottomSheetSource.contains("MotionEvent.ACTION_UP")
+                !bottomSheetSource.contains("val enableSheetDrag = !isContentTouch") ||
+                !bottomSheetSource.contains("bottomPopupContainer.enableDrag(enableSheetDrag)")
             ) {
-                add("picker sheets should disable drag-to-dismiss for content touches while keeping the header draggable")
+                add("picker sheets should disable XPopup drag for content touches while allowing a new header touch to re-enable it")
+            }
+            if (bottomSheetSource.contains("restoreSheetDragAfterContentTouch") ||
+                bottomSheetSource.contains("bottomPopupContainer.enableDrag(true)")
+            ) {
+                add("picker sheets should not re-enable XPopup drag on touch end because RecyclerView fling can still be active")
             }
             if (!dialogHelperSource.contains(".moveUpToKeyboard(false)")) {
                 add("picker sheets should opt out of XPopup keyboard move-up because they do not show the IME")

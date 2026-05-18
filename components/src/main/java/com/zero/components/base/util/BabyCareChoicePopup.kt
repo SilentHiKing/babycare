@@ -39,9 +39,7 @@ internal class BabyCareChoicePopup<T>(
         if (::contentTouchArea.isInitialized) {
             updateSheetDragEnabledForContentTouch(event, contentTouchArea)
         }
-        val handled = super.dispatchTouchEvent(event)
-        restoreSheetDragAfterContentTouch(event)
-        return handled
+        return super.dispatchTouchEvent(event)
     }
 
     override fun onCreate() {
