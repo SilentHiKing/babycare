@@ -16,3 +16,4 @@ local.properties
 .gstack/
 .agent/
 .superpowers/
+.worktrees/
