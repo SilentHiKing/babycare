@@ -60,7 +60,7 @@ internal class BabyCareDateTimePopup(
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         if (::contentTouchArea.isInitialized) {
-            updateSheetDragEnabledForContentTouch(event, contentTouchArea)
+            protectSheetDragForContentTouch(event, contentTouchArea)
         }
         return super.dispatchTouchEvent(event)
     }
@@ -105,6 +105,8 @@ internal class BabyCareDateTimePopup(
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
         recyclerView.itemAnimator = null
+        // 时间列只在自身内部滚动，禁用嵌套滚动避免 XPopup 父 Sheet 消费快速 fling。
+        recyclerView.isNestedScrollingEnabled = false
         recyclerView.setHasFixedSize(true)
         snapHelper.attachToRecyclerView(recyclerView)
 

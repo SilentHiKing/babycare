@@ -37,7 +37,7 @@ internal class BabyCareChoicePopup<T>(
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         if (::contentTouchArea.isInitialized) {
-            updateSheetDragEnabledForContentTouch(event, contentTouchArea)
+            protectSheetDragForContentTouch(event, contentTouchArea)
         }
         return super.dispatchTouchEvent(event)
     }

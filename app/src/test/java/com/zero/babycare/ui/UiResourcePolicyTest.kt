@@ -1353,19 +1353,21 @@ class UiResourcePolicyTest {
             ) {
                 add("choice picker item text should be centered while the check icon stays right-aligned")
             }
-            if (!dateTimeSource.contains("updateSheetDragEnabledForContentTouch(event, contentTouchArea)") ||
+            if (!dateTimeSource.contains("protectSheetDragForContentTouch(event, contentTouchArea)") ||
                 !dateTimeSource.contains("R.id.picker_frame") ||
-                !choiceSource.contains("updateSheetDragEnabledForContentTouch(event, contentTouchArea)") ||
+                !choiceSource.contains("protectSheetDragForContentTouch(event, contentTouchArea)") ||
                 !choiceSource.contains("R.id.option_container") ||
-                !bottomSheetSource.contains("val enableSheetDrag = !isContentTouch") ||
-                !bottomSheetSource.contains("bottomPopupContainer.enableDrag(enableSheetDrag)")
+                !bottomSheetSource.contains("requestDisallowInterceptTouchEvent(isContentTouch)")
             ) {
-                add("picker sheets should disable XPopup drag for content touches while allowing a new header touch to re-enable it")
+                add("picker sheets should protect content touches by disallowing parent intercept without changing XPopup drag layout")
             }
-            if (bottomSheetSource.contains("restoreSheetDragAfterContentTouch") ||
-                bottomSheetSource.contains("bottomPopupContainer.enableDrag(true)")
+            if (bottomSheetSource.contains("bottomPopupContainer.enableDrag(") ||
+                bottomSheetSource.contains("val enableSheetDrag")
             ) {
-                add("picker sheets should not re-enable XPopup drag on touch end because RecyclerView fling can still be active")
+                add("picker sheets should not toggle SmartDragLayout enableDrag at runtime because it changes XPopup layout mode")
+            }
+            if (!dateTimeSource.contains("isNestedScrollingEnabled = false")) {
+                add("date/time picker columns should disable nested scrolling so XPopup SmartDragLayout cannot consume column fling")
             }
             if (!dialogHelperSource.contains(".moveUpToKeyboard(false)")) {
                 add("picker sheets should opt out of XPopup keyboard move-up because they do not show the IME")
