@@ -7,34 +7,60 @@
 
 ## 项目结构与模块组织
 
-- `app/`：Android 应用模块（Activity、Fragment、导航、UI 布局）。
-- `babydata/`：数据层（Room 实体、DAO、Repository、数据库迁移）。
-- `common/`：共享资源与工具（主题、Drawable、扩展函数、通用工具）。
-- `components/`：可复用 UI 组件与基类（ViewBinding 辅助类、对话框、Toolbar 等）。
-- `baby_recyclerview/`：自定义 RecyclerView 适配器与辅助工具。
-- `tools/`：辅助脚本（语言相关工具位于 `tools/language/`）。
-- 根 Gradle 配置位于 `build.gradle.kts`，版本目录位于 `gradle/libs.versions.toml`。
+- `app/`：Android 应用模块，包名 `com.zero.babycare`。当前业务目录包括 `home/`（Dashboard、快速记录、喂养/睡眠/事件记录、预测）、`statistics/`（统计、时间轴、WHO 成长标准）、`settings/`（设置、备份导入导出）、`reminder/`（提醒调度与通知）、`babyinfo/`、`babies/`、`navigation/`。
+- `app/src/main/assets/who_growth/`：WHO 成长标准 JSON 数据，配套生成脚本位于 `tools/who/generate_who_growth_data.py`。修改成长标准时必须同步校验解析和统计测试。
+- `babydata/`：数据层模块，包名 `com.zero.babydata`。包含 `entity/`、`room/`、`domain/`、`backup/`，负责 Room 实体、DAO、Repository、数据库迁移、备份导入导出数据模型与逻辑。
+- `babydata/schemas/`：Room schema 导出目录，由 KSP 参数 `room.schemaLocation` 生成。数据库版本、实体或迁移变化必须提交对应 schema。
+- `common/`：共享资源与工具模块，包名 `com.zero.common`。放置主题、颜色、Drawable、TextAppearance、dimen、扩展函数、MMKV 封装、主题管理、单位/日期/语言等通用工具。
+- `common/src/app_oversea/res/`：Google Play / overseas 变体语言资源输出目录，由多语言脚本生成，不能手工维护。
+- `components/`：可复用 UI 与基础能力模块，包名 `com.zero.components`。包含 BaseActivity/BaseFragment、ViewBinding 辅助类、`UiState` / BaseViewModel、Toolbar、Dialog、BottomSheet、记录计时面板、时间输入和触摸/键盘滚动辅助能力。
+- `baby_recyclerview/`：项目内 RecyclerView 基础能力模块，包名 `com.chad.library.adapter4`。封装 BRVAH 4 风格的 Adapter、LoadState、拖拽滑动、LayoutManager 与 ViewHolder 能力。
+- `docs/`：项目设计、技术说明和阶段性计划文档。UI 相关变更必须同步参考 `DESIGN.md` 与 `docs/ui-guidelines.md`。
+- `tools/`：辅助脚本目录。多语言工具位于 `tools/language/`，成长数据工具位于 `tools/who/`。
+- 根 Gradle 配置位于 `settings.gradle.kts`、`build.gradle.kts`，版本目录位于 `gradle/libs.versions.toml`，多语言任务由 `i18n.gradle.kts` 挂载到根工程。
+
+当前 Gradle 模块固定为：
+
+- `:app`
+- `:babydata`
+- `:common`
+- `:components`
+- `:baby_recyclerview`
+
+当前模块依赖方向：
+
+- `app` → `babydata`、`components`、`common`、`baby_recyclerview`
+- `babydata` → `common`
+- `components` → `common`、`baby_recyclerview`
+- `common` 与 `baby_recyclerview` 不依赖业务模块
 
 ---
 
 ## 构建、测试与开发命令
 
-- `./gradlew assembleDebug`：构建 Debug APK。
+- Windows / PowerShell 优先使用 `.\gradlew.bat <task>`；macOS / Linux 使用 `./gradlew <task>`。以下命令用 `./gradlew` 表示，Windows 下替换为 `.\gradlew.bat`。
+- `./gradlew assembleDebug`：构建 Debug APK，UI、资源、依赖或 AndroidManifest 变更后至少运行一次。
 - `./gradlew installDebug`：将 Debug APK 安装到设备/模拟器。
-- `./gradlew test`：运行 JVM 单元测试（`src/test/java`）。
-- `./gradlew connectedAndroidTest`：运行仪器测试（`src/androidTest/java`）。
-- `./gradlew updateAllLanguages`：刷新多语言资源。
-- `./gradlew generateLanguageJson`：导出语言数据为 JSON。
-- `./gradlew fetchInternationalLanguageList`：拉取支持的语言列表。
+- `./gradlew test`：运行所有 JVM 单元测试（`src/test/java`）。
+- `./gradlew :app:testDebugUnitTest`：运行 app 模块 JVM 单元测试，适合业务逻辑、ViewModel、统计、预测、资源策略变更。
+- `./gradlew :common:testDebugUnitTest`：运行 common 模块 JVM 单元测试，适合主题、单位、日期、工具类变更。
+- `./gradlew connectedAndroidTest`：运行仪器测试（`src/androidTest/java`），需要已连接设备或模拟器。
+- `./gradlew generateLanguageJson`：从 `tools/language/多语言对照表.xlsx` 导出 `tools/language/output.json`。
+- `./gradlew fetchInternationalLanguageList`：从本地 JSON 生成 Android `strings.xml`。
+- `./gradlew updateAllLanguages`：完整多语言刷新流程，等价于先生成 JSON 再生成各模块字符串资源。
+- `npx @google/design.md lint DESIGN.md`：仅当修改 `DESIGN.md` 时运行。
 
 ---
 
 ## 编码风格与命名规范
 
+- 当前工具链：AGP 8.13.0、Kotlin 2.2.0、KSP 2.2.0-2.0.2、compileSdk 36、targetSdk 36、minSdk 24、Java/Kotlin JVM target 11。
 - Kotlin / Java 使用 **4 空格缩进**，遵循标准 Android 编码规范。
 - 包名遵循 `com.zero.*`，类必须放在正确的模块包路径下。
 - 资源文件使用 **snake_case**（例如：`layout_event_detail_diaper.xml`）。
 - 共享扩展函数统一放在 `common/src/main/java/com/zero/common/ext`。
+- 当前 UI 主体仍以 XML + ViewBinding / DataBinding 为主；`app` 已启用 Compose，但新增 Compose 代码必须先确认确有必要，并复用现有主题 token、资源字符串和 MVVM 状态流。
+- 依赖版本统一写入 `gradle/libs.versions.toml`。新增三方库前必须确认现有 AndroidX、Material、Room、MMKV、Gson、XPopup、baby_recyclerview 或项目模块能力无法满足需求。
 
 ---
 
@@ -44,6 +70,8 @@
 - 仪器测试：`*/src/androidTest/java`（AndroidX Test + Espresso）。
 - 测试类命名为 `*Test`。
 - 新增的数据逻辑（`babydata`）或新的 ViewModel 行为应补充测试。
+- 涉及统计、预测、计时、资源策略、主题对比度、单位换算、备份导入导出的改动，应优先补充或更新现有对应测试（例如 `Statistics*Test`、`LocalRulePredictorTest`、`TimerSessionPolicyTest`、`UiResourcePolicyTest`、`ThemePaletteContrastTest`）。
+- Room 实体、DAO、迁移或数据库版本变化时，必须同步更新 `babydata/schemas/` 并补充迁移或关键 DAO 行为测试。
 - 未设置强制覆盖率目标，优先覆盖关键路径与回归风险点。
 
 ---
@@ -61,7 +89,8 @@
 ## 安全与配置
 
 - 本地 SDK 路径与密钥放在 `local.properties`，**禁止提交到仓库**。
-- 如需 Release 混淆规则，使用各模块内的 `proguard-rules.pro`。
+- 禁止在 `settings.gradle.kts`、`build.gradle.kts`、源码、资源或文档中新增明文账号、密码、Token、签名信息或私有仓库凭据。需要凭据时使用本地 Gradle properties、环境变量或 CI Secret。
+- 如需 Release 混淆规则，使用各模块内的 `proguard-rules.pro`。 
 
 ---
 
@@ -96,7 +125,7 @@
   - 处理 UI 级逻辑（校验、状态组合、错误映射）
 - 禁止：
   - 持有 View / Activity / Fragment 引用
-  - 长期持有 Context
+  - 长期持有 Activity / Fragment Context；确需 Application Context 时，仅允许使用 `AndroidViewModel` 或显式 Application 级依赖，并说明原因
   - 直接操作 UI（Toast、Dialog、导航）
   - 使用 `GlobalScope`
 
@@ -123,6 +152,11 @@
 - `UiEvent`：用户操作
 - `UiEffect`：一次性动作（Toast、导航等）
 
+当前项目已有基础能力：
+- 通用 `UiState`、`BaseViewModel`、`BaseViewModel1` 位于 `components/src/main/java/com/zero/components/base/vm`。
+- 页面状态优先以 `StateFlow` 对外暴露只读流，内部使用 `MutableStateFlow`。
+- 一次性 UI 行为（Toast、Dialog、导航、文件选择、权限请求）由 View 层执行，ViewModel 只输出状态或 effect 意图。
+
 ---
 
 ## 异步与生命周期规范
@@ -131,6 +165,7 @@
 - View 层收集 Flow 必须绑定生命周期
 - 磁盘 / 网络 / 数据库操作 **严禁在主线程执行**
 - 必须使用 `Dispatchers.IO` 或统一调度器
+- `BroadcastReceiver`、通知、备份导入导出、Room 查询等后台路径必须显式控制线程，不得阻塞主线程或依赖不受生命周期约束的任务。
 
 ---
 
@@ -139,6 +174,8 @@
 - RecyclerView Adapter 只负责渲染列表项
 - 不允许在 Adapter 中编写业务逻辑
 - 列表项数据应来自 ViewModel 提供的 UI Model
+- 新增通用列表、页面列表和业务列表优先使用 `baby_recyclerview` 中的 `BaseQuickAdapter`、`BaseSingleItemAdapter`、`QuickAdapterHelper` 等能力。
+- 当前项目存在少量高度定制的原生 `RecyclerView.Adapter`（如日历、单项统计区块或内部组件）。修改这些实现时只能保持其专用边界，不得扩散为新的通用列表方案；若能力已能由 `baby_recyclerview` 承载，应顺手迁移。
 
 ---
 
@@ -211,15 +248,21 @@
 - `babydata/` **禁止依赖** UI 模块
 - `app/` 不得引入循环依赖
 - 业务逻辑与业务资源禁止放入 `common/` 或 `components/`
+- `common/` 只放跨模块稳定资源与工具，不放 BabyCare 单页面业务流程。
+- `components/` 可依赖 `common/` 和 `baby_recyclerview`，用于沉淀通用 UI 容器、输入控件、弹窗、Toolbar、基础 Fragment / Activity 与 ViewModel 辅助能力。
+- `babydata/` 可依赖 `common/`，但不得依赖 `components/`、`app/` 或任何 Android UI 类型。
+- `baby_recyclerview/` 保持为列表基础设施模块，不反向依赖 BabyCare 业务模块。
 
 ---
 
 ## 资源、主题与本地化约束
 
 - 所有用户可见文本必须来自 `strings.xml`
-- 禁止任何形式的硬编码字符串
+- 禁止任何形式的硬编码用户可见字符串；`tools:text` 仅允许用于 XML 预览
 - 主题、颜色、文字样式必须优先复用 `common/`
 - 禁止在 `app/` 中重复定义 style / color / theme
+- `strings.xml`、`tools/language/output.json`、`common/src/app_oversea/res/values*/strings.xml` 均为生成结果，除紧急排查外不得手动编辑后直接提交。
+- Kotlin 中的用户可见拼接必须通过字符串资源占位符完成，不得用字符串模板直接拼接界面文案。
 
 ---
 
@@ -228,6 +271,8 @@
 - 多语言源数据以 `tools/language/多语言对照表.xlsx` 为准，`strings.xml` 与 `tools/language/output.json` 均视为脚本生成结果。
 - 新增或修改任何用户可见字符串时，必须先写入 `tools/language/多语言对照表.xlsx`，补齐当前脚本支持的语言列（简体中文、English、繁体中文、日文、韩文），再运行 `./gradlew updateAllLanguages` 生成 XML。
 - 禁止只手动修改 `strings.xml` 来新增或改动文案；如因排查临时改过 XML，提交前必须同步回 Excel 并重新运行生成脚本。
+- 当前脚本语言映射为 `en`、`zh-Hans`、`zh-Hant`、`ja`、`ko`，生成目录覆盖各模块 `src/main/res/values*`，其中繁体中文会生成 `values-zh-rTW` 与 `values-zh-rHK`。
+- `common` 还会生成 Google Play / overseas 资源到 `common/src/app_oversea/res/values*`，新增通用文案时必须检查该输出。
 - 字符串归属优先级：
   - `baby_recyclerview` 模块自用文案必须写入 Excel 的 `baby_recyclerview` sheet，并生成到 `baby_recyclerview/src/main/res/values*/strings.xml`。
   - 除 `baby_recyclerview` 外，能复用或可能跨页面/跨模块使用的文案优先写入 `common` sheet，并生成到 `common/src/main/res/values*/strings.xml`。
@@ -236,6 +281,17 @@
 - 翻译必须贴合 BabyCare 场景与父母高频记录语境，避免生硬直译；涉及喂养、睡眠、排泄、健康、成长等业务词时应保持全项目一致。
 - 多语言值必须保留 Android 格式化占位符与转义形式，例如 `%1$s`、`%1$d`、`%%`、`\n`；不同语言不得遗漏、改序或改类型。
 - 运行 `./gradlew updateAllLanguages` 后，至少检查相关生成文件，并在提交前运行 `./gradlew assembleDebug`；涉及资源策略或文案引用规则变化时还应运行对应单测或 `./gradlew test`。
+
+---
+
+## 数据、备份、提醒与成长标准约束
+
+- Room 数据库入口位于 `babydata/src/main/java/com/zero/babydata/room/BabyDatabase.kt`，DAO、Repository 与迁移集中在 `babydata/room/`。实体字段、索引、版本号或迁移变化必须同步更新 schema 与迁移逻辑。
+- `babydata/backup/` 负责备份数据模型、导入、导出和去重策略；`app/settings/backup/` 负责界面、文件选择、报告展示和用户反馈。不得把备份业务规则写进 Fragment 或 Adapter。
+- `app/reminder/` 负责提醒调度、开机恢复、通知构建与后台检查。通知文案必须来自资源；权限、渠道和开关状态必须在发送前检查；Receiver 不得执行长时间主线程工作。
+- `app/home/prediction/` 是喂养 / 睡眠预测入口，新增预测策略时应通过 `Predictor` / `PredictionManager` 扩展，不直接在 Dashboard 或提醒代码中复制算法。
+- WHO 成长标准 JSON 位于 `app/src/main/assets/who_growth/`，解析和截断规则位于 `app/statistics/standard` 与 `app/statistics/mapper`。修改数据文件、年龄截断、性别解析或百分位逻辑时，必须运行相关 `StatisticsGrowthCutoffTest`、`WhoSexParserTest` 等测试。
+- 宝宝姓名、生日、健康、成长、备份内容属于敏感数据。日志、异常消息、通知和导出报告只展示完成用户任务所必需的信息。
 
 ---
 
@@ -338,14 +394,16 @@
 - 常用工具与基础能力 **必须优先复用已有依赖或模块**
 - 禁止重复造轮子
 - 新增工具需放入合适的共享模块
+- 新增依赖必须先写入 `gradle/libs.versions.toml`，并确认不会破坏模块边界或引入与现有能力重复的库。
 
 ---
 
 ## RecyclerView 使用规范（强制）
 
-- 所有 RecyclerView 实现 **必须基于 `baby_recyclerview` 模块**
+- 新增通用 RecyclerView 能力与业务列表 **必须优先基于 `baby_recyclerview` 模块**
 - 禁止在页面层自建通用 RecyclerView 方案
-- 能力不足时必须扩展 `baby_recyclerview`
+- 能力不足时优先扩展 `baby_recyclerview` 或 `components` 中已有列表辅助能力
+- 当前已有的原生 `RecyclerView.Adapter` 只允许作为专用、局部实现继续维护；重构或新增同类列表时应评估迁移到 `baby_recyclerview`
 
 ---
 
@@ -355,7 +413,9 @@ AI 在输出最终结果前，必须确认：
 
 - 模块放置与依赖方向正确
 - 无硬编码用户可见字符串
+- 新增或修改文案已同步 `tools/language/多语言对照表.xlsx` 并运行生成任务
 - UI 改动符合 Soft Care + Data Clarity / Soft Utility 2.0、男孩 / 女孩主题、暖活泼配色、无普通 View 阴影和统一图标规范
 - 异步逻辑符合线程与生命周期规范
+- Room schema、备份、提醒、预测或 WHO 成长数据变更已有对应测试或明确验证
 - 不引入 View / Adapter / 回调相关内存泄漏
 - MVVM 分层未被破坏
