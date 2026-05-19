@@ -2,7 +2,6 @@ package com.zero.components.base.util
 
 import android.content.Context
 import android.graphics.Rect
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import com.lxj.xpopup.core.BottomPopupView
@@ -16,47 +15,20 @@ import com.lxj.xpopup.core.BottomPopupView
  */
 internal abstract class BabyCareBottomSheetPopup(context: Context) : BottomPopupView(context) {
 
-    override fun onKeyboardHeightChange(height: Int) {
-        super.onKeyboardHeightChange(height)
-        if (height > 0) {
-            // 选择器不展示软键盘，记录非零高度便于定位系统布局回调误判导致的弹框位移问题。
-            Log.d(TAG, "Unexpected keyboard height for picker bottom sheet: height=$height")
-        }
-    }
-
     protected fun protectSheetDragForContentTouch(event: MotionEvent, contentView: View) {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 val isContentTouch = contentView.containsRawPoint(event.rawX, event.rawY)
                 contentView.parent?.requestDisallowInterceptTouchEvent(isContentTouch)
-                logSheetTouchState(
-                    "Picker sheet touch started: contentTouch=$isContentTouch, " +
-                        "disallowParentIntercept=$isContentTouch"
-                )
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 contentView.parent?.requestDisallowInterceptTouchEvent(false)
-                logSheetTouchState("Picker sheet touch finished: action=${event.actionMasked}")
             }
         }
-    }
-
-    private fun logSheetTouchState(prefix: String) {
-        val implView = getPopupImplView()
-        Log.d(
-            TAG,
-            "$prefix, scrollY=${bottomPopupContainer.scrollY}, " +
-                "implTop=${implView.top}, implBottom=${implView.bottom}, " +
-                "contentTranslationY=${getPopupContentView().translationY}"
-        )
     }
 
     private fun View.containsRawPoint(rawX: Float, rawY: Float): Boolean {
         val rect = Rect()
         return isShown && getGlobalVisibleRect(rect) && rect.contains(rawX.toInt(), rawY.toInt())
-    }
-
-    private companion object {
-        private const val TAG = "BabyCarePickerSheet"
     }
 }

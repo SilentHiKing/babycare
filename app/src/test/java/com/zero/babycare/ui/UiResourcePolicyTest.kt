@@ -1369,15 +1369,6 @@ class UiResourcePolicyTest {
             if (!dateTimeSource.contains("isNestedScrollingEnabled = false")) {
                 add("date/time picker columns should disable nested scrolling so XPopup SmartDragLayout cannot consume column fling")
             }
-            if (!dialogHelperSource.contains(".moveUpToKeyboard(false)")) {
-                add("picker sheets should opt out of XPopup keyboard move-up because they do not show the IME")
-            }
-            if (!bottomSheetSource.contains("override fun onKeyboardHeightChange") ||
-                !bottomSheetSource.contains("BabyCarePickerSheet") ||
-                !bottomSheetSource.contains("Log.d(TAG")
-            ) {
-                add("picker sheets should log unexpected nonzero keyboard height callbacks for diagnosis")
-            }
         }
 
         // 选择器的视觉必须统一为平面列表：选择项靠分割线和右侧勾确认，时间项靠渐变蒙层突出中心数字。

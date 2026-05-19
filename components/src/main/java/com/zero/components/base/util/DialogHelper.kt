@@ -59,7 +59,6 @@ object DialogHelper {
         return XPopup.Builder(context)
             .isViewMode(false)
             .hasShadowBg(true)
-            .moveUpToKeyboard(false)
     }
 
     /**
