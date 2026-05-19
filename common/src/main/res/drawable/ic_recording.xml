@@ -1,17 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="48dp"
     android:height="48dp"
     android:viewportWidth="48"
     android:viewportHeight="48">
 
-    <!-- 外圆环 -->
+    <!-- 保留原有圆环和中心圆点形状，仅使用当前宝宝主题品牌色。 -->
     <path
-        android:fillColor="#E80000"
+        android:fillAlpha="0.9"
+        android:fillColor="?attr/iconColorBrand"
         android:pathData="M24,4C12.95,4 4,12.95 4,24s8.95,20 20,20 20,-8.95 20,-20S35.05,4 24,4zM24,40c-8.82,0 -16,-7.18 -16,-16S15.18,8 24,8s16,7.18 16,16 -7.18,16 -16,16z"/>
 
     <!-- 中心录制圆点 -->
     <path
-        android:fillColor="#E80000"
+        android:fillAlpha="0.86"
+        android:fillColor="?attr/iconColorBrand"
         android:pathData="M24,16c-4.42,0 -8,3.58 -8,8s3.58,8 8,8 8,-3.58 8,-8 -3.58,-8 -8,-8z"/>
 
 </vector>

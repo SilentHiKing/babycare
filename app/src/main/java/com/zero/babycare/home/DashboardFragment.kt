@@ -8,6 +8,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.blankj.utilcode.util.LogUtils
+import com.zero.babycare.MainActivity
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentDashboardBinding
 import com.zero.babycare.home.bean.DashboardData
@@ -125,13 +126,9 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             ?.takeIf { it.isNotBlank() }
             ?: getString(com.zero.common.R.string.no_baby_yet)
 
-        // 首页头部表达“当前宝宝”而不是页面标题，点击身份区进入宝宝切换或创建流程。
+        // 首页头部表达“当前宝宝”而不是页面标题；点击身份区打开侧边栏，承接宝宝与设置入口。
         binding.toolbar.showIdentityTitle(identityTitle) {
-            if (baby != null) {
-                mainVm.navigateTo(NavTarget.AllChildren)
-            } else {
-                mainVm.navigateTo(NavTarget.BabyInfo.create())
-            }
+            (activity as? MainActivity)?.openDrawer()
         }
         binding.toolbar.hideAction()
     }

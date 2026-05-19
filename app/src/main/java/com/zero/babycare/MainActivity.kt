@@ -40,9 +40,9 @@ import kotlin.math.abs
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
     companion object {
-        private const val DRAWER_EDGE_WIDTH_DP = 32f
-        private const val DRAWER_OPEN_DISTANCE_DP = 48f
-        private const val DRAWER_HORIZONTAL_RATIO = 1.5f
+        private const val DRAWER_EDGE_WIDTH_DP = 120f
+        private const val DRAWER_OPEN_DISTANCE_DP = 4f
+        private const val DRAWER_HORIZONTAL_RATIO = 1f
     }
 
     private val vm by viewModels<MainViewModel>()
@@ -58,11 +58,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         LayoutNavDrawerBinding.bind(binding.navDrawer.root)
     }
     private val drawerEdgeWidthPx by lazy { dpToPx(DRAWER_EDGE_WIDTH_DP) }
-    private val drawerOpenDistancePx by lazy { dpToPx(DRAWER_OPEN_DISTANCE_DP) }
     private val drawerTouchSlop by lazy { ViewConfiguration.get(this).scaledTouchSlop.toFloat() }
+    private val drawerSwipeTriggerPx by lazy { maxOf(drawerTouchSlop, dpToPx(DRAWER_OPEN_DISTANCE_DP)) }
     private var drawerGestureStartX = 0f
     private var drawerGestureStartY = 0f
     private var isTrackingDrawerGesture = false
+    private var isDrawerGestureClaimed = false
+    private var hasCancelledDashboardTouch = false
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -273,7 +275,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun handleDashboardDrawerGesture(event: MotionEvent): Boolean {
-        if (vm.navTarget.value !is NavTarget.Dashboard || isDrawerOpen()) {
+        if (vm.navTarget.value !is NavTarget.Dashboard) {
+            resetDrawerGestureTracking()
+            return false
+        }
+
+        if (isDrawerOpen() && !isDrawerGestureClaimed) {
             resetDrawerGestureTracking()
             return false
         }
@@ -283,32 +290,68 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 drawerGestureStartX = event.x
                 drawerGestureStartY = event.y
                 isTrackingDrawerGesture = event.x <= drawerEdgeWidthPx
+                isDrawerGestureClaimed = false
+                hasCancelledDashboardTouch = false
             }
             MotionEvent.ACTION_MOVE -> {
-                if (!isTrackingDrawerGesture) return false
-
-                val distanceX = event.x - drawerGestureStartX
-                val distanceY = event.y - drawerGestureStartY
-                val isIntentionalRightSwipe = distanceX > drawerOpenDistancePx &&
-                    distanceX > drawerTouchSlop &&
-                    distanceX > abs(distanceY) * DRAWER_HORIZONTAL_RATIO
-
-                if (isIntentionalRightSwipe) {
-                    openDrawer()
-                    resetDrawerGestureTracking()
+                if (isDrawerGestureClaimed) {
                     return true
                 }
+
+                if (!isTrackingDrawerGesture) return false
+
+                val dx = event.x - drawerGestureStartX
+                val dy = event.y - drawerGestureStartY
+                val absDx = abs(dx)
+                val absDy = abs(dy)
+                if (absDx < drawerSwipeTriggerPx && absDy < drawerSwipeTriggerPx) {
+                    return false
+                }
+
+                if (absDy > absDx * DRAWER_HORIZONTAL_RATIO) {
+                    resetDrawerGestureTracking()
+                    return false
+                }
+
+                if (dx > 0f && absDx >= absDy * DRAWER_HORIZONTAL_RATIO) {
+                    // 左边缘触摸一旦明确为右横滑，就立刻接管整段事件，避免 NestedScrollView 继续竞争。
+                    isDrawerGestureClaimed = true
+                    cancelDashboardTouchIfNeeded(event)
+                    if (!isDrawerOpen()) {
+                        openDrawer()
+                    }
+                    return true
+                }
+
+                resetDrawerGestureTracking()
             }
             MotionEvent.ACTION_UP,
-            MotionEvent.ACTION_CANCEL -> resetDrawerGestureTracking()
+            MotionEvent.ACTION_CANCEL -> {
+                val shouldConsume = isDrawerGestureClaimed
+                resetDrawerGestureTracking()
+                return shouldConsume
+            }
         }
         return false
     }
 
     private fun resetDrawerGestureTracking() {
         isTrackingDrawerGesture = false
+        isDrawerGestureClaimed = false
+        hasCancelledDashboardTouch = false
         drawerGestureStartX = 0f
         drawerGestureStartY = 0f
+    }
+
+    private fun cancelDashboardTouchIfNeeded(event: MotionEvent) {
+        if (hasCancelledDashboardTouch) return
+
+        val cancelEvent = MotionEvent.obtain(event).apply {
+            action = MotionEvent.ACTION_CANCEL
+        }
+        super.dispatchTouchEvent(cancelEvent)
+        cancelEvent.recycle()
+        hasCancelledDashboardTouch = true
     }
 
     private fun dpToPx(value: Float): Float {

@@ -151,6 +151,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:layout_marginTop="12dp"
+                        android:alpha="0.45"
                         android:background="@color/feeding_divider"
                         app:layout_constraintTop_toBottomOf="@id/tvFeedingSinceLabel" />
 
@@ -235,6 +236,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:layout_marginTop="12dp"
+                        android:alpha="0.45"
                         android:background="@color/sleep_divider"
                         app:layout_constraintTop_toBottomOf="@id/tvSleepSinceLabel" />
 
@@ -270,17 +272,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:background="@drawable/bg_card_prediction"
+                android:background="@drawable/bg_r16_surface_stroke_control_border"
                 android:outlineProvider="background"
                 android:padding="16dp">
 
                 <TextView
                     android:id="@+id/tvPredictionSectionTitle"
-                    style="@style/TextAppearance.BabyCare.Label"
+                    style="@style/TextAppearance.BabyCare.Action"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/next_prediction"
-                    android:textColor="?attr/colorTextHint"
+                    android:textColor="?attr/colorTextSecondary"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -289,7 +291,7 @@
                     android:id="@+id/ivPredictFeeding"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="20dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_feeding"
                     app:layout_constraintStart_toStartOf="parent"
@@ -324,7 +326,8 @@
                     android:id="@+id/dividerPredict"
                     android:layout_width="match_parent"
                     android:layout_height="0.5dp"
-                    android:layout_marginVertical="12dp"
+                    android:layout_marginTop="12dp"
+                    android:alpha="0.45"
                     android:background="@color/colorDivider"
                     app:layout_constraintTop_toBottomOf="@id/ivPredictFeeding" />
 
@@ -372,7 +375,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:background="@drawable/bg_card_prediction"
+                android:background="@drawable/bg_r16_surface_stroke_control_border"
                 android:outlineProvider="background"
                 android:padding="16dp">
 
@@ -382,7 +385,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/quick_record"
-                    android:textColor="?attr/colorTextPrimary"
+                    android:textColor="?attr/colorTextSecondary"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 

@@ -2,5 +2,8 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <solid android:color="@color/status_sleeping_start" />
+    <stroke
+        android:width="@dimen/surface_stroke_width"
+        android:color="@color/control_border_default" />
     <corners android:radius="?attr/shapeCornerLarge" />
 </shape>

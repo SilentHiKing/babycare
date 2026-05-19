@@ -8,7 +8,8 @@
     <path
         android:fillColor="@android:color/transparent"
         android:pathData="M12,21a9,9 0,1 0,0 -18a9,9 0,0 0,0 18zM10,8.5v7l5.5,-3.5z"
-        android:strokeColor="?attr/iconColorPrimary"
+        android:strokeAlpha="0.82"
+        android:strokeColor="?attr/iconColorBrand"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:strokeWidth="2" />

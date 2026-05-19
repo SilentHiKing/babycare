@@ -44,7 +44,7 @@ import com.zero.components.databinding.LayoutBaseToolBarBinding
  * toolbar.setActions(listOf(ToolbarAction(text = "编辑"))) { /* 编辑操作 */ }
  *
  * // 首页身份：头像 + 宝宝名 + 下拉箭头
- * toolbar.showIdentityTitle("宝宝") { /* 切换宝宝 */ }
+ * toolbar.showIdentityTitle("宝宝") { /* 打开身份相关入口 */ }
  * 
  * // 编辑页：返回 + 标题 + 保存（单动作也使用列表）
  * toolbar.title = "编辑信息"
