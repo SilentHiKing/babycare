@@ -8,7 +8,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.blankj.utilcode.util.LogUtils
-import com.zero.babycare.MainActivity
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentDashboardBinding
 import com.zero.babycare.home.bean.DashboardData
@@ -18,7 +17,6 @@ import com.zero.common.ext.launchInLifecycle
 import com.zero.common.util.DateUtils
 import com.zero.common.util.DeviceUtils
 import com.zero.components.base.BaseFragment
-import com.zero.components.base.vm.UiState
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -56,16 +54,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
 
-        // 设置标题：显示宝宝名称
-        updateToolbarTitle()
-
-        // 左侧菜单按钮 - 打开侧边栏
-        binding.toolbar.showMenuButton {
-            (activity as? MainActivity)?.openDrawer()
-        }
-
-        // 隐藏右侧按钮
-        binding.toolbar.hideAction()
+        setupDashboardToolbar()
 
         // 底部快捷操作
         setupQuickActions()
@@ -109,7 +98,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         super.onHiddenChanged(hidden)
         LogUtils.d("DashboardFragment onHiddenChanged: $hidden")
         if (!hidden) {
-            updateToolbarTitle()
+            setupDashboardToolbar()
             refreshData()
             startTimers()
         } else {
@@ -130,13 +119,21 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         stopTimers()
     }
 
-    private fun updateToolbarTitle() {
+    private fun setupDashboardToolbar() {
         val baby = mainVm.getCurrentBabyInfo()
-        binding.toolbar.title = if (baby != null) {
-            getString(com.zero.common.R.string.baby_dashboard_title, baby.name)
-        } else {
-            getString(com.zero.common.R.string.dashboard)
+        val identityTitle = baby?.name
+            ?.takeIf { it.isNotBlank() }
+            ?: getString(com.zero.common.R.string.no_baby_yet)
+
+        // 首页头部表达“当前宝宝”而不是页面标题，点击身份区进入宝宝切换或创建流程。
+        binding.toolbar.showIdentityTitle(identityTitle) {
+            if (baby != null) {
+                mainVm.navigateTo(NavTarget.AllChildren)
+            } else {
+                mainVm.navigateTo(NavTarget.BabyInfo.create())
+            }
         }
+        binding.toolbar.hideAction()
     }
 
     /**

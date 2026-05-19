@@ -26,6 +26,7 @@ import com.zero.components.databinding.LayoutBaseToolBarBinding
  * - 返回按钮（默认显示）：showBackButton()
  * - 菜单按钮：showMenuButton()
  * - 隐藏左侧按钮：hideLeftButton()
+ * - 身份标题：首页可用 showIdentityTitle() 显示宝宝身份入口
  * 
  * ## 右侧操作区
  * - 多动作列表：setActions()
@@ -41,6 +42,9 @@ import com.zero.components.databinding.LayoutBaseToolBarBinding
  * toolbar.title = "首页"
  * toolbar.showMenuButton { openDrawer() }
  * toolbar.setActions(listOf(ToolbarAction(text = "编辑"))) { /* 编辑操作 */ }
+ *
+ * // 首页身份：头像 + 宝宝名 + 下拉箭头
+ * toolbar.showIdentityTitle("宝宝") { /* 切换宝宝 */ }
  * 
  * // 编辑页：返回 + 标题 + 保存（单动作也使用列表）
  * toolbar.title = "编辑信息"
@@ -72,6 +76,7 @@ class BaseToolbar @JvmOverloads constructor(
     var title: String?
         get() = binding.tvTitle.text.toString()
         set(value) {
+            showCenteredTitle()
             binding.tvTitle.text = value
         }
 
@@ -167,9 +172,34 @@ class BaseToolbar @JvmOverloads constructor(
      * 隐藏左侧按钮
      */
     fun hideLeftButton() {
+        showCenteredTitle()
         binding.rvLeftActions.visibility = View.GONE
         onLeftActionClick = null
         leftActionAdapter.submitList(emptyList())
+        requestTitleInsetsUpdate()
+    }
+
+    /**
+     * 显示首页身份标题。
+     *
+     * 身份标题是首页的业务对象入口，不参与普通页面的居中标题计算；切换回返回/菜单按钮时，
+     * setLeftActions()/hideLeftButton() 会恢复标准居中标题模式。
+     */
+    fun showIdentityTitle(title: CharSequence, listener: (() -> Unit)? = null) {
+        binding.tvIdentityTitle.text = title
+        binding.tvTitle.visibility = View.GONE
+        binding.llIdentityTitle.visibility = View.VISIBLE
+        binding.rvLeftActions.visibility = View.GONE
+        onLeftActionClick = null
+        leftActionAdapter.submitList(emptyList())
+
+        if (listener != null) {
+            binding.llIdentityTitle.setOnClickListener { listener.invoke() }
+        } else {
+            binding.llIdentityTitle.setOnClickListener(null)
+        }
+        binding.llIdentityTitle.isClickable = listener != null
+        binding.llIdentityTitle.isFocusable = listener != null
         requestTitleInsetsUpdate()
     }
 
@@ -217,10 +247,19 @@ class BaseToolbar @JvmOverloads constructor(
             hideLeftButton()
             return
         }
+        showCenteredTitle()
         onLeftActionClick = listener
         binding.rvLeftActions.visibility = View.VISIBLE
         leftActionAdapter.submitList(actions)
         requestTitleInsetsUpdate()
+    }
+
+    private fun showCenteredTitle() {
+        binding.llIdentityTitle.visibility = View.GONE
+        binding.llIdentityTitle.setOnClickListener(null)
+        binding.llIdentityTitle.isClickable = false
+        binding.llIdentityTitle.isFocusable = false
+        binding.tvTitle.visibility = View.VISIBLE
     }
 
     private fun requestTitleInsetsUpdate() {
@@ -230,6 +269,8 @@ class BaseToolbar @JvmOverloads constructor(
     }
 
     private fun updateTitleInsets() {
+        if (binding.tvTitle.visibility != View.VISIBLE) return
+
         // 为了保证标题视觉居中，用左右区域的最大宽度做对称内边距
         val leftWidth = if (binding.rvLeftActions.visibility == View.VISIBLE) {
             binding.rvLeftActions.width

@@ -265,34 +265,36 @@
             </LinearLayout>
 
             <!-- ==================== 下次预测区域 ==================== -->
-            <TextView
-                android:id="@+id/tvPredictionTitle"
-                style="@style/TextAppearance.BabyCare.Heading1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/next_prediction"
-                android:textColor="?attr/colorTextPrimary" />
-
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/cardPrediction"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="24dp"
                 android:background="@drawable/bg_card_prediction"
                 android:outlineProvider="background"
                 android:padding="16dp">
 
-            <!-- 喂养预测 -->
-            <ImageView
-                android:id="@+id/ivPredictFeeding"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_feeding"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:tint="@color/feeding_primary" />
+                <TextView
+                    android:id="@+id/tvPredictionSectionTitle"
+                    style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/next_prediction"
+                    android:textColor="?attr/colorTextHint"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <!-- 喂养预测 -->
+                <ImageView
+                    android:id="@+id/ivPredictFeeding"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginTop="14dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_feeding"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvPredictionSectionTitle"
+                    app:tint="@color/feeding_primary" />
 
                 <TextView
                     android:id="@+id/tvPredictFeedingTime"
@@ -326,17 +328,17 @@
                     android:background="@color/colorDivider"
                     app:layout_constraintTop_toBottomOf="@id/ivPredictFeeding" />
 
-            <!-- 睡眠预测 -->
-            <ImageView
-                android:id="@+id/ivPredictSleep"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginTop="12dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_sleep"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/dividerPredict"
-                app:tint="@color/sleep_primary" />
+                <!-- 睡眠预测 -->
+                <ImageView
+                    android:id="@+id/ivPredictSleep"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginTop="12dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_sleep"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/dividerPredict"
+                    app:tint="@color/sleep_primary" />
 
                 <TextView
                     android:id="@+id/tvPredictSleepTime"
@@ -365,24 +367,38 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- ==================== 快速记录区域 ==================== -->
-            <TextView
-                android:id="@+id/tvQuickRecordTitle"
-                style="@style/TextAppearance.BabyCare.Heading1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/quick_record"
-                android:textColor="?attr/colorTextPrimary" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvQuickRecord"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cardQuickRecord"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="24dp"
                 android:background="@drawable/bg_card_prediction"
                 android:outlineProvider="background"
-                android:clipToPadding="false"
-                android:overScrollMode="never" />
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tvQuickRecordSectionTitle"
+                    style="@style/TextAppearance.BabyCare.Action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/quick_record"
+                    android:textColor="?attr/colorTextPrimary"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvQuickRecord"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:overScrollMode="never"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tvQuickRecordSectionTitle" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </LinearLayout>
 

@@ -2,10 +2,13 @@ package com.zero.babycare
 
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import com.blankj.utilcode.util.AppUtils
 import com.blankj.utilcode.util.FragmentUtils
@@ -33,8 +36,15 @@ import kotlinx.coroutines.flow.collectLatest
 import me.jessyan.autosize.AutoSizeConfig
 import java.util.concurrent.TimeUnit
 import kotlin.getValue
+import kotlin.math.abs
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
+    companion object {
+        private const val DRAWER_EDGE_WIDTH_DP = 32f
+        private const val DRAWER_OPEN_DISTANCE_DP = 48f
+        private const val DRAWER_HORIZONTAL_RATIO = 1.5f
+    }
+
     private val vm by viewModels<MainViewModel>()
     private val fragments = mutableListOf<Fragment>()
     private val backPressCallback = object : OnBackPressedCallback(true) {
@@ -47,6 +57,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val drawerBinding: LayoutNavDrawerBinding by lazy {
         LayoutNavDrawerBinding.bind(binding.navDrawer.root)
     }
+    private val drawerEdgeWidthPx by lazy { dpToPx(DRAWER_EDGE_WIDTH_DP) }
+    private val drawerOpenDistancePx by lazy { dpToPx(DRAWER_OPEN_DISTANCE_DP) }
+    private val drawerTouchSlop by lazy { ViewConfiguration.get(this).scaledTouchSlop.toFloat() }
+    private var drawerGestureStartX = 0f
+    private var drawerGestureStartY = 0f
+    private var isTrackingDrawerGesture = false
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -127,6 +143,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      * 初始化侧边栏
      */
     private fun setupDrawer() {
+        // 首页去掉显式菜单按钮后，确保 DrawerLayout 自身的 start 侧边缘手势不被状态恢复锁住。
+        binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED, GravityCompat.START)
+
         // 版本号
         drawerBinding.tvVersion.text = "v${AppUtils.getAppVersionName()}"
         
@@ -244,6 +263,56 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     fun isDrawerOpen(): Boolean {
         return binding.drawerLayout.isDrawerOpen(GravityCompat.START)
+    }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (handleDashboardDrawerGesture(event)) {
+            return true
+        }
+        return super.dispatchTouchEvent(event)
+    }
+
+    private fun handleDashboardDrawerGesture(event: MotionEvent): Boolean {
+        if (vm.navTarget.value !is NavTarget.Dashboard || isDrawerOpen()) {
+            resetDrawerGestureTracking()
+            return false
+        }
+
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                drawerGestureStartX = event.x
+                drawerGestureStartY = event.y
+                isTrackingDrawerGesture = event.x <= drawerEdgeWidthPx
+            }
+            MotionEvent.ACTION_MOVE -> {
+                if (!isTrackingDrawerGesture) return false
+
+                val distanceX = event.x - drawerGestureStartX
+                val distanceY = event.y - drawerGestureStartY
+                val isIntentionalRightSwipe = distanceX > drawerOpenDistancePx &&
+                    distanceX > drawerTouchSlop &&
+                    distanceX > abs(distanceY) * DRAWER_HORIZONTAL_RATIO
+
+                if (isIntentionalRightSwipe) {
+                    openDrawer()
+                    resetDrawerGestureTracking()
+                    return true
+                }
+            }
+            MotionEvent.ACTION_UP,
+            MotionEvent.ACTION_CANCEL -> resetDrawerGestureTracking()
+        }
+        return false
+    }
+
+    private fun resetDrawerGestureTracking() {
+        isTrackingDrawerGesture = false
+        drawerGestureStartX = 0f
+        drawerGestureStartY = 0f
+    }
+
+    private fun dpToPx(value: Float): Float {
+        return value * resources.displayMetrics.density
     }
 
     override fun initData(savedInstanceState: Bundle?) {
