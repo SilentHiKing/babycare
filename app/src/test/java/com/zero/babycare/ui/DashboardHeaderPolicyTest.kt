@@ -31,6 +31,41 @@ class DashboardHeaderPolicyTest {
     }
 
     @Test
+    fun `prediction title is visually secondary to prediction content`() {
+        val layout = File(repoRoot(), "app/src/main/res/layout/fragment_dashboard.xml").readText()
+        val predictionTitleBlock = requireBlock(layout, "@+id/tvPredictionSectionTitle")
+        val predictionFirstRowBlock = requireBlock(layout, "@+id/ivPredictFeeding")
+
+        // 预测卡里标题只做分组提示，不能和“无法预测/预测时间”使用同一主文本层级。
+        assertTrue(
+            "Prediction title should use label typography.",
+            predictionTitleBlock.contains("""style="@style/TextAppearance.BabyCare.Label"""")
+        )
+        assertTrue(
+            "Prediction title should use hint text color.",
+            predictionTitleBlock.contains("""android:textColor="?attr/colorTextHint"""")
+        )
+        assertFalse(
+            "Prediction title should not reuse primary text color.",
+            predictionTitleBlock.contains("""android:textColor="?attr/colorTextPrimary"""")
+        )
+        assertFalse(
+            "Prediction title should not stay in the same medium action level as content.",
+            predictionTitleBlock.contains("""style="@style/TextAppearance.BabyCare.Action"""")
+        )
+        assertTrue(
+            "Prediction content should remain primary so users read the result first.",
+            layout.contains("""android:id="@+id/tvPredictFeedingTime"""") &&
+                requireBlock(layout, "@+id/tvPredictFeedingTime")
+                    .contains("""android:textColor="?attr/colorTextPrimary"""")
+        )
+        assertTrue(
+            "Prediction title and first row need enough vertical separation.",
+            predictionFirstRowBlock.contains("""android:layout_marginTop="14dp"""")
+        )
+    }
+
+    @Test
     fun `dashboard drawer opens from left edge gesture`() {
         val activity = File(repoRoot(), "app/src/main/java/com/zero/babycare/MainActivity.kt").readText()
 
@@ -81,5 +116,14 @@ class DashboardHeaderPolicyTest {
             dir = dir.parentFile
         }
         return requireNotNull(dir) { "Cannot locate repository root from user.dir" }
+    }
+
+    private fun requireBlock(layout: String, viewId: String): String {
+        val idIndex = layout.indexOf(viewId)
+        require(idIndex >= 0) { "Cannot find view id $viewId" }
+        val startIndex = layout.lastIndexOf('<', idIndex)
+        val endIndex = layout.indexOf('>', idIndex)
+        require(startIndex >= 0 && endIndex > startIndex) { "Cannot extract view block for $viewId" }
+        return layout.substring(startIndex, endIndex + 1)
     }
 }
