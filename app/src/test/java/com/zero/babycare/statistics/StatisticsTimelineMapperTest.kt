@@ -79,7 +79,7 @@ class StatisticsTimelineMapperTest {
     }
 
     @Test
-    fun `sleep item exposes sleep target end time and duration detail`() {
+    fun `sleep item exposes sleep target and duration detail without separate end time`() {
         val item = mapper.mapSleep(
             SleepRecord(
                 sleepId = 7,
@@ -93,7 +93,6 @@ class StatisticsTimelineMapperTest {
         assertEquals(TimelineEditTarget.Sleep(7), item.editTarget)
         assertEquals(CommonR.color.sleep_primary, item.colorResId)
         assertTrue(item.detailText.contains("30分钟"))
-        assertTrue(item.endTimeText.orEmpty().contains("23:00"))
     }
 
     @Test
@@ -299,7 +298,6 @@ class StatisticsTimelineMapperTest {
                 CommonR.string.sleep_duration_format -> "%1\$d小时%2\$d分钟".format(*args)
                 CommonR.string.sleep_duration_hours -> "%1\$d小时".format(*args)
                 CommonR.string.sleep_duration_minutes -> "%1\$d分钟".format(*args)
-                CommonR.string.timeline_end_time_format -> "- %1\$s".format(*args)
                 CommonR.string.event_measure_title_format -> "测量%1\$s".format(*args)
                 CommonR.string.event_record_title_format -> "记录%1\$s".format(*args)
                 CommonR.string.event_milestone_title_format -> "里程碑%1\$s".format(*args)

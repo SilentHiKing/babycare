@@ -204,6 +204,61 @@ class UiResourcePolicyTest {
     }
 
     @Test
+    fun `statistics timeline collapses optional detail before note`() {
+        val timelineLayouts = listOf(
+            "app/src/main/res/layout/item_timeline_event.xml",
+            "app/src/main/res/layout/item_timeline_feeding.xml",
+            "app/src/main/res/layout/item_timeline_sleep.xml"
+        )
+
+        val offenders = buildList {
+            addAll(
+                timelineLayouts.flatMap { relativePath ->
+                    val content = File(repoRoot(), relativePath).readText()
+                    buildList {
+                        if (!content.contains("""android:id="@+id/llTextContent"""")) {
+                            add("$relativePath should render title detail and note inside one vertical text stack")
+                        }
+                        if (content.contains("""app:layout_constraintTop_toBottomOf="@id/barDetail"""") ||
+                            content.contains("""app:constraint_referenced_ids="ivIcon,tvDetail"""") ||
+                            content.contains("""app:constraint_referenced_ids="ivIcon,tvDuration,tvEndTime"""")
+                        ) {
+                            add("$relativePath should not place the note below an icon-backed detail barrier")
+                        }
+                        if (relativePath.endsWith("item_timeline_sleep.xml") &&
+                            (content.contains("""android:id="@+id/tvEndTime"""") ||
+                                content.contains("""@string/timeline_end_time_format"""))
+                        ) {
+                            add("$relativePath should not show a separate sleep end-time row")
+                        }
+                    }
+                }
+            )
+
+            val mapper = File(
+                repoRoot(),
+                "app/src/main/java/com/zero/babycare/statistics/mapper/StatisticsTimelineMapper.kt"
+            ).readText()
+            val model = File(
+                repoRoot(),
+                "app/src/main/java/com/zero/babycare/statistics/model/StatisticsUiState.kt"
+            ).readText()
+            if (mapper.contains("timeline_end_time_format") || mapper.contains("buildSleepEndTime")) {
+                add("StatisticsTimelineMapper should not build a separate sleep end-time row")
+            }
+            if (model.contains("endTimeText")) {
+                add("TimelineUiItem should not carry a separate end-time field")
+            }
+        }
+
+        // 详情为空但备注存在时，备注应紧跟标题，而不是被 40dp 图标高度撑到下方。
+        assertTrue(
+            "Statistics timeline optional detail should collapse cleanly before note: $offenders",
+            offenders.isEmpty()
+        )
+    }
+
+    @Test
     fun `statistics calendar does not overlap selected today and record states`() {
         val source = File(
             repoRoot(),

@@ -92,7 +92,6 @@ class StatisticsTimelineMapper(
             timeText = timeFormat.format(Date(record.sleepStart)),
             titleText = strings.get(CommonR.string.sleeping),
             detailText = buildSleepDuration(record.sleepDuration),
-            endTimeText = buildSleepEndTime(record.sleepEnd),
             noteText = record.note.takeIf { it.isNotBlank() },
             iconResId = CommonR.drawable.ic_sleep,
             colorResId = CommonR.color.sleep_primary,
@@ -208,16 +207,6 @@ class StatisticsTimelineMapper(
         }
 
         return parts.joinToString(separator)
-    }
-
-    private fun buildSleepEndTime(sleepEnd: Long): String? {
-        if (sleepEnd <= 0) {
-            return null
-        }
-        return strings.format(
-            CommonR.string.timeline_end_time_format,
-            timeFormat.format(Date(sleepEnd))
-        )
     }
 
     private fun buildSleepDuration(durationMillis: Long): String {

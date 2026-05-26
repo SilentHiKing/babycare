@@ -88,59 +88,52 @@
         app:layout_constraintTop_toBottomOf="@id/tvTime"
         app:tint="@color/feeding_primary" />
 
-    <!-- 标题与详情跟随图标形成内容列，避免横屏时两侧漂移。 -->
-    <TextView
-        android:id="@+id/tvTitle"
-        style="@style/TextAppearance.BabyCare.Heading3"
+    <!-- 文本栈统一承载标题、详情和备注，详情隐藏时备注会自然上移。 -->
+    <LinearLayout
+        android:id="@+id/llTextContent"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/statistics_timeline_text_gap"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:includeFontPadding="false"
-        android:textColor="?attr/colorTextPrimary"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/ivIcon"
-        app:layout_constraintTop_toTopOf="@id/ivIcon"
-        tools:text="母乳喂养" />
+        app:layout_constraintTop_toTopOf="@id/ivIcon">
 
-    <!-- 详情信息 -->
-    <TextView
-        android:id="@+id/tvDetail"
-        style="@style/TextAppearance.BabyCare.Label"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:textColor="?attr/colorTextSecondary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@id/tvTitle"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle"
-        tools:text="左侧10分 · 右侧5分 · 共15分钟" />
+        <TextView
+            android:id="@+id/tvTitle"
+            style="@style/TextAppearance.BabyCare.Heading3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:textColor="?attr/colorTextPrimary"
+            tools:text="母乳喂养" />
 
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/barDetail"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:barrierAllowsGoneWidgets="false"
-        app:barrierDirection="bottom"
-        app:constraint_referenced_ids="ivIcon,tvDetail" />
+        <!-- 详情信息 -->
+        <TextView
+            android:id="@+id/tvDetail"
+            style="@style/TextAppearance.BabyCare.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="?attr/colorTextSecondary"
+            tools:text="左侧10分 · 右侧5分 · 共15分钟" />
 
-    <!-- 备注（可选） -->
-    <TextView
-        android:id="@+id/tvNote"
-        style="@style/TextAppearance.BabyCare.Label"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:ellipsize="end"
-        android:maxLines="2"
-        android:textColor="?attr/colorTextHint"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@id/tvTitle"
-        app:layout_constraintTop_toBottomOf="@id/barDetail"
-        tools:text="备注：喝得很好"
-        tools:visibility="visible" />
+        <!-- 备注（可选） -->
+        <TextView
+            android:id="@+id/tvNote"
+            style="@style/TextAppearance.BabyCare.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="?attr/colorTextHint"
+            android:visibility="gone"
+            tools:text="备注：喝得很好"
+            tools:visibility="visible" />
+    </LinearLayout>
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/barContentBottom"
@@ -148,7 +141,7 @@
         android:layout_height="wrap_content"
         app:barrierAllowsGoneWidgets="false"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="ivIcon,tvDetail,tvNote" />
+        app:constraint_referenced_ids="ivIcon,llTextContent" />
 
     <Space
         android:id="@+id/spaceBottom"

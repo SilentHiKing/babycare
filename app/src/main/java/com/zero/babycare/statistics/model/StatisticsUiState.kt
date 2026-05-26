@@ -59,12 +59,12 @@ data class DayRecordSectionUiModel(
 
 data class SummaryMetricUiModel(
     val type: SummaryMetricType,
-    @StringRes val titleResId: Int,
+    @param:StringRes val titleResId: Int,
     val primaryText: String,
     val secondaryText: String,
-    @DrawableRes val iconResId: Int,
-    @ColorRes val colorResId: Int,
-    @ColorRes val surfaceColorResId: Int
+    @param:DrawableRes val iconResId: Int,
+    @param:ColorRes val colorResId: Int,
+    @param:ColorRes val surfaceColorResId: Int
 )
 
 enum class SummaryMetricType {
@@ -79,11 +79,10 @@ data class TimelineUiItem(
     val timeText: String,
     val titleText: String,
     val detailText: String,
-    val endTimeText: String? = null,
     val noteText: String?,
-    @DrawableRes val iconResId: Int,
-    @ColorRes val colorResId: Int,
-    @ColorRes val surfaceColorResId: Int,
+    @param:DrawableRes val iconResId: Int,
+    @param:ColorRes val colorResId: Int,
+    @param:ColorRes val surfaceColorResId: Int,
     val editTarget: TimelineEditTarget
 )
 

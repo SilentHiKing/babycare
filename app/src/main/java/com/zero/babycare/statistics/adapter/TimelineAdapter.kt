@@ -100,9 +100,8 @@ class TimelineAdapter(
                 )
                 tvStartTime.text = item.timeText
                 tvTitle.text = item.titleText
-                tvDuration.text = item.detailText
+                bindTextOrGone(tvDuration, item.detailText)
                 tvDuration.setTextColor(ContextCompat.getColor(ctx, item.colorResId))
-                bindTextOrGone(tvEndTime, item.endTimeText)
                 bindTextOrGone(tvNote, item.noteText)
                 root.setOnClickListener { onItemClick(item) }
             }

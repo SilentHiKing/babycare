@@ -88,74 +88,52 @@
         app:layout_constraintTop_toBottomOf="@id/tvStartTime"
         app:tint="@color/sleep_primary" />
 
-    <!-- 标题与睡眠详情位于同一内容列，避免右侧出现孤立的时长文本。 -->
-    <TextView
-        android:id="@+id/tvTitle"
-        style="@style/TextAppearance.BabyCare.Heading3"
+    <!-- 文本栈统一承载标题、时长和备注，睡眠不再单独展示结束时间。 -->
+    <LinearLayout
+        android:id="@+id/llTextContent"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/statistics_timeline_text_gap"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:includeFontPadding="false"
-        android:text="@string/sleeping"
-        android:textColor="?attr/colorTextPrimary"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/ivIcon"
-        app:layout_constraintTop_toTopOf="@id/ivIcon" />
+        app:layout_constraintTop_toTopOf="@id/ivIcon">
 
-    <!-- 时长：放回文本列内，避免右侧只在个别行出现一条漂浮边界。 -->
-    <TextView
-        android:id="@+id/tvDuration"
-        style="@style/TextAppearance.BabyCare.Label"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:textColor="@color/sleep_primary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@id/tvTitle"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle"
-        tools:text="2h15m" />
+        <TextView
+            android:id="@+id/tvTitle"
+            style="@style/TextAppearance.BabyCare.Heading3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:text="@string/sleeping"
+            android:textColor="?attr/colorTextPrimary" />
 
-    <!-- 结束时间（可选） -->
-    <TextView
-        android:id="@+id/tvEndTime"
-        style="@style/TextAppearance.BabyCare.Label"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:textColor="?attr/colorTextHint"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@id/tvTitle"
-        app:layout_constraintTop_toBottomOf="@id/tvDuration"
-        tools:text="- 11:45"
-        tools:visibility="visible" />
+        <!-- 时长：作为睡眠唯一主详情，避免结束时间形成无意义第三行。 -->
+        <TextView
+            android:id="@+id/tvDuration"
+            style="@style/TextAppearance.BabyCare.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/sleep_primary"
+            tools:text="2h15m" />
 
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/barDetail"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:barrierAllowsGoneWidgets="false"
-        app:barrierDirection="bottom"
-        app:constraint_referenced_ids="ivIcon,tvDuration,tvEndTime" />
-
-    <!-- 备注（可选） -->
-    <TextView
-        android:id="@+id/tvNote"
-        style="@style/TextAppearance.BabyCare.Label"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:ellipsize="end"
-        android:maxLines="2"
-        android:textColor="?attr/colorTextHint"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@id/tvTitle"
-        app:layout_constraintTop_toBottomOf="@id/barDetail"
-        tools:text="备注：睡得很香"
-        tools:visibility="visible" />
+        <!-- 备注（可选） -->
+        <TextView
+            android:id="@+id/tvNote"
+            style="@style/TextAppearance.BabyCare.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="?attr/colorTextHint"
+            android:visibility="gone"
+            tools:text="备注：睡得很香"
+            tools:visibility="visible" />
+    </LinearLayout>
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/barContentBottom"
@@ -163,7 +141,7 @@
         android:layout_height="wrap_content"
         app:barrierAllowsGoneWidgets="false"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="ivIcon,tvDuration,tvEndTime,tvNote" />
+        app:constraint_referenced_ids="ivIcon,llTextContent" />
 
     <Space
         android:id="@+id/spaceBottom"
