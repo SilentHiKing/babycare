@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.blankj.utilcode.util.ThreadUtils
+import com.zero.babycare.home.BabyRecordChangeBus
 import com.zero.babydata.entity.SleepRecord
 import com.zero.components.base.vm.BaseViewModel
 import com.zero.babydata.domain.BabyDataHelper.repository
@@ -19,6 +20,7 @@ class SleepRecordViewModel : BaseViewModel() {
     fun insert(sleepRecord: SleepRecord, callback: () -> Unit) {
         safeLaunch {
             repository.insertSleepRecord(sleepRecord) {
+                BabyRecordChangeBus.notifyChanged(sleepRecord.babyId)
                 ThreadUtils.runOnUiThread { callback() }
             }
         }
@@ -27,6 +29,7 @@ class SleepRecordViewModel : BaseViewModel() {
     fun update(sleepRecord: SleepRecord, callback: () -> Unit) {
         safeLaunch {
             repository.updateSleepRecord(sleepRecord) {
+                BabyRecordChangeBus.notifyChanged(sleepRecord.babyId)
                 ThreadUtils.runOnUiThread { callback() }
             }
         }

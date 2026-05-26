@@ -50,7 +50,10 @@ class BabyRepository(context: Context) {
     // ==================== BabyInfo ====================
 
     fun insertBabyInfo(babyInfo: BabyInfo, callback: Runnable?) {
-        run({ babyInfoDao.insertBabyInfo(babyInfo) }, callback)
+        run({
+            // Room 自动生成 babyId，插入后回填到调用方对象，避免首个宝宝保存后缓存到 babyId=0。
+            babyInfo.babyId = babyInfoDao.insertBabyInfo(babyInfo).toInt()
+        }, callback)
     }
 
     fun updateBabyInfo(babyInfo: BabyInfo, callback: Runnable? = null) {

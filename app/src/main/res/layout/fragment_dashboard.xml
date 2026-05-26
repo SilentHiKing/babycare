@@ -278,11 +278,11 @@
 
                 <TextView
                     android:id="@+id/tvPredictionSectionTitle"
-                    style="@style/TextAppearance.BabyCare.Action"
+                    style="@style/TextAppearance.BabyCare.Label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/next_prediction"
-                    android:textColor="?attr/colorTextSecondary"
+                    android:textColor="?attr/colorTextHint"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -291,7 +291,7 @@
                     android:id="@+id/ivPredictFeeding"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="14dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_feeding"
                     app:layout_constraintStart_toStartOf="parent"

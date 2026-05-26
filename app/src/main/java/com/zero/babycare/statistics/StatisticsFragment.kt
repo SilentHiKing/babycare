@@ -76,8 +76,10 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     override fun initData(view: View, savedInstanceState: Bundle?) {
         super.initData(view, savedInstanceState)
 
-        // 获取当前宝宝ID
-        ensureBabyOrNavigate()
+        // Fragment 会被 MainActivity 预创建；只有统计页真正成为当前页面时，才允许触发无宝宝跳转。
+        if (!isHidden && isCurrentStatisticsTarget()) {
+            ensureBabyOrNavigate()
+        }
 
         // 观察数据变化
         observeData()
@@ -85,7 +87,7 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        if (!hidden) {
+        if (!hidden && isCurrentStatisticsTarget()) {
             // 页面显示时刷新数据
             if (ensureBabyOrNavigate()) {
                 val currentBaby = mainVm.getCurrentBabyInfo()
@@ -145,6 +147,10 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
             layoutManager = LinearLayoutManager(context)
             adapter = concatAdapter
         }
+    }
+
+    private fun isCurrentStatisticsTarget(): Boolean {
+        return mainVm.navTarget.value is NavTarget.Statistics
     }
 
     private fun getReturnTarget(): NavTarget {

@@ -1,8 +1,6 @@
 package com.zero.babycare.home
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.View
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -28,11 +26,6 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         fun create(): DashboardFragment {
             return DashboardFragment()
         }
-        
-        // 最小刷新间隔（毫秒），避免数据库写入与查询竞态
-        private const val MIN_REFRESH_INTERVAL_MS = 100L
-        // 防抖延迟（毫秒）
-        private const val REFRESH_DEBOUNCE_MS = 50L
     }
 
     private val vm by viewModels<DashboardViewModel>()
@@ -45,12 +38,6 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             mainVm.navigateTo(action.target)
         }
     }
-
-    private val handler = Handler(Looper.getMainLooper())
-    private var secondTimerRunnable: Runnable? = null   // 每秒更新（状态卡片）
-    private var minuteTimerRunnable: Runnable? = null   // 每分钟更新（距上次时间）
-    private var refreshRunnable: Runnable? = null       // 防抖刷新
-    private var lastRefreshTime: Long = 0              // 上次刷新时间
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
@@ -86,13 +73,19 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         super.initData(view, savedInstanceState)
 
         launchInLifecycle {
-            vm.dashboardData.collect { data ->
-                data?.let { updateUI(it) }
+            mainVm.currentBaby.collect { baby ->
+                setupDashboardToolbar(baby?.name)
+                vm.setCurrentBaby(baby)
             }
         }
 
-        // 首次进入时加载数据
-        refreshData()
+        launchInLifecycle {
+            vm.dashboardUiState.collect { state ->
+                renderDashboardState(state)
+            }
+        }
+
+        vm.onVisible()
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
@@ -100,29 +93,19 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         LogUtils.d("DashboardFragment onHiddenChanged: $hidden")
         if (!hidden) {
             setupDashboardToolbar()
-            refreshData()
-            startTimers()
-        } else {
-            stopTimers()
+            vm.onVisible()
         }
     }
 
     override fun onResume() {
         super.onResume()
         if (!isHidden) {
-            refreshData()
-            startTimers()
+            vm.onVisible()
         }
     }
 
-    override fun onPause() {
-        super.onPause()
-        stopTimers()
-    }
-
-    private fun setupDashboardToolbar() {
-        val baby = mainVm.getCurrentBabyInfo()
-        val identityTitle = baby?.name
+    private fun setupDashboardToolbar(babyName: String? = mainVm.currentBaby.value?.name) {
+        val identityTitle = babyName
             ?.takeIf { it.isNotBlank() }
             ?: getString(com.zero.common.R.string.no_baby_yet)
 
@@ -133,46 +116,16 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         binding.toolbar.hideAction()
     }
 
-    /**
-     * 刷新数据（带防抖和最小间隔保护）
-     * 确保数据库写入完成后再进行查询，避免竞态条件
-     * @param immediate 是否立即执行（首次加载时使用）
-     */
-    private fun refreshData(immediate: Boolean = false) {
-        // 取消之前的待执行刷新
-        refreshRunnable?.let { handler.removeCallbacks(it) }
-        
-        val now = System.currentTimeMillis()
-        val timeSinceLastRefresh = now - lastRefreshTime
-        
-        // 首次加载或明确要求立即执行时，不使用延迟
-        if (immediate || lastRefreshTime == 0L) {
-            doRefreshData()
-            lastRefreshTime = System.currentTimeMillis()
-            return
+    private fun renderDashboardState(state: DashboardUiState) {
+        when (state) {
+            DashboardUiState.Loading -> Unit
+            DashboardUiState.NoBaby -> setupDashboardToolbar(null)
+            is DashboardUiState.Error -> Unit
+            is DashboardUiState.Content -> {
+                setupDashboardToolbar(state.babyName)
+                updateUI(state.data, state.nowMillis)
+            }
         }
-        
-        // 计算需要等待的时间（确保最小间隔 + 防抖延迟）
-        val delay = if (timeSinceLastRefresh < MIN_REFRESH_INTERVAL_MS) {
-            MIN_REFRESH_INTERVAL_MS - timeSinceLastRefresh + REFRESH_DEBOUNCE_MS
-        } else {
-            REFRESH_DEBOUNCE_MS
-        }
-        
-        refreshRunnable = Runnable {
-            doRefreshData()
-            lastRefreshTime = System.currentTimeMillis()
-        }
-        handler.postDelayed(refreshRunnable!!, delay)
-    }
-    
-    /**
-     * 实际执行数据刷新
-     */
-    private fun doRefreshData() {
-        val baby = mainVm.getCurrentBabyInfo() ?: return
-        val ageMonths = calculateBabyAgeMonths(baby.birthDate)
-        vm.loadDashboardData(baby.babyId, ageMonths)
     }
 
     private fun setupQuickActions() {
@@ -216,216 +169,14 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
     }
     
     /**
-     * 计算宝宝月龄
-     */
-    private fun calculateBabyAgeMonths(birthDay: Long): Int {
-        if (birthDay <= 0) return 0
-        val now = System.currentTimeMillis()
-        val diffMs = now - birthDay
-        val days = TimeUnit.MILLISECONDS.toDays(diffMs)
-        return (days / 30).toInt().coerceAtLeast(0)
-    }
-
-    /**
-     * 开始所有定时器
-     */
-    private fun startTimers() {
-        stopTimers()
-        startSecondTimer()
-        startMinuteTimer()
-    }
-
-    /**
-     * 停止所有定时器
-     */
-    private fun stopTimers() {
-        secondTimerRunnable?.let { handler.removeCallbacks(it) }
-        secondTimerRunnable = null
-        minuteTimerRunnable?.let { handler.removeCallbacks(it) }
-        minuteTimerRunnable = null
-        refreshRunnable?.let { handler.removeCallbacks(it) }
-        refreshRunnable = null
-    }
-
-    /**
-     * 每秒更新（状态卡片实时时间）
-     */
-    private fun startSecondTimer() {
-        secondTimerRunnable = object : Runnable {
-            override fun run() {
-                updateStatusCardTime()
-                handler.postDelayed(this, 1000)
-            }
-        }
-        handler.post(secondTimerRunnable!!)
-    }
-
-    /**
-     * 每分钟更新（距上次时间、预测剩余时间、进行中记录的今日统计）
-     */
-    private fun startMinuteTimer() {
-        minuteTimerRunnable = object : Runnable {
-            override fun run() {
-                updateSinceLastTime()
-                updatePredictionRemainTime()
-                updateOngoingTodayStats()
-                handler.postDelayed(this, 60_000)
-            }
-        }
-        handler.post(minuteTimerRunnable!!)
-    }
-
-    /**
-     * 更新状态卡片的实时时间（每秒调用）
-     */
-    private fun updateStatusCardTime() {
-        val data = vm.dashboardData.value ?: return
-        val now = System.currentTimeMillis()
-        
-        when (data.currentStatus) {
-            DashboardData.BabyStatus.SLEEPING -> {
-                data.ongoingSleepStart?.let { startTime ->
-                    val duration = getSafeElapsedMillis(startTime, now)
-                    binding.tvStatusTime.text = getString(
-                        com.zero.common.R.string.sleeping_duration,
-                        formatDuration(duration)
-                    )
-                }
-            }
-            DashboardData.BabyStatus.FEEDING -> {
-                data.ongoingFeedingStart?.let { startTime ->
-                    val duration = getSafeElapsedMillis(startTime, now)
-                    binding.tvStatusTime.text = getString(
-                        com.zero.common.R.string.feeding_duration,
-                        formatDuration(duration)
-                    )
-                }
-            }
-            DashboardData.BabyStatus.AWAKE -> {
-                // 醒着的情况下显示距上次睡觉的时间（实时计算）
-                data.lastSleepEndTime?.let { endTime ->
-                    val awakeTime = getSafeElapsedMillis(endTime, now)
-                    binding.tvStatusTime.text = getString(
-                        com.zero.common.R.string.awake_duration,
-                        formatDuration(awakeTime)
-                    )
-                }
-            }
-        }
-    }
-
-    /**
-     * 更新"距上次"时间（每分钟调用）
-     */
-    private fun updateSinceLastTime() {
-        val data = vm.dashboardData.value ?: return
-        val now = System.currentTimeMillis()
-
-        // 距上次喂奶
-        data.lastFeedingEndTime?.let { endTime ->
-            val minutes = TimeUnit.MILLISECONDS.toMinutes(now - endTime)
-            binding.tvFeedingSinceTime.text = formatMinutesCompact(minutes)
-        }
-
-        // 距上次睡觉
-        data.lastSleepEndTime?.let { endTime ->
-            val minutes = TimeUnit.MILLISECONDS.toMinutes(now - endTime)
-            binding.tvSleepSinceTime.text = formatMinutesCompact(minutes)
-        }
-    }
-
-    /**
-     * 更新预测剩余时间（每分钟调用）
-     */
-    private fun updatePredictionRemainTime() {
-        val data = vm.dashboardData.value ?: return
-        var shouldRefresh = false
-
-        // 喂养预测剩余时间
-        val feedingPrediction = data.feedingPrediction
-        if (feedingPrediction != null && !feedingPrediction.isExpired()) {
-            val remainMinutes = TimeUnit.MILLISECONDS.toMinutes(
-                feedingPrediction.getRemainingMillis()
-            )
-            binding.tvPredictFeedingRemain.text = getString(
-                com.zero.common.R.string.remain_time,
-                formatMinutesToReadable(remainMinutes)
-            )
-        } else if (feedingPrediction != null && feedingPrediction.isExpired()) {
-            // 预测已过期，刷新数据重新预测
-            binding.tvPredictFeedingRemain.text = ""
-            shouldRefresh = true
-        }
-
-        // 睡眠预测剩余时间
-        val sleepPrediction = data.sleepPrediction
-        if (sleepPrediction != null && !sleepPrediction.isExpired()) {
-            val remainMinutes = TimeUnit.MILLISECONDS.toMinutes(
-                sleepPrediction.getRemainingMillis()
-            )
-            binding.tvPredictSleepRemain.text = getString(
-                com.zero.common.R.string.remain_time,
-                formatMinutesToReadable(remainMinutes)
-            )
-        } else if (sleepPrediction != null && sleepPrediction.isExpired()) {
-            // 预测已过期，刷新数据重新预测
-            binding.tvPredictSleepRemain.text = ""
-            shouldRefresh = true
-        }
-
-        // 避免喂养/睡眠同时过期触发多次刷新
-        if (shouldRefresh) {
-            refreshData()
-        }
-    }
-
-    /**
-     * 更新进行中记录的今日统计时长（每分钟调用）
-     */
-    private fun updateOngoingTodayStats() {
-        val data = vm.dashboardData.value ?: return
-        val now = System.currentTimeMillis()
-        val startOfDay = getStartOfTodayMillis(now)
-
-        // 如果正在喂养，更新今日喂养总时长
-        if (data.currentStatus == DashboardData.BabyStatus.FEEDING && data.ongoingFeedingStart != null) {
-            // 只统计当天部分，避免跨天时长被计入“今日”
-            val effectiveStart = maxOf(data.ongoingFeedingStart, startOfDay)
-            val ongoingMinutes = TimeUnit.MILLISECONDS.toMinutes(
-                getSafeElapsedMillis(effectiveStart, now)
-            )
-            val totalMinutes = data.totalFeedingMinutes + ongoingMinutes
-            binding.tvFeedingTodayDuration.text = getString(
-                com.zero.common.R.string.today_duration,
-                formatMinutesToReadable(totalMinutes)
-            )
-        }
-
-        // 如果正在睡觉，更新今日睡眠总时长
-        if (data.currentStatus == DashboardData.BabyStatus.SLEEPING && data.ongoingSleepStart != null) {
-            // 只统计当天部分，避免跨天时长被计入“今日”
-            val effectiveStart = maxOf(data.ongoingSleepStart, startOfDay)
-            val ongoingMinutes = TimeUnit.MILLISECONDS.toMinutes(
-                getSafeElapsedMillis(effectiveStart, now)
-            )
-            val totalMinutes = data.totalSleepMinutes + ongoingMinutes
-            binding.tvSleepTodayDuration.text = getString(
-                com.zero.common.R.string.today_duration,
-                formatMinutesToReadable(totalMinutes)
-            )
-        }
-    }
-
-    /**
      * 更新 UI
      */
-    private fun updateUI(data: DashboardData) {
+    private fun updateUI(data: DashboardData, now: Long) {
         // ==================== 状态卡片 ====================
-        updateStatusCard(data)
+        updateStatusCard(data, now)
 
         // ==================== 喂养卡片 ====================
         // 距上次时间（实时计算）
-        val now = System.currentTimeMillis()
         data.lastFeedingEndTime?.let { endTime ->
             val minutes = TimeUnit.MILLISECONDS.toMinutes(now - endTime)
             binding.tvFeedingSinceTime.text = formatMinutesCompact(minutes)
@@ -438,7 +189,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         )
         binding.tvFeedingTodayDuration.text = getString(
             com.zero.common.R.string.today_duration,
-            formatMinutesToReadable(data.totalFeedingMinutes)
+            formatMinutesToReadable(getFeedingTotalMinutesForDisplay(data, now))
         )
 
         // ==================== 睡眠卡片 ====================
@@ -455,15 +206,14 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         )
         binding.tvSleepTodayDuration.text = getString(
             com.zero.common.R.string.today_duration,
-            formatMinutesToReadable(data.totalSleepMinutes)
+            formatMinutesToReadable(getSleepTotalMinutesForDisplay(data, now))
         )
 
         // ==================== 预测卡片 ====================
         updatePredictionCard(data)
     }
 
-    private fun updateStatusCard(data: DashboardData) {
-        val now = System.currentTimeMillis()
+    private fun updateStatusCard(data: DashboardData, now: Long) {
         when (data.currentStatus) {
             DashboardData.BabyStatus.AWAKE -> {
                 binding.cardStatus.setBackgroundResource(com.zero.common.R.drawable.bg_status_card_awake)
@@ -613,6 +363,28 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         }
     }
 
+    private fun getFeedingTotalMinutesForDisplay(data: DashboardData, now: Long): Long {
+        if (data.currentStatus != DashboardData.BabyStatus.FEEDING || data.ongoingFeedingStart == null) {
+            return data.totalFeedingMinutes
+        }
+
+        // 进行中的记录尚未落库，首页展示时只补当天部分，避免跨天计入今日统计。
+        val effectiveStart = maxOf(data.ongoingFeedingStart, getStartOfTodayMillis(now))
+        val ongoingMinutes = TimeUnit.MILLISECONDS.toMinutes(getSafeElapsedMillis(effectiveStart, now))
+        return data.totalFeedingMinutes + ongoingMinutes
+    }
+
+    private fun getSleepTotalMinutesForDisplay(data: DashboardData, now: Long): Long {
+        if (data.currentStatus != DashboardData.BabyStatus.SLEEPING || data.ongoingSleepStart == null) {
+            return data.totalSleepMinutes
+        }
+
+        // 进行中的记录尚未落库，首页展示时只补当天部分，避免跨天计入今日统计。
+        val effectiveStart = maxOf(data.ongoingSleepStart, getStartOfTodayMillis(now))
+        val ongoingMinutes = TimeUnit.MILLISECONDS.toMinutes(getSafeElapsedMillis(effectiveStart, now))
+        return data.totalSleepMinutes + ongoingMinutes
+    }
+
     /**
      * 计算从指定开始时间到现在的时长，避免时间回拨导致负值
      */
@@ -658,7 +430,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
      * 处理结束进行中的记录
      */
     private fun handleEndOngoingRecord() {
-        val babyId = mainVm.getCurrentBabyInfo()?.babyId ?: return
+        val babyId = mainVm.currentBaby.value?.babyId ?: return
         val currentStatus = OngoingRecordManager.getCurrentStatus(babyId)
 
         when (currentStatus) {
@@ -676,6 +448,5 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        stopTimers()
     }
 }

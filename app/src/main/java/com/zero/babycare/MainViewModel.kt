@@ -6,6 +6,7 @@ import com.zero.babydata.entity.BabyInfo
 import com.zero.components.base.vm.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import com.zero.babydata.domain.BabyDataHelper.repository
 import com.zero.common.mmkv.MMKVKeys.BABY_INFO
 import com.zero.common.mmkv.MMKVStore
@@ -16,6 +17,15 @@ class MainViewModel : BaseViewModel() {
     /** 导航目标状态 */
     private val _navTarget = MutableStateFlow<NavTarget>(NavTarget.Dashboard)
     val navTarget: StateFlow<NavTarget> = _navTarget
+
+    /**
+     * 当前选中的宝宝。
+     *
+     * 旧页面仍可使用 getCurrentBabyInfo() 同步读取；新数据流页面应优先收集该 StateFlow，
+     * 避免每个 Fragment 自己判断何时重新查询当前宝宝。
+     */
+    private val _currentBaby = MutableStateFlow(loadCurrentBabyFromStore())
+    val currentBaby: StateFlow<BabyInfo?> = _currentBaby.asStateFlow()
 
     /**
      * 导航到指定目标
@@ -60,6 +70,17 @@ class MainViewModel : BaseViewModel() {
      * 防止因删除宝宝后缓存未清理导致的外键约束失败
      */
     fun getCurrentBabyInfo(): BabyInfo? {
+        return loadCurrentBabyFromStore().also { baby ->
+            _currentBaby.value = baby
+        }
+    }
+
+    /**
+     * 从本地缓存和数据库解析当前宝宝。
+     *
+     * 该方法只负责同步解析和修正缓存，不直接驱动 UI；调用方需要自行更新 _currentBaby。
+     */
+    private fun loadCurrentBabyFromStore(): BabyInfo? {
         val cachedBaby = MMKVStore.get(BABY_INFO, BabyInfo::class.java)
         
         if (cachedBaby != null) {
@@ -75,7 +96,7 @@ class MainViewModel : BaseViewModel() {
         
         // 返回数据库中的第一个宝宝
         return repository.getAllBabyInfo().firstOrNull()?.also {
-            setCurrentBaby(it)
+            MMKVStore.put(BABY_INFO, it)
         }
     }
 
@@ -84,6 +105,7 @@ class MainViewModel : BaseViewModel() {
      */
     fun setCurrentBaby(babyInfo: BabyInfo) {
         MMKVStore.put(BABY_INFO, babyInfo)
+        _currentBaby.value = babyInfo
     }
 
     /**
@@ -104,7 +126,7 @@ class MainViewModel : BaseViewModel() {
      * 如果编辑的是当前选中的宝宝，更新缓存
      */
     fun updateCurrentBabyIfNeeded(babyInfo: BabyInfo) {
-        val currentBaby = getCurrentBabyInfo()
+        val currentBaby = _currentBaby.value ?: getCurrentBabyInfo()
         if (currentBaby?.babyId == babyInfo.babyId) {
             setCurrentBaby(babyInfo)
         }
@@ -120,7 +142,11 @@ class MainViewModel : BaseViewModel() {
                 if (getCurrentBabyInfo()?.babyId == babyInfo.babyId) {
                     MMKVStore.remove(BABY_INFO)
                 }
-                ThreadUtils.runOnUiThread { onSuccess() }
+                val nextBaby = loadCurrentBabyFromStore()
+                ThreadUtils.runOnUiThread {
+                    _currentBaby.value = nextBaby
+                    onSuccess()
+                }
             }
         }
     }
@@ -131,7 +157,10 @@ class MainViewModel : BaseViewModel() {
     fun insertBaby(babyInfo: BabyInfo, onSuccess: () -> Unit) {
         safeLaunch {
             repository.insertBabyInfo(babyInfo) {
-                ThreadUtils.runOnUiThread { onSuccess() }
+                ThreadUtils.runOnUiThread {
+                    setCurrentBaby(babyInfo)
+                    onSuccess()
+                }
             }
         }
     }

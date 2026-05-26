@@ -3,6 +3,7 @@ package com.zero.babycare.home.record.event
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import com.blankj.utilcode.util.ThreadUtils
+import com.zero.babycare.home.BabyRecordChangeBus
 import com.zero.babydata.domain.BabyDataHelper.repository
 import com.zero.babydata.entity.EventExtraData
 import com.zero.babydata.entity.EventRecord
@@ -247,6 +248,7 @@ class EventRecordViewModel : BaseViewModel() {
             )
 
             val onComplete = Runnable {
+                BabyRecordChangeBus.notifyChanged(record.babyId)
                 ThreadUtils.runOnUiThread { onSuccess() }
             }
             val onFailure: (Throwable) -> Unit = {

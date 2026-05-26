@@ -3,6 +3,7 @@ package com.zero.babycare.home.record
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.zero.babycare.home.BabyRecordChangeBus
 import com.blankj.utilcode.util.ThreadUtils
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.components.base.vm.BaseViewModel
@@ -18,13 +19,18 @@ class FeedingRecordViewModel : BaseViewModel() {
 
     fun insert(feedingRecord: FeedingRecord, callback: Runnable) {
         safeLaunch {
-            repository.insertFeedingRecord(feedingRecord, callback)
+            repository.insertFeedingRecord(feedingRecord) {
+                BabyRecordChangeBus.notifyChanged(feedingRecord.babyId)
+                // 保存完成后的页面重置与导航必须回到主线程，避免数据库写线程直接触碰 UI 状态。
+                ThreadUtils.runOnUiThread { callback.run() }
+            }
         }
     }
 
     fun update(feedingRecord: FeedingRecord, callback: Runnable) {
         safeLaunch {
             repository.updateFeedingRecord(feedingRecord) {
+                BabyRecordChangeBus.notifyChanged(feedingRecord.babyId)
                 ThreadUtils.runOnUiThread { callback.run() }
             }
         }

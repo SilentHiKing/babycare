@@ -69,6 +69,7 @@
 - 单元测试：`*/src/test/java`（JUnit）。
 - 仪器测试：`*/src/androidTest/java`（AndroidX Test + Espresso）。
 - 测试类命名为 `*Test`。
+- 单元测试遵循必要性原则：非关键逻辑、非回归高风险改动不强制新增或运行单元测试，尤其是纯 UI 布局、样式、图标、间距等视觉调整。
 - 新增的数据逻辑（`babydata`）或新的 ViewModel 行为应补充测试。
 - 涉及统计、预测、计时、资源策略、主题对比度、单位换算、备份导入导出的改动，应优先补充或更新现有对应测试（例如 `Statistics*Test`、`LocalRulePredictorTest`、`TimerSessionPolicyTest`、`UiResourcePolicyTest`、`ThemePaletteContrastTest`）。
 - Room 实体、DAO、迁移或数据库版本变化时，必须同步更新 `babydata/schemas/` 并补充迁移或关键 DAO 行为测试。
@@ -200,7 +201,7 @@
 
 ## AI 代码注释规范（强制）
 
-- 所有由 AI / Codex **新生成或大幅修改的代码**，必须尽量补充**清晰、必要的代码注释**。
+- 所有由 AI / Codex **新生成或大幅修改的关键代码**，必须补充**简洁明了、清晰必要的代码注释**。
 - 注释语言 **必须使用简体中文**，用于解释：
   - 该代码块的目的与职责
   - 关键逻辑的设计原因
@@ -375,7 +376,7 @@
 
 - UI 改动必须同步检查浅色 / 深色模式，以及男孩 / 女孩主题下的观感。
 - 调整主题、图标、卡片、统计图表或通用组件时，应补充或更新资源策略测试。
-- UI 相关提交前至少运行对应单测与 `assembleDebug`；涉及 `DESIGN.md` 时还需运行 `npx @google/design.md lint DESIGN.md`。
+- UI 相关提交前至少运行 `assembleDebug`；纯视觉调整不强制运行单元测试，只有涉及资源策略、主题对比度、状态流、业务逻辑或回归高风险路径时才运行对应单测。涉及 `DESIGN.md` 时还需运行 `npx @google/design.md lint DESIGN.md`。
 - 若新增了可复用 UI 模式，必须同步更新 `DESIGN.md` 或 `docs/ui-guidelines.md`，避免规范与实现脱节。
 
 ---
