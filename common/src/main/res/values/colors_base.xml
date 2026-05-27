@@ -212,7 +212,7 @@
     <color name="feeding_primary_dark">#155E78</color>
     <color name="feeding_secondary">#68BCD0</color>
     <color name="feeding_divider">#BFE7EE</color>
-    <color name="feeding_bg">#EAF7F9</color>
+    <color name="feeding_bg">#E8F5F7</color>
 
     <!-- 睡眠：柔和靛紫，保留安静感但避免灰暗。 -->
     <color name="sleep_primary">#6E65B7</color>
