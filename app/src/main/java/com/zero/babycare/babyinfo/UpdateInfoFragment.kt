@@ -1,7 +1,11 @@
 package com.zero.babycare.babyinfo
 
+import android.content.Context
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.blankj.utilcode.util.LogUtils
@@ -56,23 +60,37 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
     private val isFirstCreate: Boolean
         get() = mainVm.getAllBabies().isEmpty()
 
+    /** 当前 Toolbar 主操作文案，随创建/编辑模式切换。 */
+    private var primaryActionText: String = ""
+
+    /** 页面进入某个模式后的初始表单值，用于判断编辑态是否真的发生改动。 */
+    private var initialSnapshot = FormSnapshot()
+
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
 
         // 日期选择
-        binding.etBirthday.setOnClickListener {
+        binding.rowBirthday.setOnClickListener {
             showBirthdayPickerSheet()
         }
+        binding.etBirthday.setOnClickListener { showBirthdayPickerSheet() }
 
         // 性别选择
-        binding.etGender.setOnClickListener {
+        binding.rowGender.setOnClickListener {
             showGenderDialog()
         }
+        binding.etGender.setOnClickListener { showGenderDialog() }
 
         // 血型选择
-        binding.etBloodType.setOnClickListener {
+        binding.rowBloodType.setOnClickListener {
             showBloodTypeDialog()
         }
+        binding.etBloodType.setOnClickListener { showBloodTypeDialog() }
+
+        binding.rowName.setOnClickListener {
+            focusNameInput()
+        }
+        bindFormWatchers()
 
         // Toolbar 配置
         setupToolbar()
@@ -194,6 +212,9 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
 
         // 清空表单
         clearForm()
+        bindCreateHeader()
+        captureInitialFormState()
+        refreshPrimaryActionState()
     }
 
     /**
@@ -213,6 +234,9 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
 
         // 填充表单数据
         fillForm(baby)
+        bindEditHeader(baby)
+        captureInitialFormState()
+        refreshPrimaryActionState()
     }
 
     /**
@@ -239,6 +263,8 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         if (baby.birthDate > 0) {
             val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
             binding.etBirthday.setText(dateFormat.format(Date(baby.birthDate)))
+        } else {
+            binding.etBirthday.setText("")
         }
 
         if (baby.birthWeight > 0) {
@@ -255,15 +281,18 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
 
         if (baby.bloodType.isNotEmpty()) {
             binding.etBloodType.setText(baby.bloodType)
+        } else {
+            binding.etBloodType.setText("")
         }
     }
 
     /**
      * 设置工具栏主操作按钮（单动作也统一走列表能力）
      */
-    private fun setPrimaryAction(text: String) {
+    private fun setPrimaryAction(text: String, enabled: Boolean = true) {
+        primaryActionText = text
         binding.toolbar.setActions(
-            listOf(ToolbarAction(text = text))
+            listOf(ToolbarAction(text = text, enabled = enabled))
         ) { saveBabyInfo() }
     }
 
@@ -281,21 +310,24 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         baby.name = name
         baby.gender = selectedGenderCode
 
-        binding.etBirthday.text?.toString()?.takeIf { it.isNotEmpty() }?.let {
-            baby.birthDate = CompatDateUtils.stringToTimestamp(it) ?: 0L
-        }
+        // 编辑页允许把非必填出生信息清空，保存时需要同步清掉旧值。
+        val birthdayText = binding.etBirthday.text?.toString()?.trim().orEmpty()
+        baby.birthDate = birthdayText
+            .takeIf { it.isNotEmpty() }
+            ?.let { CompatDateUtils.stringToTimestamp(it) }
+            ?: 0L
 
-        binding.etWeight.text?.toString()?.takeIf { it.isNotEmpty() }?.let {
-            vm.parseBirthWeightToStorage(it)?.let { weight ->
-                baby.birthWeight = weight
-            }
-        }
+        val weightText = binding.etWeight.text?.toString()?.trim().orEmpty()
+        baby.birthWeight = weightText
+            .takeIf { it.isNotEmpty() }
+            ?.let { vm.parseBirthWeightToStorage(it) }
+            ?: 0f
 
-        binding.etHeight.text?.toString()?.takeIf { it.isNotEmpty() }?.let {
-            vm.parseBirthHeightToStorage(it)?.let { height ->
-                baby.birthHeight = height
-            }
-        }
+        val heightText = binding.etHeight.text?.toString()?.trim().orEmpty()
+        baby.birthHeight = heightText
+            .takeIf { it.isNotEmpty() }
+            ?.let { vm.parseBirthHeightToStorage(it) }
+            ?: 0f
 
         baby.bloodType = binding.etBloodType.text.toString()
 
@@ -392,6 +424,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
             onSelected = { code ->
                 selectedGenderCode = code
                 binding.etGender.setText(getGenderLabel(code))
+                refreshPrimaryActionState()
             }
         )
     }
@@ -413,7 +446,10 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
             title = getString(com.zero.common.R.string.babyBloodType),
             options = labels.map { DialogHelper.PickerOption(it, it) },
             selectedValue = binding.etBloodType.text?.toString()?.takeIf { it.isNotBlank() },
-            onSelected = { binding.etBloodType.setText(it) }
+            onSelected = {
+                binding.etBloodType.setText(it)
+                refreshPrimaryActionState()
+            }
         )
     }
 
@@ -441,7 +477,86 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
             onConfirm = { timestamp ->
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
                 binding.etBirthday.setText(dateFormat.format(Date(timestamp)))
+                refreshPrimaryActionState()
             }
         )
     }
+
+    private fun bindCreateHeader() {
+        binding.tvProfileTitle.text = getString(com.zero.common.R.string.baby_profile_new_title)
+        binding.tvProfileSubtitle.text = getString(com.zero.common.R.string.baby_profile_create_subtitle)
+        binding.ivProfileAvatar.setImageResource(com.zero.common.R.drawable.ic_baby_default)
+    }
+
+    private fun bindEditHeader(baby: BabyInfo) {
+        binding.tvProfileTitle.text = baby.name
+        val gender = getGenderLabel(BabyGender.normalize(baby.gender))
+        val birthday = baby.birthDate
+            .takeIf { it > 0L }
+            ?.let { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it)) }
+            .orEmpty()
+        binding.tvProfileSubtitle.text = listOf(gender, birthday)
+            .filter { it.isNotBlank() }
+            .joinToString(getString(com.zero.common.R.string.list_separator_dot))
+            .ifBlank { getString(com.zero.common.R.string.baby_profile_create_subtitle) }
+        binding.ivProfileAvatar.setImageResource(com.zero.common.R.drawable.ic_baby_default)
+    }
+
+    private fun bindFormWatchers() {
+        val watcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun afterTextChanged(s: Editable?) {
+                refreshPrimaryActionState()
+            }
+        }
+        binding.etName.addTextChangedListener(watcher)
+        binding.etBirthday.addTextChangedListener(watcher)
+        binding.etWeight.addTextChangedListener(watcher)
+        binding.etHeight.addTextChangedListener(watcher)
+        binding.etBloodType.addTextChangedListener(watcher)
+    }
+
+    private fun focusNameInput() {
+        binding.etName.requestFocus()
+        binding.etName.setSelection(binding.etName.text?.length ?: 0)
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(binding.etName, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun captureInitialFormState() {
+        initialSnapshot = currentSnapshot()
+    }
+
+    private fun currentSnapshot(): FormSnapshot {
+        return FormSnapshot(
+            name = binding.etName.text?.toString().orEmpty(),
+            birthday = binding.etBirthday.text?.toString().orEmpty(),
+            genderCode = selectedGenderCode,
+            weight = binding.etWeight.text?.toString().orEmpty(),
+            height = binding.etHeight.text?.toString().orEmpty(),
+            bloodType = binding.etBloodType.text?.toString().orEmpty()
+        )
+    }
+
+    /**
+     * 创建态只要求姓名非空；编辑态要求姓名非空且表单确实变更。
+     * 这样 Toolbar 动作承担提交状态，不再靠字段边框制造“选中态”。
+     */
+    private fun refreshPrimaryActionState() {
+        if (primaryActionText.isBlank()) return
+        val hasName = binding.etName.text?.toString()?.trim()?.isNotEmpty() == true
+        val hasChanges = currentSnapshot() != initialSnapshot
+        val enabled = hasName && (!isEditMode || hasChanges)
+        setPrimaryAction(primaryActionText, enabled)
+    }
+
+    private data class FormSnapshot(
+        val name: String = "",
+        val birthday: String = "",
+        val genderCode: String = "",
+        val weight: String = "",
+        val height: String = "",
+        val bloodType: String = ""
+    )
 }

@@ -522,4 +522,11 @@
     <string name="relative_time_days_later_format">in %1$d days</string>
     <string name="relative_time_months_ago_format">%1$d months ago</string>
     <string name="relative_time_months_later_format">in %1$d months</string>
+    <string name="baby_profile_new_title">New baby profile</string>
+    <string name="baby_profile_create_subtitle">Name is the only required field</string>
+    <string name="baby_profile_basic_info">Basic information</string>
+    <string name="baby_profile_birth_info">Birth details</string>
+    <string name="baby_profile_select_birthday">Select birthday</string>
+    <string name="please_select">Please select</string>
+    <string name="optional">Optional</string>
 </resources>

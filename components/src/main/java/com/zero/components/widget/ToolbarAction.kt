@@ -7,6 +7,7 @@ import androidx.annotation.DrawableRes
  */
 data class ToolbarAction(
     val text: String? = null,
-    @DrawableRes val iconRes: Int? = null,
-    val contentDescription: String? = null
+    @param:DrawableRes val iconRes: Int? = null,
+    val contentDescription: String? = null,
+    val enabled: Boolean = true
 )

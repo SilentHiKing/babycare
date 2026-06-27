@@ -522,4 +522,11 @@
     <string name="relative_time_days_later_format">%1$d일 후</string>
     <string name="relative_time_months_ago_format">%1$d개월 전</string>
     <string name="relative_time_months_later_format">%1$d개월 후</string>
+    <string name="baby_profile_new_title">새 아기 프로필</string>
+    <string name="baby_profile_create_subtitle">이름만 필수 항목입니다</string>
+    <string name="baby_profile_basic_info">기본 정보</string>
+    <string name="baby_profile_birth_info">출생 정보</string>
+    <string name="baby_profile_select_birthday">생일 선택</string>
+    <string name="please_select">선택해 주세요</string>
+    <string name="optional">선택 사항</string>
 </resources>

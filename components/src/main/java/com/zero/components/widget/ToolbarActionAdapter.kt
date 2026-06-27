@@ -44,6 +44,12 @@ class ToolbarActionAdapter(
 
         // 优先使用显式无障碍文案，否则回退到文字
         binding.root.contentDescription = item.contentDescription ?: item.text
-        binding.root.setOnClickListener { onActionClick(item) }
+        binding.root.isEnabled = item.enabled
+        binding.root.alpha = if (item.enabled) 1f else 0.45f
+        binding.root.setOnClickListener {
+            if (item.enabled) {
+                onActionClick(item)
+            }
+        }
     }
 }

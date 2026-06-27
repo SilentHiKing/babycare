@@ -522,4 +522,11 @@
     <string name="relative_time_days_later_format">%1$d日後</string>
     <string name="relative_time_months_ago_format">%1$dか月前</string>
     <string name="relative_time_months_later_format">%1$dか月後</string>
+    <string name="baby_profile_new_title">新しい赤ちゃんのプロフィール</string>
+    <string name="baby_profile_create_subtitle">名前だけが必須です</string>
+    <string name="baby_profile_basic_info">基本情報</string>
+    <string name="baby_profile_birth_info">出生情報</string>
+    <string name="baby_profile_select_birthday">誕生日を選択</string>
+    <string name="please_select">選択してください</string>
+    <string name="optional">任意</string>
 </resources>

@@ -5222,6 +5222,76 @@
           "ja": "%1$dか月後",
           "ko": "%1$d개월 후"
         }
+      },
+      {
+        "codeKey": "baby_profile_new_title",
+        "language": {
+          "zh-Hans": "新宝宝档案",
+          "en": "New baby profile",
+          "zh-Hant": "新寶寶檔案",
+          "ja": "新しい赤ちゃんのプロフィール",
+          "ko": "새 아기 프로필"
+        }
+      },
+      {
+        "codeKey": "baby_profile_create_subtitle",
+        "language": {
+          "zh-Hans": "姓名是唯一必填项",
+          "en": "Name is the only required field",
+          "zh-Hant": "姓名是唯一必填項",
+          "ja": "名前だけが必須です",
+          "ko": "이름만 필수 항목입니다"
+        }
+      },
+      {
+        "codeKey": "baby_profile_basic_info",
+        "language": {
+          "zh-Hans": "基础信息",
+          "en": "Basic information",
+          "zh-Hant": "基本資訊",
+          "ja": "基本情報",
+          "ko": "기본 정보"
+        }
+      },
+      {
+        "codeKey": "baby_profile_birth_info",
+        "language": {
+          "zh-Hans": "出生信息",
+          "en": "Birth details",
+          "zh-Hant": "出生資訊",
+          "ja": "出生情報",
+          "ko": "출생 정보"
+        }
+      },
+      {
+        "codeKey": "baby_profile_select_birthday",
+        "language": {
+          "zh-Hans": "选择生日",
+          "en": "Select birthday",
+          "zh-Hant": "選擇生日",
+          "ja": "誕生日を選択",
+          "ko": "생일 선택"
+        }
+      },
+      {
+        "codeKey": "please_select",
+        "language": {
+          "zh-Hans": "请选择",
+          "en": "Please select",
+          "zh-Hant": "請選擇",
+          "ja": "選択してください",
+          "ko": "선택해 주세요"
+        }
+      },
+      {
+        "codeKey": "optional",
+        "language": {
+          "zh-Hans": "可选",
+          "en": "Optional",
+          "zh-Hant": "可選",
+          "ja": "任意",
+          "ko": "선택 사항"
+        }
       }
     ],
     "app": [

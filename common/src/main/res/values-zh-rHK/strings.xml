@@ -522,4 +522,11 @@
     <string name="relative_time_days_later_format">%1$d天後</string>
     <string name="relative_time_months_ago_format">%1$d個月前</string>
     <string name="relative_time_months_later_format">%1$d個月後</string>
+    <string name="baby_profile_new_title">新寶寶檔案</string>
+    <string name="baby_profile_create_subtitle">姓名是唯一必填項</string>
+    <string name="baby_profile_basic_info">基本資訊</string>
+    <string name="baby_profile_birth_info">出生資訊</string>
+    <string name="baby_profile_select_birthday">選擇生日</string>
+    <string name="please_select">請選擇</string>
+    <string name="optional">可選</string>
 </resources>
