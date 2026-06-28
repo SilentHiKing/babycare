@@ -31,22 +31,26 @@
             android:paddingHorizontal="@dimen/page_horizontal_padding"
             android:paddingTop="@dimen/page_vertical_padding">
 
-            <TextView
-                android:id="@+id/tvBackupTitle"
-                style="@style/TextAppearance.BabyCare.Heading2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/settings_backup"
-                android:textColor="?attr/colorTextPrimary" />
-
+            <!-- 备份页沿用设置页内嵌分组标题，减少外部标题造成的卡片割裂感。 -->
             <LinearLayout
                 android:id="@+id/cardBackup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/settings_section_title_gap"
                 android:background="@drawable/bg_settings_group_surface_border"
                 android:orientation="vertical"
                 android:paddingVertical="@dimen/settings_group_vertical_padding">
+
+                <TextView
+                    android:id="@+id/tvBackupTitle"
+                    style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="@dimen/card_padding"
+                    android:paddingTop="@dimen/settings_section_label_padding_top"
+                    android:paddingEnd="@dimen/card_padding"
+                    android:paddingBottom="@dimen/settings_section_label_padding_bottom"
+                    android:text="@string/settings_backup"
+                    android:textColor="?attr/colorTextSecondary" />
 
                 <include
                     android:id="@+id/rowBackupExport"
@@ -81,23 +85,26 @@
                 android:text="@string/backup_note"
                 android:textColor="?attr/colorTextHint" />
 
-            <TextView
-                android:id="@+id/tvReportTitle"
-                style="@style/TextAppearance.BabyCare.Heading2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/settings_section_gap"
-                android:text="@string/backup_import_report_title_section"
-                android:textColor="?attr/colorTextPrimary" />
-
             <LinearLayout
                 android:id="@+id/cardReportList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/settings_section_title_gap"
+                android:layout_marginTop="@dimen/settings_group_gap"
                 android:background="@drawable/bg_settings_group_surface_border"
                 android:orientation="vertical"
                 android:paddingVertical="@dimen/settings_group_vertical_padding">
+
+                <TextView
+                    android:id="@+id/tvReportTitle"
+                    style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="@dimen/card_padding"
+                    android:paddingTop="@dimen/settings_section_label_padding_top"
+                    android:paddingEnd="@dimen/card_padding"
+                    android:paddingBottom="@dimen/settings_section_label_padding_bottom"
+                    android:text="@string/backup_import_report_title_section"
+                    android:textColor="?attr/colorTextSecondary" />
 
                 <include
                     android:id="@+id/rowBackupReportClear"
@@ -113,6 +120,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:clipToPadding="false"
+                    android:overScrollMode="never"
                     android:paddingVertical="4dp" />
 
                 <TextView

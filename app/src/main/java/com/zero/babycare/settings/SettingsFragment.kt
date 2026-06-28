@@ -18,6 +18,7 @@ import com.zero.babycare.databinding.FragmentSettingsBinding
 import com.zero.babycare.databinding.ItemSettingRowBinding
 import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babycare.navigation.NavTarget
+import com.zero.common.ext.getThemeColor
 import com.zero.common.ext.launchInLifecycle
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
@@ -302,14 +303,13 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
      */
     private fun setupComingSoonRow(row: ItemSettingRowBinding, titleResId: Int) {
         row.tvTitle.text = localizedString(titleResId)
-        row.tvSummary.text = localizedString(com.zero.common.R.string.settings_feature_coming_soon)
-        row.tvSummary.visibility = View.VISIBLE
-        row.tvValue.text = ""
-        row.root.setOnClickListener { showComingSoonToast() }
-    }
-
-    private fun showComingSoonToast() {
-        ToastUtils.showShort(localizedString(com.zero.common.R.string.settings_feature_coming_soon))
+        row.tvSummary.visibility = View.GONE
+        row.tvValue.text = localizedString(com.zero.common.R.string.settings_feature_coming_soon)
+        row.tvValue.setTextColor(requireContext().getThemeColor(com.zero.common.R.attr.colorTextHint))
+        row.ivArrow.visibility = View.GONE
+        row.root.setOnClickListener(null)
+        row.root.isClickable = false
+        row.root.isFocusable = false
     }
 
     /**
@@ -336,6 +336,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
 
         reminderRow.tvTitle.text = localizedString(com.zero.common.R.string.settings_reminder_switch_title)
         reminderRow.tvSummary.text = localizedString(com.zero.common.R.string.settings_reminder_switch_summary)
+        reminderRow.tvSummary.visibility = View.VISIBLE
         feedingUnitRow.tvTitle.text = localizedString(com.zero.common.R.string.settings_unit_feeding_title)
         weightUnitRow.tvTitle.text = localizedString(com.zero.common.R.string.settings_unit_weight_title)
         heightUnitRow.tvTitle.text = localizedString(com.zero.common.R.string.settings_unit_height_title)

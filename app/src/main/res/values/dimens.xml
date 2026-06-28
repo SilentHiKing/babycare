@@ -26,6 +26,9 @@
     <!-- 设置页使用窄列布局，避免平板和横屏时列表被拉得过宽、扫读路径变长。 -->
     <dimen name="settings_content_max_width">560dp</dimen>
     <dimen name="settings_content_bottom_padding">40dp</dimen>
+    <dimen name="settings_group_gap">14dp</dimen>
+    <dimen name="settings_section_label_padding_top">12dp</dimen>
+    <dimen name="settings_section_label_padding_bottom">4dp</dimen>
     <dimen name="settings_section_gap">24dp</dimen>
     <dimen name="settings_section_title_gap">12dp</dimen>
     <dimen name="settings_group_corner_radius">16dp</dimen>

@@ -24,7 +24,7 @@
 
         <TextView
             android:id="@+id/tvTitle"
-            style="@style/TextAppearance.BabyCare.Body1"
+            style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
