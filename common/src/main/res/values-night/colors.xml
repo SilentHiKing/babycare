@@ -15,6 +15,7 @@
     <color name="control_border_default">#2A4043</color>
     <color name="control_border_selected">#9D6A37</color>
     <color name="event_icon_surface">#3A2B1D</color>
+    <color name="drawer_scrim">#99000000</color>
 
     <color name="colorPrimary">#46D1E2</color>
     <color name="colorBlue">#46D1E2</color>

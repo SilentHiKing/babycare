@@ -44,7 +44,15 @@
     <dimen name="settings_switch_thumb_size">22dp</dimen>
     <dimen name="settings_switch_corner_radius">999dp</dimen>
 
-    <!-- 侧边栏菜单行复用设置页行高，图标与分割线单独定义，避免和正文间距混用。 -->
-    <dimen name="drawer_menu_icon_size">24dp</dimen>
-    <dimen name="drawer_menu_divider_start">52dp</dimen>
+    <!-- 侧边栏复用设置页列表语言，保留独立尺寸以便控制抽屉里的视觉密度。 -->
+    <dimen name="drawer_width">280dp</dimen>
+    <dimen name="drawer_content_horizontal_padding">16dp</dimen>
+    <dimen name="drawer_content_vertical_padding">12dp</dimen>
+    <dimen name="drawer_profile_row_min_height">88dp</dimen>
+    <dimen name="drawer_profile_avatar_size">48dp</dimen>
+    <dimen name="drawer_profile_avatar_padding">10dp</dimen>
+    <dimen name="drawer_profile_text_gap">12dp</dimen>
+    <dimen name="drawer_profile_subtitle_gap">4dp</dimen>
+    <dimen name="drawer_menu_icon_size">20dp</dimen>
+    <dimen name="drawer_menu_divider_start">56dp</dimen>
 </resources>

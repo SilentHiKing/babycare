@@ -14,7 +14,7 @@
     <include
         android:id="@+id/navDrawer"
         layout="@layout/layout_nav_drawer"
-        android:layout_width="280dp"
+        android:layout_width="@dimen/drawer_width"
         android:layout_height="match_parent"
         android:layout_gravity="start" />
 

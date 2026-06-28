@@ -36,6 +36,8 @@
 
 
     <color name="shadowColor">#15000000</color>
+    <!-- 抽屉遮罩：比系统默认 scrim 更轻，避免压暗首页的温暖背景。 -->
+    <color name="drawer_scrim">#6610181A</color>
     <color name="popUpWindow">#2a2a2c</color>
 
     <!--颜色选择弹框颜色值背景-->

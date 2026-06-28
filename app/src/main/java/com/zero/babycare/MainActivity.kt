@@ -7,10 +7,10 @@ import android.view.View
 import android.view.ViewConfiguration
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
-import com.blankj.utilcode.util.AppUtils
 import com.blankj.utilcode.util.FragmentUtils
 import com.blankj.utilcode.util.LogUtils
 import com.zero.babycare.babies.AllChildrenFragment
@@ -29,7 +29,6 @@ import com.zero.babycare.statistics.StatisticsFragment
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.ext.launchInLifecycle
 import com.zero.common.theme.ThemeManager
-import com.zero.common.util.BabyGender
 import com.zero.common.util.DeviceUtils
 import com.zero.components.base.BaseActivity
 import kotlinx.coroutines.flow.collectLatest
@@ -147,9 +146,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun setupDrawer() {
         // 首页去掉显式菜单按钮后，确保 DrawerLayout 自身的 start 侧边缘手势不被状态恢复锁住。
         binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED, GravityCompat.START)
-
-        // 版本号
-        drawerBinding.tvVersion.text = "v${AppUtils.getAppVersionName()}"
+        binding.drawerLayout.setScrimColor(ContextCompat.getColor(this, com.zero.common.R.color.drawer_scrim))
         
         // 更新当前宝宝信息
         val currentBaby = vm.getCurrentBabyInfo()
@@ -198,24 +195,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // 计算出生天数
         if (babyInfo.birthDate > 0) {
             val days = TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - babyInfo.birthDate)
+            drawerBinding.tvBabyDays.visibility = View.VISIBLE
             drawerBinding.tvBabyDays.text = getString(com.zero.common.R.string.days_born, days.toInt())
         } else {
             drawerBinding.tvBabyDays.visibility = View.GONE
-        }
-        
-        // 性别图标
-        when (BabyGender.normalize(babyInfo.gender)) {
-            BabyGender.BOY -> {
-                drawerBinding.ivGender.setImageResource(com.zero.common.R.drawable.ic_gender_boy)
-                drawerBinding.ivGender.visibility = View.VISIBLE
-            }
-            BabyGender.GIRL -> {
-                drawerBinding.ivGender.setImageResource(com.zero.common.R.drawable.ic_gender_girl)
-                drawerBinding.ivGender.visibility = View.VISIBLE
-            }
-            else -> {
-                drawerBinding.ivGender.visibility = View.GONE
-            }
         }
     }
 
@@ -224,8 +207,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     private fun showNoBabyState() {
         drawerBinding.tvBabyName.text = getString(com.zero.common.R.string.no_baby_yet)
+        drawerBinding.tvBabyDays.visibility = View.VISIBLE
         drawerBinding.tvBabyDays.text = getString(com.zero.common.R.string.add_baby)
-        drawerBinding.ivGender.visibility = View.GONE
     }
 
     /**
