@@ -561,6 +561,16 @@ class UiResourcePolicyTest {
 
     @Test
     fun `event selection states avoid legacy heavy accents`() {
+        val selectorPaths = listOf(
+            "common/src/main/res/drawable/selector_radio_bg.xml",
+            "common/src/main/res/drawable/selector_event_category_bg.xml",
+            "common/src/main/res/drawable/selector_solid_category_bg.xml",
+            "common/src/main/res/drawable/selector_solid_subtype_bg.xml"
+        )
+        val selectedSurfaceOffenders = selectorPaths.filter { relativePath ->
+            File(repoRoot(), relativePath).readText().contains("control_surface_selected")
+        }
+        val subtypeLayout = File(repoRoot(), "app/src/main/res/layout/item_event_subtype.xml").readText()
         val categoryAdapter = File(
             repoRoot(),
             "app/src/main/java/com/zero/babycare/home/record/event/EventCategoryAdapter.kt"
@@ -580,12 +590,27 @@ class UiResourcePolicyTest {
             if (subtypeAdapter.contains("selectedIndicator.visibility = if (isSelected) View.VISIBLE")) {
                 add("subtype selection should use a soft border instead of a bottom bar")
             }
-            if (!subtypeAdapter.contains("control_surface_selected")) {
-                add("subtype selected card should reuse the Soft Utility selected surface")
+            if (subtypeLayout.contains("selectedIndicator") || subtypeAdapter.contains("selectedIndicator")) {
+                add("subtype selection should remove the old bottom indicator from layout and binding")
+            }
+            if (subtypeAdapter.contains("control_surface_selected")) {
+                add("subtype selected card should not tint the whole card with warm selected fill")
+            }
+            if (subtypeAdapter.contains("cardRoot.strokeColor = categoryColor")) {
+                add("subtype selected border should use brand selection tint, not event semantic color")
+            }
+            if (!subtypeAdapter.contains("colorBrand")) {
+                add("subtype selected border and label should use the shared brand selection tint")
+            }
+            if (categoryAdapter.contains("tvName.setTextColor")) {
+                add("category chip text state should come from the shared selector, not per-item semantic code")
+            }
+            if (selectedSurfaceOffenders.isNotEmpty()) {
+                add("selection selectors should avoid warm filled selected surfaces: $selectedSurfaceOffenders")
             }
         }
 
-        // 事件页选中态应是轻量描边和浅暖底，不能退回白字实色块或旧蓝色强调。
+        // 选择控件统一为 iOS 式轻量状态：业务色只保留在图标语义上，选中态使用品牌 tint 和细边框。
         assertTrue(
             "Event selection state still uses heavy or legacy accents: $offenders",
             offenders.isEmpty()
@@ -1065,8 +1090,8 @@ class UiResourcePolicyTest {
             if (categoryBg.contains("semantics_blue") || subtypeBg.contains("semantics_blue")) {
                 add("solid food chips still use legacy semantics_blue")
             }
-            if (!categoryBg.contains("control_surface_selected") || !subtypeBg.contains("control_surface_selected")) {
-                add("solid food selected backgrounds should use Soft Utility selected surface")
+            if (categoryBg.contains("control_surface_selected") || subtypeBg.contains("control_surface_selected")) {
+                add("solid food selected backgrounds should not use a warm filled surface")
             }
             if (!feedingTypeBg.contains("?attr/colorBrand") ||
                 !categoryBg.contains("?attr/colorBrand") ||

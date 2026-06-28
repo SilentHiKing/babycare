@@ -269,6 +269,7 @@
     <color name="stool_black">#424242</color>
 
     <!-- 体温状态颜色 -->
+    <color name="temp_low">#2F8BCB</color>
     <color name="temp_normal">#4CAF50</color>
     <color name="temp_warning">#FF9800</color>
     <color name="temp_danger">#F44336</color>

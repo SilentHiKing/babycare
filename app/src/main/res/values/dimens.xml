@@ -20,8 +20,8 @@
     <dimen name="statistics_timeline_item_bottom_gap">10dp</dimen>
     <dimen name="statistics_timeline_last_bottom_gap">22dp</dimen>
 
-    <!-- 事件记录页子类型卡片固定最小高度，避免长文案换行后同一行卡片高低不一。 -->
-    <dimen name="event_record_subtype_min_height">112dp</dimen>
+    <!-- 事件记录页子类型卡片固定最小高度，压缩首屏高度同时避免长文案导致同行高低不一。 -->
+    <dimen name="event_record_subtype_min_height">96dp</dimen>
 
     <!-- 设置页使用窄列布局，避免平板和横屏时列表被拉得过宽、扫读路径变长。 -->
     <dimen name="settings_content_max_width">560dp</dimen>

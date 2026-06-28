@@ -2,7 +2,7 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_checked="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/control_surface_selected" />
+            <solid android:color="@color/control_surface_default" />
             <stroke
                 android:width="@dimen/surface_stroke_width"
                 android:color="?attr/colorBrand" />

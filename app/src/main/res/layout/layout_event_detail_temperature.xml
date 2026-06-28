@@ -3,15 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/bg_r12_secondary_bg_default"
+    android:background="@drawable/bg_event_record_section"
     android:orientation="vertical"
     android:padding="16dp">
+
+    <TextView
+        style="@style/EventDetailFieldLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/temperature_value" />
 
     <!-- 体温输入 -->
     <LinearLayout
         android:id="@+id/layoutTemperatureInput"
         android:layout_width="match_parent"
         android:layout_height="56dp"
+        android:layout_marginTop="@dimen/event_detail_label_option_gap"
         android:background="?attr/bg_r6_block_gridview"
         android:gravity="center_vertical"
         android:orientation="horizontal"
@@ -19,13 +26,13 @@
 
         <EditText
             android:id="@+id/etTemperature"
-            style="@style/TextAppearance.BabyCare.Display2"
+            style="@style/TextAppearance.BabyCare.Body1"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@null"
             android:gravity="start|center_vertical"
-            android:hint="@string/temperature_value_hint"
+            android:hint="@string/temperature_value_required"
             android:inputType="numberDecimal"
             android:maxLength="4"
             android:maxLines="1"
@@ -35,7 +42,7 @@
 
         <TextView
             android:id="@+id/tvTemperatureUnit"
-            style="@style/TextAppearance.BabyCare.Heading1"
+            style="@style/TextAppearance.BabyCare.Heading3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
@@ -50,44 +57,65 @@
         android:id="@+id/llTemperatureStatus"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
         android:background="?attr/bg_r6_block_gridview"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="12dp">
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:visibility="gone"
+        tools:visibility="visible">
 
-        <ImageView
-            android:id="@+id/ivStatusIcon"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:contentDescription="@null"
-            tools:src="@drawable/ic_check" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/ivStatusIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_check" />
+
+            <TextView
+                android:id="@+id/tvStatus"
+                style="@style/TextAppearance.BabyCare.Body2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                tools:text="@string/temperature_normal"
+                tools:textColor="@color/temp_normal" />
+
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/tvStatus"
-            style="@style/TextAppearance.BabyCare.Body2"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvWarning"
+            style="@style/TextAppearance.BabyCare.Label"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            tools:text="@string/temperature_normal"
-            tools:textColor="@color/temp_normal" />
+            android:layout_marginTop="6dp"
+            android:layout_marginStart="28dp"
+            android:text="@string/temperature_danger"
+            android:textColor="?attr/colorTextSecondary"
+            android:visibility="gone"
+            tools:visibility="visible" />
 
     </LinearLayout>
 
     <!-- 测量部位 -->
     <TextView
-        style="@style/TextAppearance.BabyCare.Body2"
+        style="@style/EventDetailFieldLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/temperature_location_label"
-        android:textColor="?attr/colorTextPrimary" />
+        android:layout_marginTop="@dimen/event_detail_field_gap"
+        android:text="@string/temperature_location_label" />
 
     <RadioGroup
         android:id="@+id/rgTemperatureLocation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/event_detail_label_option_gap"
         android:orientation="horizontal">
 
         <RadioButton
@@ -116,18 +144,6 @@
             android:text="@string/temperature_location_rectal" />
 
     </RadioGroup>
-
-    <!-- 高温警告 -->
-    <TextView
-        android:id="@+id/tvWarning"
-        style="@style/TextAppearance.BabyCare.Body2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:gravity="center"
-        android:text="@string/temperature_danger"
-        android:textColor="?attr/colorError"
-        android:visibility="gone" />
 
 </LinearLayout>
 

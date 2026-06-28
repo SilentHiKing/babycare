@@ -3,12 +3,12 @@ package com.zero.babycare.home.record.event
 import android.content.Context
 import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.chad.library.adapter4.BaseQuickAdapter
 import com.zero.babycare.databinding.ItemEventSubtypeBinding
+import com.zero.common.ext.getThemeColor
 
 /**
  * 事件子类型网格适配器
@@ -62,26 +62,27 @@ class EventSubtypeAdapter(
             val categoryColor = ContextCompat.getColor(context, item.category.colorResId)
             ivIcon.setColorFilter(categoryColor)
 
-            // 选中态改为浅暖底和细描边，减少旧式底部色条造成的厚重感。
-            selectedIndicator.visibility = View.GONE
+            val brandColor = context.getThemeColor(com.zero.common.R.attr.colorBrand)
             cardRoot.setCardBackgroundColor(
-                ContextCompat.getColor(
-                    context,
-                    if (isSelected) {
-                        com.zero.common.R.color.control_surface_selected
-                    } else {
-                        com.zero.common.R.color.control_surface_default
-                    }
-                )
+                ContextCompat.getColor(context, com.zero.common.R.color.control_surface_default)
             )
 
-            // 卡片边框（选中时）
+            // 选中态统一使用品牌 tint；业务色只留给图标，避免同一控件出现两套强调色。
             if (isSelected) {
-                cardRoot.strokeWidth = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_DIP, 1f, context.resources.displayMetrics).toInt()
-                cardRoot.strokeColor = categoryColor
+                cardRoot.strokeWidth = context.resources
+                    .getDimensionPixelSize(com.zero.common.R.dimen.surface_stroke_width)
+                    .coerceAtLeast(1)
+                cardRoot.strokeColor = brandColor
             } else {
                 cardRoot.strokeWidth = 0
             }
+            tvName.setTextColor(
+                if (isSelected) {
+                    brandColor
+                } else {
+                    context.getThemeColor(com.zero.common.R.attr.colorTextPrimary)
+                }
+            )
 
             cardRoot.setOnClickListener {
                 if (isLocked) {

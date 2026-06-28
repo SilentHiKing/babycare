@@ -360,6 +360,8 @@
     <string name="temperature_value_hint">36.5</string>
     <string name="temperature_value_required">체온 값을 입력하세요.</string>
     <string name="temperature_normal">정상</string>
+    <string name="temperature_low">낮음</string>
+    <string name="temperature_low_warning">체온이 낮습니다. 따뜻하게 하고 관찰하세요</string>
     <string name="temperature_low_fever">저열</string>
     <string name="temperature_high_fever">고열</string>
     <string name="temperature_warning">체온이 높으니 주의해주세요</string>

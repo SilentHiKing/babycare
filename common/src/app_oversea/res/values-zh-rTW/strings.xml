@@ -360,6 +360,8 @@
     <string name="temperature_value_hint">36.5</string>
     <string name="temperature_value_required">請輸入體溫值</string>
     <string name="temperature_normal">正常</string>
+    <string name="temperature_low">偏低</string>
+    <string name="temperature_low_warning">體溫偏低，請注意保暖並觀察</string>
     <string name="temperature_low_fever">低燒</string>
     <string name="temperature_high_fever">高燒</string>
     <string name="temperature_warning">體溫偏高，請注意觀察</string>

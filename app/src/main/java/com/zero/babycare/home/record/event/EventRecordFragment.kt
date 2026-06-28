@@ -1,10 +1,13 @@
 package com.zero.babycare.home.record.event
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.RadioGroup
 import android.widget.Spinner
 import android.widget.TextView
@@ -68,6 +71,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private var pendingExtraData: com.zero.babydata.entity.EventExtraData? = null
     private var activityTimerController: RecordTimerController? = null
     private var saveInProgress = false
+    private var noteExpanded = false
 
     private val dateFormat by lazy {
         // 日期标题跟随应用内语言，避免英文环境下仍显示中文“月/日”格式。
@@ -84,6 +88,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         setupTimeCard()
         setupCategoryRecyclerView()
         setupSubtypeRecyclerView()
+        setupNoteSection()
         setupSaveButton()
 
         if (isEditMode) {
@@ -117,6 +122,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         releaseActivityTimer()
         vm.reset()
         binding.etNote.setText("")
+        setNoteExpanded(false)
         setSaveInProgress(false)
         handlePreSelectedCategory()
     }
@@ -175,6 +181,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             vm.setExtraData(pendingExtraData)
             vm.setNote(record.note)
             binding.etNote.setText(record.note)
+            setNoteExpanded(record.note.isNotBlank())
         }
     }
 
@@ -222,6 +229,12 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         applyCategoryLockState()
     }
 
+    private fun setupNoteSection() {
+        binding.noteCollapsedRow.setOnClickListener {
+            setNoteExpanded(true)
+        }
+    }
+
     companion object {
         private const val SUBTYPE_SPAN_COUNT = 4
 
@@ -241,6 +254,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                 if (category != null) {
                     val subtypes = EventSubtype.getSubtypes(category)
                     subtypeAdapter.submitList(subtypes)
+                    scrollCategoryIntoView(category)
                 } else {
                     subtypeAdapter.submitList(emptyList())
                 }
@@ -509,6 +523,15 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
         detailBinding.llStoolConsistency.visibility = if (showStool) View.VISIBLE else View.GONE
         detailBinding.llUrineAmount.visibility = if (showUrine) View.VISIBLE else View.GONE
+        (detailBinding.llUrineAmount.layoutParams as? LinearLayout.LayoutParams)?.let { params ->
+            // 混合排泄会同时显示两组详情，需要额外分组间距；单独小便时保持卡片顶部紧凑。
+            params.topMargin = if (showStool && showUrine) {
+                resources.getDimensionPixelSize(R.dimen.event_detail_field_gap)
+            } else {
+                0
+            }
+            detailBinding.llUrineAmount.layoutParams = params
+        }
 
         // 监听选择变化
         detailBinding.rgStoolConsistency.setOnCheckedChangeListener { _, checkedId ->
@@ -575,12 +598,24 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
     private fun inflateTemperatureDetail(inflater: LayoutInflater) {
         val detailBinding = LayoutEventDetailTemperatureBinding.inflate(inflater, binding.containerDetail, true)
+        detailBinding.llTemperatureStatus.visibility = View.GONE
+        detailBinding.tvWarning.visibility = View.GONE
 
         detailBinding.etTemperature.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 updateTemperatureData(detailBinding)
             }
         }
+        detailBinding.etTemperature.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+
+            override fun afterTextChanged(s: Editable?) {
+                // 体温状态是用户输入后的即时反馈，不能等到输入框失焦才出现。
+                updateTemperatureData(detailBinding)
+            }
+        })
 
         detailBinding.rgTemperatureLocation.setOnCheckedChangeListener { _, _ ->
             updateTemperatureData(detailBinding)
@@ -597,6 +632,8 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             updateTemperatureStatus(detailBinding, value)
         } else {
             vm.setExtraData(null)
+            detailBinding.llTemperatureStatus.visibility = View.GONE
+            detailBinding.tvWarning.visibility = View.GONE
         }
     }
 
@@ -625,21 +662,20 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     private fun updateTemperatureStatus(detailBinding: LayoutEventDetailTemperatureBinding, temp: Double) {
-        val (statusText, statusColor, showWarning) = when {
-            temp < 36.0 -> Triple(getString(R.string.temperature_normal), R.color.temp_normal, false)
-            temp <= 37.5 -> Triple(getString(R.string.temperature_normal), R.color.temp_normal, false)
-            temp <= 38.5 -> Triple(getString(R.string.temperature_low_fever), R.color.temp_warning, true)
-            else -> Triple(getString(R.string.temperature_high_fever), R.color.temp_danger, true)
-        }
+        val status = EventTemperatureStatusResolver.resolve(temp, getTemperatureLocation(detailBinding))
+        val color = resources.getColor(status.colorResId, null)
 
-        detailBinding.tvStatus.text = statusText
-        detailBinding.tvStatus.setTextColor(resources.getColor(statusColor, null))
-        detailBinding.tvWarning.visibility = if (showWarning) View.VISIBLE else View.GONE
-        
-        if (temp > 38.5) {
-            detailBinding.tvWarning.setText(R.string.temperature_danger)
-        } else if (temp > 37.5) {
-            detailBinding.tvWarning.setText(R.string.temperature_warning)
+        detailBinding.llTemperatureStatus.visibility = View.VISIBLE
+        detailBinding.ivStatusIcon.setImageResource(status.iconResId)
+        detailBinding.ivStatusIcon.setColorFilter(color)
+        detailBinding.tvStatus.setText(status.labelResId)
+        detailBinding.tvStatus.setTextColor(color)
+        status.warningResId?.let { warningResId ->
+            detailBinding.tvWarning.setText(warningResId)
+            detailBinding.tvWarning.setTextColor(color)
+            detailBinding.tvWarning.visibility = View.VISIBLE
+        } ?: run {
+            detailBinding.tvWarning.visibility = View.GONE
         }
     }
 
@@ -825,6 +861,24 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private fun updateUIVisibility(hasSubtype: Boolean) {
         binding.sectionNote.visibility = if (hasSubtype) View.VISIBLE else View.GONE
         binding.btnSave.visibility = if (hasSubtype) View.VISIBLE else View.GONE
+    }
+
+    private fun setNoteExpanded(expanded: Boolean) {
+        val collapsedVisibility = if (expanded) View.GONE else View.VISIBLE
+        if (noteExpanded == expanded && binding.noteCollapsedRow.visibility == collapsedVisibility) {
+            return
+        }
+        noteExpanded = expanded
+        binding.noteCollapsedRow.visibility = collapsedVisibility
+        binding.noteExpandedContent.visibility = if (expanded) View.VISIBLE else View.GONE
+    }
+
+    private fun scrollCategoryIntoView(category: EventCategory) {
+        val position = EventCategory.entries.indexOf(category)
+        if (position < 0) return
+        binding.rvCategory.post {
+            binding.rvCategory.smoothScrollToPosition(position)
+        }
     }
 
     private fun saveRecord() {

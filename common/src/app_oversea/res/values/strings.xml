@@ -360,6 +360,8 @@
     <string name="temperature_value_hint">36.5</string>
     <string name="temperature_value_required">Please enter a temperature</string>
     <string name="temperature_normal">normal</string>
+    <string name="temperature_low">low</string>
+    <string name="temperature_low_warning">Temperature is low. Keep the baby warm and observe.</string>
     <string name="temperature_low_fever">low fever</string>
     <string name="temperature_high_fever">high fever</string>
     <string name="temperature_warning">The body temperature is high, please pay attention</string>

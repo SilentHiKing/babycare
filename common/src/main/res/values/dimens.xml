@@ -9,6 +9,10 @@
     <dimen name="card_corner_radius">16dp</dimen>
     <!-- Surface + stroke 统一使用 hairline，保留分区边界但避免普通卡片和控件边框过重。 -->
     <dimen name="surface_stroke_width">0.1dp</dimen>
+
+    <!-- 记录事件详情字段组：标签弱化，控件保持可操作层级。 -->
+    <dimen name="event_detail_label_option_gap">8dp</dimen>
+    <dimen name="event_detail_field_gap">16dp</dimen>
     
     <!-- Grid columns -->
     <integer name="quick_action_columns">4</integer>

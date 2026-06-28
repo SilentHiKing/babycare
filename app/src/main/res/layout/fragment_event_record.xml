@@ -17,7 +17,9 @@
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:clipToPadding="false"
         android:fillViewport="true"
+        android:overScrollMode="never"
         app:layout_constraintBottom_toTopOf="@id/btnSave"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
 
@@ -27,7 +29,7 @@
             android:orientation="vertical"
             android:paddingHorizontal="16dp"
             android:paddingTop="16dp"
-            android:paddingBottom="24dp">
+            android:paddingBottom="40dp">
 
             <LinearLayout
                 android:id="@+id/sectionTime"
@@ -107,8 +109,11 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:clipToPadding="false"
+                    android:fadingEdgeLength="24dp"
                     android:nestedScrollingEnabled="false"
                     android:orientation="horizontal"
+                    android:overScrollMode="never"
+                    android:requiresFadingEdge="horizontal"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                     tools:itemCount="7"
                     tools:listitem="@layout/item_event_category" />
@@ -119,6 +124,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:nestedScrollingEnabled="false"
+                    android:overScrollMode="never"
                     tools:itemCount="4"
                     tools:listitem="@layout/item_event_subtype" />
 
@@ -156,28 +162,63 @@
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <TextView
-                    android:id="@+id/tvNoteLabel"
-                    style="@style/TextAppearance.BabyCare.Body2"
+                <LinearLayout
+                    android:id="@+id/noteCollapsedRow"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/note"
-                    android:textColor="?attr/colorTextPrimary" />
+                    android:layout_height="48dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="4dp">
 
-                <EditText
-                    android:id="@+id/etNote"
-                    style="@style/TextAppearance.BabyCare.Body2"
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_add"
+                        app:tint="?attr/colorBrand" />
+
+                    <TextView
+                        style="@style/TextAppearance.BabyCare.Body2"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:text="@string/note_hint"
+                        android:textColor="?attr/colorTextSecondary" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/noteExpandedContent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:background="?attr/bg_r6_block_gridview"
-                    android:gravity="top|start"
-                    android:hint="@string/note_hint"
-                    android:inputType="textMultiLine"
-                    android:minHeight="80dp"
-                    android:padding="12dp"
-                    android:textColor="?attr/colorTextPrimary"
-                    android:textColorHint="?attr/colorTextHint" />
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <TextView
+                        android:id="@+id/tvNoteLabel"
+                        style="@style/EventDetailFieldLabel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/note" />
+
+                    <EditText
+                        android:id="@+id/etNote"
+                        style="@style/TextAppearance.BabyCare.Body2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/event_detail_label_option_gap"
+                        android:background="?attr/bg_r6_block_gridview"
+                        android:gravity="top|start"
+                        android:hint="@string/note_hint"
+                        android:inputType="textMultiLine"
+                        android:minHeight="80dp"
+                        android:padding="12dp"
+                        android:textColor="?attr/colorTextPrimary"
+                        android:textColorHint="?attr/colorTextHint" />
+
+                </LinearLayout>
 
             </LinearLayout>
 

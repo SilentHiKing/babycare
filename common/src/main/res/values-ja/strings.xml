@@ -360,6 +360,8 @@
     <string name="temperature_value_hint">36.5</string>
     <string name="temperature_value_required">体温値を入力してください</string>
     <string name="temperature_normal">普通の</string>
+    <string name="temperature_low">低め</string>
+    <string name="temperature_low_warning">体温が低めです。保温して様子を見てください</string>
     <string name="temperature_low_fever">微熱</string>
     <string name="temperature_high_fever">高熱</string>
     <string name="temperature_warning">体温が高いので注意してください</string>

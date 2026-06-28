@@ -2,23 +2,22 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/bg_r12_secondary_bg_default"
+    android:background="@drawable/bg_event_record_section"
     android:orientation="vertical"
     android:padding="16dp">
 
     <TextView
-        style="@style/TextAppearance.BabyCare.Body2"
+        style="@style/EventDetailFieldLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/vaccine_name"
-        android:textColor="?attr/colorTextPrimary" />
+        android:text="@string/vaccine_name" />
 
     <EditText
         android:id="@+id/etVaccineName"
         style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="match_parent"
         android:layout_height="44dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/event_detail_label_option_gap"
         android:background="?attr/bg_r6_block_gridview"
         android:hint="@string/vaccine_name_hint"
         android:inputType="text"
@@ -28,19 +27,18 @@
         />
 
     <TextView
-        style="@style/TextAppearance.BabyCare.Body2"
+        style="@style/EventDetailFieldLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/vaccine_dose"
-        android:textColor="?attr/colorTextPrimary" />
+        android:layout_marginTop="@dimen/event_detail_field_gap"
+        android:text="@string/vaccine_dose" />
 
     <EditText
         android:id="@+id/etVaccineDose"
         style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="match_parent"
         android:layout_height="44dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/event_detail_label_option_gap"
         android:background="?attr/bg_r6_block_gridview"
         android:hint="@string/vaccine_dose_hint"
         android:inputType="number"
@@ -50,19 +48,18 @@
         />
 
     <TextView
-        style="@style/TextAppearance.BabyCare.Body2"
+        style="@style/EventDetailFieldLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/vaccine_site"
-        android:textColor="?attr/colorTextPrimary" />
+        android:layout_marginTop="@dimen/event_detail_field_gap"
+        android:text="@string/vaccine_site" />
 
     <EditText
         android:id="@+id/etVaccineSite"
         style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="match_parent"
         android:layout_height="44dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/event_detail_label_option_gap"
         android:background="?attr/bg_r6_block_gridview"
         android:hint="@string/vaccine_site_hint"
         android:inputType="text"
@@ -72,19 +69,18 @@
         />
 
     <TextView
-        style="@style/TextAppearance.BabyCare.Body2"
+        style="@style/EventDetailFieldLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/vaccine_clinic"
-        android:textColor="?attr/colorTextPrimary" />
+        android:layout_marginTop="@dimen/event_detail_field_gap"
+        android:text="@string/vaccine_clinic" />
 
     <EditText
         android:id="@+id/etVaccineClinic"
         style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="match_parent"
         android:layout_height="44dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/event_detail_label_option_gap"
         android:background="?attr/bg_r6_block_gridview"
         android:hint="@string/vaccine_clinic_hint"
         android:inputType="text"
@@ -94,19 +90,18 @@
         />
 
     <TextView
-        style="@style/TextAppearance.BabyCare.Body2"
+        style="@style/EventDetailFieldLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/vaccine_batch"
-        android:textColor="?attr/colorTextPrimary" />
+        android:layout_marginTop="@dimen/event_detail_field_gap"
+        android:text="@string/vaccine_batch" />
 
     <EditText
         android:id="@+id/etVaccineBatch"
         style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="match_parent"
         android:layout_height="44dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/event_detail_label_option_gap"
         android:background="?attr/bg_r6_block_gridview"
         android:hint="@string/vaccine_batch_hint"
         android:inputType="text"

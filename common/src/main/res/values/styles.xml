@@ -545,6 +545,11 @@
         <item name="android:textColor">@color/selector_radio_text_color</item>
     </style>
 
+    <!-- 记录事件详情字段标签：对齐设置页分组标题，避免标签和选项同层级。 -->
+    <style name="EventDetailFieldLabel" parent="TextAppearance.BabyCare.Label">
+        <item name="android:textColor">?attr/colorTextSecondary</item>
+    </style>
+
 
     <!-- ========================================================================================= -->
     <!-- TYPOGRAPHY SYSTEM (2026 Semantic Framework) -->

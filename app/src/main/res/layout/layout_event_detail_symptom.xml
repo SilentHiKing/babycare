@@ -2,23 +2,22 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/bg_r12_secondary_bg_default"
+    android:background="@drawable/bg_event_record_section"
     android:orientation="vertical"
     android:padding="16dp">
 
     <TextView
-        style="@style/TextAppearance.BabyCare.Body2"
+        style="@style/EventDetailFieldLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/symptom_description"
-        android:textColor="?attr/colorTextPrimary" />
+        android:text="@string/symptom_description" />
 
     <EditText
         android:id="@+id/etSymptomDescription"
         style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="match_parent"
         android:layout_height="80dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/event_detail_label_option_gap"
         android:background="?attr/bg_r6_block_gridview"
         android:gravity="start|top"
         android:hint="@string/symptom_hint"

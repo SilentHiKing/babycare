@@ -7,7 +7,7 @@
     android:layout_height="wrap_content"
     android:minHeight="@dimen/event_record_subtype_min_height"
     android:foreground="?attr/selectableItemBackground"
-    app:cardBackgroundColor="?attr/secondary_bg_default"
+    app:cardBackgroundColor="@color/control_surface_default"
     app:cardCornerRadius="?attr/shapeCornerMedium"
     app:cardElevation="0dp">
 
@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
-        android:paddingVertical="14dp">
+        android:paddingVertical="10dp">
 
         <!-- 图标背景圆 -->
         <FrameLayout
@@ -40,7 +40,7 @@
             style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="4dp"
             android:ellipsize="end"
             android:gravity="center"
             android:maxLines="2"
@@ -48,17 +48,4 @@
             tools:text="小便" />
 
     </LinearLayout>
-
-    <!-- 选中指示器 -->
-    <View
-        android:id="@+id/selectedIndicator"
-        android:layout_width="match_parent"
-        android:layout_height="3dp"
-        android:layout_gravity="bottom"
-        android:background="?attr/colorBrand"
-        android:visibility="gone"
-        tools:visibility="visible" />
-
 </com.google.android.material.card.MaterialCardView>
-
-

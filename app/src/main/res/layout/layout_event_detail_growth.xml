@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/bg_r12_secondary_bg_default"
+    android:background="@drawable/bg_event_record_section"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -19,7 +19,7 @@
 
         <EditText
             android:id="@+id/etValue"
-            style="@style/TextAppearance.BabyCare.Display2"
+            style="@style/TextAppearance.BabyCare.Body1"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -35,7 +35,7 @@
 
         <TextView
             android:id="@+id/tvUnit"
-            style="@style/TextAppearance.BabyCare.Heading1"
+            style="@style/TextAppearance.BabyCare.Heading3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
@@ -49,19 +49,17 @@
         android:id="@+id/llLastRecord"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="@dimen/event_detail_field_gap"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:visibility="gone"
         tools:visibility="visible">
 
         <TextView
-            style="@style/TextAppearance.BabyCare.Label"
+            style="@style/EventDetailFieldLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/last_record"
-            android:textColor="?attr/colorTextHint"
-            />
+            android:text="@string/last_record" />
 
         <TextView
             android:id="@+id/tvLastValue"

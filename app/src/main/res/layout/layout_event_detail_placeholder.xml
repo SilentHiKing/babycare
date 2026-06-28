@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/bg_r12_secondary_bg_default"
+    android:background="@drawable/bg_event_record_section"
     android:padding="16dp"
     android:orientation="vertical">
 

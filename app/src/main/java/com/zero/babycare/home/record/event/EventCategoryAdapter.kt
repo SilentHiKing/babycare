@@ -45,8 +45,9 @@ class EventCategoryAdapter(
             ivIcon.setImageResource(item.iconResId)
             tvName.setText(item.nameResId)
             rootLayout.isSelected = isSelected
+            tvName.isSelected = isSelected
 
-            // 选中态背景已改为浅暖底，图标保留事件语义色，避免白色图标在浅底上失去可读性。
+            // 业务色只用于图标语义；选中文字和边框交给公共 selector 的品牌 tint。
             val iconTint = ContextCompat.getColor(context, item.colorResId)
             ivIcon.setColorFilter(iconTint)
 

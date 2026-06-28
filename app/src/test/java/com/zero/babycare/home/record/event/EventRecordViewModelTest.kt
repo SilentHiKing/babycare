@@ -1,6 +1,7 @@
 package com.zero.babycare.home.record.event
 
 import com.zero.babydata.entity.EventType
+import com.zero.babydata.entity.TemperatureData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.drop
@@ -95,6 +96,54 @@ class EventRecordViewModelTest {
 
         assertNull(viewModel.durationStartTime.value)
         assertNull(viewModel.endTime.value)
+    }
+
+    @Test
+    fun `temperature status follows measurement location fever thresholds`() {
+        assertEquals(
+            EventTemperatureStatus.Normal,
+            EventTemperatureStatusResolver.resolve(37.9, TemperatureData.LOCATION_RECTAL)
+        )
+        assertEquals(
+            EventTemperatureStatus.LowFever,
+            EventTemperatureStatusResolver.resolve(38.0, TemperatureData.LOCATION_RECTAL)
+        )
+        assertEquals(
+            EventTemperatureStatus.Normal,
+            EventTemperatureStatusResolver.resolve(37.7, TemperatureData.LOCATION_ORAL)
+        )
+        assertEquals(
+            EventTemperatureStatus.LowFever,
+            EventTemperatureStatusResolver.resolve(37.8, TemperatureData.LOCATION_ORAL)
+        )
+        assertEquals(
+            EventTemperatureStatus.Normal,
+            EventTemperatureStatusResolver.resolve(37.2, TemperatureData.LOCATION_ARMPIT)
+        )
+        assertEquals(
+            EventTemperatureStatus.LowFever,
+            EventTemperatureStatusResolver.resolve(37.3, TemperatureData.LOCATION_ARMPIT)
+        )
+    }
+
+    @Test
+    fun `temperature status keeps high fever escalation`() {
+        assertEquals(
+            EventTemperatureStatus.HighFever,
+            EventTemperatureStatusResolver.resolve(38.6, TemperatureData.LOCATION_FOREHEAD)
+        )
+    }
+
+    @Test
+    fun `temperature status shows low temperature below normal floor`() {
+        assertEquals(
+            EventTemperatureStatus.LowTemperature,
+            EventTemperatureStatusResolver.resolve(35.9, TemperatureData.LOCATION_EAR)
+        )
+        assertEquals(
+            EventTemperatureStatus.Normal,
+            EventTemperatureStatusResolver.resolve(36.0, TemperatureData.LOCATION_EAR)
+        )
     }
 
     private companion object {

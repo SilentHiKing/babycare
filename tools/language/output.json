@@ -3604,6 +3604,26 @@
         }
       },
       {
+        "codeKey": "temperature_low",
+        "language": {
+          "zh-Hans": "偏低",
+          "en": "low",
+          "zh-Hant": "偏低",
+          "ja": "低め",
+          "ko": "낮음"
+        }
+      },
+      {
+        "codeKey": "temperature_low_warning",
+        "language": {
+          "zh-Hans": "体温偏低，请注意保暖并观察",
+          "en": "Temperature is low. Keep the baby warm and observe.",
+          "zh-Hant": "體溫偏低，請注意保暖並觀察",
+          "ja": "体温が低めです。保温して様子を見てください",
+          "ko": "체온이 낮습니다. 따뜻하게 하고 관찰하세요"
+        }
+      },
+      {
         "codeKey": "temperature_low_fever",
         "language": {
           "zh-Hans": "低烧",
