@@ -315,6 +315,10 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 设置首次尝试勾选框监听
      */
     private fun setupFirstTimeCheckbox() {
+        binding.rowFirstTime.setOnClickListener {
+            // grouped row 扩大点击热区，底层仍然复用 cbFirstTime 的布尔状态和过敏提示逻辑。
+            binding.cbFirstTime.isChecked = !binding.cbFirstTime.isChecked
+        }
         binding.cbFirstTime.setOnCheckedChangeListener { _, _ ->
             updateAllergenTip()
             markAsUnsaved()

@@ -15,6 +15,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:overScrollMode="never"
         app:layout_constraintBottom_toTopOf="@id/tvSave"
         app:layout_constraintTop_toBottomOf="@id/btn">
 
@@ -22,273 +23,448 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="16dp"
+            android:paddingHorizontal="@dimen/page_horizontal_padding"
             android:paddingBottom="20dp">
 
-            <com.zero.components.widget.RecordTimerPanelView
-                android:id="@+id/timerPanel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:startLabelText="@string/startTime"
-                app:endLabelText="@string/endTime"
-                app:startHintText="@string/startTime"
-                app:endHintText="@string/endTime" />
-
-            <!-- 上次喂奶时间 -->
-            <TextView
-                android:id="@+id/tvLastFeeding"
-                style="@style/TextAppearance.BabyCare.Body2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:textColor="?attr/colorTextHint"
-                android:visibility="gone"
-                tools:text="上次: 12-23 08:30"
-                tools:visibility="visible" />
-
-            <!-- 喂养类型选择 -->
-            <TextView
-                android:id="@+id/tvFeedingType"
-                style="@style/TextAppearance.BabyCare.Heading2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="@string/feeding_type" />
-
-            <!-- 第一行：母乳、配方奶、混合 -->
-            <RadioGroup
-                android:id="@+id/rgFeedingType"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal">
-
-                <RadioButton
-                    android:id="@+id/rbBreast"
-                    android:textAppearance="@style/TextAppearance.BabyCare.Body2"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/selector_radio_bg"
-                    android:button="@null"
-                    android:gravity="center"
-                    android:text="@string/feeding_type_breast"
-                    android:textColor="@color/selector_radio_text_color" />
-
-                <View
-                    android:layout_width="8dp"
-                    android:layout_height="1dp" />
-
-                <RadioButton
-                    android:id="@+id/rbFormula"
-                    android:textAppearance="@style/TextAppearance.BabyCare.Body2"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/selector_radio_bg"
-                    android:button="@null"
-                    android:gravity="center"
-                    android:text="@string/feeding_type_formula"
-                    android:textColor="@color/selector_radio_text_color" />
-
-                <View
-                    android:layout_width="8dp"
-                    android:layout_height="1dp" />
-
-                <RadioButton
-                    android:id="@+id/rbMixed"
-                    android:textAppearance="@style/TextAppearance.BabyCare.Body2"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/selector_radio_bg"
-                    android:button="@null"
-                    android:gravity="center"
-                    android:text="@string/feeding_type_mixed"
-                    android:textColor="@color/selector_radio_text_color" />
-
-                <View
-                    android:layout_width="8dp"
-                    android:layout_height="1dp" />
-
-                <RadioButton
-                    android:id="@+id/rbSolid"
-                    android:textAppearance="@style/TextAppearance.BabyCare.Body2"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/selector_radio_bg"
-                    android:button="@null"
-                    android:gravity="center"
-                    android:text="@string/feeding_type_solid"
-                    android:textColor="@color/selector_radio_text_color" />
-
-                <View
-                    android:layout_width="8dp"
-                    android:layout_height="1dp" />
-
-                <RadioButton
-                    android:id="@+id/rbOther"
-                    android:textAppearance="@style/TextAppearance.BabyCare.Body2"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/selector_radio_bg"
-                    android:button="@null"
-                    android:gravity="center"
-                    android:text="@string/feeding_type_other"
-                    android:textColor="@color/selector_radio_text_color" />
-
-            </RadioGroup>
-
-            <!-- ==================== 辅食选项区域 ==================== -->
             <LinearLayout
-                android:id="@+id/llSolidFood"
+                android:id="@+id/cardTimer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_r16_surface_stroke_control_border"
                 android:orientation="vertical"
-                android:visibility="gone"
-                tools:visibility="visible">
+                android:padding="14dp">
 
-                <!-- 辅食分类选择 -->
+                <com.zero.components.widget.RecordTimerPanelView
+                    android:id="@+id/timerPanel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:endHintText="@string/endTime"
+                    app:endLabelText="@string/endTime"
+                    app:startHintText="@string/startTime"
+                    app:startLabelText="@string/startTime" />
+
                 <TextView
+                    android:id="@+id/tvLastFeeding"
+                    style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:textColor="?attr/colorTextHint"
+                    android:visibility="gone"
+                    tools:text="上次: 05-26 22:08"
+                    tools:visibility="visible" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/cardFeedingContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_r16_surface_stroke_control_border"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <TextView
+                    android:id="@+id/tvFeedingType"
                     style="@style/TextAppearance.BabyCare.Heading3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/solid_food_type"
+                    android:text="@string/feeding_type"
                     android:textColor="?attr/colorTextPrimary" />
 
-                <HorizontalScrollView
+                <RadioGroup
+                    android:id="@+id/rgFeedingType"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:scrollbars="none">
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
 
-                    <RadioGroup
-                        android:id="@+id/rgSolidCategory"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                    <RadioButton
+                        android:id="@+id/rbBreast"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/selector_radio_bg"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:text="@string/feeding_type_breast"
+                        android:textAppearance="@style/TextAppearance.BabyCare.Body2"
+                        android:textColor="@color/selector_radio_text_color" />
 
-                        <RadioButton
-                            android:id="@+id/rbSolidStaple"
-                            style="@style/SolidCategoryRadioButton"
-                            android:text="@string/solid_category_staple" />
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
 
-                        <RadioButton
-                            android:id="@+id/rbSolidVegetable"
-                            style="@style/SolidCategoryRadioButton"
-                            android:text="@string/solid_category_vegetable" />
+                    <RadioButton
+                        android:id="@+id/rbFormula"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/selector_radio_bg"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:text="@string/feeding_type_formula"
+                        android:textAppearance="@style/TextAppearance.BabyCare.Body2"
+                        android:textColor="@color/selector_radio_text_color" />
 
-                        <RadioButton
-                            android:id="@+id/rbSolidFruit"
-                            style="@style/SolidCategoryRadioButton"
-                            android:text="@string/solid_category_fruit" />
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
 
-                        <RadioButton
-                            android:id="@+id/rbSolidProtein"
-                            style="@style/SolidCategoryRadioButton"
-                            android:text="@string/solid_category_protein" />
+                    <RadioButton
+                        android:id="@+id/rbMixed"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/selector_radio_bg"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:text="@string/feeding_type_mixed"
+                        android:textAppearance="@style/TextAppearance.BabyCare.Body2"
+                        android:textColor="@color/selector_radio_text_color" />
 
-                        <RadioButton
-                            android:id="@+id/rbSolidDairy"
-                            style="@style/SolidCategoryRadioButton"
-                            android:text="@string/solid_category_dairy" />
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
 
-                        <RadioButton
-                            android:id="@+id/rbSolidDrink"
-                            style="@style/SolidCategoryRadioButton"
-                            android:text="@string/solid_category_drink" />
+                    <RadioButton
+                        android:id="@+id/rbSolid"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/selector_radio_bg"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:text="@string/feeding_type_solid"
+                        android:textAppearance="@style/TextAppearance.BabyCare.Body2"
+                        android:textColor="@color/selector_radio_text_color" />
 
-                        <RadioButton
-                            android:id="@+id/rbSolidSupplement"
-                            style="@style/SolidCategoryRadioButton"
-                            android:text="@string/solid_category_supplement" />
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
 
-                        <RadioButton
-                            android:id="@+id/rbSolidSnack"
-                            style="@style/SolidCategoryRadioButton"
-                            android:text="@string/solid_category_snack" />
+                    <RadioButton
+                        android:id="@+id/rbOther"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/selector_radio_bg"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:text="@string/feeding_type_other"
+                        android:textAppearance="@style/TextAppearance.BabyCare.Body2"
+                        android:textColor="@color/selector_radio_text_color" />
 
-                        <RadioButton
-                            android:id="@+id/rbSolidOther"
-                            style="@style/SolidCategoryRadioButton"
-                            android:text="@string/solid_category_other" />
+                </RadioGroup>
 
-                    </RadioGroup>
-                </HorizontalScrollView>
-
-                <!-- 辅食子类选择 -->
-                <HorizontalScrollView
-                    android:id="@+id/hsvSolidSubtype"
+                <LinearLayout
+                    android:id="@+id/llBreastDuration"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:scrollbars="none"
+                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal"
                     android:visibility="gone"
                     tools:visibility="visible">
 
-                    <RadioGroup
-                        android:id="@+id/rgSolidSubtype"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal" />
-                </HorizontalScrollView>
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
-                <!-- 食物名称输入（需要时显示） -->
+                        <TextView
+                            style="@style/TextAppearance.BabyCare.Label"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/left_breast"
+                            android:textColor="?attr/colorTextSecondary" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:layout_marginTop="6dp"
+                            android:background="@drawable/bg_record_time_field"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="12dp">
+
+                            <EditText
+                                android:id="@+id/etLeftBreastDuration"
+                                style="@style/TextAppearance.BabyCare.Body2"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:hint="@string/number_zero"
+                                android:inputType="number"
+                                android:maxLength="3"
+                                android:textColor="?attr/colorTextPrimary"
+                                android:textColorHint="?attr/colorTextHint" />
+
+                            <TextView
+                                style="@style/TextAppearance.BabyCare.Label"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/min"
+                                android:textColor="?attr/colorTextHint" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="1dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/TextAppearance.BabyCare.Label"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/right_breast"
+                            android:textColor="?attr/colorTextSecondary" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:layout_marginTop="6dp"
+                            android:background="@drawable/bg_record_time_field"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="12dp">
+
+                            <EditText
+                                android:id="@+id/etRightBreastDuration"
+                                style="@style/TextAppearance.BabyCare.Body2"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:hint="@string/number_zero"
+                                android:inputType="number"
+                                android:maxLength="3"
+                                android:textColor="?attr/colorTextPrimary"
+                                android:textColorHint="?attr/colorTextHint" />
+
+                            <TextView
+                                style="@style/TextAppearance.BabyCare.Label"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/min"
+                                android:textColor="?attr/colorTextHint" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
                 <LinearLayout
-                    android:id="@+id/llSolidFoodName"
+                    android:id="@+id/llFeedingAmount"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="16dp"
                     android:orientation="vertical"
                     android:visibility="gone"
                     tools:visibility="visible">
 
                     <TextView
-                        style="@style/TextAppearance.BabyCare.Heading3"
+                        style="@style/TextAppearance.BabyCare.Label"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/solid_food_name"
-                        android:textColor="?attr/colorTextPrimary" />
-
-                    <EditText
-                        android:id="@+id/etSolidFoodName"
-                        style="@style/TextAppearance.BabyCare.Body2"
-                        android:layout_width="match_parent"
-                        android:layout_height="44dp"
-                        android:layout_marginTop="8dp"
-                        android:background="?attr/bg_r6_block_gridview"
-                        android:hint="@string/solid_food_name_hint"
-                        android:inputType="text"
-                        android:paddingHorizontal="12dp"
-                        android:textColor="?attr/colorTextPrimary"
-                        android:textColorHint="?attr/colorTextHint"
-                        />
-
-                </LinearLayout>
-
-                <!-- 喂食量 -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:orientation="vertical">
-
-                    <TextView
-                        style="@style/TextAppearance.BabyCare.Heading3"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/solid_food_amount"
-                        android:textColor="?attr/colorTextPrimary" />
+                        android:text="@string/feeding_amount"
+                        android:textColor="?attr/colorTextSecondary" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="44dp"
-                        android:layout_marginTop="8dp"
-                        android:background="?attr/bg_r6_block_gridview"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/bg_record_time_field"
                         android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="12dp">
+
+                        <EditText
+                            android:id="@+id/etFeedingAmount"
+                            style="@style/TextAppearance.BabyCare.Body2"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@null"
+                            android:hint="@string/feeding_amount_hint"
+                            android:inputType="number"
+                            android:maxLength="4"
+                            android:textColor="?attr/colorTextPrimary"
+                            android:textColorHint="?attr/colorTextHint" />
+
+                        <TextView
+                            android:id="@+id/tvFeedingAmountUnit"
+                            style="@style/TextAppearance.BabyCare.Label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/unit_ml"
+                            android:textColor="?attr/colorTextHint" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/llSolidFood"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <TextView
+                        style="@style/TextAppearance.BabyCare.Label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/solid_food_type"
+                        android:textColor="?attr/colorTextSecondary" />
+
+                    <HorizontalScrollView
+                        android:id="@+id/hsvSolidChoiceRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <RadioGroup
+                                android:id="@+id/rgSolidCategory"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <RadioButton
+                                    android:id="@+id/rbSolidStaple"
+                                    style="@style/SolidCategoryRadioButton"
+                                    android:text="@string/solid_category_staple" />
+
+                                <RadioButton
+                                    android:id="@+id/rbSolidVegetable"
+                                    style="@style/SolidCategoryRadioButton"
+                                    android:text="@string/solid_category_vegetable" />
+
+                                <RadioButton
+                                    android:id="@+id/rbSolidFruit"
+                                    style="@style/SolidCategoryRadioButton"
+                                    android:text="@string/solid_category_fruit" />
+
+                                <RadioButton
+                                    android:id="@+id/rbSolidProtein"
+                                    style="@style/SolidCategoryRadioButton"
+                                    android:text="@string/solid_category_protein" />
+
+                                <RadioButton
+                                    android:id="@+id/rbSolidDairy"
+                                    style="@style/SolidCategoryRadioButton"
+                                    android:text="@string/solid_category_dairy" />
+
+                                <RadioButton
+                                    android:id="@+id/rbSolidDrink"
+                                    style="@style/SolidCategoryRadioButton"
+                                    android:text="@string/solid_category_drink" />
+
+                                <RadioButton
+                                    android:id="@+id/rbSolidSupplement"
+                                    style="@style/SolidCategoryRadioButton"
+                                    android:text="@string/solid_category_supplement" />
+
+                                <RadioButton
+                                    android:id="@+id/rbSolidSnack"
+                                    style="@style/SolidCategoryRadioButton"
+                                    android:text="@string/solid_category_snack" />
+
+                                <RadioButton
+                                    android:id="@+id/rbSolidOther"
+                                    style="@style/SolidCategoryRadioButton"
+                                    android:text="@string/solid_category_other" />
+
+                            </RadioGroup>
+
+                            <LinearLayout
+                                android:id="@+id/hsvSolidSubtype"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:visibility="gone"
+                                tools:visibility="visible">
+
+                                <RadioGroup
+                                    android:id="@+id/rgSolidSubtype"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </HorizontalScrollView>
+
+                    <LinearLayout
+                        android:id="@+id/llSolidFoodName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <TextView
+                            style="@style/TextAppearance.BabyCare.Label"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/solid_food_name"
+                            android:textColor="?attr/colorTextSecondary" />
+
+                        <EditText
+                            android:id="@+id/etSolidFoodName"
+                            style="@style/TextAppearance.BabyCare.Body2"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:layout_marginTop="6dp"
+                            android:background="@drawable/bg_record_time_field"
+                            android:hint="@string/solid_food_name_hint"
+                            android:inputType="text"
+                            android:paddingHorizontal="12dp"
+                            android:textColor="?attr/colorTextPrimary"
+                            android:textColorHint="?attr/colorTextHint" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        style="@style/TextAppearance.BabyCare.Label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/solid_food_amount"
+                        android:textColor="?attr/colorTextSecondary" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/bg_record_time_field"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
                         android:paddingHorizontal="12dp">
 
                         <EditText
@@ -302,268 +478,125 @@
                             android:inputType="number"
                             android:maxLength="4"
                             android:textColor="?attr/colorTextPrimary"
-                            android:textColorHint="?attr/colorTextHint"
-                            />
+                            android:textColorHint="?attr/colorTextHint" />
 
-                    <TextView
-                        android:id="@+id/tvSolidUnit"
-                        style="@style/TextAppearance.BabyCare.Label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/unit_g_abbr"
-                    android:textColor="?attr/colorTextHint" />
+                        <TextView
+                            android:id="@+id/tvSolidUnit"
+                            style="@style/TextAppearance.BabyCare.Label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/unit_g_abbr"
+                            android:textColor="?attr/colorTextHint" />
 
                     </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/rowFirstTime"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_record_time_field"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="12dp">
+
+                        <TextView
+                            style="@style/TextAppearance.BabyCare.Body2"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/solid_food_first_time"
+                            android:textColor="?attr/colorTextPrimary" />
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/cbFirstTime"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:contentDescription="@string/solid_food_first_time"
+                            android:showText="false"
+                            android:thumb="@drawable/bg_setting_switch_thumb"
+                            android:track="@drawable/bg_setting_switch_track"
+                            app:splitTrack="false" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvAllergenTip"
+                        style="@style/TextAppearance.BabyCare.Label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/solid_food_allergen_tip"
+                        android:textColor="?attr/colorError"
+                        android:visibility="gone" />
+
                 </LinearLayout>
 
-                <!-- 首次尝试勾选 -->
-                <CheckBox
-                android:id="@+id/cbFirstTime"
-                style="@style/TextAppearance.BabyCare.Body2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/solid_food_first_time"
-                android:textColor="?attr/colorTextPrimary" />
-
-                <!-- 过敏风险提示 -->
-                <TextView
-                    android:id="@+id/tvAllergenTip"
-                    style="@style/TextAppearance.BabyCare.Label"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/solid_food_allergen_tip"
-                    android:textColor="?attr/colorError"
-                    android:visibility="gone" />
-
-            </LinearLayout>
-
-            <!-- ==================== 其他类型输入区域 ==================== -->
-            <LinearLayout
-                android:id="@+id/llOtherFood"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    style="@style/TextAppearance.BabyCare.Heading3"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/other_food_name"
-                    android:textColor="?attr/colorTextPrimary" />
-
-                <EditText
-                    android:id="@+id/etOtherFoodName"
-                    style="@style/TextAppearance.BabyCare.Body2"
-                    android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="8dp"
-                    android:background="?attr/bg_r6_block_gridview"
-                    android:hint="@string/other_food_name_hint"
-                    android:inputType="text"
-                    android:paddingHorizontal="12dp"
-                    android:textColor="?attr/colorTextPrimary"
-                    android:textColorHint="?attr/colorTextHint"
-                    />
-
-            </LinearLayout>
-
-            <!-- 喂奶量（配方奶/混合喂养时显示） -->
-            <LinearLayout
-                android:id="@+id/llFeedingAmount"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="vertical"
-                android:visibility="gone"
-                tools:visibility="visible">
-
-                <TextView
-                    style="@style/TextAppearance.BabyCare.Heading3"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/feeding_amount"
-                    android:textColor="?attr/colorTextPrimary" />
-
                 <LinearLayout
+                    android:id="@+id/llOtherFood"
                     android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="8dp"
-                    android:background="?attr/bg_r6_block_gridview"
-                    android:gravity="center_vertical"
-                    android:paddingHorizontal="10dp">
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        style="@style/TextAppearance.BabyCare.Label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/other_food_name"
+                        android:textColor="?attr/colorTextSecondary" />
 
                     <EditText
-                        android:id="@+id/etFeedingAmount"
+                        android:id="@+id/etOtherFoodName"
                         style="@style/TextAppearance.BabyCare.Body2"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:background="@null"
-                        android:hint="@string/feeding_amount_hint"
-                        android:inputType="number"
-                        android:maxLength="4"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/bg_record_time_field"
+                        android:hint="@string/other_food_name_hint"
+                        android:inputType="text"
+                        android:paddingHorizontal="12dp"
                         android:textColor="?attr/colorTextPrimary"
-                        android:textColorHint="?attr/colorTextHint"
-                        />
-
-                    <TextView
-                        android:id="@+id/tvFeedingAmountUnit"
-                        style="@style/TextAppearance.BabyCare.Label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/unit_ml"
-                    android:textColor="?attr/colorTextHint" />
+                        android:textColorHint="?attr/colorTextHint" />
 
                 </LinearLayout>
+
+                <TextView
+                    style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/note"
+                    android:textColor="?attr/colorTextSecondary" />
+
+                <EditText
+                    android:id="@+id/etNote"
+                    style="@style/TextAppearance.BabyCare.Body2"
+                    android:layout_width="match_parent"
+                    android:layout_height="84dp"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_record_time_field"
+                    android:gravity="start|top"
+                    android:hint="@string/note_hint"
+                    android:inputType="textMultiLine"
+                    android:padding="12dp"
+                    android:textColor="?attr/colorTextPrimary"
+                    android:textColorHint="?attr/colorTextHint" />
 
             </LinearLayout>
-
-            <!-- 左右乳房时长（仅母乳喂养时显示） -->
-            <LinearLayout
-                android:id="@+id/llBreastDuration"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="horizontal"
-                android:visibility="gone"
-                tools:visibility="visible">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        style="@style/TextAppearance.BabyCare.Body2"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/left_breast_duration"
-                        android:textColor="?attr/colorTextPrimary" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:layout_marginTop="8dp"
-                    android:background="?attr/bg_r6_block_gridview"
-                    android:gravity="center_vertical"
-                    android:paddingHorizontal="10dp">
-
-                        <EditText
-                            android:id="@+id/etLeftBreastDuration"
-                            style="@style/TextAppearance.BabyCare.Body2"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                        android:background="@null"
-                        android:hint="@string/number_zero"
-                        android:inputType="number"
-                        android:maxLength="3"
-                        android:textColor="?attr/colorTextPrimary"
-                        android:textColorHint="?attr/colorTextHint"
-                        />
-
-                        <TextView
-                    style="@style/TextAppearance.BabyCare.Label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/min"
-                    android:textColor="?attr/colorTextHint" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-                <View
-                    android:layout_width="10dp"
-                    android:layout_height="1dp" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        style="@style/TextAppearance.BabyCare.Body2"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="end"
-                        android:text="@string/right_breast_duration"
-                        android:textColor="?attr/colorTextPrimary" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:layout_marginTop="8dp"
-                    android:background="?attr/bg_r6_block_gridview"
-                    android:gravity="center_vertical"
-                    android:paddingHorizontal="10dp">
-
-                        <EditText
-                            android:id="@+id/etRightBreastDuration"
-                            style="@style/TextAppearance.BabyCare.Body2"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:layout_weight="1"
-                        android:background="@null"
-                        android:hint="@string/number_zero"
-                        android:inputType="number"
-                        android:maxLength="3"
-                        android:textColor="?attr/colorTextPrimary"
-                        android:textColorHint="?attr/colorTextHint"
-                        />
-
-                        <TextView
-                    style="@style/TextAppearance.BabyCare.Label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/min"
-                    android:textColor="?attr/colorTextHint" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- 备注 -->
-            <TextView
-                style="@style/TextAppearance.BabyCare.Heading2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="@string/note" />
-
-            <EditText
-                android:id="@+id/etNote"
-                style="@style/TextAppearance.BabyCare.Body2"
-                android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:layout_marginTop="10dp"
-                android:background="?attr/bg_r6_block_gridview"
-                android:gravity="start|top"
-                android:hint="@string/note_hint"
-                android:inputType="textMultiLine"
-                android:padding="12dp"
-                android:textColor="?attr/colorTextPrimary"
-                android:textColorHint="?attr/colorTextHint"
-                />
 
         </LinearLayout>
     </ScrollView>
 
-    <!-- 底部保存按钮 -->
     <TextView
         android:id="@+id/tvSave"
         style="@style/TextAppearance.BabyCare.Body1"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:layout_marginHorizontal="16dp"
+        android:layout_marginHorizontal="@dimen/page_horizontal_padding"
         android:layout_marginBottom="20dp"
         android:background="?attr/bg_r999_brand_color"
         android:gravity="center"
@@ -572,5 +605,3 @@
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-
-
