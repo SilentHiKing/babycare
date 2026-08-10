@@ -1,62 +1,90 @@
 package com.zero.babycare.reminder
 
-import android.app.AlarmManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
+import com.zero.babydata.domain.BabyDataHelper.repository
 import com.zero.common.mmkv.MMKVKeys
 import com.zero.common.mmkv.MMKVStore
 import java.util.concurrent.TimeUnit
 
 /**
- * 提醒调度器
- * 使用 AlarmManager 周期唤醒，触发后台检查并推送提醒。
+ * 提醒调度入口。
+ *
+ * WorkManager 持久化每个宝宝、每种记录类型的一次性任务；记录变化后重新规划，
+ * 不再依赖固定两小时轮询，也不需要自行处理开机广播。
  */
 object ReminderScheduler {
 
-    private const val REQUEST_CODE = 12001
-    private val intervalMillis = TimeUnit.HOURS.toMillis(2)
-    private val initialDelayMillis = TimeUnit.MINUTES.toMillis(10)
+    internal const val TAG_REMINDER = "babycare_reminder"
+    internal const val KEY_BABY_ID = "baby_id"
+    internal const val KEY_REMINDER_TYPE = "reminder_type"
+    internal const val KEY_EXPECTED_DUE = "expected_due"
+    private const val PLAN_WORK_NAME = "babycare_reminder_plan"
 
-    /**
-     * 根据开关状态确保调度存在
-     */
     fun ensureScheduled(context: Context) {
-        if (MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, true)) {
-            schedule(context)
-        } else {
-            cancel(context)
+        val appContext = context.applicationContext
+        if (!MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, false)) {
+            cancel(appContext)
+            return
         }
-    }
 
-    /**
-     * 启动提醒调度
-     */
-    fun schedule(context: Context) {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
-        val pendingIntent = buildPendingIntent(context)
-        // 先取消旧调度，避免重复或参数更新不生效
-        alarmManager.cancel(pendingIntent)
-        val triggerAt = System.currentTimeMillis() + initialDelayMillis
-        alarmManager.setInexactRepeating(
-            AlarmManager.RTC_WAKEUP,
-            triggerAt,
-            intervalMillis,
-            pendingIntent
+        val request = OneTimeWorkRequest.Builder(ReminderPlanWorker::class.java)
+            .addTag(TAG_REMINDER)
+            .build()
+        WorkManager.getInstance(appContext).enqueueUniqueWork(
+            PLAN_WORK_NAME,
+            ExistingWorkPolicy.REPLACE,
+            request
         )
     }
 
-    /**
-     * 取消提醒调度
-     */
     fun cancel(context: Context) {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
-        alarmManager.cancel(buildPendingIntent(context))
+        WorkManager.getInstance(context.applicationContext).cancelAllWorkByTag(TAG_REMINDER)
     }
 
-    private fun buildPendingIntent(context: Context): PendingIntent {
-        val intent = Intent(context, ReminderReceiver::class.java)
-        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        return PendingIntent.getBroadcast(context, REQUEST_CODE, intent, flags)
+    /** 根据数据库最新记录重建全部提醒任务。 */
+    internal suspend fun rebuildSchedule(context: Context) {
+        if (!MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, false)) {
+            cancel(context)
+            return
+        }
+
+        val workManager = WorkManager.getInstance(context.applicationContext)
+        repository.getAllBabyInfo().forEach { baby ->
+            val candidates = ReminderPolicy.loadCandidates(baby)
+            ReminderType.entries.forEach { type ->
+                val workName = dueWorkName(baby.babyId, type)
+                val candidate = candidates[type]
+                if (candidate == null) {
+                    workManager.cancelUniqueWork(workName)
+                    return@forEach
+                }
+
+                val delay = (candidate.dueTime - System.currentTimeMillis()).coerceAtLeast(0L)
+                val input = Data.Builder()
+                    .putInt(KEY_BABY_ID, baby.babyId)
+                    .putString(KEY_REMINDER_TYPE, type.name)
+                    .putLong(KEY_EXPECTED_DUE, candidate.dueTime)
+                    .build()
+                val request = OneTimeWorkRequest.Builder(ReminderDueWorker::class.java)
+                    .setInputData(input)
+                    .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                    .addTag(TAG_REMINDER)
+                    .build()
+                workManager.enqueueUniqueWork(workName, ExistingWorkPolicy.REPLACE, request)
+            }
+        }
     }
+
+    private fun dueWorkName(babyId: Int, type: ReminderType): String {
+        return "babycare_reminder_due_${babyId}_${type.name.lowercase()}"
+    }
+}
+
+enum class ReminderType {
+    FEEDING,
+    SLEEP
 }

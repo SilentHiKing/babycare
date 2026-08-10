@@ -1,124 +1,151 @@
-import pandas as pd
 import json
+import os
+import re
+import tempfile
+import traceback
+from pathlib import Path
 
-def excel_to_json(excel_file_path, output_json_path):
-    """
-    将多语言 Excel 文件转换为 JSON 格式
-    """
-    # 读取 Excel 文件的所有 sheet
-    excel_file = pd.ExcelFile(excel_file_path)
+import pandas as pd
 
-    result = {
-        "code": 200,
-        "message": "success",
-        "data": {}
-    }
 
-    # 语言代码映射
-    language_mapping = {
-        "简体中文": "zh-Hans",
-        "English": "en",
-        "繁体中文": "zh-Hant",
-        "日文": "ja",
-        "韩文": "ko",
-        "德语": "de",
-        "法语": "fr",
-        "阿语": "ar",
-        "意大利语": "it",
-        "波兰语": "pl",
-        "葡语": "pt",
-        "西语": "es",
-        "俄语": "ru",
-        "马来语": "ms",
-        "泰语": "th",
-        "越南语": "vi",
-        "乌克兰语": "uk",
-        "印度尼西亚语": "id",
-        "土耳其语": "tr",
-        "希腊语": "el",
-        "捷克语": "cs",
-        "荷兰语": "nl",
-        "丹麦语": "da",
-        "匈牙利语": "hu",
-        "博克马尔挪威语": "nb",
-        "瑞典语": "sv",
-        "芬兰语": "fi"
-    }
+LANGUAGE_MAPPING = {
+    "简体中文": "zh-Hans",
+    "English": "en",
+    "繁体中文": "zh-Hant",
+    "日文": "ja",
+    "韩文": "ko",
+    "德语": "de",
+    "法语": "fr",
+    "阿语": "ar",
+    "意大利语": "it",
+    "波兰语": "pl",
+    "葡语": "pt",
+    "西语": "es",
+    "俄语": "ru",
+    "马来语": "ms",
+    "泰语": "th",
+    "越南语": "vi",
+    "乌克兰语": "uk",
+    "印度尼西亚语": "id",
+    "土耳其语": "tr",
+    "希腊语": "el",
+    "捷克语": "cs",
+    "荷兰语": "nl",
+    "丹麦语": "da",
+    "匈牙利语": "hu",
+    "博克马尔挪威语": "nb",
+    "瑞典语": "sv",
+    "芬兰语": "fi",
+}
+REQUIRED_COLUMNS = ("简体中文", "English", "繁体中文", "日文", "韩文")
+CODE_KEY_PATTERN = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 
-    for sheet_name in excel_file.sheet_names:
-        print(f"处理工作表: {sheet_name}")
 
-        # 首先读取原始数据，不指定表头
-        df_raw = pd.read_excel(excel_file_path, sheet_name=sheet_name, header=None)
+def _find_header_row(raw_frame: pd.DataFrame, sheet_name: str) -> int:
+    for index, row in raw_frame.iterrows():
+        values = [str(cell).strip().lower() for cell in row if pd.notna(cell)]
+        if "codekey" in values:
+            return int(index)
+    raise ValueError(f"工作表 {sheet_name} 中找不到 codeKey 表头")
 
-        # 查找包含 'codeKey' 的行作为表头
-        header_row = None
-        for idx, row in df_raw.iterrows():
-            # 检查这一行是否包含 'codeKey'
-            row_values = [str(cell).strip().lower() for cell in row if pd.notna(cell)]
-            if any('codekey' in value for value in row_values):
-                header_row = idx
-                break
 
-        if header_row is None:
-            print(f"⚠️  在工作表 {sheet_name} 中找不到 codeKey，跳过")
+def _build_sheet_data(excel_path: Path, sheet_name: str) -> list[dict]:
+    raw_frame = pd.read_excel(excel_path, sheet_name=sheet_name, header=None)
+    header_row = _find_header_row(raw_frame, sheet_name)
+    frame = pd.read_excel(excel_path, sheet_name=sheet_name, header=header_row)
+    frame.columns = frame.columns.astype(str).str.strip()
+
+    missing_columns = [column for column in REQUIRED_COLUMNS if column not in frame.columns]
+    if missing_columns:
+        raise ValueError(f"工作表 {sheet_name} 缺少语言列：{', '.join(missing_columns)}")
+
+    items: list[dict] = []
+    seen_keys: set[str] = set()
+    for row_number, (_, row) in enumerate(frame.iterrows(), start=header_row + 2):
+        raw_key = row.get("codeKey")
+        if pd.isna(raw_key) or str(raw_key).strip() in ("", "nan"):
             continue
 
-        # 重新读取，使用正确的表头行
-        df = pd.read_excel(excel_file_path, sheet_name=sheet_name, header=header_row)
+        code_key = str(raw_key).strip()
+        if not CODE_KEY_PATTERN.fullmatch(code_key):
+            raise ValueError(f"{sheet_name} 第 {row_number} 行 codeKey 非法：{code_key}")
+        if code_key in seen_keys:
+            raise ValueError(f"{sheet_name} 存在重复 codeKey：{code_key}")
+        seen_keys.add(code_key)
 
-        # 清理列名（去除空格等）
-        df.columns = df.columns.astype(str).str.strip()
-
-        sheet_data = []
-
-        for index, row in df.iterrows():
-            code_key = row.get('codeKey')
-
-            # 跳过空值
-            if pd.isna(code_key) or code_key == '' or code_key == 'nan':
+        language_data: dict[str, str] = {}
+        for excel_language, language_code in LANGUAGE_MAPPING.items():
+            if excel_language not in frame.columns:
                 continue
+            value = row.get(excel_language)
+            if pd.notna(value) and str(value) != "":
+                language_data[language_code] = str(value)
 
-            language_dict = {}
+        missing_languages = [
+            LANGUAGE_MAPPING[column]
+            for column in REQUIRED_COLUMNS
+            if LANGUAGE_MAPPING[column] not in language_data
+        ]
+        if missing_languages:
+            raise ValueError(
+                f"{sheet_name}/{code_key} 缺少翻译：{', '.join(missing_languages)}"
+            )
 
-            # 遍历所有语言列
-            for excel_lang, lang_code in language_mapping.items():
-                if excel_lang in df.columns and pd.notna(row.get(excel_lang)) and row.get(excel_lang) != '':
-                    language_dict[lang_code] = str(row[excel_lang])
+        items.append({"codeKey": code_key, "language": language_data})
 
-            if language_dict:
-                sheet_data.append({
-                    "codeKey": str(code_key),
-                    "language": language_dict
-                })
+    if not items:
+        raise ValueError(f"工作表 {sheet_name} 没有可生成的翻译项")
+    return items
 
-        result["data"][sheet_name] = sheet_data
-        print(f"✅ {sheet_name}: 处理了 {len(sheet_data)} 个翻译项")
 
-    # 保存为 JSON 文件
-    with open(output_json_path, 'w', encoding='utf-8') as f:
-        json.dump(result, f, ensure_ascii=False, indent=2)
+def _write_json_atomically(output_path: Path, payload: dict) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=output_path.parent,
+            prefix=f"{output_path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as temporary_file:
+            json.dump(payload, temporary_file, ensure_ascii=False, indent=2)
+            temporary_file.flush()
+            os.fsync(temporary_file.fileno())
+            temporary_path = Path(temporary_file.name)
+        os.replace(temporary_path, output_path)
+    finally:
+        if temporary_path is not None and temporary_path.exists():
+            temporary_path.unlink()
 
-    print(f"\n🎉 转换完成！JSON 文件已保存至: {output_json_path}")
 
-    # 打印最终统计信息
-    print("\n📊 最终统计:")
-    total_items = 0
-    for project, items in result["data"].items():
-        print(f"  {project}: {len(items)} 个翻译项")
-        total_items += len(items)
-    print(f"  总计: {total_items} 个翻译项")
+def excel_to_json(excel_file_path: str | Path, output_json_path: str | Path) -> dict:
+    """校验多语言 Excel，并在全部 sheet 成功后原子生成 JSON。"""
+    excel_path = Path(excel_file_path).resolve()
+    output_path = Path(output_json_path).resolve()
+    if not excel_path.is_file():
+        raise FileNotFoundError(f"多语言 Excel 不存在：{excel_path}")
 
+    result = {"code": 200, "message": "success", "data": {}}
+    with pd.ExcelFile(excel_path) as workbook:
+        for sheet_name in workbook.sheet_names:
+            print(f"处理工作表: {sheet_name}")
+            items = _build_sheet_data(excel_path, sheet_name)
+            result["data"][sheet_name] = items
+            print(f"完成 {sheet_name}: {len(items)} 个翻译项")
+
+    _write_json_atomically(output_path, result)
+    total_items = sum(len(items) for items in result["data"].values())
+    print(f"转换完成：{output_path}，共 {total_items} 个翻译项")
     return result
 
-# 使用示例
-if __name__ == "__main__":
-    excel_file = "多语言对照表.xlsx"
-    output_file = "output.json"
 
+if __name__ == "__main__":
     try:
-        result = excel_to_json(excel_file, output_file)
-    except Exception as e:
-        print(f"❌ 发生错误: {e}")
-        import traceback
+        excel_to_json("多语言对照表.xlsx", "output.json")
+    except Exception as exception:
+        print(f"多语言转换失败：{exception}")
         traceback.print_exc()
+        # 继续抛出异常，让 Gradle 收到非零退出码，禁止失败后伪装成功。
+        raise

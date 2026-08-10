@@ -40,12 +40,15 @@ import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.room.BabyRepository
 import com.zero.common.util.UnitConfig
 import com.zero.common.util.UnitConverter
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
@@ -73,6 +76,10 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     private val _uiState = MutableStateFlow(StatisticsUiState())
     val uiState: StateFlow<StatisticsUiState> = _uiState.asStateFlow()
 
+    private var displayedMonth = YearMonth.from(_selectedDate.value)
+    private var contentLoadJob: Job? = null
+    private var calendarLoadJob: Job? = null
+
     // ==================== 公开方法 ====================
 
     /**
@@ -81,7 +88,10 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     fun setBabyId(babyId: Int) {
         if (_currentBabyId.value != babyId) {
             _currentBabyId.value = babyId
-            _uiState.value = _uiState.value.copy(babyId = babyId)
+            _uiState.value = _uiState.value.copy(
+                babyId = babyId,
+                datesWithRecords = emptySet()
+            )
             loadData()
         }
     }
@@ -100,19 +110,16 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
      * 选择日期
      */
     fun selectDate(date: LocalDate) {
-        if (_selectedDate.value != date) {
+        val targetMonth = YearMonth.from(date)
+        if (_selectedDate.value != date || displayedMonth != targetMonth) {
             _selectedDate.value = date
             _uiState.value = _uiState.value.copy(
                 selectedDate = date,
                 dayRecord = _uiState.value.dayRecord.copy(date = date),
                 insights = _uiState.value.insights.copy(selectedDate = date)
             )
-            loadDayData()
-            loadTrendOverview()
-            loadStructureOverview()
-            loadGrowthTrend()
-            loadGrowthPercentile()
-            loadHealthStats()
+            displayedMonth = targetMonth
+            loadData()
         }
     }
 
@@ -133,253 +140,100 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     // ==================== 私有方法 ====================
 
     /**
-     * 加载所有数据
+     * 以宝宝和选中日期为一个输入快照加载整页。新输入会取消旧请求，避免快速切换后
+     * 旧协程覆盖新页面，也让 Loading/Error 明确代表整组核心内容。
      */
     private fun loadData() {
-        loadDayData()
-        loadDatesWithRecords()
-        loadGrowthTrend()
-        loadTrendOverview()
-        loadStructureOverview()
-        loadGrowthPercentile()
-        loadHealthStats()
-    }
-
-    /**
-     * 加载当日数据（摘要+时间轴）
-     */
-    private fun loadDayData() {
         val babyId = _currentBabyId.value
         val date = _selectedDate.value
+        contentLoadJob?.cancel()
 
         if (babyId <= 0) {
             _uiState.value = _uiState.value.copy(
                 babyId = babyId,
                 selectedDate = date,
                 dayRecord = DayRecordSectionUiModel.empty(date),
+                insights = InsightSectionUiModel.empty(date),
+                datesWithRecords = emptySet(),
                 isLoading = false,
                 errorMessage = null
             )
+            calendarLoadJob?.cancel()
             return
         }
 
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-
+        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+        contentLoadJob = viewModelScope.launch {
             try {
-                val (summary, items, babyInfo) = withContext(Dispatchers.IO) {
-                    val summaryData = repository.getDaySummary(babyId, date)
-                    val timelineRecords = repository.getTimelineRecords(babyId, date)
+                val content = coroutineScope {
+                    val dayRecord = async(Dispatchers.IO) { buildDayRecordSection(babyId, date) }
+                    val growth = async(Dispatchers.IO) { buildGrowthTrend(babyId, date) }
+                    val trend = async(Dispatchers.IO) { buildTrendOverview(babyId, date) }
+                    val structure = async(Dispatchers.IO) { buildStructureOverview(babyId, date) }
+                    val percentile = async(Dispatchers.IO) { buildGrowthPercentileOverview(babyId, date) }
+                    val health = async(Dispatchers.IO) { buildHealthStats(babyId, date) }
 
-                    // 转换为 UI 模型
-                    val daySummary = DaySummary(
-                        date = date,
-                        feedingCount = summaryData.feedingCount,
-                        feedingTotalMinutes = summaryData.feedingTotalMinutes,
-                        feedingTotalMl = summaryData.feedingTotalMl,
-                        sleepCount = summaryData.sleepCount,
-                        sleepTotalMinutes = summaryData.sleepTotalMinutes,
-                        diaperWetCount = summaryData.diaperWetCount,
-                        diaperDirtyCount = summaryData.diaperDirtyCount,
-                        diaperMixedCount = summaryData.diaperMixedCount,
-                        diaperDryCount = summaryData.diaperDryCount,
-                        otherEventCount = summaryData.otherEventCount
+                    LoadedStatisticsContent(
+                        dayRecord = dayRecord.await(),
+                        insights = InsightSectionUiModel(
+                            selectedDate = date,
+                            trend = trend.await(),
+                            structure = structure.await(),
+                            growth = growth.await(),
+                            percentile = percentile.await(),
+                            health = health.await()
+                        )
                     )
-
-                    val mapper = buildTimelineMapper()
-                    val timelineItems = timelineRecords.map { record ->
-                        when (record) {
-                            is BabyRepository.TimelineRecord.Feeding -> mapper.mapFeeding(record.record)
-                            is BabyRepository.TimelineRecord.Sleep -> mapper.mapSleep(record.record)
-                            is BabyRepository.TimelineRecord.Event -> mapper.mapEvent(record.record)
-                        }
-                    }
-
-                    Triple(daySummary, timelineItems, repository.getBabyInfoSync(babyId))
                 }
 
                 if (_selectedDate.value == date && _currentBabyId.value == babyId) {
                     _uiState.value = _uiState.value.copy(
                         babyId = babyId,
                         selectedDate = date,
-                        dayRecord = buildDayRecordSection(
-                            date = date,
-                            babyInfo = babyInfo,
-                            summary = summary,
-                            timelineItems = items
-                        ),
+                        dayRecord = content.dayRecord,
+                        insights = content.insights,
                         isLoading = false,
                         errorMessage = null
                     )
                 }
-
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                updateLoadFailureIfCurrent(babyId, date, stopDayLoading = true)
+                if (_selectedDate.value == date && _currentBabyId.value == babyId) {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = getLoadFailedText()
+                    )
+                }
             }
         }
+        loadDatesWithRecords(displayedMonth)
     }
 
     /**
-     * 加载生长趋势数据（体重/身高/头围最近两次对比）
+     * 月份标记独立于选中日内容；同样只允许最新月份请求写回。
      */
-    private fun loadGrowthTrend() {
+    private fun loadDatesWithRecords(yearMonth: YearMonth) {
         val babyId = _currentBabyId.value
-        val date = _selectedDate.value
-        if (babyId <= 0) {
-            val empty = GrowthTrend.empty()
-            updateInsights { it.copy(selectedDate = date, growth = empty) }
-            return
-        }
-
-        viewModelScope.launch {
-            try {
-                val trend = withContext(Dispatchers.IO) {
-                    buildGrowthTrend(babyId, date)
-                }
-                updateInsightsIfCurrent(babyId, date) {
-                    it.copy(selectedDate = date, growth = trend)
-                }
-            } catch (e: Exception) {
-                updateLoadFailureIfCurrent(babyId, date)
-            }
-        }
-    }
-
-    /**
-     * 加载有记录的日期（用于日历标记）
-     */
-    private fun loadDatesWithRecords() {
-        val babyId = _currentBabyId.value
-        val yearMonth = YearMonth.from(_selectedDate.value)
+        calendarLoadJob?.cancel()
 
         if (babyId <= 0) {
             _uiState.value = _uiState.value.copy(datesWithRecords = emptySet())
             return
         }
 
-        viewModelScope.launch {
+        calendarLoadJob = viewModelScope.launch {
             try {
-                val dates = withContext(Dispatchers.IO) {
-                    repository.getDatesWithRecords(babyId, yearMonth)
+                val dates = repository.getDatesWithRecords(babyId, yearMonth)
+                if (_currentBabyId.value == babyId && displayedMonth == yearMonth) {
+                    _uiState.value = _uiState.value.copy(datesWithRecords = dates)
                 }
-                _uiState.value = _uiState.value.copy(datesWithRecords = dates)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(datesWithRecords = emptySet())
-            }
-        }
-    }
-
-    /**
-     * 加载周/月/年趋势概览
-     */
-    private fun loadTrendOverview() {
-        val babyId = _currentBabyId.value
-        val date = _selectedDate.value
-        if (babyId <= 0) {
-            val empty = TrendOverview(emptyList())
-            updateInsights { it.copy(selectedDate = date, trend = empty) }
-            return
-        }
-
-        viewModelScope.launch {
-            try {
-                val overview = withContext(Dispatchers.IO) {
-                    buildTrendOverview(babyId, date)
+                if (_currentBabyId.value == babyId && displayedMonth == yearMonth) {
+                    _uiState.value = _uiState.value.copy(datesWithRecords = emptySet())
                 }
-                updateInsightsIfCurrent(babyId, date) {
-                    it.copy(selectedDate = date, trend = overview)
-                }
-            } catch (e: Exception) {
-                updateLoadFailureIfCurrent(babyId, date)
-            }
-        }
-    }
-
-    /**
-     * 加载结构图数据（按选中月份统计）
-     */
-    private fun loadStructureOverview() {
-        val babyId = _currentBabyId.value
-        val date = _selectedDate.value
-        if (babyId <= 0) {
-            val empty = StructureOverview(emptyList())
-            updateInsights { it.copy(selectedDate = date, structure = empty) }
-            return
-        }
-
-        viewModelScope.launch {
-            try {
-                val overview = withContext(Dispatchers.IO) {
-                    buildStructureOverview(babyId, date)
-                }
-                updateInsightsIfCurrent(babyId, date) {
-                    it.copy(selectedDate = date, structure = overview)
-                }
-            } catch (e: Exception) {
-                updateLoadFailureIfCurrent(babyId, date)
-            }
-        }
-    }
-
-    /**
-     * 加载生长百分位数据
-     */
-    private fun loadGrowthPercentile() {
-        val babyId = _currentBabyId.value
-        val date = _selectedDate.value
-        if (babyId <= 0) {
-            val empty = buildEmptyGrowthPercentile(
-                com.zero.common.R.string.statistics_growth_percentile_note_missing_info
-            )
-            updateInsights { it.copy(selectedDate = date, percentile = empty) }
-            return
-        }
-
-        viewModelScope.launch {
-            try {
-                val overview = withContext(Dispatchers.IO) {
-                    buildGrowthPercentileOverview(babyId, date)
-                }
-                updateInsightsIfCurrent(babyId, date) {
-                    it.copy(selectedDate = date, percentile = overview)
-                }
-            } catch (e: Exception) {
-                updateLoadFailureIfCurrent(babyId, date)
-            }
-        }
-    }
-
-    /**
-     * 加载健康/疫苗统计
-     */
-    private fun loadHealthStats() {
-        val babyId = _currentBabyId.value
-        val date = _selectedDate.value
-        if (babyId <= 0) {
-            val empty = HealthStats(
-                startDate = date,
-                endDate = date,
-                temperatureCount = 0,
-                medicineCount = 0,
-                doctorCount = 0,
-                symptomCount = 0,
-                vaccineCount = 0,
-                lastVaccineTime = null
-            )
-            updateInsights { it.copy(selectedDate = date, health = empty) }
-            return
-        }
-
-        viewModelScope.launch {
-            try {
-                val stats = withContext(Dispatchers.IO) {
-                    buildHealthStats(babyId, date)
-                }
-                updateInsightsIfCurrent(babyId, date) {
-                    it.copy(selectedDate = date, health = stats)
-                }
-            } catch (e: Exception) {
-                updateLoadFailureIfCurrent(babyId, date)
             }
         }
     }
@@ -388,27 +242,54 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
      * 当月份变化时加载新月份的记录日期
      */
     fun onMonthChanged(yearMonth: YearMonth) {
-        val babyId = _currentBabyId.value
-        if (babyId <= 0) return
+        displayedMonth = yearMonth
+        loadDatesWithRecords(yearMonth)
+    }
 
-        viewModelScope.launch {
-            try {
-                val dates = withContext(Dispatchers.IO) {
-                    repository.getDatesWithRecords(babyId, yearMonth)
-                }
-                if (_currentBabyId.value == babyId) {
-                    _uiState.value = _uiState.value.copy(datesWithRecords = dates)
-                }
-            } catch (e: Exception) {
-                // 忽略
+    private suspend fun buildDayRecordSection(
+        babyId: Int,
+        date: LocalDate
+    ): DayRecordSectionUiModel {
+        val summaryData = repository.getDaySummary(babyId, date)
+        val timelineRecords = repository.getTimelineRecords(babyId, date)
+        val summary = DaySummary(
+            date = date,
+            feedingCount = summaryData.feedingCount,
+            feedingTotalMinutes = summaryData.feedingTotalMinutes,
+            feedingTotalMl = summaryData.feedingTotalMl,
+            sleepCount = summaryData.sleepCount,
+            sleepTotalMinutes = summaryData.sleepTotalMinutes,
+            diaperWetCount = summaryData.diaperWetCount,
+            diaperDirtyCount = summaryData.diaperDirtyCount,
+            diaperMixedCount = summaryData.diaperMixedCount,
+            diaperDryCount = summaryData.diaperDryCount,
+            otherEventCount = summaryData.otherEventCount
+        )
+        val mapper = buildTimelineMapper()
+        val timelineItems = timelineRecords.map { record ->
+            when (record) {
+                is BabyRepository.TimelineRecord.Feeding -> mapper.mapFeeding(record.record)
+                is BabyRepository.TimelineRecord.Sleep -> mapper.mapSleep(record.record)
+                is BabyRepository.TimelineRecord.Event -> mapper.mapEvent(record.record)
             }
         }
+        return buildDayRecordSection(
+            date = date,
+            babyInfo = repository.getBabyInfo(babyId),
+            summary = summary,
+            timelineItems = timelineItems
+        )
     }
+
+    private data class LoadedStatisticsContent(
+        val dayRecord: DayRecordSectionUiModel,
+        val insights: InsightSectionUiModel
+    )
 
     /**
      * 查询并计算生长趋势
      */
-    private fun buildGrowthTrend(babyId: Int, selectedDate: LocalDate): GrowthTrend {
+    private suspend fun buildGrowthTrend(babyId: Int, selectedDate: LocalDate): GrowthTrend {
         val weightUnit = UnitConfig.getWeightUnit()
         val heightUnit = UnitConfig.getHeightUnit()
 
@@ -449,7 +330,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     /**
      * 生成周/月/年趋势数据
      */
-    private fun buildTrendOverview(babyId: Int, date: LocalDate): TrendOverview {
+    private suspend fun buildTrendOverview(babyId: Int, date: LocalDate): TrendOverview {
         val weekRange = StatisticsDateRange.week(date)
         val monthRange = StatisticsDateRange.month(date)
         val yearRange = StatisticsDateRange.year(date)
@@ -465,7 +346,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     /**
      * 统计指定时间范围内的趋势数据
      */
-    private fun buildPeriodSummary(
+    private suspend fun buildPeriodSummary(
         babyId: Int,
         period: TrendPeriod,
         range: StatisticsDateRange.Range
@@ -518,7 +399,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     /**
      * 构建结构图数据（默认按月）
      */
-    private fun buildStructureOverview(babyId: Int, date: LocalDate): StructureOverview {
+    private suspend fun buildStructureOverview(babyId: Int, date: LocalDate): StructureOverview {
         val range = StatisticsDateRange.month(date)
         val feedings = repository.getFeedingRecordsBetween(babyId, range.startMillis, range.endMillis)
         val events = repository.getEventRecordsBetween(babyId, range.startMillis, range.endMillis)
@@ -657,8 +538,11 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     /**
      * 构建生长百分位数据（基于 WHO 标准）
      */
-    private fun buildGrowthPercentileOverview(babyId: Int, selectedDate: LocalDate): GrowthPercentileOverview {
-        val baby = repository.getBabyInfoSync(babyId)
+    private suspend fun buildGrowthPercentileOverview(
+        babyId: Int,
+        selectedDate: LocalDate
+    ): GrowthPercentileOverview {
+        val baby = repository.getBabyInfo(babyId)
         val birthDate = baby?.birthDate ?: 0L
         val sex = WhoSexParser.parse(baby?.gender)
 
@@ -715,7 +599,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     /**
      * 生成单项百分位序列
      */
-    private fun buildPercentileSeries(
+    private suspend fun buildPercentileSeries(
         babyId: Int,
         type: Int,
         labelResId: Int,
@@ -783,7 +667,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     /**
      * 构建健康/疫苗统计（按选中月份）
      */
-    private fun buildHealthStats(babyId: Int, date: LocalDate): HealthStats {
+    private suspend fun buildHealthStats(babyId: Int, date: LocalDate): HealthStats {
         val range = StatisticsDateRange.month(date)
         val events = repository.getEventRecordsBetween(babyId, range.startMillis, range.endMillis)
 
@@ -908,36 +792,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun getLoadFailedText(): String {
-        return getApplication<Application>().getString(com.zero.common.R.string.statistics_load_failed)
-    }
-
-    private fun updateInsights(transform: (InsightSectionUiModel) -> InsightSectionUiModel) {
-        _uiState.value = _uiState.value.copy(
-            insights = transform(_uiState.value.insights)
-        )
-    }
-
-    private fun updateInsightsIfCurrent(
-        babyId: Int,
-        date: LocalDate,
-        transform: (InsightSectionUiModel) -> InsightSectionUiModel
-    ) {
-        if (_currentBabyId.value == babyId && _selectedDate.value == date) {
-            updateInsights(transform)
-        }
-    }
-
-    private fun updateLoadFailureIfCurrent(
-        babyId: Int,
-        date: LocalDate,
-        stopDayLoading: Boolean = false
-    ) {
-        if (_currentBabyId.value == babyId && _selectedDate.value == date) {
-            _uiState.value = _uiState.value.copy(
-                isLoading = if (stopDayLoading) false else _uiState.value.isLoading,
-                errorMessage = getLoadFailedText()
-            )
-        }
+        return getApplication<Application>().getString(com.zero.common.R.string.data_load_failed)
     }
 
     private fun buildDayRecordSection(
@@ -1073,7 +928,7 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     /**
      * 读取最近两条记录，换算成当前单位后计算差值
      */
-    private fun buildGrowthItem(
+    private suspend fun buildGrowthItem(
         babyId: Int,
         type: Int,
         selectedDate: LocalDate,

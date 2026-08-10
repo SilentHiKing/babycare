@@ -531,4 +531,13 @@
     <string name="baby_profile_select_birthday">选择生日</string>
     <string name="please_select">请选择</string>
     <string name="optional">可选</string>
+    <string name="delete_record">删除记录</string>
+    <string name="delete_record_confirm">确定要删除这条记录吗？删除后将同步更新统计与预测，且无法恢复。</string>
+    <string name="record_delete_success">记录已删除</string>
+    <string name="record_delete_failed">删除失败，请重试</string>
+    <string name="data_load_failed">数据加载失败</string>
+    <string name="retry">重试</string>
+    <string name="prediction_evidence_default">参考月龄规律，持续记录后会逐步个性化</string>
+    <string name="prediction_evidence_samples">基于 %1$d 次有效记录间隔</string>
+    <string name="prediction_evidence_weak_samples">基于 %1$d 次有效记录间隔，当前规律较弱</string>
 </resources>

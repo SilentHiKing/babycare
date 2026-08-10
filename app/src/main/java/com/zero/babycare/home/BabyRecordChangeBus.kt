@@ -1,5 +1,7 @@
 package com.zero.babycare.home
 
+import com.blankj.utilcode.util.Utils
+import com.zero.babycare.reminder.ReminderScheduler
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -8,8 +10,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 /**
  * 宝宝记录变更事件总线。
  *
- * 当前 Room DAO 还没有提供 Flow，这里先用轻量事件流把保存记录后的刷新信号传给首页；
- * 后续 DAO Flow 化后，可以删除该总线并由数据库变更直接驱动 DashboardUiState。
+ * 保存、修改或删除记录提交后，由该事件同时刷新首页派生状态并重排持久化提醒任务。
  */
 object BabyRecordChangeBus {
     private val _changes = MutableSharedFlow<Int>(
@@ -21,5 +22,6 @@ object BabyRecordChangeBus {
 
     fun notifyChanged(babyId: Int) {
         _changes.tryEmit(babyId)
+        ReminderScheduler.ensureScheduled(Utils.getApp())
     }
 }

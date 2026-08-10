@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 女孩主题（夜间）：仅覆盖品牌相关 Token -->
+    <!-- 女孩主题（深色模式）：仅覆盖品牌相关 Token -->
     <style name="AppTheme.Girl" parent="AppTheme">
         <!-- ========== 系统品牌色 ========== -->
         <item name="brand_color">@color/girl_brand</item>
@@ -24,6 +24,7 @@
         <item name="colorStatusTextSecondary">@color/girl_brand_dark</item>
 
         <!-- ========== 图标 ========== -->
+        <item name="iconColorBrand">@color/girl_accent</item>
         <item name="icon_brand">@color/girl_accent</item>
         <item name="icon_tipsblue">@color/girl_accent</item>
         <item name="ic_canvas_enable">@color/girl_accent</item>

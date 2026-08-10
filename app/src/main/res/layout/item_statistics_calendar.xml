@@ -4,9 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
     android:background="@drawable/bg_r16_top_surface_group_control_border"
-    android:paddingHorizontal="@dimen/statistics_day_content_inset"
+    android:paddingStart="@dimen/statistics_day_content_inset"
+    android:paddingEnd="@dimen/statistics_day_content_inset"
     android:paddingTop="22dp"
     android:paddingBottom="6dp">
 
@@ -56,8 +58,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="?attr/bg_r999_stroke1_line1"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="4dp"
+        android:gravity="center"
+        android:minHeight="48dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
         android:text="@string/today"
         android:textColor="?attr/colorTextSecondary"
         app:layout_constraintBottom_toBottomOf="@id/ivPrevious"
@@ -70,7 +76,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:paddingHorizontal="@dimen/statistics_calendar_grid_inset"
+        android:paddingStart="@dimen/statistics_calendar_grid_inset"
+        android:paddingEnd="@dimen/statistics_calendar_grid_inset"
         app:layout_constraintTop_toBottomOf="@id/ivPrevious" />
 
     <!-- 展开/收起指示器 -->

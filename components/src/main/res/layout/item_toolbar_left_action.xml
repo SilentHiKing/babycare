@@ -6,8 +6,10 @@
     android:layout_width="48dp"
     android:layout_height="56dp"
     android:background="?attr/selectableItemBackgroundBorderless"
-    android:paddingHorizontal="12dp"
-    android:paddingVertical="16dp">
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp">
 
     <!-- 左侧动作图标，统一 24dp 规格 -->
     <ImageView

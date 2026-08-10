@@ -24,7 +24,7 @@ data class BackupImportPreview(
 /**
  * 导入模式
  */
-enum class BackupImportMode(@StringRes val labelResId: Int) {
+enum class BackupImportMode(@param:StringRes val labelResId: Int) {
     OVERWRITE(com.zero.common.R.string.backup_import_mode_overwrite),
     MERGE(com.zero.common.R.string.backup_import_mode_merge)
 }

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- 夜间主题：补齐所有 Token，避免 Night 模式缺失 -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- 深色主题：补齐所有 Token，避免 Night 模式缺失 -->
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
 
         <!-- System theme override. -->
         <item name="colorPrimary">@color/colorPrimary</item>
@@ -24,7 +24,7 @@
         <!-- Functional -->
         <item name="colorSuccess">#66BB6A</item>
         <item name="colorWarning">#FFA726</item>
-        <item name="colorError">#EF5350</item>
+        <item name="colorError">@color/semantic_error</item>
 
         <!-- Text -->
         <item name="colorTextPrimary">@color/text_primary_default</item>
@@ -33,13 +33,20 @@
         <item name="colorStatusTextPrimary">@color/status_text_primary</item>
         <item name="colorStatusTextSecondary">@color/status_text_secondary</item>
 
+        <!-- Icon Colors (Semantic Defaults) -->
+        <item name="iconColorPrimary">?attr/colorTextPrimary</item>
+        <item name="iconColorSecondary">?attr/colorTextSecondary</item>
+        <item name="iconColorBrand">?attr/colorBrandLight</item>
+        <item name="iconColorOnBrand">?attr/colorOnBrand</item>
+        <item name="iconColorDisabled">@color/text_hint_default</item>
+
         <!-- Shapes -->
         <item name="shapeCornerSmall">8dp</item>
         <item name="shapeCornerMedium">16dp</item>
         <item name="shapeCornerLarge">24dp</item>
         <item name="shapeCornerExtraLarge">32dp</item>
 
-        <!-- 普通 View 默认不产生阴影，夜间层级通过明度差和边框表达。 -->
+        <!-- 普通 View 默认不产生阴影，深色模式层级通过明度差和边框表达。 -->
         <item name="elevationSmall">0dp</item>
         <item name="elevationMedium">0dp</item>
 

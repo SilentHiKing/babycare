@@ -531,4 +531,13 @@
     <string name="baby_profile_select_birthday">Select birthday</string>
     <string name="please_select">Please select</string>
     <string name="optional">Optional</string>
+    <string name="delete_record">Delete record</string>
+    <string name="delete_record_confirm">Delete this record? Statistics and predictions will be updated, and this action cannot be undone.</string>
+    <string name="record_delete_success">Record deleted</string>
+    <string name="record_delete_failed">Couldn\'t delete the record. Please try again.</string>
+    <string name="data_load_failed">Couldn\'t load data</string>
+    <string name="retry">Try again</string>
+    <string name="prediction_evidence_default">Based on age patterns; continued records will personalize it</string>
+    <string name="prediction_evidence_samples">Based on %1$d valid record intervals</string>
+    <string name="prediction_evidence_weak_samples">Based on %1$d valid record intervals; the current pattern is weak</string>
 </resources>

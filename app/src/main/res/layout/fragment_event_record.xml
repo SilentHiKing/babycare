@@ -15,19 +15,23 @@
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollView"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:fillViewport="true"
         android:overScrollMode="never"
         app:layout_constraintBottom_toTopOf="@id/btnSave"
-        app:layout_constraintTop_toBottomOf="@id/toolbar">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintWidth_max="@dimen/record_content_max_width">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="16dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
             android:paddingTop="16dp"
             android:paddingBottom="40dp">
 
@@ -168,7 +172,8 @@
                     android:layout_height="48dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingHorizontal="4dp">
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp">
 
                     <ImageView
                         android:layout_width="20dp"
@@ -228,9 +233,10 @@
     <Button
         android:id="@+id/btnSave"
         style="@style/TextAppearance.BabyCare.Body1"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="48dp"
-        android:layout_marginHorizontal="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:background="?attr/bg_r999_brand_color"
         android:stateListAnimator="@null"
@@ -238,6 +244,9 @@
         android:textColor="?attr/colorOnBrand"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintWidth_max="@dimen/record_content_max_width"
         tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

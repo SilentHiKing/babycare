@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.zero.babycare.home.BabyRecordChangeBus
-import com.blankj.utilcode.util.ThreadUtils
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.components.base.vm.BaseViewModel
 import com.zero.babydata.domain.BabyDataHelper.repository
@@ -17,21 +16,53 @@ class FeedingRecordViewModel : BaseViewModel() {
     private val _lastFeedingRecord = MutableLiveData<FeedingRecord?>()
     val lastFeedingRecord: LiveData<FeedingRecord?> = _lastFeedingRecord
 
-    fun insert(feedingRecord: FeedingRecord, callback: Runnable) {
-        safeLaunch {
-            repository.insertFeedingRecord(feedingRecord) {
-                BabyRecordChangeBus.notifyChanged(feedingRecord.babyId)
-                // 保存完成后的页面重置与导航必须回到主线程，避免数据库写线程直接触碰 UI 状态。
-                ThreadUtils.runOnUiThread { callback.run() }
+    fun insert(
+        feedingRecord: FeedingRecord,
+        onSuccess: () -> Unit,
+        onError: () -> Unit
+    ) {
+        persistRecord(feedingRecord, onSuccess, onError) {
+            repository.insertFeedingRecord(feedingRecord)
+        }
+    }
+
+    fun update(
+        feedingRecord: FeedingRecord,
+        onSuccess: () -> Unit,
+        onError: () -> Unit
+    ) {
+        persistRecord(feedingRecord, onSuccess, onError) {
+            repository.updateFeedingRecord(feedingRecord)
+        }
+    }
+
+    /** 删除后统一发出记录变更，确保首页、统计和预测都基于最新数据重算。 */
+    fun delete(feedingId: Int, babyId: Int, onSuccess: () -> Unit, onError: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                repository.deleteFeedingRecordById(feedingId)
+                BabyRecordChangeBus.notifyChanged(babyId)
+                onSuccess()
+            } catch (_: Exception) {
+                onError()
             }
         }
     }
 
-    fun update(feedingRecord: FeedingRecord, callback: Runnable) {
-        safeLaunch {
-            repository.updateFeedingRecord(feedingRecord) {
+    private fun persistRecord(
+        feedingRecord: FeedingRecord,
+        onSuccess: () -> Unit,
+        onError: () -> Unit,
+        operation: suspend () -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                operation()
                 BabyRecordChangeBus.notifyChanged(feedingRecord.babyId)
-                ThreadUtils.runOnUiThread { callback.run() }
+                onSuccess()
+            } catch (_: Exception) {
+                // 数据库失败时保留当前表单，由页面恢复操作按钮供用户重试。
+                onError()
             }
         }
     }
@@ -53,7 +84,4 @@ class FeedingRecordViewModel : BaseViewModel() {
         }
     }
 
-    fun getRecentFeedings(babyId: Int, limit: Int): List<FeedingRecord> {
-        return repository.getRecentFeedings(babyId, limit)
-    }
 }

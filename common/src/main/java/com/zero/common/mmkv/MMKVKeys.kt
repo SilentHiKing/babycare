@@ -6,11 +6,6 @@ package com.zero.common.mmkv
  */
 object MMKVKeys {
 
-    // --- 用户信息 ---
-    const val USER_INFO = "user_info"
-    const val USER_TOKEN = "user_token"
-    const val USER_LAST_LOGIN = "user_last_login"
-
     // --- 应用配置 ---
     const val APP_THEME = "app_theme"
     const val LANGUAGE = "language"
@@ -22,10 +17,11 @@ object MMKVKeys {
     const val SETTINGS_BACKUP_DEDUP_MINUTES = "settings_backup_dedup_minutes"
     const val SETTINGS_FEEDING_REMINDER_LAST_PREFIX = "settings_feeding_reminder_last_"
     const val SETTINGS_SLEEP_REMINDER_LAST_PREFIX = "settings_sleep_reminder_last_"
+    const val SETTINGS_FEEDING_REMINDER_SOURCE_PREFIX = "settings_feeding_reminder_source_"
+    const val SETTINGS_SLEEP_REMINDER_SOURCE_PREFIX = "settings_sleep_reminder_source_"
 
-    // --- 业务数据 ---
-    const val BABY_INFO = "BABY_INFO"
-    const val DRAFT_BACKUP = "draft_backup"
+    // 只缓存当前宝宝的数据库 ID，姓名、生日和健康数据始终从 Room 读取。
+    const val CURRENT_BABY_ID = "current_baby_id"
 
     // --- 调试/环境 ---
     const val DEBUG_MODE = "debug_mode"

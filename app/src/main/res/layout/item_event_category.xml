@@ -10,8 +10,10 @@
     android:gravity="center"
     android:minHeight="48dp"
     android:orientation="horizontal"
-    android:paddingHorizontal="18dp"
-    android:paddingVertical="6dp">
+    android:paddingStart="18dp"
+    android:paddingEnd="18dp"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
 
     <ImageView
         android:id="@+id/ivIcon"

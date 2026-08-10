@@ -1,8 +1,16 @@
 /**
- * 多语言文件生成插件
+ * 多语言资源生成任务。
+ *
+ * Excel 是唯一源数据；所有输入先完成解析与校验，随后逐文件原子替换，避免失败时留下半份 XML。
  */
 
-// 首先配置仓库和依赖
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+import java.io.File
+import java.nio.file.AtomicMoveNotSupportedException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+
 buildscript {
     repositories {
         mavenCentral()
@@ -10,314 +18,244 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.squareup.okhttp3:okhttp:4.11.0")
         classpath("com.google.code.gson:gson:2.10.1")
     }
 }
 
-// 导入需要的类
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import com.google.gson.Gson
-import com.google.gson.JsonObject
-
-// 直接在脚本中配置路径
 val projectPaths = mapOf(
-    "app" to File(project(":app").projectDir, "src/main/res/").absolutePath,
-    "common" to File(project(":common").projectDir, "src/main/res/").absolutePath,
-    "baby_recyclerview" to File(project(":baby_recyclerview").projectDir, "src/main/res/").absolutePath,
+    "app" to File(project(":app").projectDir, "src/main/res").absolutePath,
+    "common" to File(project(":common").projectDir, "src/main/res").absolutePath,
+    "baby_recyclerview" to File(project(":baby_recyclerview").projectDir, "src/main/res").absolutePath,
 )
 
-val googleplayPaths = mapOf(
-    "common" to File(project(":common").projectDir, "src/app_oversea/res/").absolutePath,
+val googlePlayPaths = mapOf(
+    "common" to File(project(":common").projectDir, "src/app_oversea/res").absolutePath,
 )
 
 val languageMap = listOf("en", "zh-Hans", "zh-Hant", "ja", "ko")
+val localJsonFile = File(project.rootProject.projectDir, "tools/language/output.json")
 
-// JSON 文件路径配置
-val localJsonPath = File(project.rootProject.projectDir, "tools/language/output.json").absolutePath
-
-/**
- * 从 Excel 生成多语言 JSON 文件任务
- */
-tasks.register("generateLanguageJson") {
+val generateLanguageJson = tasks.register("generateLanguageJson") {
     group = "i18n"
-    description = "从 Excel 生成多语言 JSON 文件"
+    description = "从 Excel 生成并校验多语言 JSON"
 
-    // 强制任务始终执行
+    val pythonScript = File(project.rootProject.projectDir, "tools/language/language_converter.py")
+    val excelFile = File(project.rootProject.projectDir, "tools/language/多语言对照表.xlsx")
+    inputs.files(pythonScript, excelFile)
+    outputs.file(localJsonFile)
+
+    doLast {
+        requireInputFile(pythonScript, "Python 脚本")
+        requireInputFile(excelFile, "多语言 Excel")
+
+        val pythonPrefix = findPythonCommand()
+            ?: throw GradleException("未找到可用的 Python 3，请安装后重试")
+        val command = pythonPrefix + pythonScript.absolutePath
+        val exitCode = ProcessBuilder(command)
+            .directory(pythonScript.parentFile)
+            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+            .redirectError(ProcessBuilder.Redirect.INHERIT)
+            .start()
+            .waitFor()
+
+        if (exitCode != 0) {
+            throw GradleException("多语言 JSON 生成失败，Python 退出码：$exitCode")
+        }
+        if (!localJsonFile.isFile || localJsonFile.length() == 0L) {
+            throw GradleException("Python 执行完成但未生成有效 JSON：${localJsonFile.absolutePath}")
+        }
+        println("多语言 JSON 已生成：${localJsonFile.absolutePath}")
+    }
+}
+
+val fetchInternationalLanguageList = tasks.register("fetchInternationalLanguageList") {
+    group = "i18n"
+    description = "校验本地 JSON 并原子生成 Android strings.xml"
+    dependsOn(generateLanguageJson)
+    inputs.file(localJsonFile)
     outputs.upToDateWhen { false }
 
     doLast {
-        val pythonScript = File(project.rootProject.projectDir, "tools/language/language_converter.py")
-        val excelFile = File(project.rootProject.projectDir, "tools/language/多语言对照表.xlsx")
-        val outputFile = File(project.rootProject.projectDir, "tools/language/output.json")
-
-        println("🔍 调试信息:")
-        println("  Python脚本路径: ${pythonScript.absolutePath}")
-        println("  Excel文件路径: ${excelFile.absolutePath}")
-        println("  输出JSON路径: ${outputFile.absolutePath}")
-        println("  Python脚本存在: ${pythonScript.exists()}")
-        println("  Excel文件存在: ${excelFile.exists()}")
-
-        if (!pythonScript.exists()) {
-            println("❌ Python 脚本不存在: ${pythonScript.absolutePath}")
-            return@doLast
+        requireInputFile(localJsonFile, "多语言 JSON")
+        val root = try {
+            Gson().fromJson(localJsonFile.readText(Charsets.UTF_8), JsonObject::class.java)
+        } catch (exception: Exception) {
+            throw GradleException("多语言 JSON 解析失败", exception)
         }
+        val data = root?.get("data")
+            ?.takeIf { it.isJsonObject }
+            ?.asJsonObject
+            ?: throw GradleException("多语言 JSON 缺少 data 对象")
 
-        if (!excelFile.exists()) {
-            println("❌ Excel 文件不存在: ${excelFile.absolutePath}")
-            return@doLast
-        }
-
-        try {
-            println("开始从 Excel 生成 JSON 文件...")
-
-            // 检查 Python 是否可用
-            val pythonCheck = ProcessBuilder("python", "--version")
-                .redirectOutput(ProcessBuilder.Redirect.PIPE)
-                .redirectError(ProcessBuilder.Redirect.PIPE)
-                .start()
-
-            val pythonCheckExitCode = pythonCheck.waitFor()
-            if (pythonCheckExitCode != 0) {
-                println("❌ Python 不可用，尝试使用 python3...")
-                // 可以尝试使用 python 命令
-            }
-
-            val process = ProcessBuilder(
-                "python",
-                pythonScript.absolutePath
+        // 全部内容先在内存中生成并完成校验，确认无误后才触碰现有资源文件。
+        val generatedFiles = linkedMapOf<File, String>()
+        projectPaths.forEach { (projectName, resDir) ->
+            generatedFiles.putAll(
+                buildProjectFiles(projectName, resDir, data, languageMap, isGooglePlay = false)
             )
-                .directory(File(project.rootProject.projectDir, "tools/language"))
-                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-                .redirectError(ProcessBuilder.Redirect.INHERIT)
-                .start()
-
-            val exitCode = process.waitFor()
-            if (exitCode == 0) {
-                println("✅ Python 脚本执行成功")
-
-                // 检查文件是否真的生成了
-                if (outputFile.exists()) {
-                    println("✅ 多语言 JSON 文件生成成功")
-                    println("📁 文件位置: ${outputFile.absolutePath}")
-                    println("📊 文件大小: ${outputFile.length()} 字节")
-                } else {
-                    println("❌ Python 脚本执行成功，但未生成输出文件")
-                    println("请检查 Python 脚本中的输出路径设置")
-                }
-            } else {
-                println("❌ Python 脚本执行失败，退出码: $exitCode")
-            }
-        } catch (e: Exception) {
-            println("❌ 执行 Python 脚本时出错: ${e.message}")
-            e.printStackTrace()
         }
+        googlePlayPaths.forEach { (projectName, resDir) ->
+            generatedFiles.putAll(
+                buildProjectFiles(projectName, resDir, data, languageMap, isGooglePlay = true)
+            )
+        }
+
+        writeFilesAtomically(generatedFiles)
+        println("多语言资源生成完成，共更新 ${generatedFiles.size} 个 strings.xml")
     }
 }
 
-/**
- * 从本地JSON文件生成多语言文件任务
- */
-tasks.register("fetchInternationalLanguageList") {
-    group = "i18n"
-    description = "从本地JSON文件生成多语言strings.xml文件"
-
-    // 强制任务始终执行
-    outputs.upToDateWhen { false }
-    doLast {
-        println("开始从本地JSON文件生成多语言文件...")
-        println("JSON文件路径: $localJsonPath")
-
-        val jsonFile = File(localJsonPath)
-        if (!jsonFile.exists()) {
-            println("❌ JSON文件不存在: $localJsonPath")
-            println("请先运行 generateLanguageJson 任务生成 JSON 文件")
-            return@doLast
-        }
-
-        try {
-            // 读取本地 JSON 文件
-            val jsonText = jsonFile.readText(Charsets.UTF_8)
-            println("✓ JSON文件读取成功")
-
-            // 使用 Gson 解析 JSON 数据
-            val gson = Gson()
-            val json = gson.fromJson(jsonText, JsonObject::class.java)
-            val data = json.getAsJsonObject("data")
-
-            // 处理普通项目路径
-            println("处理普通版本多语言文件...")
-            projectPaths.forEach { (projectName, resDir) ->
-                processProjectData(
-                    projectName = projectName,
-                    resDir = resDir,
-                    data = data,
-                    languageMap = languageMap,
-                    isGooglePlay = false
-                )
-                println("✓ 完成项目: $projectName")
-            }
-
-            // 处理 Google Play 项目路径
-            println("处理Google Play版本多语言文件...")
-            googleplayPaths.forEach { (projectName, resDir) ->
-                processProjectData(
-                    projectName = projectName,
-                    resDir = resDir,
-                    data = data,
-                    languageMap = languageMap,
-                    isGooglePlay = true
-                )
-                println("✓ 完成项目: $projectName")
-            }
-
-            println("🎉 多语言文件生成完成！")
-
-        } catch (e: Exception) {
-            println("❌ 处理JSON文件时出错: ${e.message}")
-            e.printStackTrace()
-        }
-    }
-}
-
-// 明确指定任务依赖关系：fetchInternationalLanguageList 必须在 generateLanguageJson 之后执行
-tasks.named("fetchInternationalLanguageList") {
-    mustRunAfter("generateLanguageJson")
-}
-
-/**
- * 完整的多语言更新流程任务
- */
 tasks.register("updateAllLanguages") {
     group = "i18n"
-    description = "完整的多语言更新流程：从Excel生成JSON，再生成Android资源文件"
+    description = "从 Excel 完整刷新所有 Android 多语言资源"
+    dependsOn(fetchInternationalLanguageList)
+}
 
-    dependsOn("generateLanguageJson", "fetchInternationalLanguageList")
-
-    doLast {
-        println("🎉 完整的多语言更新流程已完成！")
+fun requireInputFile(file: File, label: String) {
+    if (!file.isFile) {
+        throw GradleException("$label 不存在：${file.absolutePath}")
     }
 }
 
+/** 查找可用的 Python 3 启动方式，Windows 同时支持 py -3。 */
+fun findPythonCommand(): List<String>? {
+    val candidates = listOf(listOf("python"), listOf("python3"), listOf("py", "-3"))
+    return candidates.firstOrNull { prefix ->
+        runCatching {
+            ProcessBuilder(prefix + "--version")
+                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                .redirectError(ProcessBuilder.Redirect.DISCARD)
+                .start()
+                .waitFor() == 0
+        }.getOrDefault(false)
+    }
+}
 
-
-/**
- * 处理项目数据并生成 strings.xml 文件
- */
-fun processProjectData(
+/** 将一个 sheet 转换为目标模块的所有语言文件；任一缺失翻译都会中止整次生成。 */
+fun buildProjectFiles(
     projectName: String,
     resDir: String,
     data: JsonObject,
     languageMap: List<String>,
     isGooglePlay: Boolean
-) {
-    val projectData = data.getAsJsonArray(projectName) ?: run {
-        println("⚠️  项目 $projectName 没有多语言数据")
-        return
+): Map<File, String> {
+    val projectElement = data.get(projectName)
+        ?: throw GradleException("多语言 JSON 缺少项目：$projectName")
+    if (!projectElement.isJsonArray) {
+        throw GradleException("项目 $projectName 的多语言数据不是数组")
     }
 
-    // 删除原来的 string.xml 文件
+    val outputs = linkedMapOf<File, StringBuilder>()
     languageMap.forEach { langCode ->
         getValuesDirNames(langCode, isGooglePlay).forEach { valuesDirName ->
-            val valuesDirPath = File(resDir, valuesDirName)
-            if (valuesDirPath.exists()) {
-                val stringsFile = File(valuesDirPath, "strings.xml")
-                if (stringsFile.exists()) {
-                    stringsFile.delete()
-                }
-            }
+            val target = File(File(resDir, valuesDirName), "strings.xml")
+            outputs[target] = StringBuilder("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n")
         }
     }
 
-    // 生成新的 strings.xml 文件
-    projectData.forEach { entry ->
-        val codeKey = entry.asJsonObject.get("codeKey").asString
-        val languages = entry.asJsonObject.getAsJsonObject("language")
+    val seenKeys = mutableSetOf<String>()
+    projectElement.asJsonArray.forEachIndexed { index, entry ->
+        if (!entry.isJsonObject) {
+            throw GradleException("项目 $projectName 第 ${index + 1} 项不是对象")
+        }
+        val item = entry.asJsonObject
+        val codeKey = item.get("codeKey")?.asString?.trim().orEmpty()
+        if (codeKey.isEmpty()) {
+            throw GradleException("项目 $projectName 第 ${index + 1} 项缺少 codeKey")
+        }
+        if (!seenKeys.add(codeKey)) {
+            throw GradleException("项目 $projectName 存在重复 codeKey：$codeKey")
+        }
+        val languages = item.get("language")
+            ?.takeIf { it.isJsonObject }
+            ?.asJsonObject
+            ?: throw GradleException("$projectName/$codeKey 缺少 language 对象")
 
         languageMap.forEach { langCode ->
-            val languageValue = languages.get(langCode)?.asString
-            if (languageValue != null) {
-                getValuesDirNames(langCode, isGooglePlay).forEach { valuesDirName ->
-                    val valuesDirPath = File(resDir, valuesDirName)
-                    if (!valuesDirPath.exists()) {
-                        valuesDirPath.mkdirs()
-                    }
-                    val stringsFile = File(valuesDirPath, "strings.xml")
-                    if (!stringsFile.exists()) {
-                        stringsFile.writeText("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n")
-                    }
-                    // 写入翻译项
-                    var convertedString = convertToAndroidString(languageValue)
-                    convertedString = convertedString.replace("%ld", "%d")
-                    val convertedStr = escapeSingleQuote(convertedString)
-                    stringsFile.appendText("    <string name=\"$codeKey\">$convertedStr</string>\n")
-                }
+            val languageElement = languages.get(langCode)
+                ?: throw GradleException("$projectName/$codeKey 缺少 $langCode 翻译")
+            if (languageElement.isJsonNull) {
+                throw GradleException("$projectName/$codeKey 的 $langCode 翻译为空")
+            }
+            val value = languageElement.asString
+            val androidValue = escapeSingleQuote(
+                convertToAndroidString(value).replace("%ld", "%d")
+            )
+            getValuesDirNames(langCode, isGooglePlay).forEach { valuesDirName ->
+                val target = File(File(resDir, valuesDirName), "strings.xml")
+                outputs.getValue(target)
+                    .append("    <string name=\"")
+                    .append(codeKey)
+                    .append("\">")
+                    .append(androidValue)
+                    .append("</string>\n")
             }
         }
     }
 
-    // 完成后关闭所有文件资源
-    languageMap.forEach { langCode ->
-        getValuesDirNames(langCode, isGooglePlay).forEach { valuesDirName ->
-            val valuesDirPath = File(resDir, valuesDirName)
-            val stringsFile = File(valuesDirPath, "strings.xml")
-            if (stringsFile.exists()) {
-                stringsFile.appendText("</resources>\n")
+    if (seenKeys.isEmpty()) {
+        throw GradleException("项目 $projectName 没有可生成的多语言条目")
+    }
+    return outputs.mapValues { (_, builder) -> builder.append("</resources>\n").toString() }
+}
+
+/** 所有临时文件写完后再原子替换正式文件，生成异常不会破坏上一份可用资源。 */
+fun writeFilesAtomically(outputs: Map<File, String>) {
+    val stagedFiles = linkedMapOf<File, File>()
+    try {
+        outputs.forEach { (target, content) ->
+            target.parentFile.mkdirs()
+            val staged = File.createTempFile("${target.name}.", ".tmp", target.parentFile)
+            staged.writeText(content, Charsets.UTF_8)
+            stagedFiles[target] = staged
+        }
+        stagedFiles.forEach { (target, staged) ->
+            try {
+                Files.move(
+                    staged.toPath(),
+                    target.toPath(),
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING
+                )
+            } catch (_: AtomicMoveNotSupportedException) {
+                Files.move(staged.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
             }
+        }
+    } finally {
+        stagedFiles.values.forEach { staged ->
+            if (staged.exists()) staged.delete()
         }
     }
 }
 
-/**
- * 获取 values 目录名称
- *
- * 繁体中文历史上同时存在台湾与香港资源目录，因此统一由同一份 zh-Hant
- * 翻译生成两个目录，避免其中一个目录继续依赖手写 XML。
- */
 fun getValuesDirNames(langCode: String, isGooglePlay: Boolean): List<String> {
     return when {
-        isGooglePlay -> {
-            when (langCode) {
-                "en" -> listOf("values")
-                "zh-Hant" -> listOf("values-zh-rTW", "values-zh-rHK")
-                "zh-Hans" -> listOf("values-zh")
-                else -> listOf("values-$langCode")
-            }
+        isGooglePlay -> when (langCode) {
+            "en" -> listOf("values")
+            "zh-Hant" -> listOf("values-zh-rTW", "values-zh-rHK")
+            "zh-Hans" -> listOf("values-zh")
+            else -> listOf("values-$langCode")
         }
-        else -> {
-            when (langCode) {
-                "zh-Hans" -> listOf("values")
-                "zh-Hant" -> listOf("values-zh-rTW", "values-zh-rHK")
-                else -> listOf("values-$langCode")
-            }
+        else -> when (langCode) {
+            "zh-Hans" -> listOf("values")
+            "zh-Hant" -> listOf("values-zh-rTW", "values-zh-rHK")
+            else -> listOf("values-$langCode")
         }
     }
 }
 
-/**
- * 转换字符串为 Android 格式
- */
-fun convertToAndroidString(inputString: String): String {
-    var counter = 0
-    var result = inputString.replace(Regex("%@")) {
-        counter++
-        "%${counter}\$s"
-    }
-    // 转换 & 为 &amp;
-    result = result.replace("&", "&amp;")
-    return result
+fun convertToAndroidString(input: String): String {
+    var placeholderIndex = 0
+    return input
+        .replace(Regex("%@")) {
+            placeholderIndex += 1
+            "%${placeholderIndex}\$s"
+        }
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
 }
 
-/**
- * 转义单引号
- */
-fun escapeSingleQuote(inputString: String): String {
-    return if (inputString.contains("'")) {
-        // Android XML 中单引号只需要一个反斜杠；写两个会把反斜杠显示到界面上。
-        inputString.replace("'", "\\'")
-    } else {
-        inputString
-    }
+fun escapeSingleQuote(input: String): String {
+    return input.replace("'", "\\'")
 }

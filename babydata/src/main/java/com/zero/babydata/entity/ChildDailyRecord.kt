@@ -13,7 +13,10 @@ import androidx.room.PrimaryKey
         childColumns = ["babyId"],
         onDelete = ForeignKey.CASCADE
     )],
-    indices = [Index(value = ["babyId"])]
+    indices = [
+        Index(value = ["babyId"]),
+        Index(value = ["babyId", "recordDate"], unique = true)
+    ]
 )
 data class ChildDailyRecord(
     @PrimaryKey(autoGenerate = true)

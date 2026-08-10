@@ -1,6 +1,5 @@
 package com.zero.babycare.home
 
-import com.blankj.utilcode.util.LogUtils
 import androidx.lifecycle.viewModelScope
 import com.zero.babycare.home.bean.DashboardData
 import com.zero.babycare.home.prediction.PredictionManager
@@ -96,8 +95,8 @@ class DashboardViewModel : BaseViewModel() {
                 )
             } catch (throwable: Throwable) {
                 if (throwable is CancellationException) throw throwable
-                LogUtils.d(throwable.stackTraceToString())
-                _dashboardUiState.value = DashboardUiState.Error(throwable.message.orEmpty())
+                // 页面只暴露可恢复的通用错误态，避免把数据库或设备异常细节带到 UI 与日志。
+                _dashboardUiState.value = DashboardUiState.Error
             }
         }
     }

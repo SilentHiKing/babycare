@@ -4,11 +4,12 @@ import android.os.Bundle
 import android.text.InputFilter
 import android.text.InputType
 import android.view.View
+import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentFeedingRecordBinding
@@ -28,6 +29,8 @@ import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
 import com.zero.components.base.vm.UiState
 import com.zero.components.widget.RecordView.RecordState
+import com.zero.components.widget.ToolbarAction
+import java.util.Locale
 
 /**
  * 喂养记录页面
@@ -74,6 +77,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
     private var editRecordId: Int? = null
     private var editingRecord: FeedingRecord? = null
     private var isEditMode = false
+    private var mutationInProgress = false
 
     // 当前选择的喂养类型
     private var selectedFeedingType = FeedingType.BREAST
@@ -90,7 +94,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
     // 标记是否是程序设置时间（避免循环触发）
     private var isProgrammaticChange = false
 
-    private lateinit var timerController: RecordTimerController
+    private var timerController: RecordTimerController? = null
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
@@ -112,9 +116,10 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
-        // 释放计时器资源
+        timerController?.dispose()
+        timerController = null
         binding.timerPanel.timerView.release()
+        super.onDestroyView()
     }
 
     /**
@@ -195,7 +200,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         binding.rgSolidSubtype.removeAllViews()
         val subtypeHeight = android.util.TypedValue.applyDimension(
             android.util.TypedValue.COMPLEX_UNIT_DIP,
-            36f,
+            48f,
             resources.displayMetrics
         ).toInt()
         val subtypeGap = android.util.TypedValue.applyDimension(
@@ -406,7 +411,19 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
                         OngoingRecordManager.startFeeding(babyId, selectedFeedingType.type, startTime)
                     }
                 },
-                onTimerResume = { markAsUnsaved() },
+                onTimerResume = {
+                    markAsUnsaved()
+                    mainVm.getCurrentBabyInfo()?.babyId?.let(OngoingRecordManager::resumeFeeding)
+                },
+                onTimerPause = { endTime ->
+                    mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
+                        OngoingRecordManager.pauseFeeding(
+                            babyId = babyId,
+                            endTime = endTime,
+                            activeDurationMs = binding.timerPanel.timerView.getDuration()
+                        )
+                    }
+                },
                 onDirty = { markAsUnsaved() }
             )
         )
@@ -417,6 +434,24 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         binding.btn.showBackButton {
             handleBack()
         }
+        updateToolbarAction()
+    }
+
+    private fun updateToolbarAction() {
+        if (!isEditMode) {
+            binding.btn.hideAction()
+            return
+        }
+        val label = getString(R.string.delete_record)
+        binding.btn.setActions(
+            listOf(
+                ToolbarAction(
+                    text = label,
+                    contentDescription = label,
+                    enabled = !mutationInProgress && editingRecord != null
+                )
+            )
+        ) { showDeleteConfirmDialog() }
     }
 
     /**
@@ -449,11 +484,12 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      */
     private fun validateStartTime(): Boolean {
         if (!binding.timerPanel.startInput.hasValidTime()) {
+            showFieldValidationError(binding.timerPanel.startInput, R.string.start_time_required)
             return false
         }
 
         if (binding.timerPanel.startInput.isFutureTime()) {
-            ToastUtils.showShort(R.string.time_cannot_be_future)
+            showFieldValidationError(binding.timerPanel.startInput, R.string.time_cannot_be_future)
             return false
         }
 
@@ -465,11 +501,12 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      */
     private fun validateEndTime(): Boolean {
         if (!binding.timerPanel.endInput.hasValidTime()) {
+            showFieldValidationError(binding.timerPanel.endInput, R.string.end_time_required)
             return false
         }
 
         if (binding.timerPanel.endInput.isFutureTime()) {
-            ToastUtils.showShort(R.string.time_cannot_be_future)
+            showFieldValidationError(binding.timerPanel.endInput, R.string.time_cannot_be_future)
             return false
         }
 
@@ -488,7 +525,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         val endTime = binding.timerPanel.endInput.getTimestamp()
 
         if (!DateUtils.isEndAfterStart(startTime, endTime)) {
-            ToastUtils.showShort(R.string.end_time_must_after_start)
+            showFieldValidationError(binding.timerPanel.endInput, R.string.end_time_must_after_start)
             return false
         }
 
@@ -511,7 +548,12 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         val totalBreastDuration = DateUtils.minutesToMilliseconds(leftDuration + rightDuration)
         
         if (totalBreastDuration > totalDuration) {
-            ToastUtils.showShort(R.string.breast_duration_exceed)
+            val target = if (rightDuration > 0) {
+                binding.etRightBreastDuration
+            } else {
+                binding.etLeftBreastDuration
+            }
+            showFieldValidationError(target, R.string.breast_duration_exceed)
             return false
         }
 
@@ -522,10 +564,11 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         val navTarget = mainVm.navTarget.value as? NavTarget.FeedingRecord
         editRecordId = navTarget?.editRecordId
         isEditMode = editRecordId != null
-        if (!isEditMode) {
+        if (!isEditMode || editingRecord?.feedingId != editRecordId) {
             editingRecord = null
         }
         applyTimerLockState()
+        updateToolbarAction()
     }
 
     private fun applyTimerLockState() {
@@ -544,6 +587,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
                 return@loadFeedingRecordById
             }
             editingRecord = record
+            updateToolbarAction()
             applyRecordToUi(record)
         }
     }
@@ -561,11 +605,11 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         }
         updateFeedingTypeVisibility()
 
-        timerController.setStartTime(record.feedingStart, notify = false)
+        timerController?.setStartTime(record.feedingStart, notify = false)
         if (record.feedingEnd > 0L) {
-            timerController.setEndTime(record.feedingEnd, notify = false, updateDuration = true)
+            timerController?.setEndTime(record.feedingEnd, notify = false, updateDuration = true)
         } else {
-            timerController.clearEndTime(notify = false)
+            timerController?.clearEndTime(notify = false)
         }
 
         val leftMinutes = DateUtils.millisecondsToMinutes(record.feedingDurationBreastLeft)
@@ -617,7 +661,9 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
                 }
 
                 binding.etSolidFoodName.setText(record.foodName.orEmpty())
-                binding.etSolidAmount.setText(record.feedingAmount?.toString().orEmpty())
+                binding.etSolidAmount.setText(
+                    record.feedingAmount?.let { String.format(Locale.getDefault(), "%d", it) }.orEmpty()
+                )
                 binding.cbFirstTime.isChecked = record.isFirstTime
                 updateSolidFoodNameVisibility()
                 updateSolidUnit()
@@ -639,21 +685,24 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 保存记录
      */
     private fun saveRecord() {
+        if (mutationInProgress) return
+        clearValidationErrors()
+
         // 如果正在计时，先暂停
         if (binding.timerPanel.timerView.currentShowState == RecordState.RECORDING) {
-            binding.timerPanel.timerView.forcePause()
+            binding.timerPanel.timerView.forcePause(triggerCallback = true)
             // 更新结束时间
             binding.timerPanel.endInput.setTimestamp(System.currentTimeMillis())
         }
 
         // 校验必填项
         if (!binding.timerPanel.startInput.hasValidTime()) {
-            ToastUtils.showShort(R.string.start_time_required)
+            showFieldValidationError(binding.timerPanel.startInput, R.string.start_time_required)
             return
         }
 
         if (!binding.timerPanel.endInput.hasValidTime()) {
-            ToastUtils.showShort(R.string.end_time_required)
+            showFieldValidationError(binding.timerPanel.endInput, R.string.end_time_required)
             return
         }
 
@@ -757,6 +806,8 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         endTime: Long,
         duration: Long
     ) {
+        if (mutationInProgress) return
+
         // 获取左右乳房时长（仅母乳喂养时）
         val leftBreastDuration = if (selectedFeedingType == FeedingType.BREAST) {
             binding.etLeftBreastDuration.text.toString().toLongOrNull()?.let {
@@ -817,22 +868,82 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             this.createdAt = editingRecord?.createdAt ?: System.currentTimeMillis()
         }
 
-        val onSaved = Runnable {
-            LogUtils.d("feedingRecord success")
+        setMutationInProgress(true)
+        val onSaved = {
+            setMutationInProgress(false)
             if (!isEditMode) {
                 // 清除进行中状态
                 OngoingRecordManager.endFeeding(babyId)
                 // 重置页面数据，防止再次进入时显示历史数据
                 view?.post { resetPage() }
             }
+            hasUnsavedChanges = false
             mainVm.navigateTo(getReturnTarget())
+        }
+        val onError = {
+            setMutationInProgress(false)
+            ToastUtils.showShort(R.string.save_failed)
         }
 
         if (isEditMode) {
-            vm.update(feedingRecord, onSaved)
+            vm.update(feedingRecord, onSaved, onError)
         } else {
-            vm.insert(feedingRecord, onSaved)
+            vm.insert(feedingRecord, onSaved, onError)
         }
+    }
+
+    /** 编辑态允许纠正误记录；删除完成后由变更总线统一刷新依赖数据。 */
+    private fun showDeleteConfirmDialog() {
+        val record = editingRecord ?: return
+        if (mutationInProgress) return
+        DialogHelper.showConfirmDialog(
+            context = requireContext(),
+            title = getString(R.string.delete_record),
+            content = getString(R.string.delete_record_confirm),
+            confirmText = getString(R.string.delete_record),
+            cancelText = getString(R.string.cancel),
+            onConfirm = {
+                setMutationInProgress(true)
+                vm.delete(
+                    feedingId = record.feedingId,
+                    babyId = record.babyId,
+                    onSuccess = {
+                        setMutationInProgress(false)
+                        hasUnsavedChanges = false
+                        ToastUtils.showShort(R.string.record_delete_success)
+                        mainVm.navigateTo(getReturnTarget())
+                    },
+                    onError = {
+                        setMutationInProgress(false)
+                        ToastUtils.showShort(R.string.record_delete_failed)
+                    }
+                )
+            }
+        )
+    }
+
+    private fun setMutationInProgress(inProgress: Boolean) {
+        mutationInProgress = inProgress
+        if (view == null) return
+        binding.tvSave.isEnabled = !inProgress
+        binding.tvSave.alpha = if (inProgress) 0.7f else 1f
+        updateToolbarAction()
+    }
+
+    /** 校验失败后把错误留在字段上，并把辅助功能焦点带回可修正的位置。 */
+    @Suppress("DEPRECATION")
+    private fun showFieldValidationError(field: TextView, @StringRes messageRes: Int) {
+        val message = getString(messageRes)
+        field.error = message
+        field.requestFocus()
+        field.announceForAccessibility(message)
+    }
+
+    private fun clearValidationErrors() {
+        binding.timerPanel.startInput.error = null
+        binding.timerPanel.endInput.error = null
+        binding.etLeftBreastDuration.error = null
+        binding.etRightBreastDuration.error = null
     }
 
     /**
@@ -896,7 +1007,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         binding.etOtherFoodName.setText("")
         
         // 清空时间输入与计时器
-        timerController.reset()
+        timerController?.reset()
         
         // 清空左右乳房时长
         binding.etLeftBreastDuration.setText("")
@@ -944,12 +1055,13 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 恢复进行中的喂养记录
      */
     private fun restoreOngoingFeeding(babyId: Int) {
-        val startTime = OngoingRecordManager.getOngoingFeedingStart(babyId) ?: return
+        val session = OngoingRecordManager.getFeedingSession(babyId) ?: return
+        val startTime = session.startAt
         
         isProgrammaticChange = true
         
         // 恢复喂养类型
-        selectedFeedingType = FeedingType.fromType(OngoingRecordManager.getOngoingFeedingType(babyId))
+        selectedFeedingType = FeedingType.fromType(session.feedingType)
         when (selectedFeedingType) {
             FeedingType.BREAST -> binding.rbBreast.isChecked = true
             FeedingType.FORMULA -> binding.rbFormula.isChecked = true
@@ -960,11 +1072,17 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         updateFeedingTypeVisibility()
         
         // 设置开始时间
-        timerController.syncStartTime(startTime, clearEnd = true, resetTimer = false, notify = false)
-        
-        // 计算已经过的时间，恢复计时器状态
-        val elapsed = System.currentTimeMillis() - startTime
-        binding.timerPanel.timerView.startFromOffset(elapsed)
+        timerController?.syncStartTime(
+            timestamp = startTime,
+            clearEnd = session.endAt == null,
+            resetTimer = false,
+            notify = false
+        )
+        if (session.status == OngoingRecordManager.SessionStatus.PAUSED && session.endAt != null) {
+            timerController?.restorePausedSession(session.endAt, session.activeDurationMs)
+        } else {
+            binding.timerPanel.timerView.startFromOffset(session.elapsedDuration())
+        }
         
         hasUnsavedChanges = true
         isProgrammaticChange = false

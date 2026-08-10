@@ -3,7 +3,7 @@ package com.zero.components.base.vm
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.blankj.utilcode.util.LogUtils
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -19,10 +19,11 @@ abstract class BaseViewModel : ViewModel() {
             try {
                 val result = block()
                 _uiState.value = UiState.Success(result)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                val message = e.message ?: "Unknown error"
-                LogUtils.d(e.stackTraceToString())
-                _uiState.value = UiState.Error(e, message)
+                // 原始异常可能包含记录内容；页面应使用资源化的通用错误文案。
+                _uiState.value = UiState.Error(e)
             }
         }
     }

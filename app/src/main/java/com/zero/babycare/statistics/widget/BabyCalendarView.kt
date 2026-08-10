@@ -51,6 +51,7 @@ class BabyCalendarView @JvmOverloads constructor(
         private const val DAYS_IN_WEEK = 7
         private const val EXPAND_DURATION = 300L
         private const val DATE_ROW_HEIGHT_FACTOR = 0.72f
+        private const val MIN_DATE_CELL_HEIGHT_DP = 48f
     }
 
     enum class ViewMode { WEEK, MONTH }
@@ -130,7 +131,9 @@ class BabyCalendarView @JvmOverloads constructor(
 
             override fun onSingleTapUp(e: MotionEvent): Boolean {
                 // ✅ 只在这里处理点击，避免 ACTION_UP 再处理一次
-                return handleClick(e.x, e.y)
+                val handled = handleClick(e.x, e.y)
+                if (handled) performClick()
+                return handled
             }
 
             override fun onFling(
@@ -217,7 +220,11 @@ class BabyCalendarView @JvmOverloads constructor(
         // 绘制和点击都基于 View 的 padding 内部区域，避免日历自绘内容越过统计主区统一边界。
         val contentWidth = max(0, measuredWidth - paddingLeft - paddingRight)
         cellWidth = contentWidth / DAYS_IN_WEEK.toFloat()
-        cellHeight = cellWidth * DATE_ROW_HEIGHT_FACTOR
+        // 日期行至少 48dp 高，保证自绘日期的纵向点击区域可稳定命中。
+        cellHeight = max(
+            cellWidth * DATE_ROW_HEIGHT_FACTOR,
+            MIN_DATE_CELL_HEIGHT_DP * resources.displayMetrics.density
+        )
 
         val desiredHeight = (paddingTop + weekDayHeight + cellHeight * animatedRowCount + paddingBottom).toInt()
         val measuredHeight = when (heightMode) {
@@ -550,6 +557,12 @@ class BabyCalendarView @JvmOverloads constructor(
             })
             start()
         }
+    }
+
+    override fun performClick(): Boolean {
+        // 将手势点击同步给无障碍服务；日期选择本身仍由带坐标的手势处理。
+        super.performClick()
+        return true
     }
 
     override fun onDetachedFromWindow() {

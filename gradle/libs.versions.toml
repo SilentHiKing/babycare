@@ -11,9 +11,8 @@ activityCompose = "1.8.0"
 composeBom = "2024.09.00"
 appcompat = "1.6.1"
 material = "1.10.0"
-room = "2.5.0"
+room = "2.8.4"
 xpopup = "2.10.0"
-xpopupext = "1.0.1"
 recyclerview = "1.4.0"
 annotation = "1.9.1"
 databinding_runtime = "8.13.0"
@@ -25,6 +24,8 @@ utilcodex = "1.31.1"
 fragment_ktx = "1.8.0"
 mmkv_static = "2.2.4"
 gson = "2.10.1"
+desugarJdkLibs = "2.0.3"
+work = "2.11.2"
 
 [libraries]
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
@@ -49,7 +50,6 @@ lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmode
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx_coroutines_android" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 xpopup = { group = "com.github.li-xiaojun", name = "XPopup", version.ref = "xpopup" }
-xpopupext = { group = "com.github.li-xiaojun", name = "XPopupExt", version.ref = "xpopupext" }
 androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
 databinding-runtime = { group = "androidx.databinding", name = "databinding-runtime", version.ref = "databinding_runtime" }
@@ -59,6 +59,8 @@ utilcodex = { group = "com.blankj", name = "utilcodex", version.ref = "utilcodex
 fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment_ktx" }
 mmkv-static = { group = "com.tencent", name = "mmkv", version.ref = "mmkv_static" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLibs" }
+androidx-work-runtime = { group = "androidx.work", name = "work-runtime", version.ref = "work" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -66,4 +68,3 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-

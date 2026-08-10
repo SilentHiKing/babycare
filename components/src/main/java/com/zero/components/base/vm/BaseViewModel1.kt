@@ -4,6 +4,7 @@ package com.zero.components.base.vm
 // BaseViewModel.kt（支持参数版）
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -53,9 +54,10 @@ abstract class BaseViewModel1<T, R, A> : ViewModel() {
         viewModelScope.launch {
             try {
                 block()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                val message = e.message ?: "Unknown error"
-                _uiState.value = UiState.Error(e, message)
+                _uiState.value = UiState.Error(e)
             }
         }
     }

@@ -6,8 +6,7 @@ import com.tencent.mmkv.MMKV
 object MMKVInitializer {
 
     fun init(context: Context) {
-        val rootDir = MMKV.initialize(context)
-        println("MMKV root: $rootDir")
+        MMKV.initialize(context)
         migrateFromSp(context)
     }
 
@@ -28,7 +27,6 @@ object MMKVInitializer {
                 }
             }
             oldSp.edit().clear().apply()
-            println("✅ SP data migrated to MMKV.")
         }
     }
 }

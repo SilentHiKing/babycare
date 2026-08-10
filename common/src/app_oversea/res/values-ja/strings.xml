@@ -531,4 +531,13 @@
     <string name="baby_profile_select_birthday">誕生日を選択</string>
     <string name="please_select">選択してください</string>
     <string name="optional">任意</string>
+    <string name="delete_record">記録を削除</string>
+    <string name="delete_record_confirm">この記録を削除しますか？統計と予測も更新され、この操作は元に戻せません。</string>
+    <string name="record_delete_success">記録を削除しました</string>
+    <string name="record_delete_failed">削除できませんでした。もう一度お試しください。</string>
+    <string name="data_load_failed">データを読み込めませんでした</string>
+    <string name="retry">再試行</string>
+    <string name="prediction_evidence_default">月齢の傾向を参考にしています。記録を続けると徐々に個別化されます</string>
+    <string name="prediction_evidence_samples">有効な記録間隔 %1$d 件に基づく</string>
+    <string name="prediction_evidence_weak_samples">有効な記録間隔 %1$d 件に基づいていますが、現在の規則性は弱めです</string>
 </resources>

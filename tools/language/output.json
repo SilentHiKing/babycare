@@ -5312,6 +5312,96 @@
           "ja": "任意",
           "ko": "선택 사항"
         }
+      },
+      {
+        "codeKey": "delete_record",
+        "language": {
+          "zh-Hans": "删除记录",
+          "en": "Delete record",
+          "zh-Hant": "刪除記錄",
+          "ja": "記録を削除",
+          "ko": "기록 삭제"
+        }
+      },
+      {
+        "codeKey": "delete_record_confirm",
+        "language": {
+          "zh-Hans": "确定要删除这条记录吗？删除后将同步更新统计与预测，且无法恢复。",
+          "en": "Delete this record? Statistics and predictions will be updated, and this action cannot be undone.",
+          "zh-Hant": "確定要刪除這筆記錄嗎？刪除後將同步更新統計與預測，且無法復原。",
+          "ja": "この記録を削除しますか？統計と予測も更新され、この操作は元に戻せません。",
+          "ko": "이 기록을 삭제할까요? 통계와 예측도 업데이트되며 이 작업은 되돌릴 수 없습니다."
+        }
+      },
+      {
+        "codeKey": "record_delete_success",
+        "language": {
+          "zh-Hans": "记录已删除",
+          "en": "Record deleted",
+          "zh-Hant": "記錄已刪除",
+          "ja": "記録を削除しました",
+          "ko": "기록을 삭제했습니다"
+        }
+      },
+      {
+        "codeKey": "record_delete_failed",
+        "language": {
+          "zh-Hans": "删除失败，请重试",
+          "en": "Couldn't delete the record. Please try again.",
+          "zh-Hant": "刪除失敗，請再試一次",
+          "ja": "削除できませんでした。もう一度お試しください。",
+          "ko": "기록을 삭제하지 못했습니다. 다시 시도해 주세요."
+        }
+      },
+      {
+        "codeKey": "data_load_failed",
+        "language": {
+          "zh-Hans": "数据加载失败",
+          "en": "Couldn't load data",
+          "zh-Hant": "資料載入失敗",
+          "ja": "データを読み込めませんでした",
+          "ko": "데이터를 불러오지 못했습니다"
+        }
+      },
+      {
+        "codeKey": "retry",
+        "language": {
+          "zh-Hans": "重试",
+          "en": "Try again",
+          "zh-Hant": "重試",
+          "ja": "再試行",
+          "ko": "다시 시도"
+        }
+      },
+      {
+        "codeKey": "prediction_evidence_default",
+        "language": {
+          "zh-Hans": "参考月龄规律，持续记录后会逐步个性化",
+          "en": "Based on age patterns; continued records will personalize it",
+          "zh-Hant": "參考月齡規律，持續記錄後會逐步個人化",
+          "ja": "月齢の傾向を参考にしています。記録を続けると徐々に個別化されます",
+          "ko": "월령별 경향을 참고하며, 기록이 쌓이면 점차 맞춤화됩니다"
+        }
+      },
+      {
+        "codeKey": "prediction_evidence_samples",
+        "language": {
+          "zh-Hans": "基于 %1$d 次有效记录间隔",
+          "en": "Based on %1$d valid record intervals",
+          "zh-Hant": "基於 %1$d 次有效記錄間隔",
+          "ja": "有効な記録間隔 %1$d 件に基づく",
+          "ko": "%1$d개의 유효한 기록 간격을 기반으로 함"
+        }
+      },
+      {
+        "codeKey": "prediction_evidence_weak_samples",
+        "language": {
+          "zh-Hans": "基于 %1$d 次有效记录间隔，当前规律较弱",
+          "en": "Based on %1$d valid record intervals; the current pattern is weak",
+          "zh-Hant": "基於 %1$d 次有效記錄間隔，目前規律較弱",
+          "ja": "有効な記録間隔 %1$d 件に基づいていますが、現在の規則性は弱めです",
+          "ko": "%1$d개의 유효한 기록 간격을 기반으로 하며, 현재 규칙성이 낮습니다"
+        }
       }
     ],
     "app": [

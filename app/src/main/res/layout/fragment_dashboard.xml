@@ -13,18 +13,24 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
+        android:id="@+id/contentScroll"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
+        android:overScrollMode="never"
         android:paddingBottom="80dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintWidth_max="@dimen/dashboard_content_max_width">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="16dp">
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
 
             <!-- ==================== 实时状态卡片 ==================== -->
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -40,6 +46,7 @@
                     android:id="@+id/ivStatusIcon"
                     android:layout_width="56dp"
                     android:layout_height="56dp"
+                    android:contentDescription="@null"
                     android:src="@drawable/ic_baby_awake"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -76,8 +83,12 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:background="?attr/bg_r999_secondary_bg_default"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp"
+                    android:gravity="center"
+                    android:minHeight="48dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
                     android:text="@string/end_record"
                     android:textColor="?attr/colorStatusTextPrimary"
                     android:visibility="gone"
@@ -144,6 +155,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/since_last"
                         android:textColor="@color/feeding_secondary"
+                        app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/tvFeedingSinceTime" />
 
                     <View
@@ -229,6 +241,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/since_last"
                         android:textColor="@color/sleep_secondary"
+                        app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/tvSleepSinceTime" />
 
                     <View
@@ -305,11 +318,23 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:textColor="?attr/colorTextPrimary"
-                    app:layout_constraintBottom_toBottomOf="@id/ivPredictFeeding"
                     app:layout_constraintEnd_toStartOf="@id/tvPredictFeedingRemain"
                     app:layout_constraintStart_toEndOf="@id/ivPredictFeeding"
                     app:layout_constraintTop_toTopOf="@id/ivPredictFeeding"
                     tools:text="下次喂奶 约 14:30" />
+
+                <TextView
+                    android:id="@+id/tvPredictFeedingEvidence"
+                    style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginTop="4dp"
+                    android:textColor="?attr/colorTextHint"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/ivPredictFeeding"
+                    app:layout_constraintTop_toBottomOf="@id/tvPredictFeedingTime"
+                    tools:text="基于 6 次有效记录间隔" />
 
                 <TextView
                     android:id="@+id/tvPredictFeedingRemain"
@@ -329,7 +354,7 @@
                     android:layout_marginTop="12dp"
                     android:alpha="0.45"
                     android:background="@color/colorDivider"
-                    app:layout_constraintTop_toBottomOf="@id/ivPredictFeeding" />
+                    app:layout_constraintTop_toBottomOf="@id/tvPredictFeedingEvidence" />
 
                 <!-- 睡眠预测 -->
                 <ImageView
@@ -350,11 +375,24 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:textColor="?attr/colorTextPrimary"
-                    app:layout_constraintBottom_toBottomOf="@id/ivPredictSleep"
                     app:layout_constraintEnd_toStartOf="@id/tvPredictSleepRemain"
                     app:layout_constraintStart_toEndOf="@id/ivPredictSleep"
                     app:layout_constraintTop_toTopOf="@id/ivPredictSleep"
                     tools:text="下次睡觉 约 16:00" />
+
+                <TextView
+                    android:id="@+id/tvPredictSleepEvidence"
+                    style="@style/TextAppearance.BabyCare.Label"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginTop="4dp"
+                    android:textColor="?attr/colorTextHint"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/ivPredictSleep"
+                    app:layout_constraintTop_toBottomOf="@id/tvPredictSleepTime"
+                    tools:text="当前规律较弱，仅供参考" />
 
                 <TextView
                     android:id="@+id/tvPredictSleepRemain"
@@ -407,15 +445,13 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- ==================== 底部快捷操作栏 ==================== -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvQuickActions"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/secondary_bg_default"
-        android:clipToPadding="false"
-        android:overScrollMode="never"
-        android:paddingVertical="12dp"
-        app:layout_constraintBottom_toBottomOf="parent" />
+    <com.zero.components.widget.PageStateView
+        android:id="@+id/pageState"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

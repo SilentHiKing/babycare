@@ -27,7 +27,8 @@
             android:layout_height="wrap_content"
             android:background="@drawable/bg_settings_group_surface_border"
             android:orientation="vertical"
-            android:paddingVertical="@dimen/settings_group_vertical_padding">
+            android:paddingTop="@dimen/settings_group_vertical_padding"
+            android:paddingBottom="@dimen/settings_group_vertical_padding">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/clBabyInfo"
@@ -35,8 +36,10 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_setting_item_top_ripple"
                 android:minHeight="@dimen/drawer_profile_row_min_height"
-                android:paddingHorizontal="@dimen/card_padding"
-                android:paddingVertical="@dimen/settings_row_vertical_padding">
+                android:paddingStart="@dimen/card_padding"
+                android:paddingEnd="@dimen/card_padding"
+                android:paddingTop="@dimen/settings_row_vertical_padding"
+                android:paddingBottom="@dimen/settings_row_vertical_padding">
 
                 <ImageView
                     android:id="@+id/ivAvatar"
@@ -108,8 +111,10 @@
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/settings_row_min_height"
                 android:orientation="horizontal"
-                android:paddingHorizontal="@dimen/card_padding"
-                android:paddingVertical="@dimen/settings_row_vertical_padding">
+                android:paddingStart="@dimen/card_padding"
+                android:paddingEnd="@dimen/card_padding"
+                android:paddingTop="@dimen/settings_row_vertical_padding"
+                android:paddingBottom="@dimen/settings_row_vertical_padding">
 
                 <ImageView
                     android:layout_width="@dimen/drawer_menu_icon_size"
@@ -150,8 +155,10 @@
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/settings_row_min_height"
                 android:orientation="horizontal"
-                android:paddingHorizontal="@dimen/card_padding"
-                android:paddingVertical="@dimen/settings_row_vertical_padding">
+                android:paddingStart="@dimen/card_padding"
+                android:paddingEnd="@dimen/card_padding"
+                android:paddingTop="@dimen/settings_row_vertical_padding"
+                android:paddingBottom="@dimen/settings_row_vertical_padding">
 
                 <ImageView
                     android:layout_width="@dimen/drawer_menu_icon_size"

@@ -127,6 +127,15 @@ class RecordTimerController(
         setupTimePickerButtons()
     }
 
+    /** 页面 View 销毁前解除所有回调，避免旧输入框反向持有 Fragment。 */
+    fun dispose() {
+        startInput.clearOnTimeEnteredListener()
+        endInput.clearOnTimeEnteredListener()
+        startPicker.setOnClickListener(null)
+        endPicker.setOnClickListener(null)
+        timerView.statusChange = null
+    }
+
     private fun setupTimeInputs() {
         startInput.setOnTimeEnteredListener { _, _ ->
             if (config.shouldIgnoreInput()) return@setOnTimeEnteredListener
@@ -302,6 +311,13 @@ class RecordTimerController(
             maxTime = now,
             onConfirm = onTimeSet
         )
+    }
+
+    /** 恢复进程退出前的暂停终态，并保留结束时间用于后续继续确认。 */
+    fun restorePausedSession(endTimestamp: Long, durationMs: Long) {
+        setEndTime(endTimestamp, notify = false)
+        pausedEndTimestamp = endTimestamp
+        timerView.restorePaused(durationMs)
     }
 
     private fun normalizePickerInitialTime(

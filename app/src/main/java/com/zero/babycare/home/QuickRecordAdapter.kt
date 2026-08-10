@@ -19,10 +19,10 @@ import com.zero.common.R
  */
 data class QuickRecordItem(
     val categoryId: Int,
-    @StringRes val nameResId: Int,
-    @DrawableRes val iconResId: Int,
-    @ColorRes val colorResId: Int,
-    @ColorRes val lightColorResId: Int
+    @param:StringRes val nameResId: Int,
+    @param:DrawableRes val iconResId: Int,
+    @param:ColorRes val colorResId: Int,
+    @param:ColorRes val lightColorResId: Int
 ) {
     companion object {
         /**

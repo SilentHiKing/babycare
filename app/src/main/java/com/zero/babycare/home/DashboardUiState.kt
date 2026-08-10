@@ -18,5 +18,5 @@ sealed interface DashboardUiState {
         val nowMillis: Long
     ) : DashboardUiState
 
-    data class Error(val message: String) : DashboardUiState
+    data object Error : DashboardUiState
 }

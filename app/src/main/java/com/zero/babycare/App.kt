@@ -21,13 +21,12 @@ class App : Application() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        // 横竖屏切换时重新配置设计稿宽度
+        // 系统窗口配置变化后重新计算适配基线。
         configAutoSize()
     }
 
     /**
-     * 动态配置 AutoSize 设计稿尺寸
-     * 根据设备类型和横竖屏使用不同的设计稿宽度
+     * 紧凑窗口沿用手机设计基线，中大窗口按实际宽度布局并由页面 maxWidth 控制内容列。
      */
     private fun configAutoSize() {
         val designWidth = DeviceUtils.getDesignWidthInDp(this)

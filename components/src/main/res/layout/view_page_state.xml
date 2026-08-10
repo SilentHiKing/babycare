@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorBackground"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="@dimen/card_padding">
+
+    <ProgressBar
+        android:id="@+id/progressState"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:indeterminateTint="?attr/colorBrand" />
+
+    <TextView
+        android:id="@+id/tvStateMessage"
+        style="@style/TextAppearance.BabyCare.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:textColor="?attr/colorTextSecondary" />
+
+    <TextView
+        android:id="@+id/tvStateAction"
+        style="@style/TextAppearance.BabyCare.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="?attr/bg_r999_brand_color"
+        android:gravity="center"
+        android:minHeight="48dp"
+        android:minWidth="96dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:textColor="?attr/colorOnBrand"
+        android:visibility="gone" />
+
+</LinearLayout>

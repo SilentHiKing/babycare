@@ -9,7 +9,7 @@
     <color name="surface_default">#162426</color>
     <color name="surface_variant_default">#1E3133</color>
 
-    <!-- Soft Utility 2.0 夜间控件底色：保持暖活力，同时避免大面积粉色或刺眼色块。 -->
+    <!-- Soft Utility 2.0 深色模式控件底色：保持暖活力，同时避免大面积粉色或刺眼色块。 -->
     <color name="control_surface_default">#18272A</color>
     <color name="control_surface_selected">#2F2A24</color>
     <color name="control_border_default">#2A4043</color>
@@ -48,7 +48,10 @@
     <color name="sleep_divider">#322A52</color>
     <color name="sleep_bg">#23213A</color>
 
-    <!-- Soft Utility 2.0 事件色：夜间保留温暖和识别度，不使用大面积高亮。 -->
+    <!-- 错误状态在深色背景上使用更高明度，且不复用健康业务色。 -->
+    <color name="semantic_error">#FF8A94</color>
+
+    <!-- Soft Utility 2.0 事件色：深色模式保留温暖和识别度，不使用大面积高亮。 -->
     <color name="event_diaper">#FFBE66</color>
     <color name="event_health">#70DACB</color>
     <color name="event_growth">#A7DB9D</color>
@@ -56,7 +59,7 @@
     <color name="event_care">#95CFFF</color>
     <color name="event_activity">#C6A9FF</color>
     <color name="event_other">#B8C3CC</color>
-    <!-- 事件图标底色（夜间弱化对比，避免刺眼） -->
+    <!-- 事件图标底色（深色模式弱化对比，避免刺眼） -->
     <color name="event_diaper_light">#4A3520</color>
     <color name="event_health_light">#1A3E39</color>
     <color name="event_growth_light">#283D2B</color>

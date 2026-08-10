@@ -1,5 +1,6 @@
 package com.zero.babycare.reminder
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -18,146 +19,89 @@ import com.zero.common.mmkv.MMKVKeys
 import com.zero.common.mmkv.MMKVStore
 import java.util.concurrent.TimeUnit
 
-/**
- * 提醒通知
- * 基于最近记录和预测结果决定是否推送喂养/睡眠提醒。
- */
+/** 到期任务执行时再次校验最新记录、权限、进行中状态与可信度，再决定是否通知。 */
 object ReminderNotifier {
 
+    const val EXTRA_BABY_ID = "reminder_baby_id"
+    const val EXTRA_REMINDER_TYPE = "reminder_type"
     private const val CHANNEL_ID = "record_reminder"
-    private const val FEEDING_NOTIFICATION_ID = 21001
-    private const val SLEEP_NOTIFICATION_ID = 21002
-    private const val PREDICTION_RECORD_COUNT = 15
-    private val reminderCooldownMillis = TimeUnit.HOURS.toMillis(2)
-    private val feedingFallbackMillis = TimeUnit.HOURS.toMillis(3)
-    private val sleepFallbackMillis = TimeUnit.HOURS.toMillis(4)
 
-    /**
-     * 检查并发送提醒
-     */
-    fun checkAndNotify(context: Context) {
-        if (!MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, true)) {
-            return
-        }
-        if (!canPostNotifications(context)) {
-            return
-        }
-
-        val babyInfo = getTargetBabyInfo() ?: return
-        val now = System.currentTimeMillis()
-
-        val recentFeedings = repository.getRecentFeedings(babyInfo.babyId, PREDICTION_RECORD_COUNT)
-        val recentSleeps = repository.getRecentSleeps(babyInfo.babyId, PREDICTION_RECORD_COUNT)
-
-        if (!OngoingRecordManager.isFeeding(babyInfo.babyId)) {
-            val feedingPrediction = PredictionManager.predictNextFeeding(
-                babyAgeMonths = calculateAgeMonths(babyInfo.birthDate),
-                feedingRecords = recentFeedings,
-                sleepRecords = recentSleeps
-            )
-            val shouldNotifyFeeding = shouldNotify(
-                now = now,
-                lastReminderKey = MMKVKeys.SETTINGS_FEEDING_REMINDER_LAST_PREFIX + babyInfo.babyId,
-                predictedLatestTime = feedingPrediction?.latestTime?.time,
-                lastRecordEndTime = recentFeedings.firstOrNull()?.feedingEnd,
-                fallbackMillis = feedingFallbackMillis
-            )
-            if (shouldNotifyFeeding) {
-                sendFeedingNotification(context, babyInfo)
-            }
-        }
-
-        if (!OngoingRecordManager.isSleeping(babyInfo.babyId)) {
-            val sleepPrediction = PredictionManager.predictNextSleep(
-                babyAgeMonths = calculateAgeMonths(babyInfo.birthDate),
-                sleepRecords = recentSleeps,
-                feedingRecords = recentFeedings
-            )
-            val shouldNotifySleep = shouldNotify(
-                now = now,
-                lastReminderKey = MMKVKeys.SETTINGS_SLEEP_REMINDER_LAST_PREFIX + babyInfo.babyId,
-                predictedLatestTime = sleepPrediction?.latestTime?.time,
-                lastRecordEndTime = recentSleeps.firstOrNull()?.sleepEnd,
-                fallbackMillis = sleepFallbackMillis
-            )
-            if (shouldNotifySleep) {
-                sendSleepNotification(context, babyInfo)
-            }
-        }
-    }
-
-    private fun shouldNotify(
-        now: Long,
-        lastReminderKey: String,
-        predictedLatestTime: Long?,
-        lastRecordEndTime: Long?,
-        fallbackMillis: Long
+    suspend fun notifyIfDue(
+        context: Context,
+        babyId: Int,
+        type: ReminderType,
+        expectedDue: Long
     ): Boolean {
-        val lastReminderTime = MMKVStore.getLong(lastReminderKey, 0L)
-        if (now - lastReminderTime < reminderCooldownMillis) {
+        if (!MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, false) ||
+            !canPostNotifications(context)
+        ) {
             return false
         }
 
-        val validLastEndTime = lastRecordEndTime?.takeIf { it > 0L }
-        val validPredictedTime = predictedLatestTime
-            ?.takeIf { it > 0L }
-            // 预测时间早于上次结束，视为无效，避免误触发提醒
-            ?.takeIf { predicted -> validLastEndTime == null || predicted > validLastEndTime }
+        val baby = repository.getBabyInfo(babyId) ?: return false
+        val candidate = ReminderPolicy.loadCandidates(baby)[type] ?: return false
+        val now = System.currentTimeMillis()
+        // 任务可能因记录变化而过期；必须以当前候选时间为准，不能沿用旧任务的 due。
+        if (candidate.dueTime != expectedDue || now < candidate.dueTime) return false
 
-        val dueTime = validPredictedTime
-            ?: validLastEndTime?.let { it + fallbackMillis }
-            ?: return false
-
-        return now >= dueTime
+        val posted = when (type) {
+            ReminderType.FEEDING -> sendFeedingNotification(context, baby)
+            ReminderType.SLEEP -> sendSleepNotification(context, baby)
+        }
+        if (posted) {
+            MMKVStore.put(ReminderPolicy.lastReminderKey(type, babyId), now)
+            MMKVStore.put(ReminderPolicy.notifiedSourceKey(type, babyId), candidate.sourceRecordTime)
+        }
+        return posted
     }
 
-    private fun sendFeedingNotification(context: Context, babyInfo: BabyInfo) {
-        val title = context.getString(com.zero.common.R.string.reminder_notification_title)
-        val content = context.getString(
-            com.zero.common.R.string.reminder_feeding_content,
-            babyInfo.name.ifBlank { context.getString(com.zero.babycare.R.string.app_name) }
-        )
-        notify(
+    private fun sendFeedingNotification(context: Context, baby: BabyInfo): Boolean {
+        return postNotification(
             context = context,
-            notificationId = FEEDING_NOTIFICATION_ID,
-            title = title,
-            content = content,
-            lastReminderKey = MMKVKeys.SETTINGS_FEEDING_REMINDER_LAST_PREFIX + babyInfo.babyId
+            baby = baby,
+            type = ReminderType.FEEDING,
+            title = context.getString(com.zero.common.R.string.reminder_notification_title),
+            content = context.getString(
+                com.zero.common.R.string.reminder_feeding_content,
+                baby.name.ifBlank { context.getString(com.zero.babycare.R.string.app_name) }
+            )
         )
     }
 
-    private fun sendSleepNotification(context: Context, babyInfo: BabyInfo) {
-        val title = context.getString(com.zero.common.R.string.reminder_notification_title)
-        val content = context.getString(
-            com.zero.common.R.string.reminder_sleep_content,
-            babyInfo.name.ifBlank { context.getString(com.zero.babycare.R.string.app_name) }
-        )
-        notify(
+    private fun sendSleepNotification(context: Context, baby: BabyInfo): Boolean {
+        return postNotification(
             context = context,
-            notificationId = SLEEP_NOTIFICATION_ID,
-            title = title,
-            content = content,
-            lastReminderKey = MMKVKeys.SETTINGS_SLEEP_REMINDER_LAST_PREFIX + babyInfo.babyId
+            baby = baby,
+            type = ReminderType.SLEEP,
+            title = context.getString(com.zero.common.R.string.reminder_notification_title),
+            content = context.getString(
+                com.zero.common.R.string.reminder_sleep_content,
+                baby.name.ifBlank { context.getString(com.zero.babycare.R.string.app_name) }
+            )
         )
     }
 
-    private fun notify(
+    @SuppressLint("MissingPermission")
+    private fun postNotification(
         context: Context,
-        notificationId: Int,
+        baby: BabyInfo,
+        type: ReminderType,
         title: String,
-        content: String,
-        lastReminderKey: String
-    ) {
+        content: String
+    ): Boolean {
         createChannelIfNeeded(context)
-
-        val intent = Intent(context, MainActivity::class.java)
+        val notificationId = 21_000 + ((baby.babyId.coerceAtLeast(0) % 10_000) * 2) + type.ordinal
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra(EXTRA_BABY_ID, baby.babyId)
+            putExtra(EXTRA_REMINDER_TYPE, type.name)
+        }
         val pendingIntent = PendingIntent.getActivity(
             context,
             notificationId,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(com.zero.common.R.drawable.ic_baby_default)
             .setContentTitle(title)
@@ -167,14 +111,15 @@ object ReminderNotifier {
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
 
-        NotificationManagerCompat.from(context).notify(notificationId, notification)
-        MMKVStore.put(lastReminderKey, System.currentTimeMillis())
+        // 权限在调用前已经显式复核；这里仍捕获系统状态竞态，失败时不更新已提醒来源。
+        return runCatching {
+            NotificationManagerCompat.from(context).notify(notificationId, notification)
+            true
+        }.getOrDefault(false)
     }
 
     private fun createChannelIfNeeded(context: Context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
         val channel = NotificationChannel(
             CHANNEL_ID,
@@ -187,41 +132,89 @@ object ReminderNotifier {
     }
 
     private fun canPostNotifications(context: Context): Boolean {
-        val manager = NotificationManagerCompat.from(context)
-        if (!manager.areNotificationsEnabled()) {
-            return false
+        if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return false
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+        return ContextCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.POST_NOTIFICATIONS
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    }
+}
+
+/** 预测只提供候选时间；提醒策略在此决定可信度、去重、冷却与进行中状态。 */
+internal object ReminderPolicy {
+
+    private const val PREDICTION_RECORD_COUNT = 15
+    private const val MIN_RELEVANT_RECORDS = 3
+    private const val MIN_CONFIDENCE = 0.6f
+    private val cooldownMillis = TimeUnit.HOURS.toMillis(2)
+    private val maxPredictionHorizonMillis = TimeUnit.HOURS.toMillis(24)
+
+    suspend fun loadCandidates(baby: BabyInfo): Map<ReminderType, ReminderCandidate> {
+        val feedings = repository.getRecentFeedings(baby.babyId, PREDICTION_RECORD_COUNT)
+        val sleeps = repository.getRecentSleeps(baby.babyId, PREDICTION_RECORD_COUNT)
+        val ageMonths = calculateAgeMonths(baby.birthDate)
+        val result = mutableMapOf<ReminderType, ReminderCandidate>()
+
+        if (!OngoingRecordManager.isFeeding(baby.babyId) && feedings.size >= MIN_RELEVANT_RECORDS) {
+            val lastEnd = feedings.maxOfOrNull { it.feedingEnd } ?: 0L
+            val prediction = PredictionManager.predictNextFeeding(ageMonths, feedings, sleeps)
+            buildCandidate(baby.babyId, ReminderType.FEEDING, lastEnd, prediction?.latestTime?.time, prediction?.confidence)
+                ?.let { result[ReminderType.FEEDING] = it }
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val permission = android.Manifest.permission.POST_NOTIFICATIONS
-            return ContextCompat.checkSelfPermission(context, permission) ==
-                android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        if (!OngoingRecordManager.isSleeping(baby.babyId) && sleeps.size >= MIN_RELEVANT_RECORDS) {
+            val lastEnd = sleeps.maxOfOrNull { it.sleepEnd } ?: 0L
+            val prediction = PredictionManager.predictNextSleep(ageMonths, sleeps, feedings)
+            buildCandidate(baby.babyId, ReminderType.SLEEP, lastEnd, prediction?.latestTime?.time, prediction?.confidence)
+                ?.let { result[ReminderType.SLEEP] = it }
         }
-        return true
+        return result
     }
 
-    private fun getTargetBabyInfo(): BabyInfo? {
-        val cached = MMKVStore.get(MMKVKeys.BABY_INFO, BabyInfo::class.java)
-        if (cached != null) {
-            // 校验缓存是否仍然存在，避免删除后仍触发提醒
-            val existsInDb = repository.getAllBabyInfo().any { it.babyId == cached.babyId }
-            if (existsInDb) {
-                return cached
-            }
-            MMKVStore.remove(MMKVKeys.BABY_INFO)
+    fun lastReminderKey(type: ReminderType, babyId: Int): String {
+        val prefix = when (type) {
+            ReminderType.FEEDING -> MMKVKeys.SETTINGS_FEEDING_REMINDER_LAST_PREFIX
+            ReminderType.SLEEP -> MMKVKeys.SETTINGS_SLEEP_REMINDER_LAST_PREFIX
         }
-
-        // 回退为数据库中的第一个宝宝，并写回缓存
-        return repository.getAllBabyInfo().firstOrNull()?.also {
-            MMKVStore.put(MMKVKeys.BABY_INFO, it)
-        }
+        return prefix + babyId
     }
 
-    /**
-     * 计算宝宝月龄（用于预测）
-     */
+    fun notifiedSourceKey(type: ReminderType, babyId: Int): String {
+        val prefix = when (type) {
+            ReminderType.FEEDING -> MMKVKeys.SETTINGS_FEEDING_REMINDER_SOURCE_PREFIX
+            ReminderType.SLEEP -> MMKVKeys.SETTINGS_SLEEP_REMINDER_SOURCE_PREFIX
+        }
+        return prefix + babyId
+    }
+
+    private fun buildCandidate(
+        babyId: Int,
+        type: ReminderType,
+        lastRecordEnd: Long,
+        predictedLatest: Long?,
+        confidence: Float?
+    ): ReminderCandidate? {
+        if (lastRecordEnd <= 0L || confidence == null || confidence < MIN_CONFIDENCE) return null
+        if (MMKVStore.getLong(notifiedSourceKey(type, babyId), 0L) == lastRecordEnd) return null
+        val prediction = predictedLatest?.takeIf {
+            it > lastRecordEnd && it - lastRecordEnd <= maxPredictionHorizonMillis
+        } ?: return null
+        val cooldownEnd = MMKVStore.getLong(lastReminderKey(type, babyId), 0L) + cooldownMillis
+        return ReminderCandidate(
+            dueTime = maxOf(prediction, cooldownEnd),
+            sourceRecordTime = lastRecordEnd
+        )
+    }
+
     private fun calculateAgeMonths(birthDate: Long): Int {
-        if (birthDate <= 0) return 0
+        if (birthDate <= 0L) return 0
         val days = TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - birthDate)
         return (days / 30).toInt().coerceAtLeast(0)
     }
 }
+
+internal data class ReminderCandidate(
+    val dueTime: Long,
+    val sourceRecordTime: Long
+)

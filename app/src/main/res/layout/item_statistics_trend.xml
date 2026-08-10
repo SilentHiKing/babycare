@@ -3,7 +3,8 @@
     android:id="@+id/llTrend"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
     android:layout_marginTop="8dp"
     android:background="@drawable/bg_r16_surface_stroke_control_border"
     android:orientation="vertical"
@@ -27,16 +28,22 @@
     <include
         android:id="@+id/cardTrendWeek"
         layout="@layout/item_statistics_trend_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="8dp" />
 
     <include
         android:id="@+id/cardTrendMonth"
         layout="@layout/item_statistics_trend_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="8dp" />
 
     <include
         android:id="@+id/cardTrendYear"
         layout="@layout/item_statistics_trend_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="8dp" />
 
 </LinearLayout>

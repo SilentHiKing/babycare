@@ -6,31 +6,35 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import com.zero.babydata.entity.BabyInfo
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BabyInfoDao {
 
     @Insert
-    fun insertBabyInfo(babyInfo: BabyInfo): Long
+    suspend fun insertBabyInfo(babyInfo: BabyInfo): Long
 
     @Update
-    fun updateBabyInfo(babyInfo: BabyInfo)
+    suspend fun updateBabyInfo(babyInfo: BabyInfo)
 
     @Delete
-    fun deleteBabyInfo(babyInfo: BabyInfo)
+    suspend fun deleteBabyInfo(babyInfo: BabyInfo)
 
     @Query("SELECT * FROM Baby_Info WHERE babyId = :babyId LIMIT 1")
-    fun getBabyInfo(babyId: Int): BabyInfo?
+    suspend fun getBabyInfo(babyId: Int): BabyInfo?
 
-    @Query("SELECT * FROM Baby_Info WHERE name = :name AND gender = :gender AND birthDate = :birthDate LIMIT 1")
-    fun findBabyByIdentity(name: String, gender: String, birthDate: Long): BabyInfo?
+    @Query("SELECT * FROM Baby_Info WHERE stableId = :stableId LIMIT 1")
+    suspend fun findBabyByStableId(stableId: String): BabyInfo?
 
     @Query("SELECT * FROM Baby_Info ORDER BY babyId DESC")
-    fun getAllBabyInfo(): List<BabyInfo>
+    suspend fun getAllBabyInfo(): List<BabyInfo>
+
+    @Query("SELECT * FROM Baby_Info ORDER BY babyId DESC")
+    fun observeAllBabyInfo(): Flow<List<BabyInfo>>
 
     @Query("UPDATE Baby_Info SET bloodType = :bloodType WHERE babyId = :babyId")
-    fun updateBloodType(babyId: Int, bloodType: String?)
+    suspend fun updateBloodType(babyId: Int, bloodType: String?): Int
 
     @Query("DELETE FROM Baby_Info")
-    fun deleteAllBabyInfo()
+    suspend fun deleteAllBabyInfo(): Int
 }

@@ -68,8 +68,8 @@ fun Context.getThemeDrawable(@AttrRes attrRes: Int): Drawable? {
     return try {
         context.theme.resolveAttribute(attrRes, typedValue, true)
         ResourcesCompat.getDrawable(context.resources, typedValue.resourceId, context.theme)
-    } catch (e: Exception) {
-        e.printStackTrace()
+    } catch (_: Exception) {
+        // 主题资源解析失败时安全降级，避免把运行环境细节写入日志。
         null
     }
 }

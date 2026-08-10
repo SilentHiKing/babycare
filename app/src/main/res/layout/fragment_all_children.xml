@@ -17,15 +17,20 @@
     <!-- 宝宝列表 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvBabies"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:paddingHorizontal="16dp"
+        android:overScrollMode="never"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         android:paddingTop="8dp"
         android:paddingBottom="80dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintWidth_max="@dimen/list_content_max_width"
         tools:listitem="@layout/item_baby_card" />
 
     <!-- 空状态 -->
@@ -47,7 +52,7 @@
             android:layout_height="80dp"
             android:src="@drawable/ic_baby_default"
             android:contentDescription="@null"
-            android:tint="?attr/colorTextHint" />
+            app:tint="?attr/colorTextHint" />
 
         <TextView
             style="@style/TextAppearance.BabyCare.Body2"
@@ -68,9 +73,11 @@
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
             android:gravity="center"
-            android:minHeight="40dp"
-            android:paddingHorizontal="24dp"
-            android:paddingVertical="10dp"
+            android:minHeight="48dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
             android:text="@string/add_baby"
             android:textColor="?attr/colorOnBrand" />
 

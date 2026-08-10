@@ -3,7 +3,6 @@ package com.zero.babycare.home.record
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.blankj.utilcode.util.ThreadUtils
 import com.zero.babycare.home.BabyRecordChangeBus
 import com.zero.babydata.entity.SleepRecord
 import com.zero.components.base.vm.BaseViewModel
@@ -17,20 +16,53 @@ class SleepRecordViewModel : BaseViewModel() {
     private val _lastSleepRecord = MutableLiveData<SleepRecord?>()
     val lastSleepRecord: LiveData<SleepRecord?> = _lastSleepRecord
 
-    fun insert(sleepRecord: SleepRecord, callback: () -> Unit) {
-        safeLaunch {
-            repository.insertSleepRecord(sleepRecord) {
-                BabyRecordChangeBus.notifyChanged(sleepRecord.babyId)
-                ThreadUtils.runOnUiThread { callback() }
+    fun insert(
+        sleepRecord: SleepRecord,
+        onSuccess: () -> Unit,
+        onError: () -> Unit
+    ) {
+        persistRecord(sleepRecord, onSuccess, onError) {
+            repository.insertSleepRecord(sleepRecord)
+        }
+    }
+
+    fun update(
+        sleepRecord: SleepRecord,
+        onSuccess: () -> Unit,
+        onError: () -> Unit
+    ) {
+        persistRecord(sleepRecord, onSuccess, onError) {
+            repository.updateSleepRecord(sleepRecord)
+        }
+    }
+
+    /** 删除记录后触发同一条变更链，避免统计或预测继续引用已删除数据。 */
+    fun delete(sleepId: Int, babyId: Int, onSuccess: () -> Unit, onError: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                repository.deleteSleepRecordById(sleepId)
+                BabyRecordChangeBus.notifyChanged(babyId)
+                onSuccess()
+            } catch (_: Exception) {
+                onError()
             }
         }
     }
 
-    fun update(sleepRecord: SleepRecord, callback: () -> Unit) {
-        safeLaunch {
-            repository.updateSleepRecord(sleepRecord) {
+    private fun persistRecord(
+        sleepRecord: SleepRecord,
+        onSuccess: () -> Unit,
+        onError: () -> Unit,
+        operation: suspend () -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                operation()
                 BabyRecordChangeBus.notifyChanged(sleepRecord.babyId)
-                ThreadUtils.runOnUiThread { callback() }
+                onSuccess()
+            } catch (_: Exception) {
+                // 失败时不清空表单，页面恢复操作按钮后可以直接重试。
+                onError()
             }
         }
     }
@@ -52,7 +84,4 @@ class SleepRecordViewModel : BaseViewModel() {
         }
     }
 
-    fun getRecentSleeps(babyId: Int, limit: Int): List<SleepRecord> {
-        return repository.getRecentSleeps(babyId, limit)
-    }
 }

@@ -9,7 +9,8 @@
     android:gravity="center_vertical"
     android:minWidth="48dp"
     android:orientation="horizontal"
-    android:paddingHorizontal="8dp">
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp">
 
     <!-- 右侧动作图标，按需显示 -->
     <ImageView

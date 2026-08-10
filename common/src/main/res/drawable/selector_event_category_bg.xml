@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 选中态只使用品牌 tint 的细边框，避免浅暖填充和业务色同时出现造成噪音。 -->
+    <!-- 选中态使用统一浅暖底，业务色只保留在图标语义中。 -->
     <item android:state_selected="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/control_surface_default" />
+            <solid android:color="@color/control_surface_selected" />
             <stroke
                 android:width="@dimen/surface_stroke_width"
                 android:color="?attr/colorBrand" />

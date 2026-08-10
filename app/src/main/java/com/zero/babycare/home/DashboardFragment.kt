@@ -1,16 +1,18 @@
 package com.zero.babycare.home
 
 import android.os.Bundle
+import android.content.res.Configuration
 import android.view.View
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
-import com.blankj.utilcode.util.LogUtils
 import com.zero.babycare.MainActivity
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentDashboardBinding
 import com.zero.babycare.home.bean.DashboardData
 import com.zero.babycare.home.OngoingRecordManager
+import com.zero.babycare.home.prediction.PredictionResult
+import com.zero.babycare.home.prediction.PredictionSource
 import com.zero.babycare.navigation.NavTarget
 import com.zero.common.ext.launchInLifecycle
 import com.zero.common.util.DateUtils
@@ -33,19 +35,10 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         activityViewModels<MainViewModel>().value
     }
 
-    private val quickActionAdapter by lazy {
-        DashboardQuickActionAdapter { action ->
-            mainVm.navigateTo(action.target)
-        }
-    }
-
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
 
         setupDashboardToolbar()
-
-        // 底部快捷操作
-        setupQuickActions()
 
         // 状态卡点击
         binding.cardStatus.setOnClickListener {
@@ -90,7 +83,6 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        LogUtils.d("DashboardFragment onHiddenChanged: $hidden")
         if (!hidden) {
             setupDashboardToolbar()
             vm.onVisible()
@@ -118,56 +110,40 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
 
     private fun renderDashboardState(state: DashboardUiState) {
         when (state) {
-            DashboardUiState.Loading -> Unit
-            DashboardUiState.NoBaby -> setupDashboardToolbar(null)
-            is DashboardUiState.Error -> Unit
+            DashboardUiState.Loading -> {
+                showDashboardContent(false)
+                binding.pageState.showLoading(com.zero.common.R.string.loading)
+            }
+            DashboardUiState.NoBaby -> {
+                setupDashboardToolbar(null)
+                showDashboardContent(false)
+                binding.pageState.showMessage(
+                    message = getString(com.zero.common.R.string.no_baby_yet),
+                    actionText = getString(com.zero.common.R.string.add_baby),
+                    onAction = { mainVm.navigateTo(NavTarget.BabyInfo.create()) }
+                )
+            }
+            DashboardUiState.Error -> {
+                showDashboardContent(false)
+                binding.pageState.showMessage(
+                    message = getString(com.zero.common.R.string.data_load_failed),
+                    actionText = getString(com.zero.common.R.string.retry),
+                    onAction = vm::onVisible
+                )
+            }
             is DashboardUiState.Content -> {
                 setupDashboardToolbar(state.babyName)
+                binding.pageState.hide()
+                showDashboardContent(true)
                 updateUI(state.data, state.nowMillis)
             }
         }
     }
 
-    private fun setupQuickActions() {
-        val actions = buildQuickActions()
-        binding.rvQuickActions.apply {
-            visibility = View.GONE
-            adapter = quickActionAdapter
-            layoutManager = GridLayoutManager(context, DeviceUtils.getQuickActionColumns(requireContext()))
-            setHasFixedSize(true)
-        }
-        quickActionAdapter.submitList(actions)
+    private fun showDashboardContent(show: Boolean) {
+        binding.contentScroll.visibility = if (show) View.VISIBLE else View.GONE
     }
 
-    private fun buildQuickActions(): List<DashboardQuickAction> {
-        return listOf(
-            DashboardQuickAction(
-                iconResId = com.zero.common.R.drawable.ic_feeding,
-                labelResId = com.zero.common.R.string.feeding,
-                color = DashboardQuickActionColor.Res(com.zero.common.R.color.feeding_primary),
-                target = NavTarget.FeedingRecord()
-            ),
-            DashboardQuickAction(
-                iconResId = com.zero.common.R.drawable.ic_sleep,
-                labelResId = com.zero.common.R.string.sleeping,
-                color = DashboardQuickActionColor.Res(com.zero.common.R.color.sleep_primary),
-                target = NavTarget.SleepRecord()
-            ),
-            DashboardQuickAction(
-                iconResId = com.zero.common.R.drawable.ic_statistics,
-                labelResId = com.zero.common.R.string.data_statistics,
-                color = DashboardQuickActionColor.Res(com.zero.common.R.color.statistics_primary),
-                target = NavTarget.Statistics()
-            ),
-            DashboardQuickAction(
-                iconResId = com.zero.common.R.drawable.ic_event_other,
-                labelResId = com.zero.common.R.string.more_events,
-                color = DashboardQuickActionColor.Res(com.zero.common.R.color.event_other),
-                target = NavTarget.EventRecord()
-            )
-        )
-    }
-    
     /**
      * 更新 UI
      */
@@ -286,11 +262,11 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
                 com.zero.common.R.string.remain_time,
                 formatMinutesToReadable(remainMinutes)
             )
-            // 更新置信度颜色
-            updatePredictionConfidenceColor(binding.tvPredictFeedingTime, feedingPrediction.confidence)
+            updatePredictionEvidence(binding.tvPredictFeedingEvidence, feedingPrediction)
         } else {
             binding.tvPredictFeedingTime.text = getString(com.zero.common.R.string.cannotPredict)
             binding.tvPredictFeedingRemain.text = ""
+            binding.tvPredictFeedingEvidence.visibility = View.GONE
         }
 
         // 睡眠预测
@@ -308,20 +284,34 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
                 com.zero.common.R.string.remain_time,
                 formatMinutesToReadable(remainMinutes)
             )
-            updatePredictionConfidenceColor(binding.tvPredictSleepTime, sleepPrediction.confidence)
+            updatePredictionEvidence(binding.tvPredictSleepEvidence, sleepPrediction)
         } else {
             binding.tvPredictSleepTime.text = getString(com.zero.common.R.string.cannotPredict)
             binding.tvPredictSleepRemain.text = ""
+            binding.tvPredictSleepEvidence.visibility = View.GONE
         }
     }
-    
-    /**
-     * 根据置信度更新文字透明度
-     * 置信度高时文字更实，置信度低时文字更虚
-     */
-    private fun updatePredictionConfidenceColor(textView: android.widget.TextView, confidence: Float) {
-        val alpha = (0.5f + confidence * 0.5f).coerceIn(0.5f, 1.0f)
-        textView.alpha = alpha
+
+    /** 预测依据使用明确文字表达，不再让家长通过透明度猜测可信程度。 */
+    private fun updatePredictionEvidence(textView: android.widget.TextView, result: PredictionResult) {
+        textView.visibility = View.VISIBLE
+        textView.text = when {
+            result.source == PredictionSource.POPULATION_STATS || result.evidenceCount <= 0 -> {
+                getString(com.zero.common.R.string.prediction_evidence_default)
+            }
+            result.confidence < 0.6f -> {
+                getString(
+                    com.zero.common.R.string.prediction_evidence_weak_samples,
+                    result.evidenceCount
+                )
+            }
+            else -> {
+                getString(
+                    com.zero.common.R.string.prediction_evidence_samples,
+                    result.evidenceCount
+                )
+            }
+        }
     }
 
     /**
@@ -407,9 +397,9 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         val minutes = TimeUnit.MILLISECONDS.toMinutes(durationMs) % 60
         val seconds = TimeUnit.MILLISECONDS.toSeconds(durationMs) % 60
         return if (hours > 0) {
-            String.format("%02d:%02d:%02d", hours, minutes, seconds)
+            String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
         } else {
-            String.format("%02d:%02d", minutes, seconds)
+            String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
         }
     }
 
@@ -424,6 +414,14 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         binding.rvQuickRecord.layoutManager = GridLayoutManager(requireContext(), columns)
         binding.rvQuickRecord.adapter = adapter
         adapter.submitList(QuickRecordItem.getQuickRecordItems())
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (view == null) return
+        // 分屏或窗口尺寸变化时只更新列数，保留列表和当前页面状态。
+        (binding.rvQuickRecord.layoutManager as? GridLayoutManager)?.spanCount =
+            DeviceUtils.getQuickRecordColumns(requireContext())
     }
 
     /**
@@ -446,7 +444,4 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-    }
 }

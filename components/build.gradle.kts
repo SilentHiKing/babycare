@@ -48,7 +48,6 @@ dependencies {
     implementation(libs.fragment.ktx)
     implementation(libs.material)
     implementation(libs.xpopup)
-    implementation(libs.xpopupext)
     implementation(libs.utilcodex)
     implementation(project(":common"))
     testImplementation(libs.junit)

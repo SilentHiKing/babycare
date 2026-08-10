@@ -23,7 +23,8 @@ class SettingsViewModel : BaseViewModel() {
      * 读取本地缓存并构建 UI 状态
      */
     private fun loadState(): SettingsUiState {
-        val reminderEnabled = MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, true)
+        // 提醒必须由用户明确开启，首次安装不主动调度或发送通知。
+        val reminderEnabled = MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, false)
         val feedingUnit = FeedingUnit.fromValue(MMKVStore.getString(MMKVKeys.SETTINGS_FEEDING_UNIT, null))
         val weightUnit = WeightUnit.fromValue(MMKVStore.getString(MMKVKeys.SETTINGS_WEIGHT_UNIT, null))
         val heightUnit = HeightUnit.fromValue(MMKVStore.getString(MMKVKeys.SETTINGS_HEIGHT_UNIT, null))
@@ -94,7 +95,7 @@ data class SettingsUiState(
 /**
  * 语言选项
  */
-enum class LanguageOption(@StringRes val labelResId: Int, val storeValue: String) {
+enum class LanguageOption(@param:StringRes val labelResId: Int, val storeValue: String) {
     SYSTEM(com.zero.common.R.string.settings_language_system, LanguageManager.LANGUAGE_SYSTEM),
     ZH(com.zero.common.R.string.settings_language_zh, LanguageManager.LANGUAGE_ZH),
     EN(com.zero.common.R.string.settings_language_en, LanguageManager.LANGUAGE_EN);
@@ -109,7 +110,7 @@ enum class LanguageOption(@StringRes val labelResId: Int, val storeValue: String
 /**
  * 喂养单位枚举
  */
-enum class FeedingUnit(@StringRes val labelResId: Int, val storeValue: String) {
+enum class FeedingUnit(@param:StringRes val labelResId: Int, val storeValue: String) {
     ML(com.zero.common.R.string.unit_ml_abbr, "ml"),
     OZ(com.zero.common.R.string.unit_oz_abbr, "oz");
 
@@ -123,7 +124,7 @@ enum class FeedingUnit(@StringRes val labelResId: Int, val storeValue: String) {
 /**
  * 体重单位枚举
  */
-enum class WeightUnit(@StringRes val labelResId: Int, val storeValue: String) {
+enum class WeightUnit(@param:StringRes val labelResId: Int, val storeValue: String) {
     KG(com.zero.common.R.string.weight_unit, "kg"),
     LB(com.zero.common.R.string.unit_lb_abbr, "lb");
 
@@ -137,7 +138,7 @@ enum class WeightUnit(@StringRes val labelResId: Int, val storeValue: String) {
 /**
  * 身高单位枚举
  */
-enum class HeightUnit(@StringRes val labelResId: Int, val storeValue: String) {
+enum class HeightUnit(@param:StringRes val labelResId: Int, val storeValue: String) {
     CM(com.zero.common.R.string.height_unit, "cm"),
     IN(com.zero.common.R.string.unit_in_abbr, "in");
 

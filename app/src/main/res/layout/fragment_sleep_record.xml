@@ -13,17 +13,21 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ScrollView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:overScrollMode="never"
         app:layout_constraintBottom_toTopOf="@id/tvSave"
-        app:layout_constraintTop_toBottomOf="@id/btn">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn"
+        app:layout_constraintWidth_max="@dimen/record_content_max_width">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/page_horizontal_padding"
+            android:paddingStart="@dimen/page_horizontal_padding"
+            android:paddingEnd="@dimen/page_horizontal_padding"
             android:paddingBottom="20dp">
 
             <LinearLayout
@@ -84,14 +88,18 @@
     <TextView
         android:id="@+id/tvSave"
         style="@style/TextAppearance.BabyCare.Body1"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="48dp"
-        android:layout_marginHorizontal="@dimen/page_horizontal_padding"
+        android:layout_marginStart="@dimen/page_horizontal_padding"
+        android:layout_marginEnd="@dimen/page_horizontal_padding"
         android:layout_marginBottom="20dp"
         android:background="?attr/bg_r999_brand_color"
         android:gravity="center"
         android:text="@string/save"
         android:textColor="?attr/colorOnBrand"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintWidth_max="@dimen/record_content_max_width" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

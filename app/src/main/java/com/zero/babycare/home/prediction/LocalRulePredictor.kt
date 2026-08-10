@@ -18,7 +18,7 @@ class LocalRulePredictor : Predictor {
         // 最少需要的记录数
         private const val MIN_RECORDS_FOR_PREDICTION = 3
         
-        // 最少需要的时段记录数（低于此值时合并白天/夜间数据）
+        // 最少需要的时段记录数（低于此值时合并两个时段的数据）
         private const val MIN_PERIOD_RECORDS = 3
         
         // 最小区间范围（5分钟，避免标准差为0时区间退化为单点）
@@ -92,10 +92,9 @@ class LocalRulePredictor : Predictor {
         
         // 使用上次喂奶结束时间选择历史时段，比使用当前时间更能贴合“从这次结束后多久再喂”的规律。
         val isDay = isTimeInDay(lastRecord.feedingEnd)
-        var relevantIntervals = if (isDay) {
-            dayIntervals.ifEmpty { nightIntervals }
-        } else {
-            nightIntervals.ifEmpty { dayIntervals }
+        val samePeriodIntervals = if (isDay) dayIntervals else nightIntervals
+        var relevantIntervals = samePeriodIntervals.ifEmpty {
+            if (isDay) nightIntervals else dayIntervals
         }
         
         // 时段数据不足时，合并使用所有数据
@@ -129,9 +128,10 @@ class LocalRulePredictor : Predictor {
         
         // 计算置信度
         val confidence = calculateConfidence(
-            recordCount = completedRecords.size,
+            effectiveIntervalCount = relevantIntervals.size,
             coefficientOfVariation = stats.cv,
-            hasEnoughData = relevantIntervals.size >= 5
+            hasPeriodCoverage = samePeriodIntervals.size >= MIN_PERIOD_RECORDS,
+            lastEventTime = lastRecord.feedingEnd
         )
         
         // 计算区间（基于标准差，设置最小值避免区间为0）
@@ -144,7 +144,8 @@ class LocalRulePredictor : Predictor {
             confidence = confidence,
             earliestTime = Date(earliestTime),
             latestTime = Date(latestTime),
-            source = PredictionSource.LOCAL_RULE
+            source = PredictionSource.LOCAL_RULE,
+            evidenceCount = relevantIntervals.size
         )
     }
 
@@ -180,10 +181,9 @@ class LocalRulePredictor : Predictor {
         
         // 睡眠预测关注“这次醒来之后多久再睡”，因此以上次醒来时间选择历史清醒窗口。
         val isDay = isTimeInDay(lastRecord.sleepEnd)
-        var relevantIntervals = if (isDay) {
-            dayIntervals.ifEmpty { nightIntervals }
-        } else {
-            nightIntervals.ifEmpty { dayIntervals }
+        val samePeriodIntervals = if (isDay) dayIntervals else nightIntervals
+        var relevantIntervals = samePeriodIntervals.ifEmpty {
+            if (isDay) nightIntervals else dayIntervals
         }
         
         // 时段数据不足时，合并使用所有数据
@@ -211,9 +211,10 @@ class LocalRulePredictor : Predictor {
         val predictedTime = lastSleepEnd + predictedInterval
         
         val confidence = calculateConfidence(
-            recordCount = completedRecords.size,
+            effectiveIntervalCount = relevantIntervals.size,
             coefficientOfVariation = stats.cv,
-            hasEnoughData = relevantIntervals.size >= 5
+            hasPeriodCoverage = samePeriodIntervals.size >= MIN_PERIOD_RECORDS,
+            lastEventTime = lastRecord.sleepEnd
         )
         
         // 设置最小区间，避免标准差为0时区间退化为单点
@@ -224,7 +225,8 @@ class LocalRulePredictor : Predictor {
             confidence = confidence,
             earliestTime = Date(predictedTime - intervalRange),
             latestTime = Date(predictedTime + intervalRange),
-            source = PredictionSource.LOCAL_RULE
+            source = PredictionSource.LOCAL_RULE,
+            evidenceCount = relevantIntervals.size
         )
     }
 
@@ -455,29 +457,40 @@ class LocalRulePredictor : Predictor {
     }
 
     /**
-     * 计算置信度
+     * 置信度只依据真正参与预测的有效间隔，并综合时段覆盖、波动和最近一次记录。
+     * 原始记录很多但有效间隔很少时不会得到虚假的高置信度。
      */
     private fun calculateConfidence(
-        recordCount: Int,
+        effectiveIntervalCount: Int,
         coefficientOfVariation: Double,
-        hasEnoughData: Boolean
+        hasPeriodCoverage: Boolean,
+        lastEventTime: Long
     ): Float {
-        var confidence = 0.45f  // 基础置信度
-        
-        // 数据量加成（最多+25%）
-        confidence += minOf(recordCount * 0.025f, 0.25f)
-        
-        // 规律性加成（变异系数小=规律性强）
-        confidence += when {
-            coefficientOfVariation < 0.15 -> 0.2f   // 非常规律
-            coefficientOfVariation < 0.25 -> 0.1f   // 较规律
-            coefficientOfVariation < 0.35 -> 0.0f   // 一般
-            else -> -0.1f                           // 不规律
+        var confidence = when (effectiveIntervalCount) {
+            0 -> 0.2f
+            1 -> 0.3f
+            2 -> 0.4f
+            in 3..4 -> 0.5f + (effectiveIntervalCount - 3) * 0.04f
+            in 5..7 -> 0.62f + (effectiveIntervalCount - 5) * 0.03f
+            else -> minOf(0.72f + (effectiveIntervalCount - 8) * 0.015f, 0.8f)
         }
-        
-        // 数据充足加成
-        if (hasEnoughData) confidence += 0.05f
-        
+
+        confidence += when {
+            coefficientOfVariation <= 0.1 -> 0.1f
+            coefficientOfVariation <= 0.2 -> 0.06f
+            coefficientOfVariation <= 0.35 -> 0f
+            coefficientOfVariation <= 0.5 -> -0.08f
+            else -> -0.15f
+        }
+        confidence += if (hasPeriodCoverage) 0.04f else -0.03f
+
+        val recordAge = (System.currentTimeMillis() - lastEventTime).coerceAtLeast(0L)
+        confidence += when {
+            recordAge <= 12 * 60 * 60 * 1000L -> 0.03f
+            recordAge <= 48 * 60 * 60 * 1000L -> 0f
+            else -> -0.08f
+        }
+
         return confidence.coerceIn(0.2f, 0.9f)
     }
 

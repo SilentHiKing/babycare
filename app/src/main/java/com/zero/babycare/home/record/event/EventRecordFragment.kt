@@ -49,6 +49,7 @@ import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
 import com.zero.components.touch.HorizontalNestedScrollTouchDelegate
 import com.zero.components.widget.RecordView.RecordState
+import com.zero.components.widget.ToolbarAction
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -145,11 +146,14 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         editRecordId = navTarget?.editRecordId
         isEditMode = editRecordId != null
         isCategoryLocked = isEditMode && navTarget?.returnTarget is NavTarget.Statistics
-        if (!isEditMode) {
+        if (!isEditMode || editingRecord?.eventId != editRecordId) {
             editingRecord = null
             pendingExtraData = null
         }
         applyCategoryLockState()
+        if (view != null) {
+            updateToolbarAction()
+        }
     }
 
     private fun loadEditRecord() {
@@ -160,6 +164,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                 return@loadEventRecordById
             }
             editingRecord = record
+            updateToolbarAction()
             pendingExtraData = com.zero.babydata.entity.EventExtraData.parse(record.type, record.extraData)
 
             val category = EventCategory.fromId(com.zero.babydata.entity.EventType.getCategory(record.type))
@@ -188,7 +193,24 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private fun setupToolbar() {
         binding.toolbar.title = getString(R.string.event_record)
         binding.toolbar.showBackButton { handleBack() }
-        binding.toolbar.hideAction()
+        updateToolbarAction()
+    }
+
+    private fun updateToolbarAction() {
+        if (!isEditMode) {
+            binding.toolbar.hideAction()
+            return
+        }
+        val label = getString(R.string.delete_record)
+        binding.toolbar.setActions(
+            listOf(
+                ToolbarAction(
+                    text = label,
+                    contentDescription = label,
+                    enabled = !saveInProgress && editingRecord != null
+                )
+            )
+        ) { showDeleteConfirmDialog() }
     }
 
     private fun setupTimeCard() {
@@ -429,7 +451,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             subtype.type == EventType.HEALTH_TEMPERATURE -> {
                 val tempView = root.findViewById<EditText>(com.zero.babycare.R.id.etTemperature)
                 if (data is TemperatureData) {
-                    tempView?.setText(data.value.toString())
+                    tempView?.setText(UnitConverter.formatDecimal(data.value))
                     val detailBinding = LayoutEventDetailTemperatureBinding.bind(root.getChildAt(0))
                     selectTemperatureLocation(detailBinding, data.location)
                     updateTemperatureStatus(detailBinding, data.value)
@@ -461,7 +483,9 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                 val batchView = root.findViewById<EditText>(com.zero.babycare.R.id.etVaccineBatch)
                 if (data is VaccineData) {
                     nameView?.setText(data.name)
-                    doseView?.setText(data.dose?.toString().orEmpty())
+                    doseView?.setText(
+                        data.dose?.let { String.format(Locale.getDefault(), "%d", it) }.orEmpty()
+                    )
                     siteView?.setText(data.site.orEmpty())
                     clinicView?.setText(data.clinic.orEmpty())
                     batchView?.setText(data.batchNumber.orEmpty())
@@ -919,6 +943,37 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         if (view == null) return
         binding.btnSave.isEnabled = !inProgress
         binding.btnSave.alpha = if (inProgress) 0.7f else 1f
+        updateToolbarAction()
+    }
+
+    /** 编辑态提供删除入口，让错误记录可以被纠正并同步刷新派生数据。 */
+    private fun showDeleteConfirmDialog() {
+        val record = editingRecord ?: return
+        if (saveInProgress) return
+        DialogHelper.showConfirmDialog(
+            context = requireContext(),
+            title = getString(R.string.delete_record),
+            content = getString(R.string.delete_record_confirm),
+            confirmText = getString(R.string.delete_record),
+            cancelText = getString(R.string.cancel),
+            onConfirm = {
+                setSaveInProgress(true)
+                vm.deleteRecord(
+                    eventId = record.eventId,
+                    babyId = record.babyId,
+                    onSuccess = {
+                        setSaveInProgress(false)
+                        ToastUtils.showShort(R.string.record_delete_success)
+                        vm.reset()
+                        mainVm.navigateTo(getReturnTarget())
+                    },
+                    onError = {
+                        setSaveInProgress(false)
+                        ToastUtils.showShort(R.string.record_delete_failed)
+                    }
+                )
+            }
+        )
     }
 
     private fun syncRunningActivityTimerBeforeSave() {

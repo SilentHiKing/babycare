@@ -2,33 +2,44 @@ package com.zero.common.util
 
 import android.content.Context
 import android.content.res.Configuration
-import kotlin.math.max
 
 /**
- * 设备类型检测工具类
- * 用于屏幕适配判断
- */
+ * 当前窗口适配工具。窗口宽度而非物理设备类型决定布局，确保分屏、折叠展开和横竖屏
+ * 都能按实际可用空间重排。
+*/
 object DeviceUtils {
-    
-    /** 判断是否为平板 (sw >= 600dp) */
-    fun isTablet(context: Context): Boolean =
-        context.resources.configuration.smallestScreenWidthDp >= 600
-    
-    /** 判断是否为横屏 */
-    fun isLandscape(context: Context): Boolean =
-        context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-    
-    /**
-     * 获取适配的设计稿宽度
-     * - 手机: 375dp
-     * - 平板竖屏: 720dp (覆盖8-10寸主流平板)
-     * - 平板横屏: 1080dp (保持元素比例合理)
-     */
-    fun getDesignWidthInDp(context: Context): Int = when {
-        isTablet(context) && isLandscape(context) -> 1080
-        isTablet(context) -> 720
-        else -> 375
+    enum class WindowWidthSizeClass {
+        COMPACT,
+        MEDIUM,
+        EXPANDED
     }
+
+    fun getWindowWidthInDp(context: Context): Int {
+        val configurationWidth = context.resources.configuration.screenWidthDp
+        if (configurationWidth != Configuration.SCREEN_WIDTH_DP_UNDEFINED && configurationWidth > 0) {
+            return configurationWidth
+        }
+        val metrics = context.resources.displayMetrics
+        return (metrics.widthPixels / metrics.density).toInt().coerceAtLeast(1)
+    }
+
+    fun getWindowWidthSizeClass(context: Context): WindowWidthSizeClass =
+        when (getWindowWidthInDp(context)) {
+            in 0 until 600 -> WindowWidthSizeClass.COMPACT
+            in 600 until 840 -> WindowWidthSizeClass.MEDIUM
+            else -> WindowWidthSizeClass.EXPANDED
+        }
+
+    /**
+     * 紧凑窗口继续沿用 375dp 手机设计基线；中大窗口使用实际宽度，避免 AutoSize
+     * 把手机信息架构等比放大。内容宽度由各页面的 maxWidth 约束控制。
+     */
+    fun getDesignWidthInDp(context: Context): Int =
+        when (getWindowWidthSizeClass(context)) {
+            WindowWidthSizeClass.COMPACT -> 375
+            WindowWidthSizeClass.MEDIUM,
+            WindowWidthSizeClass.EXPANDED -> getWindowWidthInDp(context)
+        }
     
     // ==================== 动态网格列数计算 ====================
     
@@ -48,25 +59,9 @@ object DeviceUtils {
         minColumns: Int = 1,
         maxColumns: Int = Int.MAX_VALUE
     ): Int {
-        val displayMetrics = context.resources.displayMetrics
-        val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
-        val availableWidthDp = screenWidthDp - horizontalPaddingDp
+        val availableWidthDp = getWindowWidthInDp(context) - horizontalPaddingDp
         val columns = (availableWidthDp / itemMinWidthDp).toInt()
         return columns.coerceIn(minColumns, maxColumns)
-    }
-    
-    /**
-     * 快速操作按钮的列数 (底部操作栏)
-     * 手机4列，平板根据宽度动态计算
-     */
-    fun getQuickActionColumns(context: Context): Int {
-        return calculateGridColumns(
-            context = context,
-            itemMinWidthDp = 80f,   // 每个按钮至少80dp宽
-            horizontalPaddingDp = 0f,
-            minColumns = 4,
-            maxColumns = 10
-        )
     }
     
     /**

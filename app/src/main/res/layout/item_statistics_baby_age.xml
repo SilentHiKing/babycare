@@ -4,11 +4,13 @@
     android:id="@+id/flBabyAge"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
     android:background="@drawable/bg_surface_group_sides_control_border"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingHorizontal="@dimen/statistics_day_content_inset"
+    android:paddingStart="@dimen/statistics_day_content_inset"
+    android:paddingEnd="@dimen/statistics_day_content_inset"
     android:paddingTop="10dp"
     android:paddingBottom="8dp">
 
@@ -18,8 +20,10 @@
         android:layout_height="wrap_content"
         android:background="?attr/bg_r999_block_gridview"
         android:gravity="center_vertical"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="4dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
         tools:visibility="visible">
 
         <ImageView
@@ -45,8 +49,10 @@
         android:layout_height="wrap_content"
         android:background="?attr/bg_r8_block_gridview"
         android:gravity="center_vertical"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="6dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
         android:visibility="gone">
 
         <ImageView

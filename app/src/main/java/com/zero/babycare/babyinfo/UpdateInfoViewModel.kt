@@ -1,7 +1,6 @@
 package com.zero.babycare.babyinfo
 
 import androidx.annotation.StringRes
-import com.blankj.utilcode.util.ThreadUtils
 import com.zero.babydata.domain.BabyDataHelper.repository
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.util.UnitConfig
@@ -80,17 +79,15 @@ class UpdateInfoViewModel : BaseViewModel() {
 
     fun insert(babyInfo: BabyInfo, callback: Runnable) {
         safeLaunch {
-            repository.insertBabyInfo(babyInfo) {
-                ThreadUtils.runOnUiThread(callback)
-            }
+            repository.insertBabyInfo(babyInfo)
+            callback.run()
         }
     }
 
     fun update(babyInfo: BabyInfo, callback: Runnable) {
         safeLaunch {
-            repository.updateBabyInfo(babyInfo) {
-                ThreadUtils.runOnUiThread(callback)
-            }
+            repository.updateBabyInfo(babyInfo)
+            callback.run()
         }
     }
 }

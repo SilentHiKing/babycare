@@ -1,21 +1,29 @@
 package com.zero.babycare
 
-import com.blankj.utilcode.util.ThreadUtils
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import com.zero.babycare.navigation.NavTarget
+import com.zero.babycare.reminder.ReminderType
 import com.zero.babydata.entity.BabyInfo
 import com.zero.components.base.vm.BaseViewModel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import com.zero.babydata.domain.BabyDataHelper.repository
-import com.zero.common.mmkv.MMKVKeys.BABY_INFO
+import com.zero.common.mmkv.MMKVKeys.CURRENT_BABY_ID
 import com.zero.common.mmkv.MMKVStore
 
 
-class MainViewModel : BaseViewModel() {
+class MainViewModel(
+    private val savedStateHandle: SavedStateHandle
+) : BaseViewModel() {
     
     /** 导航目标状态 */
-    private val _navTarget = MutableStateFlow<NavTarget>(NavTarget.Dashboard)
+    private val _navTarget = MutableStateFlow(
+        savedStateHandle.get<NavTarget>(NAV_TARGET_KEY) ?: NavTarget.Dashboard
+    )
     val navTarget: StateFlow<NavTarget> = _navTarget
 
     /**
@@ -24,15 +32,33 @@ class MainViewModel : BaseViewModel() {
      * 旧页面仍可使用 getCurrentBabyInfo() 同步读取；新数据流页面应优先收集该 StateFlow，
      * 避免每个 Fragment 自己判断何时重新查询当前宝宝。
      */
-    private val _currentBaby = MutableStateFlow(loadCurrentBabyFromStore())
+    private val _currentBaby = MutableStateFlow<BabyInfo?>(null)
     val currentBaby: StateFlow<BabyInfo?> = _currentBaby.asStateFlow()
+
+    /** 首次 Room 快照到达后才允许 Activity 决定初始页面。 */
+    private val _babyDataLoaded = MutableStateFlow(false)
+    val babyDataLoaded: StateFlow<Boolean> = _babyDataLoaded.asStateFlow()
+
+    /** 数据库中的宝宝列表是页面与当前宝宝校验的唯一事实源。 */
+    private val _allBabies = MutableStateFlow<List<BabyInfo>>(emptyList())
+    val allBabies: StateFlow<List<BabyInfo>> = _allBabies.asStateFlow()
+
+    init {
+        // Room Flow 自动跟踪增删改；缓存只负责恢复选择，不再触发主线程数据库查询。
+        viewModelScope.launch {
+            repository.observeAllBabyInfo().collectLatest { babies ->
+                reconcileBabies(babies)
+                _babyDataLoaded.value = true
+            }
+        }
+    }
 
     /**
      * 导航到指定目标
      */
     fun navigateTo(target: NavTarget) {
         val current = _navTarget.value
-        _navTarget.value = when (target) {
+        val resolvedTarget = when (target) {
             is NavTarget.Statistics -> target.copy(
                 returnTarget = resolveReturnTarget(target.returnTarget, current, (current as? NavTarget.Statistics)?.returnTarget)
             )
@@ -53,6 +79,9 @@ class MainViewModel : BaseViewModel() {
             )
             else -> target
         }
+        _navTarget.value = resolvedTarget
+        // 导航参数随进程状态保存，Activity 重建后不会丢失编辑对象或返回路径。
+        savedStateHandle[NAV_TARGET_KEY] = resolvedTarget
     }
 
     private fun resolveReturnTarget(
@@ -70,33 +99,22 @@ class MainViewModel : BaseViewModel() {
      * 防止因删除宝宝后缓存未清理导致的外键约束失败
      */
     fun getCurrentBabyInfo(): BabyInfo? {
-        return loadCurrentBabyFromStore().also { baby ->
-            _currentBaby.value = baby
-        }
+        return _currentBaby.value
     }
 
     /**
-     * 从本地缓存和数据库解析当前宝宝。
-     *
-     * 该方法只负责同步解析和修正缓存，不直接驱动 UI；调用方需要自行更新 _currentBaby。
+     * 使用数据库最新列表校验当前选择；MMKV 只保存 ID，完整对象始终以 Room 为准。
      */
-    private fun loadCurrentBabyFromStore(): BabyInfo? {
-        val cachedBaby = MMKVStore.get(BABY_INFO, BabyInfo::class.java)
-        
-        if (cachedBaby != null) {
-            // 验证缓存的宝宝是否存在于数据库中
-            val existsInDb = repository.getAllBabyInfo().any { it.babyId == cachedBaby.babyId }
-            if (existsInDb) {
-                return cachedBaby
-            } else {
-                // 缓存无效，清除
-                MMKVStore.remove(BABY_INFO)
-            }
-        }
-        
-        // 返回数据库中的第一个宝宝
-        return repository.getAllBabyInfo().firstOrNull()?.also {
-            MMKVStore.put(BABY_INFO, it)
+    private fun reconcileBabies(babies: List<BabyInfo>) {
+        _allBabies.value = babies
+        val selectedId = _currentBaby.value?.babyId
+            ?: MMKVStore.getInt(CURRENT_BABY_ID).takeIf { it > 0 }
+        val selected = babies.firstOrNull { it.babyId == selectedId } ?: babies.firstOrNull()
+        _currentBaby.value = selected
+        if (selected == null) {
+            MMKVStore.remove(CURRENT_BABY_ID)
+        } else {
+            MMKVStore.put(CURRENT_BABY_ID, selected.babyId)
         }
     }
 
@@ -104,7 +122,7 @@ class MainViewModel : BaseViewModel() {
      * 设置当前选中的宝宝
      */
     fun setCurrentBaby(babyInfo: BabyInfo) {
-        MMKVStore.put(BABY_INFO, babyInfo)
+        MMKVStore.put(CURRENT_BABY_ID, babyInfo.babyId)
         _currentBaby.value = babyInfo
     }
 
@@ -112,14 +130,14 @@ class MainViewModel : BaseViewModel() {
      * 获取所有宝宝列表
      */
     fun getAllBabies(): List<BabyInfo> {
-        return repository.getAllBabyInfo()
+        return _allBabies.value
     }
 
     /**
      * 根据 ID 获取宝宝信息
      */
     fun getBabyById(babyId: Int): BabyInfo? {
-        return repository.getAllBabyInfo().find { it.babyId == babyId }
+        return _allBabies.value.find { it.babyId == babyId }
     }
 
     /**
@@ -137,17 +155,12 @@ class MainViewModel : BaseViewModel() {
      */
     fun deleteBaby(babyInfo: BabyInfo, onSuccess: () -> Unit) {
         safeLaunch {
-            repository.deleteBabyInfo(babyInfo) {
-                // 如果删除的是当前选中的宝宝，清除缓存
-                if (getCurrentBabyInfo()?.babyId == babyInfo.babyId) {
-                    MMKVStore.remove(BABY_INFO)
-                }
-                val nextBaby = loadCurrentBabyFromStore()
-                ThreadUtils.runOnUiThread {
-                    _currentBaby.value = nextBaby
-                    onSuccess()
-                }
+            repository.deleteBabyInfo(babyInfo)
+            if (_currentBaby.value?.babyId == babyInfo.babyId) {
+                MMKVStore.remove(CURRENT_BABY_ID)
             }
+            reconcileBabies(repository.getAllBabyInfo())
+            onSuccess()
         }
     }
 
@@ -156,12 +169,27 @@ class MainViewModel : BaseViewModel() {
      */
     fun insertBaby(babyInfo: BabyInfo, onSuccess: () -> Unit) {
         safeLaunch {
-            repository.insertBabyInfo(babyInfo) {
-                ThreadUtils.runOnUiThread {
-                    setCurrentBaby(babyInfo)
-                    onSuccess()
-                }
-            }
+            repository.insertBabyInfo(babyInfo)
+            reconcileBabies(repository.getAllBabyInfo())
+            setCurrentBaby(babyInfo)
+            onSuccess()
         }
+    }
+
+    /** 通知点击按 babyId 重新查库并切换对象，避免只依赖可能过期的当前宝宝缓存。 */
+    fun openReminderTarget(babyId: Int, type: ReminderType) {
+        safeLaunch {
+            val baby = repository.getBabyInfo(babyId) ?: return@safeLaunch
+            setCurrentBaby(baby)
+            val target = when (type) {
+                ReminderType.FEEDING -> NavTarget.FeedingRecord(returnTarget = NavTarget.Dashboard)
+                ReminderType.SLEEP -> NavTarget.SleepRecord(returnTarget = NavTarget.Dashboard)
+            }
+            navigateTo(target)
+        }
+    }
+
+    private companion object {
+        const val NAV_TARGET_KEY = "main_nav_target"
     }
 }

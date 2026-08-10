@@ -2,7 +2,6 @@ package com.zero.babycare.home.record.event
 
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
-import com.blankj.utilcode.util.ThreadUtils
 import com.zero.babycare.home.BabyRecordChangeBus
 import com.zero.babydata.domain.BabyDataHelper.repository
 import com.zero.babydata.entity.EventExtraData
@@ -235,7 +234,7 @@ class EventRecordViewModel : BaseViewModel() {
             _eventTime.value
         }
 
-        safeLaunch {
+        viewModelScope.launch {
             val record = EventRecord(
                 eventId = editRecordId ?: 0,
                 babyId = babyId,
@@ -247,20 +246,35 @@ class EventRecordViewModel : BaseViewModel() {
                 createdAt = createdAt ?: System.currentTimeMillis()
             )
 
-            val onComplete = Runnable {
-                BabyRecordChangeBus.notifyChanged(record.babyId)
-                ThreadUtils.runOnUiThread { onSuccess() }
-            }
-            val onFailure: (Throwable) -> Unit = {
-                ThreadUtils.runOnUiThread {
-                    onError(R.string.save_failed)
+            try {
+                if (editRecordId != null) {
+                    repository.updateEventRecord(record)
+                } else {
+                    repository.insertEventRecord(record)
                 }
+                BabyRecordChangeBus.notifyChanged(record.babyId)
+                onSuccess()
+            } catch (_: Exception) {
+                // 只有数据库真正失败时才进入错误终态，页面据此恢复保存按钮并允许重试。
+                onError(R.string.save_failed)
             }
+        }
+    }
 
-            if (editRecordId != null) {
-                repository.updateEventRecord(record, onComplete, onFailure)
-            } else {
-                repository.insertEventRecord(record, onComplete, onFailure)
+    /** 删除事件后通知所有记录消费者，保证时间轴、统计和预测立即失效重算。 */
+    fun deleteRecord(
+        eventId: Int,
+        babyId: Int,
+        onSuccess: () -> Unit,
+        onError: () -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                repository.deleteEventRecordById(eventId)
+                BabyRecordChangeBus.notifyChanged(babyId)
+                onSuccess()
+            } catch (_: Exception) {
+                onError()
             }
         }
     }
@@ -287,6 +301,6 @@ class EventRecordViewModel : BaseViewModel() {
      */
     sealed class ValidationResult {
         object Success : ValidationResult()
-        data class Error(@StringRes val messageResId: Int) : ValidationResult()
+        data class Error(@param:StringRes val messageResId: Int) : ValidationResult()
     }
 }

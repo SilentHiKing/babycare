@@ -1,5 +1,6 @@
 package com.zero.babycare
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.MotionEvent
@@ -12,7 +13,6 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import com.blankj.utilcode.util.FragmentUtils
-import com.blankj.utilcode.util.LogUtils
 import com.zero.babycare.babies.AllChildrenFragment
 import com.zero.babycare.babyinfo.UpdateInfoFragment
 import com.zero.babycare.databinding.ActivityMainBinding
@@ -26,12 +26,15 @@ import com.zero.babycare.navigation.NavTarget
 import com.zero.babycare.settings.SettingsFragment
 import com.zero.babycare.settings.backup.BackupFragment
 import com.zero.babycare.statistics.StatisticsFragment
+import com.zero.babycare.reminder.ReminderNotifier
+import com.zero.babycare.reminder.ReminderType
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.ext.launchInLifecycle
 import com.zero.common.theme.ThemeManager
 import com.zero.common.util.DeviceUtils
 import com.zero.components.base.BaseActivity
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import me.jessyan.autosize.AutoSizeConfig
 import java.util.concurrent.TimeUnit
 import kotlin.getValue
@@ -42,6 +45,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         private const val DRAWER_EDGE_WIDTH_DP = 120f
         private const val DRAWER_OPEN_DISTANCE_DP = 4f
         private const val DRAWER_HORIZONTAL_RATIO = 1f
+        private const val TAG_BABY_INFO = "baby_info"
+        private const val TAG_DASHBOARD = "dashboard"
+        private const val TAG_FEEDING_RECORD = "feeding_record"
+        private const val TAG_SLEEP_RECORD = "sleep_record"
+        private const val TAG_ALL_CHILDREN = "all_children"
+        private const val TAG_EVENT_RECORD = "event_record"
+        private const val TAG_STATISTICS = "statistics"
+        private const val TAG_SETTINGS = "settings"
+        private const val TAG_BACKUP = "backup"
     }
 
     private val vm by viewModels<MainViewModel>()
@@ -64,14 +76,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var isTrackingDrawerGesture = false
     private var isDrawerGestureClaimed = false
     private var hasCancelledDashboardTouch = false
+    private var shouldChooseInitialDestination = false
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleReminderIntent(intent)
+    }
+
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        // 横竖屏切换时重新配置 AutoSize 设计稿宽度
+        // 分屏、折叠或旋转改变窗口宽度时重新计算适配基线。
         val designWidth = DeviceUtils.getDesignWidthInDp(this)
         AutoSizeConfig.getInstance().setDesignWidthInDp(designWidth)
     }
@@ -88,8 +107,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             ThemeManager.saveTheme(theme)
             ThemeManager.applyTheme(this, theme)
         } else {
-            // 无宝宝数据时也只使用男孩 / 女孩主题集合内的兜底值，避免出现第三套中性视觉。
-            ThemeManager.applyTheme(this, ThemeManager.BabyTheme.BOY)
+            // Room 首次快照尚未到达时沿用已保存的 Boy/Girl 主题，加载完成后再校验。
+            ThemeManager.applyTheme(this)
         }
     }
 
@@ -110,6 +129,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     override fun initView(savedInstanceState: Bundle?) {
+        shouldChooseInitialDestination = savedInstanceState == null
         // 初始化 Fragments
         setupFragments()
         // 初始化侧边栏
@@ -118,26 +138,41 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         setupBackPressDispatcher()
         // 监听 Fragment 切换
         observeFragmentStatus()
+        observeCurrentBaby()
     }
 
     /**
      * 初始化 Fragments
      */
     private fun setupFragments() {
-        fragments.add(UpdateInfoFragment.create())
-        fragments.add(DashboardFragment.create())
-        fragments.add(FeedingRecordFragment.create())
-        fragments.add(SleepRecordFragment.create())
-        fragments.add(AllChildrenFragment.create())
-        fragments.add(EventRecordFragment.create())
-        fragments.add(StatisticsFragment.create())
-        fragments.add(SettingsFragment.create())
-        fragments.add(BackupFragment.create())
+        fragments.clear()
+        val entries = listOf(
+            FragmentEntry(TAG_BABY_INFO, UpdateInfoFragment::create),
+            FragmentEntry(TAG_DASHBOARD, DashboardFragment::create),
+            FragmentEntry(TAG_FEEDING_RECORD, FeedingRecordFragment::create),
+            FragmentEntry(TAG_SLEEP_RECORD, SleepRecordFragment::create),
+            FragmentEntry(TAG_ALL_CHILDREN, AllChildrenFragment::create),
+            FragmentEntry(TAG_EVENT_RECORD, EventRecordFragment::create),
+            FragmentEntry(TAG_STATISTICS, StatisticsFragment::create),
+            FragmentEntry(TAG_SETTINGS, SettingsFragment::create),
+            FragmentEntry(TAG_BACKUP, BackupFragment::create)
+        )
+        val transaction = supportFragmentManager.beginTransaction()
+        var hasAdditions = false
 
-        fragments.forEach {
-            FragmentUtils.add(supportFragmentManager, it, R.id.flContainer, true)
+        entries.forEach { entry ->
+            val fragment = supportFragmentManager.findFragmentByTag(entry.tag)
+                ?: entry.factory().also { created ->
+                    transaction.add(R.id.flContainer, created, entry.tag)
+                    transaction.hide(created)
+                    hasAdditions = true
+                }
+            fragments.add(fragment)
         }
-        LogUtils.d("setupFragments")
+        if (hasAdditions) {
+            // 首次创建同步安装根页面；恢复场景只补缺失项，不覆盖系统已恢复的 Fragment 状态。
+            transaction.commitNow()
+        }
     }
 
     /**
@@ -217,15 +252,42 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun observeFragmentStatus() {
         launchInLifecycle {
             vm.navTarget.collectLatest { navTarget ->
-                LogUtils.d("navTarget: $navTarget")
                 val targetClass = navTarget.fragmentClass
                 fragments.firstOrNull { f ->
                     targetClass.isInstance(f)
                 }?.let { target ->
-                    LogUtils.d("target: $target")
                     FragmentUtils.showHide(target, fragments.filter { it != target })
                 }
             }
+        }
+    }
+
+    /** 当前宝宝变化时同步侧栏与主题，包括备份覆盖导入后的数据域切换。 */
+    private fun observeCurrentBaby() {
+        launchInLifecycle {
+            vm.currentBaby.combine(vm.babyDataLoaded) { baby, loaded -> baby to loaded }
+                .collectLatest { (baby, loaded) ->
+                    if (!loaded) return@collectLatest
+
+                    if (shouldChooseInitialDestination) {
+                        shouldChooseInitialDestination = false
+                        vm.navigateTo(if (baby == null) NavTarget.BabyInfo.create() else NavTarget.Dashboard)
+                    }
+
+                    if (baby == null) {
+                        if (ThemeManager.getSavedTheme() != ThemeManager.BabyTheme.BOY) {
+                            ThemeManager.resetToDefaultTheme()
+                            recreate()
+                            return@collectLatest
+                        }
+                        showNoBabyState()
+                        return@collectLatest
+                    }
+                    updateDrawerBabyInfo(baby)
+                    if (ThemeManager.switchBabyTheme(baby.gender)) {
+                        recreate()
+                    }
+                }
         }
     }
 
@@ -342,15 +404,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     override fun initData(savedInstanceState: Bundle?) {
-        // 判断是否有宝宝数据，决定显示哪个页面
-        val currentBaby = vm.getCurrentBabyInfo()
-        if (currentBaby == null) {
-            // 无宝宝数据，进入创建页面
-            vm.navigateTo(NavTarget.BabyInfo.create())
-        } else {
-            // 有宝宝数据，进入概况页
-            vm.navigateTo(NavTarget.Dashboard)
+        // 初始页面等待 Room 首次快照；通知目标优先于默认首页选择。
+        if (handleReminderIntent(intent)) {
+            shouldChooseInitialDestination = false
         }
+    }
+
+    private fun handleReminderIntent(sourceIntent: Intent?): Boolean {
+        val babyId = sourceIntent?.getIntExtra(ReminderNotifier.EXTRA_BABY_ID, -1) ?: -1
+        val type = sourceIntent?.getStringExtra(ReminderNotifier.EXTRA_REMINDER_TYPE)
+            ?.let { runCatching { ReminderType.valueOf(it) }.getOrNull() }
+        if (babyId <= 0 || type == null) return false
+
+        // 清掉已消费参数，Activity 旋转或重建时由 SavedStateHandle 恢复导航，不重复处理通知动作。
+        sourceIntent.removeExtra(ReminderNotifier.EXTRA_BABY_ID)
+        sourceIntent.removeExtra(ReminderNotifier.EXTRA_REMINDER_TYPE)
+        vm.openReminderTarget(babyId, type)
+        return true
     }
 
     private fun handleSystemBack() {
@@ -389,4 +459,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             showNoBabyState()
         }
     }
+
+    private data class FragmentEntry(
+        val tag: String,
+        val factory: () -> Fragment
+    )
 }

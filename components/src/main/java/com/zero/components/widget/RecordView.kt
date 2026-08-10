@@ -21,7 +21,7 @@ class RecordView @JvmOverloads constructor(
     var currentShowState: RecordState = RecordState.INIT
         private set
 
-    lateinit var statusChange: (current: RecordState, next: RecordState) -> Unit
+    var statusChange: ((current: RecordState, next: RecordState) -> Unit)? = null
 
     val timerCounter = TimerCounter()
 
@@ -66,8 +66,8 @@ class RecordView @JvmOverloads constructor(
             viewBinding.tvHint.visibility = VISIBLE
             viewBinding.tvHint.setText(com.zero.common.R.string.tap_to_continue)
             
-            if (triggerCallback && ::statusChange.isInitialized) {
-                statusChange(previousState, RecordState.PAUSE)
+            if (triggerCallback) {
+                statusChange?.invoke(previousState, RecordState.PAUSE)
             }
         }
     }
@@ -77,6 +77,7 @@ class RecordView @JvmOverloads constructor(
 
     /** 释放资源，页面销毁时调用 */
     fun release() {
+        statusChange = null
         timerCounter.release()
     }
 
@@ -97,20 +98,21 @@ class RecordView @JvmOverloads constructor(
     init {
         showState(currentShowState)
         setOnClickListener {
+            val listener = statusChange ?: return@setOnClickListener
             when (currentShowState) {
                 RecordState.INIT -> {
-                    statusChange(currentShowState, RecordState.RECORDING)
+                    listener(currentShowState, RecordState.RECORDING)
                     showState(RecordState.RECORDING)
                 }
                 RecordState.RECORDING -> {
-                    statusChange(currentShowState, RecordState.PAUSE)
+                    listener(currentShowState, RecordState.PAUSE)
                     showState(RecordState.PAUSE)
                 }
                 RecordState.PAUSE -> {
                     // PAUSE -> RECORDING 时，先回调让外部处理
                     // 外部可以选择调用 resumeFromPause() 来真正继续计时
                     // 或者不调用保持 PAUSE 状态
-                    statusChange(currentShowState, RecordState.RECORDING)
+                    listener(currentShowState, RecordState.RECORDING)
                 }
             }
         }
@@ -134,6 +136,13 @@ class RecordView @JvmOverloads constructor(
         timerCounter.setPauseOffset(offsetMs)
         currentShowState = RecordState.INIT
         showState(RecordState.RECORDING)
+    }
+
+    /** 恢复持久化的暂停会话，展示累计时长但不重新启动计时。 */
+    fun restorePaused(durationMs: Long) {
+        currentShowState = RecordState.INIT
+        timerCounter.setDisplayDuration(durationMs.coerceAtLeast(0L))
+        showState(RecordState.PAUSE)
     }
 
     fun reset() {

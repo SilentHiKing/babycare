@@ -4,9 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
     android:background="@drawable/bg_surface_group_sides_control_border"
-    android:paddingHorizontal="@dimen/statistics_day_content_inset">
+    android:paddingStart="@dimen/statistics_day_content_inset"
+    android:paddingEnd="@dimen/statistics_day_content_inset">
 
     <Space
         android:id="@+id/spaceTop"

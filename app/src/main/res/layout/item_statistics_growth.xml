@@ -4,7 +4,8 @@
     android:id="@+id/llGrowth"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
     android:layout_marginTop="12dp"
     android:background="@drawable/bg_r16_surface_stroke_control_border"
     android:orientation="vertical"
@@ -46,8 +47,10 @@
                 android:gravity="center"
                 android:minHeight="76dp"
                 android:orientation="vertical"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="10dp">
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
 
                 <TextView
                     android:id="@+id/tvWeightLabel"
@@ -80,14 +83,17 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="4dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/bg_r8_metric_tile_soft"
                 android:gravity="center"
                 android:minHeight="76dp"
                 android:orientation="vertical"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="10dp">
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
 
                 <TextView
                     android:id="@+id/tvHeightLabel"
@@ -126,8 +132,10 @@
                 android:gravity="center"
                 android:minHeight="76dp"
                 android:orientation="vertical"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="10dp">
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
 
                 <TextView
                     android:id="@+id/tvHeadLabel"

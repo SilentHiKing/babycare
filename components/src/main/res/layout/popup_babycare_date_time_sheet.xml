@@ -19,7 +19,8 @@
         android:layout_height="48dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="16dp">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
 
         <TextView
             android:id="@+id/tv_cancel"
@@ -50,7 +51,8 @@
         android:id="@+id/picker_frame"
         android:layout_width="match_parent"
         android:layout_height="232dp"
-        android:paddingHorizontal="16dp">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
 
         <LinearLayout
             android:id="@+id/picker_column_container"

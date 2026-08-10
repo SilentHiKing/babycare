@@ -190,6 +190,29 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
                 growthAdapter.updateTrend(state.insights.growth, state.selectedDate)
                 growthPercentileAdapter.updatePercentile(state.insights.percentile, state.selectedDate)
                 healthAdapter.updateHealth(state.insights.health)
+                renderPageState(state)
+            }
+        }
+    }
+
+    /** 页面级错误优先于加载态；内容恢复后再显示列表，避免旧数据伪装成最新结果。 */
+    private fun renderPageState(state: com.zero.babycare.statistics.model.StatisticsUiState) {
+        when {
+            state.errorMessage != null -> {
+                binding.rvStatistics.visibility = View.GONE
+                binding.pageState.showMessage(
+                    message = state.errorMessage,
+                    actionText = getString(com.zero.common.R.string.retry),
+                    onAction = vm::refreshData
+                )
+            }
+            state.isLoading -> {
+                binding.rvStatistics.visibility = View.GONE
+                binding.pageState.showLoading(com.zero.common.R.string.loading)
+            }
+            else -> {
+                binding.pageState.hide()
+                binding.rvStatistics.visibility = View.VISIBLE
             }
         }
     }

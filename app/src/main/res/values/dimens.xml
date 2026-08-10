@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 中大窗口使用居中内容列，避免把手机卡片和长表单横向拉伸。 -->
+    <dimen name="dashboard_content_max_width">760dp</dimen>
+    <dimen name="record_content_max_width">640dp</dimen>
+    <dimen name="list_content_max_width">720dp</dimen>
+
     <!-- 统计页主体最大宽度，避免横屏时日历和时间轴被拉得过散。 -->
     <dimen name="statistics_content_max_width">520dp</dimen>
 
@@ -8,7 +13,7 @@
 
     <!-- 日历网格在统一内容边界内再留一点呼吸感，避免首尾日期贴近容器边。 -->
     <dimen name="statistics_calendar_grid_inset">0dp</dimen>
-    <dimen name="statistics_calendar_nav_button_size">40dp</dimen>
+    <dimen name="statistics_calendar_nav_button_size">48dp</dimen>
     <dimen name="statistics_calendar_nav_icon_padding">8dp</dimen>
 
     <!-- 时间轴固定列：左侧轨道 / 右侧时间与内容，保证回看记录时只有一条阅读主线。 -->

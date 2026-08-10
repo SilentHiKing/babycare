@@ -32,7 +32,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/page_horizontal_padding"
+            android:paddingStart="@dimen/page_horizontal_padding"
+            android:paddingEnd="@dimen/page_horizontal_padding"
             android:paddingTop="@dimen/page_vertical_padding">
 
             <LinearLayout
@@ -47,8 +48,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:minHeight="88dp"
-                    android:paddingHorizontal="@dimen/card_padding"
-                    android:paddingVertical="16dp">
+                    android:paddingStart="@dimen/card_padding"
+                    android:paddingEnd="@dimen/card_padding"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp">
 
                     <FrameLayout
                         android:id="@+id/profileAvatarContainer"
@@ -120,7 +123,8 @@
                     android:id="@+id/rowName"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
-                    android:paddingHorizontal="@dimen/card_padding">
+                    android:paddingStart="@dimen/card_padding"
+                    android:paddingEnd="@dimen/card_padding">
 
                     <TextView
                         android:id="@+id/labelName"
@@ -171,7 +175,8 @@
                     android:background="@drawable/bg_setting_item_middle_ripple"
                     android:clickable="true"
                     android:focusable="true"
-                    android:paddingHorizontal="@dimen/card_padding">
+                    android:paddingStart="@dimen/card_padding"
+                    android:paddingEnd="@dimen/card_padding">
 
                     <TextView
                         android:id="@+id/labelBirthday"
@@ -235,7 +240,8 @@
                     android:background="@drawable/bg_setting_item_middle_ripple"
                     android:clickable="true"
                     android:focusable="true"
-                    android:paddingHorizontal="@dimen/card_padding">
+                    android:paddingStart="@dimen/card_padding"
+                    android:paddingEnd="@dimen/card_padding">
 
                     <TextView
                         android:id="@+id/labelGender"
@@ -303,7 +309,8 @@
                     android:id="@+id/rowWeight"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
-                    android:paddingHorizontal="@dimen/card_padding">
+                    android:paddingStart="@dimen/card_padding"
+                    android:paddingEnd="@dimen/card_padding">
 
                     <TextView
                         android:id="@+id/labelWeight"
@@ -364,7 +371,8 @@
                     android:id="@+id/rowHeight"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
-                    android:paddingHorizontal="@dimen/card_padding">
+                    android:paddingStart="@dimen/card_padding"
+                    android:paddingEnd="@dimen/card_padding">
 
                     <TextView
                         android:id="@+id/labelHeight"
@@ -428,7 +436,8 @@
                     android:background="@drawable/bg_setting_item_bottom_ripple"
                     android:clickable="true"
                     android:focusable="true"
-                    android:paddingHorizontal="@dimen/card_padding">
+                    android:paddingStart="@dimen/card_padding"
+                    android:paddingEnd="@dimen/card_padding">
 
                     <TextView
                         android:id="@+id/labelBloodType"

@@ -22,7 +22,8 @@
         android:background="?attr/bg_r6_block_gridview"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="12dp">
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
 
         <EditText
             android:id="@+id/etTemperature"

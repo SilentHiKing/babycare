@@ -531,4 +531,13 @@
     <string name="baby_profile_select_birthday">생일 선택</string>
     <string name="please_select">선택해 주세요</string>
     <string name="optional">선택 사항</string>
+    <string name="delete_record">기록 삭제</string>
+    <string name="delete_record_confirm">이 기록을 삭제할까요? 통계와 예측도 업데이트되며 이 작업은 되돌릴 수 없습니다.</string>
+    <string name="record_delete_success">기록을 삭제했습니다</string>
+    <string name="record_delete_failed">기록을 삭제하지 못했습니다. 다시 시도해 주세요.</string>
+    <string name="data_load_failed">데이터를 불러오지 못했습니다</string>
+    <string name="retry">다시 시도</string>
+    <string name="prediction_evidence_default">월령별 경향을 참고하며, 기록이 쌓이면 점차 맞춤화됩니다</string>
+    <string name="prediction_evidence_samples">%1$d개의 유효한 기록 간격을 기반으로 함</string>
+    <string name="prediction_evidence_weak_samples">%1$d개의 유효한 기록 간격을 기반으로 하며, 현재 규칙성이 낮습니다</string>
 </resources>

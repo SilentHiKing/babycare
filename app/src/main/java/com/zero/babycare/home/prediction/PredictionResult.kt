@@ -15,7 +15,9 @@ data class PredictionResult(
     /** 预测区间 - 最晚时间 */
     val latestTime: Date,
     /** 预测来源/方法 */
-    val source: PredictionSource = PredictionSource.LOCAL_RULE
+    val source: PredictionSource = PredictionSource.LOCAL_RULE,
+    /** 真正参与计算的有效记录间隔数；用于向家长解释预测依据。 */
+    val evidenceCount: Int = 0
 ) {
     /**
      * 获取置信度等级描述

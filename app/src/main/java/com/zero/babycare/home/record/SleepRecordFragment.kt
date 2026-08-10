@@ -2,6 +2,8 @@ package com.zero.babycare.home.record
 
 import android.os.Bundle
 import android.view.View
+import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.blankj.utilcode.util.ToastUtils
@@ -16,6 +18,7 @@ import com.zero.common.util.DateUtils
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
 import com.zero.components.widget.RecordView.RecordState
+import com.zero.components.widget.ToolbarAction
 
 /**
  * 睡眠记录页面
@@ -60,6 +63,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
     private var editRecordId: Int? = null
     private var editingRecord: SleepRecord? = null
     private var isEditMode = false
+    private var mutationInProgress = false
 
     // 是否有未保存的记录
     private var hasUnsavedChanges = false
@@ -67,7 +71,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
     // 标记是否是程序设置时间（避免循环触发）
     private var isProgrammaticChange = false
 
-    private lateinit var timerController: RecordTimerController
+    private var timerController: RecordTimerController? = null
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
@@ -86,8 +90,10 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
+        timerController?.dispose()
+        timerController = null
         binding.timerPanel.timerView.release()
+        super.onDestroyView()
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
@@ -119,16 +125,23 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
      * 恢复进行中的睡眠记录
      */
     private fun restoreOngoingSleep(babyId: Int) {
-        val startTime = OngoingRecordManager.getOngoingSleepStart(babyId) ?: return
+        val session = OngoingRecordManager.getSleepSession(babyId) ?: return
+        val startTime = session.startAt
         
         isProgrammaticChange = true
         
         // 设置入睡时间
-        timerController.syncStartTime(startTime, clearEnd = true, resetTimer = false, notify = false)
-        
-        // 计算已经过的时间，恢复计时器状态
-        val elapsed = System.currentTimeMillis() - startTime
-        binding.timerPanel.timerView.startFromOffset(elapsed)
+        timerController?.syncStartTime(
+            timestamp = startTime,
+            clearEnd = session.endAt == null,
+            resetTimer = false,
+            notify = false
+        )
+        if (session.status == OngoingRecordManager.SessionStatus.PAUSED && session.endAt != null) {
+            timerController?.restorePausedSession(session.endAt, session.activeDurationMs)
+        } else {
+            binding.timerPanel.timerView.startFromOffset(session.elapsedDuration())
+        }
         
         hasUnsavedChanges = true
         isProgrammaticChange = false
@@ -162,7 +175,19 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
                         OngoingRecordManager.startSleep(babyId, startTime)
                     }
                 },
-                onTimerResume = { markAsUnsaved() },
+                onTimerResume = {
+                    markAsUnsaved()
+                    mainVm.getCurrentBabyInfo()?.babyId?.let(OngoingRecordManager::resumeSleep)
+                },
+                onTimerPause = { endTime ->
+                    mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
+                        OngoingRecordManager.pauseSleep(
+                            babyId = babyId,
+                            endTime = endTime,
+                            activeDurationMs = binding.timerPanel.timerView.getDuration()
+                        )
+                    }
+                },
                 onDirty = { markAsUnsaved() }
             )
         )
@@ -175,6 +200,24 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
         binding.btn.showBackButton {
             handleBack()
         }
+        updateToolbarAction()
+    }
+
+    private fun updateToolbarAction() {
+        if (!isEditMode) {
+            binding.btn.hideAction()
+            return
+        }
+        val label = getString(R.string.delete_record)
+        binding.btn.setActions(
+            listOf(
+                ToolbarAction(
+                    text = label,
+                    contentDescription = label,
+                    enabled = !mutationInProgress && editingRecord != null
+                )
+            )
+        ) { showDeleteConfirmDialog() }
     }
 
     /**
@@ -190,10 +233,11 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
         val navTarget = mainVm.navTarget.value as? NavTarget.SleepRecord
         editRecordId = navTarget?.editRecordId
         isEditMode = editRecordId != null
-        if (!isEditMode) {
+        if (!isEditMode || editingRecord?.sleepId != editRecordId) {
             editingRecord = null
         }
         applyTimerLockState()
+        updateToolbarAction()
     }
 
     private fun applyTimerLockState() {
@@ -212,6 +256,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
                 return@loadSleepRecordById
             }
             editingRecord = record
+            updateToolbarAction()
             applyRecordToUi(record)
         }
     }
@@ -219,8 +264,8 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
     private fun applyRecordToUi(record: SleepRecord) {
         isProgrammaticChange = true
 
-        timerController.setStartTime(record.sleepStart, notify = false)
-        timerController.setEndTime(record.sleepEnd, notify = false, updateDuration = true)
+        timerController?.setStartTime(record.sleepStart, notify = false)
+        timerController?.setEndTime(record.sleepEnd, notify = false, updateDuration = true)
         binding.etNote.setText(record.note)
 
         hasUnsavedChanges = false
@@ -231,9 +276,12 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
      * 保存睡眠记录
      */
     private fun saveSleepRecord() {
+        if (mutationInProgress) return
+        clearValidationErrors()
+
         // 如果正在计时，先暂停
         if (binding.timerPanel.timerView.currentShowState == RecordState.RECORDING) {
-            binding.timerPanel.timerView.forcePause()
+            binding.timerPanel.timerView.forcePause(triggerCallback = true)
             // 更新醒来时间
             binding.timerPanel.endInput.setTimestamp(System.currentTimeMillis())
         }
@@ -249,15 +297,15 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
 
         // 校验
         if (startTime <= 0) {
-            ToastUtils.showShort(R.string.sleep_start_required)
+            showFieldValidationError(binding.timerPanel.startInput, R.string.sleep_start_required)
             return
         }
         if (endTime <= 0) {
-            ToastUtils.showShort(R.string.sleep_end_required)
+            showFieldValidationError(binding.timerPanel.endInput, R.string.sleep_end_required)
             return
         }
         if (endTime <= startTime) {
-            ToastUtils.showShort(R.string.sleep_end_must_after_start)
+            showFieldValidationError(binding.timerPanel.endInput, R.string.sleep_end_must_after_start)
             return
         }
 
@@ -279,7 +327,9 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
             createdAt = editingRecord?.createdAt ?: System.currentTimeMillis()
         )
 
+        setMutationInProgress(true)
         val onSaved = {
+            setMutationInProgress(false)
             ToastUtils.showShort(R.string.sleep_save_success)
             if (!isEditMode) {
                 // 清除进行中状态
@@ -289,12 +339,68 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
             hasUnsavedChanges = false
             mainVm.navigateTo(getReturnTarget())
         }
+        val onError = {
+            setMutationInProgress(false)
+            ToastUtils.showShort(R.string.save_failed)
+        }
 
         if (isEditMode) {
-            vm.update(sleepRecord, onSaved)
+            vm.update(sleepRecord, onSaved, onError)
         } else {
-            vm.insert(sleepRecord, onSaved)
+            vm.insert(sleepRecord, onSaved, onError)
         }
+    }
+
+    /** 删除是记录纠错的一部分，成功后同步触发统计与预测刷新。 */
+    private fun showDeleteConfirmDialog() {
+        val record = editingRecord ?: return
+        if (mutationInProgress) return
+        DialogHelper.showConfirmDialog(
+            context = requireContext(),
+            title = getString(R.string.delete_record),
+            content = getString(R.string.delete_record_confirm),
+            confirmText = getString(R.string.delete_record),
+            cancelText = getString(R.string.cancel),
+            onConfirm = {
+                setMutationInProgress(true)
+                vm.delete(
+                    sleepId = record.sleepId,
+                    babyId = record.babyId,
+                    onSuccess = {
+                        setMutationInProgress(false)
+                        hasUnsavedChanges = false
+                        ToastUtils.showShort(R.string.record_delete_success)
+                        mainVm.navigateTo(getReturnTarget())
+                    },
+                    onError = {
+                        setMutationInProgress(false)
+                        ToastUtils.showShort(R.string.record_delete_failed)
+                    }
+                )
+            }
+        )
+    }
+
+    private fun setMutationInProgress(inProgress: Boolean) {
+        mutationInProgress = inProgress
+        if (view == null) return
+        binding.tvSave.isEnabled = !inProgress
+        binding.tvSave.alpha = if (inProgress) 0.7f else 1f
+        updateToolbarAction()
+    }
+
+    /** 错误与具体字段绑定，确保用户能立即定位并修正记录。 */
+    @Suppress("DEPRECATION")
+    private fun showFieldValidationError(field: TextView, @StringRes messageRes: Int) {
+        val message = getString(messageRes)
+        field.error = message
+        field.requestFocus()
+        field.announceForAccessibility(message)
+    }
+
+    private fun clearValidationErrors() {
+        binding.timerPanel.startInput.error = null
+        binding.timerPanel.endInput.error = null
     }
 
     /**
@@ -323,7 +429,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
         isProgrammaticChange = true
         
         // 清空时间输入与计时器
-        timerController.reset()
+        timerController?.reset()
         
         // 清空备注
         binding.etNote.setText("")

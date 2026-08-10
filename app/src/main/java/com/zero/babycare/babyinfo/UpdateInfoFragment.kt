@@ -8,7 +8,6 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.zero.babycare.MainActivity
 import com.zero.babycare.MainViewModel
@@ -334,7 +333,6 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         if (isEditMode) {
             // 更新
             vm.update(baby) {
-                LogUtils.d("update success")
                 // 如果编辑的是当前选中的宝宝，更新缓存
                 mainVm.updateCurrentBabyIfNeeded(baby)
                 // 刷新侧边栏（如果编辑的是当前宝宝，侧边栏信息需要更新）
@@ -346,7 +344,6 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
             // 新增
             val isFirstBaby = isFirstCreate  // 保存状态，因为 insert 后 isFirstCreate 会变化
             vm.insert(baby) {
-                LogUtils.d("insert success")
                 // 只有首次创建（之前没有任何宝宝）才设为当前宝宝
                 // 非首次添加不改变当前宝宝
                 if (isFirstBaby) {

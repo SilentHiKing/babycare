@@ -5,8 +5,10 @@
     android:layout_height="wrap_content"
     android:background="@drawable/bg_r8_metric_tile_soft"
     android:orientation="vertical"
-    android:paddingHorizontal="12dp"
-    android:paddingVertical="10dp">
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
 
     <TextView
         android:id="@+id/tvSectionTitle"

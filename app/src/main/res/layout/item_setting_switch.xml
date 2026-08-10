@@ -6,8 +6,10 @@
     android:layout_height="wrap_content"
     android:background="@drawable/bg_setting_item_middle_ripple"
     android:minHeight="@dimen/settings_row_min_height"
-    android:paddingHorizontal="@dimen/card_padding"
-    android:paddingVertical="@dimen/settings_row_vertical_padding">
+    android:paddingStart="@dimen/card_padding"
+    android:paddingEnd="@dimen/card_padding"
+    android:paddingTop="@dimen/settings_row_vertical_padding"
+    android:paddingBottom="@dimen/settings_row_vertical_padding">
 
     <!-- 文案列预留开关间距，摘要换行时不会贴到右侧控件。 -->
     <LinearLayout

@@ -11,9 +11,9 @@ import com.zero.common.R
  */
 enum class EventCategory(
     val id: Int,
-    @StringRes val nameResId: Int,
-    @DrawableRes val iconResId: Int,
-    @ColorRes val colorResId: Int
+    @param:StringRes val nameResId: Int,
+    @param:DrawableRes val iconResId: Int,
+    @param:ColorRes val colorResId: Int
 ) {
     DIAPER(
         id = EventType.CATEGORY_DIAPER,
@@ -68,8 +68,8 @@ enum class EventCategory(
  */
 data class EventSubtype(
     val type: Int,
-    @StringRes val nameResId: Int,
-    @DrawableRes val iconResId: Int,
+    @param:StringRes val nameResId: Int,
+    @param:DrawableRes val iconResId: Int,
     val category: EventCategory
 ) {
     companion object {

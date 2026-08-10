@@ -9,8 +9,6 @@ import com.zero.babydata.entity.ChildDailyRecord
 import com.zero.babydata.entity.EventRecord
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.SleepRecord
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 @Database(
     entities = [
@@ -20,8 +18,8 @@ import java.util.concurrent.Executors
         ChildDailyRecord::class,
         EventRecord::class
     ],
-    version = 4,  // v4: EventRecord 添加 endTime, extraData 字段
-    exportSchema = true  // 商业应用建议开启，便于追踪数据库变更
+    version = 1,
+    exportSchema = true
 )
 abstract class BabyDatabase : RoomDatabase() {
 
@@ -35,8 +33,6 @@ abstract class BabyDatabase : RoomDatabase() {
         @Volatile
         private var instance: BabyDatabase? = null
 
-        private val databaseWriteExecutor: ExecutorService = Executors.newFixedThreadPool(4)
-
         @JvmStatic
         fun getInstance(context: Context): BabyDatabase {
             return instance ?: synchronized(this) {
@@ -45,16 +41,9 @@ abstract class BabyDatabase : RoomDatabase() {
                     BabyDatabase::class.java,
                     "baby_database"
                 )
-                    .allowMainThreadQueries()
-                    // 商业应用禁止使用 fallbackToDestructiveMigration()
-                    // 必须通过 Migration 保护用户数据
-                    .addMigrations(*DatabaseMigrations.getAllMigrations())
                     .build()
                     .also { instance = it }
             }
         }
-
-        @JvmStatic
-        fun getDatabaseWriteExecutor(): ExecutorService = databaseWriteExecutor
     }
 }

@@ -239,6 +239,9 @@
     <color name="status_feeding_start">#E0F4F8</color>
     <color name="status_feeding_end">#D3F2F8</color>
 
+    <!-- 错误状态独立于健康业务色，避免健康记录被误解为异常或危险。 -->
+    <color name="semantic_error">#C73A4E</color>
+
     <!-- ==================== 事件类型颜色 ==================== -->
     <!-- 排泄：温暖琥珀，用于高频快速记录。 -->
     <color name="event_diaper">#F59E32</color>

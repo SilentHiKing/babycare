@@ -5,13 +5,15 @@
     android:id="@+id/llEmptyState"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
     android:background="@drawable/bg_r16_bottom_surface_group_control_border"
     android:gravity="center"
     android:orientation="vertical"
     android:paddingTop="24dp"
     android:paddingBottom="12dp"
-    android:paddingHorizontal="@dimen/statistics_day_content_inset"
+    android:paddingStart="@dimen/statistics_day_content_inset"
+    android:paddingEnd="@dimen/statistics_day_content_inset"
     tools:visibility="visible">
 
     <ImageView
@@ -38,9 +40,11 @@
         android:layout_marginTop="12dp"
         android:background="?attr/bg_r999_brand_color"
         android:gravity="center"
-        android:minHeight="40dp"
-        android:paddingHorizontal="20dp"
-        android:paddingVertical="10dp"
+        android:minHeight="48dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
         android:text="@string/add_record"
         android:textColor="?attr/colorOnBrand" />
 

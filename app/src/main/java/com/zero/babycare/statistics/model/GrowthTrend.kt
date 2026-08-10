@@ -40,5 +40,5 @@ data class GrowthTrend(
 data class GrowthTrendItem(
     val latestValue: Double?,
     val diffValue: Double?,
-    @StringRes val unitLabelResId: Int
+    @param:StringRes val unitLabelResId: Int
 )

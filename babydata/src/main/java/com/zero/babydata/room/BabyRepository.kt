@@ -1,232 +1,172 @@
 package com.zero.babydata.room
 
 import android.content.Context
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.zero.babydata.entity.BabyInfo
 import com.zero.babydata.entity.ChildDailyRecord
 import com.zero.babydata.entity.EventRecord
 import com.zero.babydata.entity.EventType
-import com.zero.babydata.entity.FeedingType
 import com.zero.babydata.entity.FeedingRecord
+import com.zero.babydata.entity.FeedingType
 import com.zero.babydata.entity.SleepRecord
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.flow.Flow
 
+/**
+ * BabyCare 数据访问边界。
+ *
+ * 所有一次性 Room 操作都通过挂起函数暴露，让调用方获得真实的成功或失败结果；
+ * 持续观察的数据使用 Flow，避免回调线程与生命周期脱节。
+ */
 class BabyRepository(context: Context) {
 
-    private val babyInfoDao: BabyInfoDao
-    private val feedingRecordDao: FeedingRecordDao
-    private val sleepRecordDao: SleepRecordDao
-    private val childDailyRecordDao: ChildDailyRecordDao
-    private val eventRecordDao: EventRecordDao
-
-    init {
-        val db = BabyDatabase.getInstance(context)
-        babyInfoDao = db.babyInfoDao()
-        feedingRecordDao = db.feedingRecordDao()
-        sleepRecordDao = db.sleepRecordDao()
-        childDailyRecordDao = db.childDailyRecordDao()
-        eventRecordDao = db.eventRecordDao()
-    }
-
-    private fun run(
-        action: Runnable,
-        callback: Runnable?,
-        errorCallback: ((Throwable) -> Unit)? = null
-    ) {
-        BabyDatabase.getDatabaseWriteExecutor().execute {
-            try {
-                action.run()
-                callback?.run()
-            } catch (throwable: Throwable) {
-                errorCallback?.invoke(throwable)
-            }
-        }
-    }
+    private val database = BabyDatabase.getInstance(context)
+    private val babyInfoDao = database.babyInfoDao()
+    private val feedingRecordDao = database.feedingRecordDao()
+    private val sleepRecordDao = database.sleepRecordDao()
+    private val childDailyRecordDao = database.childDailyRecordDao()
+    private val eventRecordDao = database.eventRecordDao()
 
     // ==================== BabyInfo ====================
 
-    fun insertBabyInfo(babyInfo: BabyInfo, callback: Runnable?) {
-        run({
-            // Room 自动生成 babyId，插入后回填到调用方对象，避免首个宝宝保存后缓存到 babyId=0。
-            babyInfo.babyId = babyInfoDao.insertBabyInfo(babyInfo).toInt()
-        }, callback)
+    suspend fun insertBabyInfo(babyInfo: BabyInfo): Int {
+        // 回填 Room 生成的主键，保证随后写入的记录不会继续引用 babyId=0。
+        return babyInfoDao.insertBabyInfo(babyInfo).toInt().also { babyInfo.babyId = it }
     }
 
-    fun updateBabyInfo(babyInfo: BabyInfo, callback: Runnable? = null) {
-        run({ babyInfoDao.updateBabyInfo(babyInfo) }, callback)
-    }
+    suspend fun updateBabyInfo(babyInfo: BabyInfo) = babyInfoDao.updateBabyInfo(babyInfo)
 
-    fun deleteBabyInfo(babyInfo: BabyInfo, callback: Runnable? = null) {
-        run({ babyInfoDao.deleteBabyInfo(babyInfo) }, callback)
-    }
+    suspend fun deleteBabyInfo(babyInfo: BabyInfo) = babyInfoDao.deleteBabyInfo(babyInfo)
 
-    fun getBabyInfo(babyId: Int): LiveData<BabyInfo?> {
-        return MutableLiveData(babyInfoDao.getBabyInfo(babyId))
-    }
+    suspend fun getBabyInfo(babyId: Int): BabyInfo? = babyInfoDao.getBabyInfo(babyId)
 
-    /**
-     * 同步获取宝宝信息（统计/算法使用）
-     */
-    fun getBabyInfoSync(babyId: Int): BabyInfo? {
-        return babyInfoDao.getBabyInfo(babyId)
-    }
+    suspend fun getAllBabyInfo(): List<BabyInfo> = babyInfoDao.getAllBabyInfo()
 
-    fun getAllBabyInfo(): List<BabyInfo> {
-        return babyInfoDao.getAllBabyInfo()
-    }
+    fun observeAllBabyInfo(): Flow<List<BabyInfo>> = babyInfoDao.observeAllBabyInfo()
 
     // ==================== FeedingRecord ====================
 
-    fun insertFeedingRecord(feedingRecord: FeedingRecord, callback: Runnable?) {
-        run({ feedingRecordDao.insertFeedingRecord(feedingRecord) }, callback)
-    }
+    suspend fun insertFeedingRecord(feedingRecord: FeedingRecord) =
+        feedingRecordDao.insertFeedingRecord(feedingRecord)
 
-    fun updateFeedingRecord(feedingRecord: FeedingRecord, callback: Runnable? = null) {
-        run({ feedingRecordDao.updateFeedingRecord(feedingRecord) }, callback)
-    }
+    suspend fun updateFeedingRecord(feedingRecord: FeedingRecord) =
+        feedingRecordDao.updateFeedingRecord(feedingRecord)
 
-    fun deleteFeedingRecord(feedingRecord: FeedingRecord, callback: Runnable? = null) {
-        run({ feedingRecordDao.deleteFeedingRecord(feedingRecord) }, callback)
-    }
+    suspend fun deleteFeedingRecord(feedingRecord: FeedingRecord) =
+        feedingRecordDao.deleteFeedingRecord(feedingRecord)
 
-    fun deleteFeedingRecordById(feedingId: Int, callback: Runnable? = null) {
-        run({ feedingRecordDao.deleteFeedingRecordById(feedingId) }, callback)
-    }
+    suspend fun deleteFeedingRecordById(feedingId: Int) =
+        feedingRecordDao.deleteFeedingRecordById(feedingId)
 
-    fun getAllFeedingRecords(babyId: Int): LiveData<List<FeedingRecord>> {
-        return MutableLiveData(feedingRecordDao.getAllFeedingRecords(babyId))
-    }
+    suspend fun getAllFeedingRecords(babyId: Int): List<FeedingRecord> =
+        feedingRecordDao.getAllFeedingRecords(babyId)
 
-    /**
-     * 同步获取喂养记录列表（备份使用）
-     */
-    fun getAllFeedingRecordsSync(babyId: Int): List<FeedingRecord> {
-        return feedingRecordDao.getAllFeedingRecords(babyId)
-    }
+    suspend fun getFeedingRecordsForDay(
+        babyId: Int,
+        startOfDay: Long,
+        endOfDay: Long
+    ): List<FeedingRecord> = feedingRecordDao.getFeedingRecordsForDay(babyId, startOfDay, endOfDay)
 
-    fun getFeedingRecordsForDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<FeedingRecord> {
-        return feedingRecordDao.getFeedingRecordsForDay(babyId, startOfDay, endOfDay)
-    }
+    suspend fun getFeedingRecordsIntersectingDay(
+        babyId: Int,
+        startOfDay: Long,
+        endOfDay: Long
+    ): List<FeedingRecord> = feedingRecordDao.getFeedingRecordsIntersectingDay(babyId, startOfDay, endOfDay)
 
-    /**
-     * 获取与当天有重叠的喂养记录（用于跨天时长统计）
-     */
-    fun getFeedingRecordsIntersectingDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<FeedingRecord> {
-        return feedingRecordDao.getFeedingRecordsIntersectingDay(babyId, startOfDay, endOfDay)
-    }
+    suspend fun getFeedingRecordsIntersectingRange(
+        babyId: Int,
+        startTime: Long,
+        endTime: Long
+    ): List<FeedingRecord> = feedingRecordDao.getFeedingRecordsIntersectingRange(babyId, startTime, endTime)
 
-    /**
-     * 获取与任意统计范围有重叠的喂养记录（用于周/月/年跨边界时长统计）
-     */
-    fun getFeedingRecordsIntersectingRange(babyId: Int, startTime: Long, endTime: Long): List<FeedingRecord> {
-        return feedingRecordDao.getFeedingRecordsIntersectingRange(babyId, startTime, endTime)
-    }
+    suspend fun getFeedingRecordsBetween(
+        babyId: Int,
+        startTime: Long,
+        endTime: Long
+    ): List<FeedingRecord> = feedingRecordDao.getFeedingRecordsBetween(babyId, startTime, endTime)
 
-    fun getFeedingRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<FeedingRecord> {
-        return feedingRecordDao.getFeedingRecordsBetween(babyId, startTime, endTime)
-    }
+    suspend fun getLastFeedingRecord(babyId: Int): FeedingRecord? =
+        feedingRecordDao.getLastFeedingRecord(babyId)
 
-    fun getLastFeedingRecord(babyId: Int): FeedingRecord? {
-        return feedingRecordDao.getLastFeedingRecord(babyId)
-    }
+    suspend fun getRecentFeedings(babyId: Int, limit: Int): List<FeedingRecord> =
+        feedingRecordDao.getRecentFeedings(babyId, limit)
 
-    fun getRecentFeedings(babyId: Int, limit: Int): List<FeedingRecord> {
-        return feedingRecordDao.getRecentFeedings(babyId, limit)
-    }
+    suspend fun getFeedingRecordById(feedingId: Int): FeedingRecord? =
+        feedingRecordDao.getFeedingRecordById(feedingId)
 
     // ==================== SleepRecord ====================
 
-    fun insertSleepRecord(sleepRecord: SleepRecord, callback: Runnable? = null) {
-        run({ sleepRecordDao.insertSleepRecord(sleepRecord) }, callback)
-    }
+    suspend fun insertSleepRecord(sleepRecord: SleepRecord) =
+        sleepRecordDao.insertSleepRecord(sleepRecord)
 
-    fun updateSleepRecord(sleepRecord: SleepRecord, callback: Runnable? = null) {
-        run({ sleepRecordDao.updateSleepRecord(sleepRecord) }, callback)
-    }
+    suspend fun updateSleepRecord(sleepRecord: SleepRecord) =
+        sleepRecordDao.updateSleepRecord(sleepRecord)
 
-    fun deleteSleepRecord(sleepRecord: SleepRecord, callback: Runnable? = null) {
-        run({ sleepRecordDao.deleteSleepRecord(sleepRecord) }, callback)
-    }
+    suspend fun deleteSleepRecord(sleepRecord: SleepRecord) =
+        sleepRecordDao.deleteSleepRecord(sleepRecord)
 
-    fun deleteSleepRecordById(sleepId: Int, callback: Runnable? = null) {
-        run({ sleepRecordDao.deleteSleepRecordById(sleepId) }, callback)
-    }
+    suspend fun deleteSleepRecordById(sleepId: Int) =
+        sleepRecordDao.deleteSleepRecordById(sleepId)
 
-    fun getAllSleepRecords(babyId: Int): LiveData<List<SleepRecord>> {
-        return MutableLiveData(sleepRecordDao.getAllSleepRecords(babyId))
-    }
+    suspend fun getAllSleepRecords(babyId: Int): List<SleepRecord> =
+        sleepRecordDao.getAllSleepRecords(babyId)
 
-    /**
-     * 同步获取睡眠记录列表（备份使用）
-     */
-    fun getAllSleepRecordsSync(babyId: Int): List<SleepRecord> {
-        return sleepRecordDao.getAllSleepRecords(babyId)
-    }
+    suspend fun getSleepRecordsForDay(
+        babyId: Int,
+        startOfDay: Long,
+        endOfDay: Long
+    ): List<SleepRecord> = sleepRecordDao.getSleepRecordsForDay(babyId, startOfDay, endOfDay)
 
-    fun getSleepRecordsForDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<SleepRecord> {
-        return sleepRecordDao.getSleepRecordsForDay(babyId, startOfDay, endOfDay)
-    }
+    suspend fun getSleepRecordsIntersectingDay(
+        babyId: Int,
+        startOfDay: Long,
+        endOfDay: Long
+    ): List<SleepRecord> = sleepRecordDao.getSleepRecordsIntersectingDay(babyId, startOfDay, endOfDay)
 
-    /**
-     * 获取与当天有重叠的睡眠记录（用于跨天时长统计）
-     */
-    fun getSleepRecordsIntersectingDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<SleepRecord> {
-        return sleepRecordDao.getSleepRecordsIntersectingDay(babyId, startOfDay, endOfDay)
-    }
+    suspend fun getSleepRecordsIntersectingRange(
+        babyId: Int,
+        startTime: Long,
+        endTime: Long
+    ): List<SleepRecord> = sleepRecordDao.getSleepRecordsIntersectingRange(babyId, startTime, endTime)
 
-    /**
-     * 获取与任意统计范围有重叠的睡眠记录（用于周/月/年跨边界时长统计）
-     */
-    fun getSleepRecordsIntersectingRange(babyId: Int, startTime: Long, endTime: Long): List<SleepRecord> {
-        return sleepRecordDao.getSleepRecordsIntersectingRange(babyId, startTime, endTime)
-    }
+    suspend fun getSleepRecordsBetween(
+        babyId: Int,
+        startTime: Long,
+        endTime: Long
+    ): List<SleepRecord> = sleepRecordDao.getSleepRecordsBetween(babyId, startTime, endTime)
 
-    fun getSleepRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<SleepRecord> {
-        return sleepRecordDao.getSleepRecordsBetween(babyId, startTime, endTime)
-    }
+    suspend fun getLastSleepRecord(babyId: Int): SleepRecord? =
+        sleepRecordDao.getLastSleepRecord(babyId)
 
-    fun getLastSleepRecord(babyId: Int): SleepRecord? {
-        return sleepRecordDao.getLastSleepRecord(babyId)
-    }
+    suspend fun getRecentSleeps(babyId: Int, limit: Int): List<SleepRecord> =
+        sleepRecordDao.getRecentSleeps(babyId, limit)
 
-    fun getRecentSleeps(babyId: Int, limit: Int): List<SleepRecord> {
-        return sleepRecordDao.getRecentSleeps(babyId, limit)
-    }
+    suspend fun getSleepRecordById(sleepId: Int): SleepRecord? =
+        sleepRecordDao.getSleepRecordById(sleepId)
 
     // ==================== ChildDailyRecord ====================
 
-    fun insertChildDailyRecord(record: ChildDailyRecord, callback: Runnable? = null) {
-        run({ childDailyRecordDao.insertChildDailyRecord(record) }, callback)
-    }
+    suspend fun insertChildDailyRecord(record: ChildDailyRecord) =
+        childDailyRecordDao.insertChildDailyRecord(record)
 
-    fun updateChildDailyRecord(record: ChildDailyRecord, callback: Runnable? = null) {
-        run({ childDailyRecordDao.updateChildDailyRecord(record) }, callback)
-    }
+    suspend fun updateChildDailyRecord(record: ChildDailyRecord) =
+        childDailyRecordDao.updateChildDailyRecord(record)
 
-    /**
-     * 同步获取日常成长记录列表（备份使用）
-     */
-    fun getAllChildDailyRecordsSync(babyId: Int): List<ChildDailyRecord> {
-        return childDailyRecordDao.getAllRecordsByBabyIdSync(babyId)
-    }
+    suspend fun deleteChildDailyRecord(record: ChildDailyRecord) =
+        childDailyRecordDao.deleteChildDailyRecord(record)
 
-    fun deleteChildDailyRecord(record: ChildDailyRecord, callback: Runnable? = null) {
-        run({ childDailyRecordDao.deleteChildDailyRecord(record) }, callback)
-    }
+    suspend fun getChildDailyRecordByDate(babyId: Int, recordDate: Long): ChildDailyRecord? =
+        childDailyRecordDao.getRecordByDate(babyId, recordDate)
 
-    fun getChildDailyRecordByDate(babyId: Int, recordDate: Long): ChildDailyRecord? {
-        return childDailyRecordDao.getRecordByDate(babyId, recordDate)
-    }
+    suspend fun getAllChildDailyRecords(babyId: Int): List<ChildDailyRecord> =
+        childDailyRecordDao.getAllRecordsByBabyId(babyId)
 
-    fun getAllChildDailyRecords(babyId: Int): LiveData<List<ChildDailyRecord>> {
-        return childDailyRecordDao.getAllRecordsByBabyId(babyId)
-    }
+    fun observeAllChildDailyRecords(babyId: Int): Flow<List<ChildDailyRecord>> =
+        childDailyRecordDao.observeAllRecordsByBabyId(babyId)
 
-    fun updateOrInsertChildDailyRecord(
+    suspend fun updateOrInsertChildDailyRecord(
         babyId: Int,
         recordDate: Long,
         weight: Float? = null,
@@ -234,119 +174,79 @@ class BabyRepository(context: Context) {
         headCircumference: Float? = null,
         pic: String? = null,
         extra: String? = null
-    ) {
-        BabyDatabase.getDatabaseWriteExecutor().execute {
-            val existingRecord = childDailyRecordDao.getRecordByDate(babyId, recordDate)
-
-            if (existingRecord != null) {
-                weight?.let { childDailyRecordDao.updateWeight(babyId, recordDate, it) }
-                height?.let { childDailyRecordDao.updateHeight(babyId, recordDate, it) }
-                headCircumference?.let { childDailyRecordDao.updateHeadCircumference(babyId, recordDate, it) }
-                pic?.let { childDailyRecordDao.updatePic(babyId, recordDate, it) }
-                extra?.let { childDailyRecordDao.updateExtra(babyId, recordDate, it) }
-            } else {
-                val newRecord = ChildDailyRecord(
-                    babyId = babyId,
-                    recordDate = recordDate,
-                    weight = weight ?: 0f,
-                    height = height ?: 0f,
-                    headCircumference = headCircumference ?: 0f,
-                    pic = pic ?: "",
-                    extra = extra ?: ""
-                )
-                childDailyRecordDao.insertChildDailyRecord(newRecord)
-            }
-        }
-    }
+    ) = childDailyRecordDao.updateOrInsert(
+        babyId = babyId,
+        recordDate = recordDate,
+        weight = weight,
+        height = height,
+        headCircumference = headCircumference,
+        pic = pic,
+        extra = extra
+    )
 
     // ==================== EventRecord ====================
 
-    fun insertEventRecord(
-        record: EventRecord,
-        callback: Runnable? = null,
-        errorCallback: ((Throwable) -> Unit)? = null
-    ) {
-        run({ eventRecordDao.insertEventRecord(record) }, callback, errorCallback)
-    }
+    suspend fun insertEventRecord(record: EventRecord) = eventRecordDao.insertEventRecord(record)
 
-    fun updateEventRecord(
-        record: EventRecord,
-        callback: Runnable? = null,
-        errorCallback: ((Throwable) -> Unit)? = null
-    ) {
-        run({ eventRecordDao.updateEventRecord(record) }, callback, errorCallback)
-    }
+    suspend fun updateEventRecord(record: EventRecord) = eventRecordDao.updateEventRecord(record)
 
-    fun deleteEventRecord(record: EventRecord, callback: Runnable? = null) {
-        run({ eventRecordDao.deleteEventRecord(record) }, callback)
-    }
+    suspend fun deleteEventRecord(record: EventRecord) = eventRecordDao.deleteEventRecord(record)
 
-    fun getAllEventRecords(babyId: Int): List<EventRecord> {
-        return eventRecordDao.getAllEventRecord(babyId)
-    }
+    suspend fun getAllEventRecords(babyId: Int): List<EventRecord> =
+        eventRecordDao.getAllEventRecord(babyId)
 
-    fun getEventRecordsByType(babyId: Int, type: Int): List<EventRecord> {
-        return eventRecordDao.getAllEventRecordByType(babyId, type)
-    }
+    suspend fun getEventRecordsByType(babyId: Int, type: Int): List<EventRecord> =
+        eventRecordDao.getAllEventRecordByType(babyId, type)
 
-    fun getLatestEventRecordsByType(babyId: Int, type: Int, limit: Int): List<EventRecord> {
-        return eventRecordDao.getLatestEventRecordsByType(babyId, type, limit)
-    }
+    suspend fun getLatestEventRecordsByType(
+        babyId: Int,
+        type: Int,
+        limit: Int
+    ): List<EventRecord> = eventRecordDao.getLatestEventRecordsByType(babyId, type, limit)
 
-    fun getEventRecordsForDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<EventRecord> {
-        return eventRecordDao.getEventRecordsForDay(babyId, startOfDay, endOfDay)
-    }
+    suspend fun getEventRecordsForDay(
+        babyId: Int,
+        startOfDay: Long,
+        endOfDay: Long
+    ): List<EventRecord> = eventRecordDao.getEventRecordsForDay(babyId, startOfDay, endOfDay)
 
-    fun getEventRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<EventRecord> {
-        return eventRecordDao.getEventRecordsBetween(babyId, startTime, endTime)
-    }
+    suspend fun getEventRecordsBetween(
+        babyId: Int,
+        startTime: Long,
+        endTime: Long
+    ): List<EventRecord> = eventRecordDao.getEventRecordsBetween(babyId, startTime, endTime)
 
-    fun deleteEventRecordById(eventId: Int, callback: Runnable? = null) {
-        run({ eventRecordDao.deleteEventRecordById(eventId) }, callback)
-    }
+    suspend fun deleteEventRecordById(eventId: Int) =
+        eventRecordDao.deleteEventRecordById(eventId)
 
-    fun getEventRecordById(eventId: Int): EventRecord? {
-        return eventRecordDao.getEventRecordById(eventId)
-    }
-
-    fun getFeedingRecordById(feedingId: Int): FeedingRecord? {
-        return feedingRecordDao.getFeedingRecordById(feedingId)
-    }
-
-    fun getSleepRecordById(sleepId: Int): SleepRecord? {
-        return sleepRecordDao.getSleepRecordById(sleepId)
-    }
+    suspend fun getEventRecordById(eventId: Int): EventRecord? =
+        eventRecordDao.getEventRecordById(eventId)
 
     // ==================== 统计页面相关查询 ====================
 
-    /**
-     * 获取指定日期有记录的日期集合
-     * @param babyId 宝宝ID
-     * @param yearMonth 年月
-     * @return 有记录的日期集合
-     */
-    fun getDatesWithRecords(babyId: Int, yearMonth: YearMonth): Set<LocalDate> {
-        val startOfMonth = yearMonth.atDay(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-        val endOfMonth = yearMonth.atEndOfMonth().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1
+    /** 获取指定月份存在任意生活记录的日期集合。 */
+    suspend fun getDatesWithRecords(babyId: Int, yearMonth: YearMonth): Set<LocalDate> {
+        val startOfMonth = yearMonth.atDay(1)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        val endOfMonth = yearMonth.atEndOfMonth()
+            .plusDays(1)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli() - 1
 
         val feedingDates = feedingRecordDao.getDatesWithFeedings(babyId, startOfMonth, endOfMonth)
         val sleepDates = sleepRecordDao.getDatesWithSleeps(babyId, startOfMonth, endOfMonth)
         val eventDates = eventRecordDao.getDatesWithEvents(babyId, startOfMonth, endOfMonth)
 
-        val allDates = mutableSetOf<LocalDate>()
-        (feedingDates + sleepDates + eventDates).forEach { dateStr ->
-            try {
-                allDates.add(LocalDate.parse(dateStr))
-            } catch (_: Exception) {
-                // 忽略解析错误
+        return buildSet {
+            (feedingDates + sleepDates + eventDates).forEach { dateText ->
+                runCatching { LocalDate.parse(dateText) }.getOrNull()?.let(::add)
             }
         }
-        return allDates
     }
 
-    /**
-     * 数据类：当日统计摘要
-     */
     data class DaySummaryData(
         val feedingCount: Int = 0,
         val feedingTotalMinutes: Int = 0,
@@ -360,41 +260,23 @@ class BabyRepository(context: Context) {
         val otherEventCount: Int = 0
     )
 
-    /**
-     * 获取当日统计摘要
-     */
-    fun getDaySummary(babyId: Int, date: LocalDate): DaySummaryData {
+    /** 获取当日喂养、睡眠、排泄与其他事件摘要。 */
+    suspend fun getDaySummary(babyId: Int, date: LocalDate): DaySummaryData {
         val startOfDay = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-        val endOfDay = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1
+        val endOfDay = date.plusDays(1)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli() - 1
 
-        // 喂养统计
         val feedings = feedingRecordDao.getFeedingRecordsForDay(babyId, startOfDay, endOfDay)
-        val feedingCount = feedings.size
-        val feedingTotalMinutes = feedings.sumOf { 
-            TimeUnit.MILLISECONDS.toMinutes(it.feedingDuration).toInt() 
-        }
-        val feedingTotalMl = feedings
-            .filter {
-                it.feedingType == FeedingType.FORMULA.type ||
-                    it.feedingType == FeedingType.MIXED.type
-            }
-            .sumOf { it.feedingAmount ?: 0 }
-
-        // 睡眠统计
         val sleeps = sleepRecordDao.getSleepRecordsForDay(babyId, startOfDay, endOfDay)
-        val sleepCount = sleeps.size
-        val sleepTotalMinutes = sleeps.sumOf { 
-            TimeUnit.MILLISECONDS.toMinutes(it.sleepDuration).toInt() 
-        }
-
-        // 事件统计
         val events = eventRecordDao.getEventRecordsForDay(babyId, startOfDay, endOfDay)
+
         var diaperWetCount = 0
         var diaperDirtyCount = 0
         var diaperMixedCount = 0
         var diaperDryCount = 0
         var otherEventCount = 0
-
         events.forEach { event ->
             when (event.type) {
                 EventType.DIAPER_WET -> diaperWetCount++
@@ -406,11 +288,20 @@ class BabyRepository(context: Context) {
         }
 
         return DaySummaryData(
-            feedingCount = feedingCount,
-            feedingTotalMinutes = feedingTotalMinutes,
-            feedingTotalMl = feedingTotalMl,
-            sleepCount = sleepCount,
-            sleepTotalMinutes = sleepTotalMinutes,
+            feedingCount = feedings.size,
+            feedingTotalMinutes = feedings.sumOf {
+                TimeUnit.MILLISECONDS.toMinutes(it.feedingDuration).toInt()
+            },
+            feedingTotalMl = feedings
+                .filter {
+                    it.feedingType == FeedingType.FORMULA.type ||
+                        it.feedingType == FeedingType.MIXED.type
+                }
+                .sumOf { it.feedingAmount ?: 0 },
+            sleepCount = sleeps.size,
+            sleepTotalMinutes = sleeps.sumOf {
+                TimeUnit.MILLISECONDS.toMinutes(it.sleepDuration).toInt()
+            },
             diaperWetCount = diaperWetCount,
             diaperDirtyCount = diaperDirtyCount,
             diaperMixedCount = diaperMixedCount,
@@ -419,21 +310,19 @@ class BabyRepository(context: Context) {
         )
     }
 
-    /**
-     * 数据类：时间轴条目
-     */
     sealed class TimelineRecord(open val time: Long) {
         data class Feeding(val record: FeedingRecord) : TimelineRecord(record.feedingStart)
         data class Sleep(val record: SleepRecord) : TimelineRecord(record.sleepStart)
         data class Event(val record: EventRecord) : TimelineRecord(record.time)
     }
 
-    /**
-     * 获取当日时间轴记录（按时间倒序）
-     */
-    fun getTimelineRecords(babyId: Int, date: LocalDate): List<TimelineRecord> {
+    /** 获取当日时间轴记录，并按发生时间倒序返回。 */
+    suspend fun getTimelineRecords(babyId: Int, date: LocalDate): List<TimelineRecord> {
         val startOfDay = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-        val endOfDay = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() - 1
+        val endOfDay = date.plusDays(1)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli() - 1
 
         val feedings = feedingRecordDao.getFeedingRecordsForDay(babyId, startOfDay, endOfDay)
             .map { TimelineRecord.Feeding(it) }

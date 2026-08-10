@@ -13,17 +13,21 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ScrollView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:overScrollMode="never"
         app:layout_constraintBottom_toTopOf="@id/tvSave"
-        app:layout_constraintTop_toBottomOf="@id/btn">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn"
+        app:layout_constraintWidth_max="@dimen/record_content_max_width">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/page_horizontal_padding"
+            android:paddingStart="@dimen/page_horizontal_padding"
+            android:paddingEnd="@dimen/page_horizontal_padding"
             android:paddingBottom="20dp">
 
             <LinearLayout
@@ -83,7 +87,7 @@
                     <RadioButton
                         android:id="@+id/rbBreast"
                         android:layout_width="0dp"
-                        android:layout_height="40dp"
+                        android:layout_height="48dp"
                         android:layout_weight="1"
                         android:background="@drawable/selector_radio_bg"
                         android:button="@null"
@@ -99,7 +103,7 @@
                     <RadioButton
                         android:id="@+id/rbFormula"
                         android:layout_width="0dp"
-                        android:layout_height="40dp"
+                        android:layout_height="48dp"
                         android:layout_weight="1"
                         android:background="@drawable/selector_radio_bg"
                         android:button="@null"
@@ -115,7 +119,7 @@
                     <RadioButton
                         android:id="@+id/rbMixed"
                         android:layout_width="0dp"
-                        android:layout_height="40dp"
+                        android:layout_height="48dp"
                         android:layout_weight="1"
                         android:background="@drawable/selector_radio_bg"
                         android:button="@null"
@@ -131,7 +135,7 @@
                     <RadioButton
                         android:id="@+id/rbSolid"
                         android:layout_width="0dp"
-                        android:layout_height="40dp"
+                        android:layout_height="48dp"
                         android:layout_weight="1"
                         android:background="@drawable/selector_radio_bg"
                         android:button="@null"
@@ -147,7 +151,7 @@
                     <RadioButton
                         android:id="@+id/rbOther"
                         android:layout_width="0dp"
-                        android:layout_height="40dp"
+                        android:layout_height="48dp"
                         android:layout_weight="1"
                         android:background="@drawable/selector_radio_bg"
                         android:button="@null"
@@ -187,7 +191,8 @@
                             android:background="@drawable/bg_record_time_field"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:paddingHorizontal="12dp">
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp">
 
                             <EditText
                                 android:id="@+id/etLeftBreastDuration"
@@ -237,7 +242,8 @@
                             android:background="@drawable/bg_record_time_field"
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
-                            android:paddingHorizontal="12dp">
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp">
 
                             <EditText
                                 android:id="@+id/etRightBreastDuration"
@@ -288,7 +294,8 @@
                         android:background="@drawable/bg_record_time_field"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="12dp">
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
 
                         <EditText
                             android:id="@+id/etFeedingAmount"
@@ -444,7 +451,8 @@
                             android:background="@drawable/bg_record_time_field"
                             android:hint="@string/solid_food_name_hint"
                             android:inputType="text"
-                            android:paddingHorizontal="12dp"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
                             android:textColor="?attr/colorTextPrimary"
                             android:textColorHint="?attr/colorTextHint" />
 
@@ -465,7 +473,8 @@
                         android:background="@drawable/bg_record_time_field"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="12dp">
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
 
                         <EditText
                             android:id="@+id/etSolidAmount"
@@ -500,7 +509,8 @@
                         android:focusable="true"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="12dp">
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
 
                         <TextView
                             style="@style/TextAppearance.BabyCare.Body2"
@@ -558,7 +568,8 @@
                         android:background="@drawable/bg_record_time_field"
                         android:hint="@string/other_food_name_hint"
                         android:inputType="text"
-                        android:paddingHorizontal="12dp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
                         android:textColor="?attr/colorTextPrimary"
                         android:textColorHint="?attr/colorTextHint" />
 
@@ -594,14 +605,18 @@
     <TextView
         android:id="@+id/tvSave"
         style="@style/TextAppearance.BabyCare.Body1"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="48dp"
-        android:layout_marginHorizontal="@dimen/page_horizontal_padding"
+        android:layout_marginStart="@dimen/page_horizontal_padding"
+        android:layout_marginEnd="@dimen/page_horizontal_padding"
         android:layout_marginBottom="20dp"
         android:background="?attr/bg_r999_brand_color"
         android:gravity="center"
         android:text="@string/save"
         android:textColor="?attr/colorOnBrand"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintWidth_max="@dimen/record_content_max_width" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -3,355 +3,241 @@ package com.zero.babycare.home
 import com.zero.common.mmkv.MMKVStore
 
 /**
- * 进行中记录管理器
- * 使用 MMKV 缓存记录当前正在进行的活动状态
+ * 进行中记录的持久化单一事实源。
+ *
+ * 每个宝宝、每种记录类型各自保存完整会话；页面、Dashboard 与提醒都从同一会话推导状态，
+ * 避免只保存开始时间导致暂停、换宝宝或进程重启后状态漂移。
  */
 object OngoingRecordManager {
 
-    private const val KEY_ONGOING_SLEEP_START = "ongoing_sleep_start"
-    private const val KEY_ONGOING_SLEEP_BABY_ID = "ongoing_sleep_baby_id"
-    private const val KEY_ONGOING_FEEDING_START = "ongoing_feeding_start"
-    private const val KEY_ONGOING_FEEDING_BABY_ID = "ongoing_feeding_baby_id"
-    private const val KEY_ONGOING_FEEDING_TYPE = "ongoing_feeding_type"
-    private const val KEY_ONGOING_BABY_IDS = "ongoing_baby_ids"
+    private const val KEY_SESSION_PREFIX = "ongoing_session_"
+    private const val KEY_TRACKED_BABY_IDS = "ongoing_session_baby_ids"
 
-    private fun sleepStartKey(babyId: Int) = "${KEY_ONGOING_SLEEP_START}_$babyId"
-    private fun feedingStartKey(babyId: Int) = "${KEY_ONGOING_FEEDING_START}_$babyId"
-    private fun feedingTypeKey(babyId: Int) = "${KEY_ONGOING_FEEDING_TYPE}_$babyId"
-
-    /**
-     * 获取当前有进行中记录的宝宝集合
-     */
-    private fun getTrackedBabyIds(): MutableSet<Int> {
-        val ids = MMKVStore.get(KEY_ONGOING_BABY_IDS, IntArray::class.java, null)
-        return ids?.toMutableSet() ?: mutableSetOf()
+    private fun sessionKey(babyId: Int, type: RecordType): String {
+        return "$KEY_SESSION_PREFIX${type.name.lowercase()}_$babyId"
     }
 
-    /**
-     * 保存进行中宝宝集合
-     */
+    private fun getTrackedBabyIds(): MutableSet<Int> {
+        return MMKVStore.get(
+            KEY_TRACKED_BABY_IDS,
+            IntArray::class.java,
+            decrypt = true
+        )?.toMutableSet() ?: mutableSetOf()
+    }
+
     private fun saveTrackedBabyIds(ids: Set<Int>) {
         if (ids.isEmpty()) {
-            MMKVStore.remove(KEY_ONGOING_BABY_IDS)
+            MMKVStore.remove(KEY_TRACKED_BABY_IDS)
         } else {
-            MMKVStore.put(KEY_ONGOING_BABY_IDS, ids.toIntArray())
+            MMKVStore.put(KEY_TRACKED_BABY_IDS, ids.toIntArray(), encrypt = true)
         }
     }
 
-    /**
-     * 记录有进行中状态的宝宝
-     */
-    private fun trackBabyId(babyId: Int) {
+    private fun readSession(babyId: Int, type: RecordType): OngoingSession? {
+        return MMKVStore.get(
+            sessionKey(babyId, type),
+            OngoingSession::class.java,
+            decrypt = true
+        )?.takeIf {
+            it.babyId == babyId && it.type == type && it.startAt > 0L
+        }
+    }
+
+    private fun saveSession(session: OngoingSession) {
+        MMKVStore.put(
+            sessionKey(session.babyId, session.type),
+            session,
+            encrypt = true
+        )
         val ids = getTrackedBabyIds()
-        if (ids.add(babyId)) {
-            saveTrackedBabyIds(ids)
-        }
+        if (ids.add(session.babyId)) saveTrackedBabyIds(ids)
     }
 
-    /**
-     * 移除无进行中状态的宝宝
-     */
-    private fun untrackBabyId(babyId: Int) {
-        val ids = getTrackedBabyIds()
-        if (ids.remove(babyId)) {
-            saveTrackedBabyIds(ids)
+    private fun removeSession(babyId: Int, type: RecordType): OngoingSession? {
+        val session = readSession(babyId, type)
+        MMKVStore.remove(sessionKey(babyId, type))
+        if (readSession(babyId, RecordType.FEEDING) == null &&
+            readSession(babyId, RecordType.SLEEP) == null
+        ) {
+            val ids = getTrackedBabyIds()
+            if (ids.remove(babyId)) saveTrackedBabyIds(ids)
         }
+        return session
     }
 
-    /**
-     * 同步宝宝是否存在进行中记录
-     */
-    private fun syncTrackedBabyId(babyId: Int) {
-        if (getOngoingSleepStart(babyId) != null || getOngoingFeedingStart(babyId) != null) {
-            trackBabyId(babyId)
-        } else {
-            untrackBabyId(babyId)
-        }
-    }
-
-    // ==================== 睡眠 ====================
-
-    /**
-     * 开始睡眠记录。
-     *
-     * startTime 必须使用用户最终确认的入睡时间，避免手动补录过去时间后被当前时间覆盖。
-     */
     fun startSleep(babyId: Int, startTime: Long = System.currentTimeMillis()) {
-        if (startTime <= 0L) return
-        MMKVStore.put(sleepStartKey(babyId), startTime)
-        MMKVStore.remove(KEY_ONGOING_SLEEP_START)
-        MMKVStore.remove(KEY_ONGOING_SLEEP_BABY_ID)
-        trackBabyId(babyId)
+        if (babyId <= 0 || startTime <= 0L) return
+        saveSession(OngoingSession.running(babyId, RecordType.SLEEP, startTime))
     }
 
-    /**
-     * 结束睡眠记录
-     * @return 开始时间，如果没有进行中的记录则返回 null
-     */
-    fun endSleep(babyId: Int): Long? {
-        val start = getOngoingSleepStart(babyId)
-        MMKVStore.remove(sleepStartKey(babyId))
-        if (MMKVStore.getInt(KEY_ONGOING_SLEEP_BABY_ID, -1) == babyId) {
-            MMKVStore.remove(KEY_ONGOING_SLEEP_START)
-            MMKVStore.remove(KEY_ONGOING_SLEEP_BABY_ID)
-        }
-        syncTrackedBabyId(babyId)
-        return start
+    fun pauseSleep(babyId: Int, endTime: Long, activeDurationMs: Long) {
+        updatePaused(babyId, RecordType.SLEEP, endTime, activeDurationMs)
     }
 
-    /**
-     * 获取正在进行的睡眠开始时间
-     */
-    fun getOngoingSleepStart(babyId: Int): Long? {
-        val startKey = sleepStartKey(babyId)
-        val start = MMKVStore.getLong(startKey, 0L)
-        if (start > 0) {
-            trackBabyId(babyId)
-            return start
-        }
-
-        val legacyStart = MMKVStore.getLong(KEY_ONGOING_SLEEP_START, 0L)
-        val legacyBabyId = MMKVStore.getInt(KEY_ONGOING_SLEEP_BABY_ID, -1)
-        if (legacyStart > 0 && legacyBabyId == babyId) {
-            MMKVStore.put(startKey, legacyStart)
-            MMKVStore.remove(KEY_ONGOING_SLEEP_START)
-            MMKVStore.remove(KEY_ONGOING_SLEEP_BABY_ID)
-            trackBabyId(babyId)
-            return legacyStart
-        }
-        return null
+    fun resumeSleep(babyId: Int) {
+        updateRunning(babyId, RecordType.SLEEP)
     }
 
-    /**
-     * 获取正在进行的睡眠对应的宝宝ID
-     */
-    /**
-     * 检查指定宝宝是否正在睡觉
-     */
-    fun isSleeping(babyId: Int): Boolean {
-        return getOngoingSleepStart(babyId) != null
-    }
+    fun endSleep(babyId: Int): Long? = removeSession(babyId, RecordType.SLEEP)?.startAt
 
-    /**
-     * 取消睡眠记录（不保存）
-     */
     fun cancelSleep(babyId: Int) {
-        MMKVStore.remove(sleepStartKey(babyId))
-        if (MMKVStore.getInt(KEY_ONGOING_SLEEP_BABY_ID, -1) == babyId) {
-            MMKVStore.remove(KEY_ONGOING_SLEEP_START)
-            MMKVStore.remove(KEY_ONGOING_SLEEP_BABY_ID)
-        }
-        syncTrackedBabyId(babyId)
+        removeSession(babyId, RecordType.SLEEP)
     }
 
-    // ==================== 喂养 ====================
+    fun getOngoingSleepStart(babyId: Int): Long? = getSleepSession(babyId)?.startAt
 
-    /**
-     * 开始喂养记录。
-     *
-     * @param feedingType 喂养类型（0=母乳，1=配方奶，2=混合）
-     * @param startTime 用户最终确认的喂养开始时间
-     */
+    fun getSleepSession(babyId: Int): OngoingSession? = readSession(babyId, RecordType.SLEEP)
+
+    fun updateSleepStart(babyId: Int, startTime: Long) {
+        updateStart(babyId, RecordType.SLEEP, startTime)
+    }
+
+    fun isSleeping(babyId: Int): Boolean = getSleepSession(babyId) != null
+
     fun startFeeding(
         babyId: Int,
         feedingType: Int = 0,
         startTime: Long = System.currentTimeMillis()
     ) {
-        if (startTime <= 0L) return
-        MMKVStore.put(feedingStartKey(babyId), startTime)
-        MMKVStore.put(feedingTypeKey(babyId), feedingType)
-        MMKVStore.remove(KEY_ONGOING_FEEDING_START)
-        MMKVStore.remove(KEY_ONGOING_FEEDING_BABY_ID)
-        MMKVStore.remove(KEY_ONGOING_FEEDING_TYPE)
-        trackBabyId(babyId)
+        if (babyId <= 0 || startTime <= 0L) return
+        saveSession(
+            OngoingSession.running(
+                babyId = babyId,
+                type = RecordType.FEEDING,
+                startAt = startTime,
+                feedingType = feedingType
+            )
+        )
     }
 
-    /**
-     * 结束喂养记录
-     * @return 开始时间，如果没有进行中的记录则返回 null
-     */
-    fun endFeeding(babyId: Int): Long? {
-        val start = getOngoingFeedingStart(babyId)
-        MMKVStore.remove(feedingStartKey(babyId))
-        MMKVStore.remove(feedingTypeKey(babyId))
-        if (MMKVStore.getInt(KEY_ONGOING_FEEDING_BABY_ID, -1) == babyId) {
-            MMKVStore.remove(KEY_ONGOING_FEEDING_START)
-            MMKVStore.remove(KEY_ONGOING_FEEDING_BABY_ID)
-            MMKVStore.remove(KEY_ONGOING_FEEDING_TYPE)
-        }
-        syncTrackedBabyId(babyId)
-        return start
+    fun pauseFeeding(babyId: Int, endTime: Long, activeDurationMs: Long) {
+        updatePaused(babyId, RecordType.FEEDING, endTime, activeDurationMs)
     }
 
-    /**
-     * 获取正在进行的喂养开始时间
-     */
-    fun getOngoingFeedingStart(babyId: Int): Long? {
-        val startKey = feedingStartKey(babyId)
-        val start = MMKVStore.getLong(startKey, 0L)
-        if (start > 0) {
-            trackBabyId(babyId)
-            return start
-        }
-
-        val legacyStart = MMKVStore.getLong(KEY_ONGOING_FEEDING_START, 0L)
-        val legacyBabyId = MMKVStore.getInt(KEY_ONGOING_FEEDING_BABY_ID, -1)
-        if (legacyStart > 0 && legacyBabyId == babyId) {
-            MMKVStore.put(startKey, legacyStart)
-            MMKVStore.put(feedingTypeKey(babyId), MMKVStore.getInt(KEY_ONGOING_FEEDING_TYPE, 0))
-            MMKVStore.remove(KEY_ONGOING_FEEDING_START)
-            MMKVStore.remove(KEY_ONGOING_FEEDING_BABY_ID)
-            MMKVStore.remove(KEY_ONGOING_FEEDING_TYPE)
-            trackBabyId(babyId)
-            return legacyStart
-        }
-        return null
+    fun resumeFeeding(babyId: Int) {
+        updateRunning(babyId, RecordType.FEEDING)
     }
 
-    /**
-     * 获取正在进行的喂养对应的宝宝ID
-     */
-    /**
-     * 获取正在进行的喂养类型
-     */
-    fun getOngoingFeedingType(babyId: Int): Int {
-        val typeKey = feedingTypeKey(babyId)
-        val type = MMKVStore.getInt(typeKey, -1)
-        if (type >= 0) {
-            return type
-        }
+    fun endFeeding(babyId: Int): Long? = removeSession(babyId, RecordType.FEEDING)?.startAt
 
-        val legacyStart = MMKVStore.getLong(KEY_ONGOING_FEEDING_START, 0L)
-        val legacyBabyId = MMKVStore.getInt(KEY_ONGOING_FEEDING_BABY_ID, -1)
-        if (legacyStart > 0 && legacyBabyId == babyId) {
-            val legacyType = MMKVStore.getInt(KEY_ONGOING_FEEDING_TYPE, 0)
-            MMKVStore.put(typeKey, legacyType)
-            MMKVStore.put(feedingStartKey(babyId), legacyStart)
-            MMKVStore.remove(KEY_ONGOING_FEEDING_START)
-            MMKVStore.remove(KEY_ONGOING_FEEDING_BABY_ID)
-            MMKVStore.remove(KEY_ONGOING_FEEDING_TYPE)
-            return legacyType
-        }
-
-        return 0
-    }
-
-    /**
-     * 同步进行中的喂养开始时间（仅在已有进行中记录时更新）
-     */
-    fun updateFeedingStart(babyId: Int, startTime: Long) {
-        if (startTime <= 0L) return
-        if (getOngoingFeedingStart(babyId) == null) return
-
-        MMKVStore.put(feedingStartKey(babyId), startTime)
-        // 清理旧字段，避免新旧数据冲突
-        MMKVStore.remove(KEY_ONGOING_FEEDING_START)
-        MMKVStore.remove(KEY_ONGOING_FEEDING_BABY_ID)
-        trackBabyId(babyId)
-    }
-
-    /**
-     * 同步进行中的喂养类型（仅在已有进行中记录时更新）
-     */
-    fun updateFeedingType(babyId: Int, feedingType: Int) {
-        if (getOngoingFeedingStart(babyId) == null) return
-
-        MMKVStore.put(feedingTypeKey(babyId), feedingType)
-        // 清理旧字段，避免新旧数据冲突
-        MMKVStore.remove(KEY_ONGOING_FEEDING_TYPE)
-        MMKVStore.remove(KEY_ONGOING_FEEDING_BABY_ID)
-        trackBabyId(babyId)
-    }
-
-    /**
-     * 同步进行中的睡眠开始时间（仅在已有进行中记录时更新）
-     */
-    fun updateSleepStart(babyId: Int, startTime: Long) {
-        if (startTime <= 0L) return
-        if (getOngoingSleepStart(babyId) == null) return
-
-        MMKVStore.put(sleepStartKey(babyId), startTime)
-        // 清理旧字段，避免新旧数据冲突
-        MMKVStore.remove(KEY_ONGOING_SLEEP_START)
-        MMKVStore.remove(KEY_ONGOING_SLEEP_BABY_ID)
-        trackBabyId(babyId)
-    }
-
-    /**
-     * 检查指定宝宝是否正在喂奶
-     */
-    fun isFeeding(babyId: Int): Boolean {
-        return getOngoingFeedingStart(babyId) != null
-    }
-
-    /**
-     * 取消喂养记录（不保存）
-     */
     fun cancelFeeding(babyId: Int) {
-        MMKVStore.remove(feedingStartKey(babyId))
-        MMKVStore.remove(feedingTypeKey(babyId))
-        if (MMKVStore.getInt(KEY_ONGOING_FEEDING_BABY_ID, -1) == babyId) {
-            MMKVStore.remove(KEY_ONGOING_FEEDING_START)
-            MMKVStore.remove(KEY_ONGOING_FEEDING_BABY_ID)
-            MMKVStore.remove(KEY_ONGOING_FEEDING_TYPE)
-        }
-        syncTrackedBabyId(babyId)
+        removeSession(babyId, RecordType.FEEDING)
     }
 
-    // ==================== 通用 ====================
+    fun getOngoingFeedingStart(babyId: Int): Long? = getFeedingSession(babyId)?.startAt
 
-    /**
-     * 获取当前宝宝的状态
-     */
+    fun getFeedingSession(babyId: Int): OngoingSession? = readSession(babyId, RecordType.FEEDING)
+
+    fun getOngoingFeedingType(babyId: Int): Int = getFeedingSession(babyId)?.feedingType ?: 0
+
+    fun updateFeedingStart(babyId: Int, startTime: Long) {
+        updateStart(babyId, RecordType.FEEDING, startTime)
+    }
+
+    fun updateFeedingType(babyId: Int, feedingType: Int) {
+        val session = getFeedingSession(babyId) ?: return
+        saveSession(session.copy(feedingType = feedingType))
+    }
+
+    fun isFeeding(babyId: Int): Boolean = getFeedingSession(babyId) != null
+
     fun getCurrentStatus(babyId: Int): OngoingStatus {
-        val sleepStart = getOngoingSleepStart(babyId)
-        val feedingStart = getOngoingFeedingStart(babyId)
+        val sleep = getSleepSession(babyId)
+        val feeding = getFeedingSession(babyId)
         return when {
-            // 同时存在时以最近一次开始的记录为准，避免状态冲突
-            sleepStart != null && feedingStart != null -> {
-                if (sleepStart >= feedingStart) OngoingStatus.SLEEPING else OngoingStatus.FEEDING
+            sleep != null && feeding != null -> {
+                if (sleep.startAt >= feeding.startAt) OngoingStatus.SLEEPING else OngoingStatus.FEEDING
             }
-            sleepStart != null -> OngoingStatus.SLEEPING
-            feedingStart != null -> OngoingStatus.FEEDING
+            sleep != null -> OngoingStatus.SLEEPING
+            feeding != null -> OngoingStatus.FEEDING
             else -> OngoingStatus.IDLE
         }
     }
 
-    /**
-     * 清除所有进行中的记录
-     */
+    /** 数据域覆盖或退出时清除全部会话，不依赖可能损坏的追踪 ID 列表。 */
     fun clearAll() {
-        val trackedIds = getTrackedBabyIds()
-        trackedIds.forEach { babyId ->
-            MMKVStore.remove(sleepStartKey(babyId))
-            MMKVStore.remove(feedingStartKey(babyId))
-            MMKVStore.remove(feedingTypeKey(babyId))
-        }
-        MMKVStore.remove(KEY_ONGOING_BABY_IDS)
-
-        val legacySleepBabyId = MMKVStore.getInt(KEY_ONGOING_SLEEP_BABY_ID, -1)
-        if (legacySleepBabyId >= 0) {
-            MMKVStore.remove(sleepStartKey(legacySleepBabyId))
-        }
-        val legacyFeedingBabyId = MMKVStore.getInt(KEY_ONGOING_FEEDING_BABY_ID, -1)
-        if (legacyFeedingBabyId >= 0) {
-            MMKVStore.remove(feedingStartKey(legacyFeedingBabyId))
-            MMKVStore.remove(feedingTypeKey(legacyFeedingBabyId))
-        }
-
-        MMKVStore.remove(KEY_ONGOING_SLEEP_START)
-        MMKVStore.remove(KEY_ONGOING_SLEEP_BABY_ID)
-        MMKVStore.remove(KEY_ONGOING_FEEDING_START)
-        MMKVStore.remove(KEY_ONGOING_FEEDING_BABY_ID)
-        MMKVStore.remove(KEY_ONGOING_FEEDING_TYPE)
+        MMKVStore.removeByPrefix(KEY_SESSION_PREFIX)
+        MMKVStore.remove(KEY_TRACKED_BABY_IDS)
     }
 
-    /**
-     * 进行中状态枚举
-     */
-    enum class OngoingStatus {
-        IDLE,       // 空闲
-        SLEEPING,   // 睡觉中
-        FEEDING     // 喂奶中
+    private fun updateStart(babyId: Int, type: RecordType, startTime: Long) {
+        if (startTime <= 0L) return
+        val session = readSession(babyId, type) ?: return
+        val updatedResumeAt = if (
+            session.status == SessionStatus.RUNNING && session.activeDurationMs == 0L
+        ) {
+            startTime
+        } else {
+            session.resumedAt
+        }
+        saveSession(session.copy(startAt = startTime, resumedAt = updatedResumeAt))
     }
+
+    private fun updatePaused(
+        babyId: Int,
+        type: RecordType,
+        endTime: Long,
+        activeDurationMs: Long
+    ) {
+        val session = readSession(babyId, type) ?: return
+        if (endTime < session.startAt) return
+        saveSession(
+            session.copy(
+                endAt = endTime,
+                status = SessionStatus.PAUSED,
+                activeDurationMs = activeDurationMs.coerceAtLeast(0L),
+                resumedAt = 0L
+            )
+        )
+    }
+
+    private fun updateRunning(babyId: Int, type: RecordType) {
+        val session = readSession(babyId, type) ?: return
+        saveSession(
+            session.copy(
+                endAt = null,
+                status = SessionStatus.RUNNING,
+                resumedAt = System.currentTimeMillis()
+            )
+        )
+    }
+
+    data class OngoingSession(
+        val babyId: Int,
+        val type: RecordType,
+        val startAt: Long,
+        val endAt: Long? = null,
+        val status: SessionStatus,
+        val feedingType: Int = 0,
+        val activeDurationMs: Long = 0L,
+        val resumedAt: Long = 0L
+    ) {
+        /** 运行态叠加本次进程恢复后的时长；暂停态保持落盘时的累计时长。 */
+        fun elapsedDuration(now: Long = System.currentTimeMillis()): Long {
+            if (status != SessionStatus.RUNNING || resumedAt <= 0L) return activeDurationMs
+            return (activeDurationMs + (now - resumedAt)).coerceAtLeast(0L)
+        }
+
+        companion object {
+            fun running(
+                babyId: Int,
+                type: RecordType,
+                startAt: Long,
+                feedingType: Int = 0
+            ) = OngoingSession(
+                babyId = babyId,
+                type = type,
+                startAt = startAt,
+                status = SessionStatus.RUNNING,
+                feedingType = feedingType,
+                resumedAt = startAt
+            )
+        }
+    }
+
+    enum class RecordType { FEEDING, SLEEP }
+
+    enum class SessionStatus { RUNNING, PAUSED }
+
+    enum class OngoingStatus { IDLE, SLEEPING, FEEDING }
 }

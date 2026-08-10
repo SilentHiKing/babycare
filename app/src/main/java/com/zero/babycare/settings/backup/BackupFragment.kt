@@ -15,8 +15,6 @@ import com.zero.babycare.databinding.FragmentBackupBinding
 import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babycare.navigation.NavTarget
 import com.zero.common.ext.launchInLifecycle
-import com.zero.common.mmkv.MMKVKeys
-import com.zero.common.mmkv.MMKVStore
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
 import com.zero.components.base.vm.UiState
@@ -184,7 +182,6 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
                     is UiState.Success -> {
                         hideLoading()
                         vm.resetImportState()
-                        MMKVStore.remove(MMKVKeys.BABY_INFO)
                         showImportReport(state.data)
                     }
                     is UiState.Error -> {

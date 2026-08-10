@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 男孩主题（夜间）：仅覆盖品牌相关 Token -->
+    <!-- 男孩主题（深色模式）：仅覆盖品牌相关 Token -->
     <style name="AppTheme.Boy" parent="AppTheme">
         <!-- ========== 系统品牌色 ========== -->
         <item name="brand_color">@color/boy_brand</item>
@@ -24,6 +24,7 @@
         <item name="colorStatusTextSecondary">@color/boy_brand_dark</item>
 
         <!-- ========== 图标 ========== -->
+        <item name="iconColorBrand">@color/boy_accent</item>
         <item name="icon_brand">@color/boy_accent</item>
         <item name="icon_tipsblue">@color/boy_accent</item>
         <item name="ic_canvas_enable">@color/boy_accent</item>

@@ -10,12 +10,13 @@ import com.zero.babycare.home.record.event.EventRecordFragment
 import com.zero.babycare.settings.SettingsFragment
 import com.zero.babycare.settings.backup.BackupFragment
 import com.zero.babycare.statistics.StatisticsFragment
+import java.io.Serializable
 
 /**
  * 导航目标定义
  * 使用 sealed class 实现类型安全的导航参数传递
  */
-sealed class NavTarget {
+sealed class NavTarget : Serializable {
     
     /** 获取对应的 Fragment 类 */
     abstract val fragmentClass: Class<out Fragment>

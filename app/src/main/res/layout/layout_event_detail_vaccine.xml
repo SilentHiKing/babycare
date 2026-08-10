@@ -21,7 +21,8 @@
         android:background="?attr/bg_r6_block_gridview"
         android:hint="@string/vaccine_name_hint"
         android:inputType="text"
-        android:paddingHorizontal="12dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
         android:textColor="?attr/colorTextPrimary"
         android:textColorHint="?attr/colorTextHint"
         />
@@ -42,7 +43,8 @@
         android:background="?attr/bg_r6_block_gridview"
         android:hint="@string/vaccine_dose_hint"
         android:inputType="number"
-        android:paddingHorizontal="12dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
         android:textColor="?attr/colorTextPrimary"
         android:textColorHint="?attr/colorTextHint"
         />
@@ -63,7 +65,8 @@
         android:background="?attr/bg_r6_block_gridview"
         android:hint="@string/vaccine_site_hint"
         android:inputType="text"
-        android:paddingHorizontal="12dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
         android:textColor="?attr/colorTextPrimary"
         android:textColorHint="?attr/colorTextHint"
         />
@@ -84,7 +87,8 @@
         android:background="?attr/bg_r6_block_gridview"
         android:hint="@string/vaccine_clinic_hint"
         android:inputType="text"
-        android:paddingHorizontal="12dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
         android:textColor="?attr/colorTextPrimary"
         android:textColorHint="?attr/colorTextHint"
         />
@@ -105,7 +109,8 @@
         android:background="?attr/bg_r6_block_gridview"
         android:hint="@string/vaccine_batch_hint"
         android:inputType="text"
-        android:paddingHorizontal="12dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
         android:textColor="?attr/colorTextPrimary"
         android:textColorHint="?attr/colorTextHint"
         />

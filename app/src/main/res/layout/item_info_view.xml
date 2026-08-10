@@ -5,7 +5,8 @@
     android:layout_height="180dp"
     android:gravity="center"
     android:orientation="horizontal"
-    android:paddingHorizontal="20dp">
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"

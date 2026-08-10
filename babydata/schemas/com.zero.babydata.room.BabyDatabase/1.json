@@ -1,17 +1,23 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 4,
-    "identityHash": "29b3059c51f530757aa0a1cf87e33cb6",
+    "version": 1,
+    "identityHash": "f291241004d06b47cccb49d2fa3088f3",
     "entities": [
       {
         "tableName": "Baby_Info",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`babyId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `gender` TEXT NOT NULL, `birthDate` INTEGER NOT NULL, `birthWeight` REAL NOT NULL, `birthHeight` REAL NOT NULL, `bloodType` TEXT NOT NULL, `extra` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`babyId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `stableId` TEXT NOT NULL, `name` TEXT NOT NULL, `gender` TEXT NOT NULL, `birthDate` INTEGER NOT NULL, `birthWeight` REAL NOT NULL, `birthHeight` REAL NOT NULL, `bloodType` TEXT NOT NULL, `extra` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "babyId",
             "columnName": "babyId",
             "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stableId",
+            "columnName": "stableId",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -63,8 +69,17 @@
             "babyId"
           ]
         },
-        "indices": [],
-        "foreignKeys": []
+        "indices": [
+          {
+            "name": "index_Baby_Info_stableId",
+            "unique": true,
+            "columnNames": [
+              "stableId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Baby_Info_stableId` ON `${TABLE_NAME}` (`stableId`)"
+          }
+        ]
       },
       {
         "tableName": "Feeding_Records",
@@ -133,32 +148,27 @@
           {
             "fieldPath": "feedingAmount",
             "columnName": "feedingAmount",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "babyMood",
             "columnName": "babyMood",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "feedingLocation",
             "columnName": "feedingLocation",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "solidFoodType",
             "columnName": "solidFoodType",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "foodName",
             "columnName": "foodName",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "isFirstTime",
@@ -344,6 +354,16 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_ChildDailyRecord_babyId` ON `${TABLE_NAME}` (`babyId`)"
+          },
+          {
+            "name": "index_ChildDailyRecord_babyId_recordDate",
+            "unique": true,
+            "columnNames": [
+              "babyId",
+              "recordDate"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_ChildDailyRecord_babyId_recordDate` ON `${TABLE_NAME}` (`babyId`, `recordDate`)"
           }
         ],
         "foreignKeys": [
@@ -454,10 +474,9 @@
         ]
       }
     ],
-    "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '29b3059c51f530757aa0a1cf87e33cb6')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f291241004d06b47cccb49d2fa3088f3')"
     ]
   }
 }

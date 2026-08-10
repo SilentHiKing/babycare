@@ -10,6 +10,11 @@ import com.zero.babydata.backup.BackupImportReport
 import com.zero.babydata.backup.BabyBackupEnvelope
 import com.zero.babydata.backup.BabyBackupExporter
 import com.zero.babydata.backup.BabyBackupImporter
+import com.zero.babydata.backup.BackupImportStrategy
+import com.zero.babydata.domain.BabyDataHelper
+import com.zero.babycare.home.BabyRecordChangeBus
+import com.zero.babycare.home.OngoingRecordManager
+import com.zero.babycare.reminder.ReminderScheduler
 import com.zero.components.base.vm.UiState
 import com.zero.common.mmkv.MMKVKeys
 import com.zero.common.mmkv.MMKVStore
@@ -136,6 +141,7 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
                 val report = withContext(Dispatchers.IO) {
                     importer.importOverwrite(envelope)
                 }
+                rebuildDerivedState(report.strategy)
                 pendingImport = null
                 _importState.value = UiState.Success(report)
             } catch (e: Exception) {
@@ -162,6 +168,7 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
                 val report = withContext(Dispatchers.IO) {
                     importer.importMerge(envelope, dedupMinutes.value)
                 }
+                rebuildDerivedState(report.strategy)
                 pendingImport = null
                 _importState.value = UiState.Success(report)
             } catch (e: Exception) {
@@ -218,9 +225,30 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
     /**
      * 组装备份包元信息
      */
-    private fun buildEnvelope(): BabyBackupEnvelope {
+    private suspend fun buildEnvelope(): BabyBackupEnvelope {
         val appVersion = AppUtils.getAppVersionName()
         return exporter.buildEnvelope(appVersion)
+    }
+
+    /**
+     * 数据导入提交后统一刷新所有派生状态，避免数据库、当前宝宝、计时和提醒各自停留在旧快照。
+     */
+    private suspend fun rebuildDerivedState(strategy: BackupImportStrategy) {
+        val app = getApplication<Application>()
+        if (strategy == BackupImportStrategy.OVERWRITE) {
+            MMKVStore.remove(MMKVKeys.CURRENT_BABY_ID)
+            OngoingRecordManager.clearAll()
+        }
+        MMKVStore.removeByPrefix(MMKVKeys.SETTINGS_FEEDING_REMINDER_LAST_PREFIX)
+        MMKVStore.removeByPrefix(MMKVKeys.SETTINGS_SLEEP_REMINDER_LAST_PREFIX)
+        MMKVStore.removeByPrefix(MMKVKeys.SETTINGS_FEEDING_REMINDER_SOURCE_PREFIX)
+        MMKVStore.removeByPrefix(MMKVKeys.SETTINGS_SLEEP_REMINDER_SOURCE_PREFIX)
+        ReminderScheduler.ensureScheduled(app)
+
+        // Room Flow 会重建当前宝宝；变更总线负责让已存在的 Dashboard/预测实例立即丢弃旧派生数据。
+        BabyDataHelper.repository.getAllBabyInfo().forEach { baby ->
+            BabyRecordChangeBus.notifyChanged(baby.babyId)
+        }
     }
 
     /**

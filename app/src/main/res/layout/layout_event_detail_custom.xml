@@ -21,7 +21,8 @@
         android:background="?attr/bg_r6_block_gridview"
         android:hint="@string/custom_event_hint"
         android:inputType="text"
-        android:paddingHorizontal="12dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
         android:textColor="?attr/colorTextPrimary"
         android:textColorHint="?attr/colorTextHint"
         />

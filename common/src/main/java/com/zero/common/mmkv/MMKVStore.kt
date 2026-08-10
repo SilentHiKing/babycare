@@ -1,13 +1,16 @@
 package com.zero.common.mmkv
 
 import android.util.Base64
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
 import com.blankj.utilcode.util.Utils
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.SecretKeySpec
+import javax.crypto.spec.GCMParameterSpec
+import java.security.KeyStore
 
 /**
  * 商用级 MMKV 封装
@@ -77,7 +80,11 @@ object MMKVStore {
         return when (type) {
             String::class.java -> {
                 val v = kv.decodeString(key, defValue as? String ?: "")
-                val raw = if (decrypt && v != null && v.isNotEmpty()) decryptAES(v) else v
+                val raw = if (decrypt && !v.isNullOrEmpty()) {
+                    decryptAES(v) ?: return defValue
+                } else {
+                    v
+                }
                 @Suppress("UNCHECKED_CAST")
                 raw as? T ?: defValue
             }
@@ -117,7 +124,7 @@ object MMKVStore {
                 if (json.isNullOrEmpty()) {
                     defValue
                 } else {
-                    val content = if (decrypt) decryptAES(json) else json
+                    val content = if (decrypt) decryptAES(json) ?: return defValue else json
                     runCatching { gson.fromJson(content, type) }.getOrNull() ?: defValue
                 }
             }
@@ -164,6 +171,14 @@ object MMKVStore {
         kv.removeValueForKey(key)
     }
 
+    /** 按前缀清理派生状态，避免宝宝删除或数据域替换后遗留动态 key。 */
+    fun removeByPrefix(prefix: String, space: String? = null) {
+        val kv = space?.let { withSpace(it) } ?: default
+        kv.allKeys()
+            ?.filter { it.startsWith(prefix) }
+            ?.forEach(kv::removeValueForKey)
+    }
+
     /**
      * 清空指定空间
      */
@@ -172,38 +187,51 @@ object MMKVStore {
         kv.clearAll()
     }
 
-    // -------------------
-    // AES 加解密部分（可换为自定义算法）
-    // -------------------
-
-    private const val AES_KEY = "A1B2C3D4E5F6G7H8"  // ⚠️ 请务必替换为你自己的16位密钥
-    private const val AES_IV = "1122334455667788"   // 16位 IV
+    // 敏感值使用 Android Keystore 中不可导出的密钥；每次写入由 Cipher 生成独立随机 IV。
+    private const val KEYSTORE_PROVIDER = "AndroidKeyStore"
+    private const val KEY_ALIAS = "babycare_mmkv_sensitive_v1"
+    private const val ENCRYPTION_VERSION = "v1"
+    private const val GCM_TAG_BITS = 128
 
     private fun encryptAES(plain: String): String {
-        return try {
-            val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-            val keySpec: SecretKey = SecretKeySpec(AES_KEY.toByteArray(Charsets.UTF_8), "AES")
-            val iv = IvParameterSpec(AES_IV.toByteArray(Charsets.UTF_8))
-            cipher.init(Cipher.ENCRYPT_MODE, keySpec, iv)
-            val encrypted = cipher.doFinal(plain.toByteArray(Charsets.UTF_8))
-            Base64.encodeToString(encrypted, Base64.NO_WRAP)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            plain // 加密失败时返回原文
-        }
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(Cipher.ENCRYPT_MODE, getOrCreateSecretKey())
+        val encrypted = cipher.doFinal(plain.toByteArray(Charsets.UTF_8))
+        val ivText = Base64.encodeToString(cipher.iv, Base64.NO_WRAP)
+        val dataText = Base64.encodeToString(encrypted, Base64.NO_WRAP)
+        return "$ENCRYPTION_VERSION.$ivText.$dataText"
     }
 
-    private fun decryptAES(encrypted: String): String {
-        return try {
-            val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-            val keySpec: SecretKey = SecretKeySpec(AES_KEY.toByteArray(Charsets.UTF_8), "AES")
-            val iv = IvParameterSpec(AES_IV.toByteArray(Charsets.UTF_8))
-            cipher.init(Cipher.DECRYPT_MODE, keySpec, iv)
-            val decoded = Base64.decode(encrypted, Base64.NO_WRAP)
-            String(cipher.doFinal(decoded), Charsets.UTF_8)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            encrypted // 解密失败时返回原文
-        }
+    private fun decryptAES(encrypted: String): String? {
+        return runCatching {
+            val parts = encrypted.split('.', limit = 3)
+            require(parts.size == 3 && parts[0] == ENCRYPTION_VERSION)
+            val iv = Base64.decode(parts[1], Base64.NO_WRAP)
+            val cipherText = Base64.decode(parts[2], Base64.NO_WRAP)
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(
+                Cipher.DECRYPT_MODE,
+                getOrCreateSecretKey(),
+                GCMParameterSpec(GCM_TAG_BITS, iv)
+            )
+            String(cipher.doFinal(cipherText), Charsets.UTF_8)
+        }.getOrNull()
+    }
+
+    private fun getOrCreateSecretKey(): SecretKey {
+        val keyStore = KeyStore.getInstance(KEYSTORE_PROVIDER).apply { load(null) }
+        (keyStore.getKey(KEY_ALIAS, null) as? SecretKey)?.let { return it }
+
+        val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, KEYSTORE_PROVIDER)
+        val spec = KeyGenParameterSpec.Builder(
+            KEY_ALIAS,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        )
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            .setRandomizedEncryptionRequired(true)
+            .build()
+        generator.init(spec)
+        return generator.generateKey()
     }
 }

@@ -5,11 +5,14 @@
     android:id="@+id/llSummary"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
     android:background="@drawable/bg_surface_group_sides_control_border"
     android:orientation="vertical"
-    android:paddingHorizontal="@dimen/statistics_day_content_inset"
-    android:paddingVertical="10dp">
+    android:paddingStart="@dimen/statistics_day_content_inset"
+    android:paddingEnd="@dimen/statistics_day_content_inset"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
 
     <LinearLayout
         android:id="@+id/llSummaryContainer"
@@ -32,8 +35,10 @@
                 android:gravity="center_vertical"
                 android:minHeight="72dp"
                 android:orientation="horizontal"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="10dp">
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
 
                 <ImageView
                     android:layout_width="36dp"
@@ -81,8 +86,10 @@
                 android:gravity="center_vertical"
                 android:minHeight="72dp"
                 android:orientation="horizontal"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="10dp">
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
 
                 <ImageView
                     android:layout_width="36dp"
@@ -137,8 +144,10 @@
                 android:gravity="center_vertical"
                 android:minHeight="72dp"
                 android:orientation="horizontal"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="10dp">
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
 
                 <ImageView
                     android:layout_width="36dp"
@@ -186,8 +195,10 @@
                 android:gravity="center_vertical"
                 android:minHeight="72dp"
                 android:orientation="horizontal"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="10dp">
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
 
                 <ImageView
                     android:layout_width="36dp"

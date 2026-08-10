@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 夜间主题色：用于 AppTheme.Boy / AppTheme.Girl -->
+    <!-- 深色主题色：用于 AppTheme.Boy / AppTheme.Girl -->
 
-    <!-- ==================== 男孩主题色（夜间，行动色优先保证白字可读） ==================== -->
+    <!-- ==================== 男孩主题色（深色模式，行动色优先保证白字可读） ==================== -->
     <color name="boy_brand">#2A74B8</color>
     <color name="boy_brand_dark">#1F5F99</color>
     <color name="boy_brand_light">#86C5F4</color>
@@ -14,7 +14,7 @@
     <color name="boy_brand_20">#332A74B8</color>
     <color name="boy_brand_50">#802A74B8</color>
 
-    <!-- ==================== 女孩主题色（夜间，行动色优先保证白字可读） ==================== -->
+    <!-- ==================== 女孩主题色（深色模式，行动色优先保证白字可读） ==================== -->
     <color name="girl_brand">#B8526C</color>
     <color name="girl_brand_dark">#94394F</color>
     <color name="girl_brand_light">#F0AFC0</color>

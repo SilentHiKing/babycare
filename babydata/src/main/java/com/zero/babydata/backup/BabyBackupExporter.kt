@@ -1,11 +1,9 @@
 package com.zero.babydata.backup
 
 import android.content.Context
+import androidx.room.withTransaction
 import com.google.gson.Gson
-import com.zero.babydata.entity.ChildDailyRecord
-import com.zero.babydata.entity.EventRecord
-import com.zero.babydata.entity.FeedingRecord
-import com.zero.babydata.entity.SleepRecord
+import com.zero.babydata.room.BabyDatabase
 import com.zero.babydata.room.BabyRepository
 
 /**
@@ -14,39 +12,46 @@ import com.zero.babydata.room.BabyRepository
  */
 class BabyBackupExporter(context: Context) {
 
+    private val database = BabyDatabase.getInstance(context)
     private val repository = BabyRepository(context)
     private val gson = Gson()
 
     /**
      * 构建备份数据包
      */
-    fun buildEnvelope(appVersion: String? = null): BabyBackupEnvelope {
-        val babies = repository.getAllBabyInfo()
-        val feedingRecords = ArrayList<FeedingRecord>()
-        val sleepRecords = ArrayList<SleepRecord>()
-        val eventRecords = ArrayList<EventRecord>()
-        val childDailyRecords = ArrayList<ChildDailyRecord>()
+    suspend fun buildEnvelope(appVersion: String? = null): BabyBackupEnvelope {
+        // 所有表在同一个读事务内采集，避免导出过程中新增记录造成跨表时间点不一致。
+        return database.withTransaction {
+            val babies = repository.getAllBabyInfo()
+            val feedingRecords = ArrayList<BackupFeedingRecord>()
+            val sleepRecords = ArrayList<BackupSleepRecord>()
+            val eventRecords = ArrayList<BackupEventRecord>()
+            val childDailyRecords = ArrayList<BackupChildDailyRecord>()
 
-        // 按宝宝聚合数据，避免遗漏与重复查询
-        babies.forEach { baby ->
-            feedingRecords.addAll(repository.getAllFeedingRecordsSync(baby.babyId))
-            sleepRecords.addAll(repository.getAllSleepRecordsSync(baby.babyId))
-            eventRecords.addAll(repository.getAllEventRecords(baby.babyId))
-            childDailyRecords.addAll(repository.getAllChildDailyRecordsSync(baby.babyId))
-        }
+            babies.forEach { baby ->
+                feedingRecords += repository.getAllFeedingRecords(baby.babyId)
+                    .map { it.toBackup(baby.stableId) }
+                sleepRecords += repository.getAllSleepRecords(baby.babyId)
+                    .map { it.toBackup(baby.stableId) }
+                eventRecords += repository.getAllEventRecords(baby.babyId)
+                    .map { it.toBackup(baby.stableId) }
+                childDailyRecords += repository.getAllChildDailyRecords(baby.babyId)
+                    .map { it.toBackup(baby.stableId) }
+            }
 
-        return BabyBackupEnvelope(
-            version = BABY_BACKUP_VERSION,
-            createdAt = System.currentTimeMillis(),
-            appVersion = appVersion,
-            data = BabyBackupData(
-                babies = babies,
-                feedingRecords = feedingRecords,
-                sleepRecords = sleepRecords,
-                eventRecords = eventRecords,
-                childDailyRecords = childDailyRecords
+            BabyBackupEnvelope(
+                version = BABY_BACKUP_VERSION,
+                createdAt = System.currentTimeMillis(),
+                appVersion = appVersion,
+                data = BabyBackupData(
+                    babies = babies.map { it.toBackup() },
+                    feedingRecords = feedingRecords,
+                    sleepRecords = sleepRecords,
+                    eventRecords = eventRecords,
+                    childDailyRecords = childDailyRecords
+                )
             )
-        )
+        }
     }
 
     /**
