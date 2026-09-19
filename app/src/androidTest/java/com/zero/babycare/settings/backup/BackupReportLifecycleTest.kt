@@ -5,9 +5,13 @@ import android.app.Application
 import android.app.Instrumentation
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
+import android.view.View
+import android.widget.TextView
+import androidx.core.widget.NestedScrollView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -20,10 +24,14 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.NoMatchingViewException
+import androidx.test.espresso.UiController
+import androidx.test.espresso.ViewAction
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.isCompletelyDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -46,6 +54,7 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.hamcrest.Matcher
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
@@ -112,7 +121,8 @@ class BackupReportLifecycleTest {
             awaitActivity(current) { injectedVm.get() != null && ViewModelProvider(it)[MainViewModel::class.java].babyDataLoaded.value }
             navigate(current, NavTarget.Backup())
             awaitActivity(current) { (backupVm(it).reportListState.value as? UiState.Success)?.data?.size == 1 }
-            onView(withText(source.name)).perform(click())
+            // 大字号下完整设置行把历史列表推到首屏下方，先真实滚动，再保留 Espresso 点击可见性约束。
+            onView(withText(source.name)).perform(scrollTo(), click())
             assertTrue(readEntered.await(10, TimeUnit.SECONDS))
             navigate(current, NavTarget.Settings())
             allowRead.complete(Unit)
@@ -130,6 +140,7 @@ class BackupReportLifecycleTest {
             current.recreate()
             awaitActivity(current) { backupVm(it).reportPrompt.value?.id == detailId }
             awaitReportVisibility(true, com.zero.common.R.string.backup_import_report_detail_title)
+            assertReportBodyAndActionsReachable(hasCancel = true)
             onView(withId(com.zero.components.R.id.tv_confirm)).perform(click())
             assertTrue(exportEntered.await(10, TimeUnit.SECONDS))
             navigate(current, NavTarget.Settings())
@@ -195,6 +206,7 @@ class BackupReportLifecycleTest {
             awaitReportVisibility(true)
 
             // 点击真实弹窗按钮才开始消费；闸门保留旧 Success，制造返回页面时重放的窗口。
+            assertReportBodyAndActionsReachable(hasCancel = false)
             onView(withId(com.zero.components.R.id.tv_confirm)).perform(click())
             assertTrue("用户关闭未触发报告消费", operations.consumeStarted.await(10, TimeUnit.SECONDS))
             assertEquals(1, operations.consumeCount.get())
@@ -229,6 +241,97 @@ class BackupReportLifecycleTest {
                 directory.deleteRecursively()
             }
         }
+    }
+
+    /** 同一真实报告覆盖普通/大字号窗口：正文可滚到底，操作区始终完整可点击。 */
+    private fun assertReportBodyAndActionsReachable(hasCancel: Boolean) {
+        val actionIds = if (hasCancel) listOf(com.zero.components.R.id.tv_cancel, com.zero.components.R.id.tv_confirm)
+            else listOf(com.zero.components.R.id.tv_confirm)
+        fun assertActions() {
+            awaitStableActions(actionIds)
+            actionIds.forEach { id ->
+                onView(withId(id)).check(matches(isCompletelyDisplayed())).check { view, error ->
+                    if (error != null) throw error
+                    val button = view as TextView
+                    val textLayout = requireNotNull(button.layout)
+                    assertTrue("弹窗按钮必须保留48dp触控高度", button.height >=
+                        button.resources.getDimensionPixelSize(com.zero.common.R.dimen.min_touch_target))
+                    assertTrue("按钮全文必须参与排版", textLayout.lineCount > 0 &&
+                        textLayout.getLineEnd(textLayout.lineCount - 1) == button.text.length)
+                    assertTrue("按钮文字不能被垂直裁切", textLayout.height <=
+                        button.height - button.compoundPaddingTop - button.compoundPaddingBottom)
+                    repeat(textLayout.lineCount) { line ->
+                        assertEquals("按钮不能省略文案", 0, textLayout.getEllipsisCount(line))
+                        assertTrue("按钮文字不能横向溢出", textLayout.getLineWidth(line) <=
+                            button.width - button.compoundPaddingLeft - button.compoundPaddingRight + 1)
+                    }
+                }
+            }
+        }
+        assertActions()
+        onView(withId(com.zero.components.R.id.scroll_dialog_body)).perform(object : ViewAction {
+            override fun getDescription() = "滚动报告正文到底部"
+            override fun getConstraints(): Matcher<View> = isDisplayed()
+            override fun perform(uiController: UiController, view: View) {
+                val scroll = view as NestedScrollView
+                scroll.scrollTo(0, scroll.getChildAt(0).height)
+                uiController.loopMainThreadUntilIdle()
+                assertTrue("报告最后一行必须能够滚入视口", scroll.getChildAt(0).bottom <=
+                    scroll.scrollY + scroll.height - scroll.paddingBottom + 1)
+            }
+        })
+        assertActions()
+    }
+
+    /** 标题刚出现时 XPopup 仍可能在缩放；等真实窗口稳定，不降低按钮 100% 可见的要求。 */
+    private fun awaitStableActions(actionIds: List<Int>) {
+        val deadline = SystemClock.uptimeMillis() + 5_000
+        var previousBounds: String? = null
+        var stableSamples = 0
+        var lastDiagnostic = "尚未获取按钮边界"
+        do {
+            var ready = true
+            val snapshots = mutableListOf<String>()
+            actionIds.forEach { id ->
+                try {
+                    onView(withId(id)).check { view, error ->
+                        if (error != null) throw error
+                        val button = requireNotNull(view)
+                        val ancestors = generateSequence(button) { it.parent as? View }.toList()
+                        val settled = ancestors.all {
+                            !it.isLayoutRequested && it.scaleX == 1f && it.scaleY == 1f &&
+                                it.alpha == 1f && (it.animation == null || it.animation.hasEnded())
+                        }
+                        ready = ready && settled && isCompletelyDisplayed().matches(button)
+                        // 只输出几何与动画状态，不记录正文、文件路径或其他用户资料。
+                        snapshots += ancestors.joinToString(" <- ") { node ->
+                            val global = Rect()
+                            val local = Rect()
+                            val position = IntArray(2)
+                            node.getLocationOnScreen(position)
+                            node.getGlobalVisibleRect(global)
+                            node.getLocalVisibleRect(local)
+                            val label = if (node.id == View.NO_ID) node.javaClass.simpleName
+                                else runCatching { node.resources.getResourceEntryName(node.id) }.getOrDefault(node.id.toString())
+                            "$label(size=${node.width}x${node.height},xy=${position.contentToString()}," +
+                                "bounds=${node.left},${node.top},${node.right},${node.bottom}," +
+                                "global=$global,local=$local,scale=${node.scaleX},${node.scaleY}," +
+                                "translation=${node.translationX},${node.translationY},alpha=${node.alpha}," +
+                                "layout=${node.isLayoutRequested},animation=${node.animation?.hasEnded()})"
+                        }
+                    }
+                } catch (error: NoMatchingViewException) {
+                    ready = false
+                    snapshots += "按钮尚未挂载：$id"
+                }
+            }
+            lastDiagnostic = snapshots.joinToString("\n")
+            stableSamples = if (ready && lastDiagnostic == previousBounds) stableSamples + 1 else 0
+            if (stableSamples >= 2) return
+            previousBounds = lastDiagnostic
+            SystemClock.sleep(50)
+        } while (SystemClock.uptimeMillis() < deadline)
+        throw AssertionError("弹窗按钮未达到稳定且完整可见状态：\n$lastDiagnostic")
     }
 
     private fun backupVm(activity: MainActivity): BackupViewModel = ViewModelProvider(

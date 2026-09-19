@@ -1,7 +1,10 @@
 package com.zero.babycare.home
 
 import android.os.Bundle
+import android.text.Layout
 import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
@@ -38,6 +41,19 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         // 只查当前 View，不在异步回调中访问可能已销毁的 binding。
         view?.findViewById<RecyclerView>(com.zero.babycare.R.id.rvQuickRecord)?.let(::updateQuickRecordColumns)
     }
+    private val predictionLayoutListener = View.OnLayoutChangeListener { target, left, _, right, _, oldLeft, _, oldRight, _ ->
+        if (right - left != oldRight - oldLeft) {
+            target.removeCallbacks(predictionLayoutUpdate)
+            target.post(predictionLayoutUpdate)
+        }
+    }
+    private val predictionLayoutUpdate = Runnable {
+        // 与网格重排相同，只操作当前 View；页面销毁后不再通过旧 binding 写入布局。
+        view?.let { root ->
+            updatePredictionRow(root.findViewById(com.zero.babycare.R.id.rowPredictFeeding))
+            updatePredictionRow(root.findViewById(com.zero.babycare.R.id.rowPredictSleep))
+        }
+    }
     private val mainVm: MainViewModel by lazy {
         activityViewModels<MainViewModel>().value
     }
@@ -46,6 +62,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         super.initView(view, savedInstanceState)
 
         setupDashboardToolbar()
+        binding.cardPrediction.addOnLayoutChangeListener(predictionLayoutListener)
 
         // 状态卡点击
         binding.cardStatus.setOnClickListener {
@@ -172,7 +189,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         )
         binding.tvFeedingTodayDuration.text = getString(
             com.zero.common.R.string.today_duration,
-            formatMinutesToReadable(data.displayFeedingMinutes)
+            formatDurationMinutesCompact(data.displayFeedingMinutes)
         )
 
         // ==================== 睡眠卡片 ====================
@@ -189,7 +206,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         )
         binding.tvSleepTodayDuration.text = getString(
             com.zero.common.R.string.today_duration,
-            formatMinutesToReadable(data.displaySleepMinutes)
+            formatDurationMinutesCompact(data.displaySleepMinutes)
         )
 
         // ==================== 预测卡片 ====================
@@ -198,7 +215,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
 
     private fun updateStatusCard(data: DashboardData, now: Long) {
         // 计时数字使用强调层级；空态与久未记录的说明恢复正文，避免长文案挤占首页。
-        binding.tvStatusTime.setTextAppearance(com.zero.common.R.style.TextAppearance_BabyCare_Display1)
+        binding.tvStatusTime.setTextAppearance(com.zero.common.R.style.TextAppearance_BabyCare_Display2)
         when (data.currentStatus) {
             DashboardData.BabyStatus.AWAKE -> {
                 binding.cardStatus.setBackgroundResource(com.zero.common.R.drawable.bg_status_card_awake)
@@ -280,7 +297,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             )
             binding.tvPredictFeedingRemain.text = getString(
                 com.zero.common.R.string.remain_time,
-                formatMinutesToReadable(remainMinutes)
+                formatDurationMinutesCompact(remainMinutes)
             )
             updatePredictionEvidence(binding.tvPredictFeedingEvidence, feedingPrediction)
         } else {
@@ -308,7 +325,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             )
             binding.tvPredictSleepRemain.text = getString(
                 com.zero.common.R.string.remain_time,
-                formatMinutesToReadable(remainMinutes)
+                formatDurationMinutesCompact(remainMinutes)
             )
             updatePredictionEvidence(binding.tvPredictSleepEvidence, sleepPrediction)
         } else {
@@ -320,6 +337,45 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
                     com.zero.common.R.string.prediction_in_progress_hint
                 else com.zero.common.R.string.prediction_sleep_empty_hint
             )
+        }
+        // 空态不占一个剩余时间列；有效预测完整保留文案，是否同行仅由实际字宽决定。
+        binding.tvPredictFeedingRemain.visibility = if (binding.tvPredictFeedingRemain.text.isEmpty()) View.GONE else View.VISIBLE
+        binding.tvPredictSleepRemain.visibility = if (binding.tvPredictSleepRemain.text.isEmpty()) View.GONE else View.VISIBLE
+        binding.cardPrediction.removeCallbacks(predictionLayoutUpdate)
+        binding.cardPrediction.post(predictionLayoutUpdate)
+    }
+
+    /** 根据完整文字宽度重排预测行，避免长英文或大字号让主列被剩余时间挤成零宽。 */
+    private fun updatePredictionRow(row: LinearLayout) {
+        val available = row.width - row.paddingLeft - row.paddingRight
+        if (available <= 0) return
+        val title = row.getChildAt(0) as TextView
+        val remaining = row.getChildAt(1) as TextView
+        val gap = resources.getDimensionPixelSize(com.zero.common.R.dimen.content_gap_medium)
+        val stackedGap = resources.getDimensionPixelSize(com.zero.common.R.dimen.content_gap_small)
+        fun desiredWidth(text: TextView) = kotlin.math.ceil(Layout.getDesiredWidth(text.text, text.paint).toDouble()).toInt() +
+            text.compoundPaddingLeft + text.compoundPaddingRight
+        val horizontal = remaining.visibility == View.GONE || desiredWidth(title) + desiredWidth(remaining) + gap <= available
+        val orientation = if (horizontal) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+        val titleWidth = if (horizontal) 0 else LinearLayout.LayoutParams.MATCH_PARENT
+        val remainingWidth = if (horizontal) LinearLayout.LayoutParams.WRAP_CONTENT else LinearLayout.LayoutParams.MATCH_PARENT
+        val topMargin = if (horizontal) 0 else stackedGap
+        val startMargin = if (horizontal) gap else 0
+        val titleParams = title.layoutParams as LinearLayout.LayoutParams
+        val remainingParams = remaining.layoutParams as LinearLayout.LayoutParams
+        if (row.orientation == orientation && titleParams.width == titleWidth &&
+            remainingParams.width == remainingWidth && remainingParams.topMargin == topMargin &&
+            remainingParams.marginStart == startMargin) return
+        row.orientation = orientation
+        title.layoutParams = LinearLayout.LayoutParams(titleParams).apply {
+            width = titleWidth
+            weight = if (horizontal) 1f else 0f
+        }
+        remaining.layoutParams = LinearLayout.LayoutParams(remainingParams).apply {
+            width = remainingWidth
+            weight = 0f
+            this.topMargin = topMargin
+            marginStart = startMargin
         }
     }
 
@@ -346,20 +402,6 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
     }
 
     /**
-     * 格式化分钟数为可读字符串
-     */
-    private fun formatMinutesToReadable(minutes: Long?): String {
-        if (minutes == null || minutes < 0) return "--"
-        val hours = minutes / 60
-        val mins = minutes % 60
-        return if (hours > 0) {
-            getString(com.zero.common.R.string.hour_min_format, hours.toInt(), mins.toInt())
-        } else {
-            getString(com.zero.common.R.string.min_format, mins.toInt())
-        }
-    }
-
-    /**
      * 首页概览卡空间较窄，英文使用 22H 37m 这类短格式，避免大号时长换行后显得拥挤。
      */
     private fun formatMinutesCompact(minutes: Long?): String {
@@ -368,21 +410,27 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         if (minutes >= TimeUnit.DAYS.toMinutes(1)) {
             return getString(com.zero.common.R.string.summary_duration_days_compact, minutes / 1440)
         }
+        return formatDurationMinutesCompact(minutes)
+    }
+
+    /** 总时长与预测剩余时间保留小时、分钟精度，不能套用“距上次”的整天简写。 */
+    private fun formatDurationMinutesCompact(minutes: Long?): String {
+        if (minutes == null || minutes < 0) return "--"
         val hours = minutes / 60
         val mins = minutes % 60
         return when {
             hours > 0 && mins > 0 -> getString(
                 com.zero.common.R.string.summary_duration_hours_minutes_compact,
-                hours.toInt(),
-                mins.toInt()
+                hours,
+                mins
             )
             hours > 0 -> getString(
                 com.zero.common.R.string.summary_duration_hours_compact,
-                hours.toInt()
+                hours
             )
             mins > 0 -> getString(
                 com.zero.common.R.string.summary_duration_minutes_compact,
-                mins.toInt()
+                mins
             )
             else -> getString(com.zero.common.R.string.summary_duration_zero_compact)
         }
@@ -433,6 +481,8 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
     }
 
     override fun onDestroyView() {
+        binding.cardPrediction.removeOnLayoutChangeListener(predictionLayoutListener)
+        binding.cardPrediction.removeCallbacks(predictionLayoutUpdate)
         binding.rvQuickRecord.removeOnLayoutChangeListener(quickRecordLayoutListener)
         binding.rvQuickRecord.removeCallbacks(quickRecordGridUpdate)
         binding.rvQuickRecord.adapter = null

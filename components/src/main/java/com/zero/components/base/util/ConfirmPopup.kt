@@ -30,6 +30,12 @@ class ConfirmPopup(context: Context) : CenterPopupView(context) {
         return minOf(maxWidthPx, (screenWidth * 0.85).toInt())
     }
 
+    override fun getMaxHeight(): Int {
+        // XPopup 默认不限制自定义中心弹窗高度；限高后正文权重只收缩滚动区，按钮留在窗口内。
+        // DisplayMetrics 随当前窗口配置变化，比例留白同时避开上下系统栏。
+        return (resources.displayMetrics.heightPixels * 0.85f).toInt()
+    }
+
     override fun onCreate() {
         super.onCreate()
 

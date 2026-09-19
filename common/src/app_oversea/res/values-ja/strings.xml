@@ -289,9 +289,9 @@
     <string name="today_duration">合計 %1$s</string>
     <string name="next_prediction">次の予測</string>
     <string name="predict_feeding">次の給餌は%1$s頃になります</string>
-    <string name="predict_feeding_with_range">次の給餌 %1$s~%2$s</string>
+    <string name="predict_feeding_with_range">授乳 %1$s–%2$s</string>
     <string name="predict_sleep">次の睡眠は約 %1$s</string>
-    <string name="predict_sleep_with_range">次の睡眠 %1$s~%2$s</string>
+    <string name="predict_sleep_with_range">睡眠 %1$s–%2$s</string>
     <string name="remain_time">最長あと %1$s</string>
     <string name="confidence_high">高精度</string>
     <string name="confidence_medium">中程度の精度</string>

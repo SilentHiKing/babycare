@@ -8,6 +8,14 @@
     
     <!-- Card -->
     <dimen name="card_padding">16dp</dimen>
+    <!-- 紧凑信息卡在保留完整文字和点击热区时减少装饰留白。 -->
+    <dimen name="card_padding_compact">12dp</dimen>
+    <dimen name="content_gap_small">4dp</dimen>
+    <dimen name="content_gap_medium">8dp</dimen>
+    <dimen name="content_gap_large">12dp</dimen>
+    <dimen name="icon_size_standard">24dp</dimen>
+    <dimen name="min_touch_target">48dp</dimen>
+    <dimen name="adaptive_trailing_content_min_width">160dp</dimen>
     <dimen name="card_corner_radius">16dp</dimen>
     <!-- Surface + stroke 统一使用 hairline，保留分区边界但避免普通卡片和控件边框过重。 -->
     <dimen name="surface_stroke_width">0.1dp</dimen>

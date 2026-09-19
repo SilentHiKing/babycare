@@ -5,10 +5,7 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
-import androidx.core.view.updatePadding
 import androidx.core.view.updatePaddingRelative
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.zero.components.R
@@ -121,25 +118,7 @@ class BaseToolbar @JvmOverloads constructor(
         }
         requestTitleInsetsUpdate()
 
-        val initialPaddingTop = paddingTop
-        val initialPaddingBottom = paddingBottom
-        val initialPaddingLeft = paddingLeft
-        val initialPaddingRight = paddingRight
-        ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
-            val statusBars = insets.getInsets(WindowInsetsCompat.Type.statusBars())
-            view.updatePadding(
-                left = initialPaddingLeft,
-                top = initialPaddingTop + statusBars.top,
-                right = initialPaddingRight,
-                bottom = initialPaddingBottom
-            )
-            insets
-        }
-    }
-
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
-        ViewCompat.requestApplyInsets(this)
+        // 系统安全区由 Activity 根容器统一处理；工具栏只测量内容，避免再次加状态栏高度。
     }
 
     // ==================== 左侧按钮 ====================

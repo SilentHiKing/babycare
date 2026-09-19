@@ -30,6 +30,31 @@ class MainActivityWindowInsetsTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
     @Test
+    fun toolbarContentAvoidsStatusBarExactlyOnce() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            awaitActivity(scenario, "首页初始化未完成") { mainViewModel(it).babyDataLoaded.value }
+            for (target in listOf(NavTarget.Dashboard, NavTarget.SleepRecord())) {
+                scenario.onActivity { mainViewModel(it).navigateTo(target) }
+                val toolbarId = if (target == NavTarget.Dashboard) R.id.toolbar else R.id.btn
+                awaitActivity(scenario, "工具栏未显示") { recordRoot(it, target)?.findViewById<View>(toolbarId)?.height?.let { height -> height > 0 } == true }
+                settleWindow()
+                scenario.onActivity { activity ->
+                    val decor = activity.window.decorView
+                    val safeTop = fullBounds(decor).top + requireNotNull(ViewCompat.getRootWindowInsets(decor))
+                        .getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()).top
+                    val toolbar = requireNotNull(recordRoot(activity, target)).findViewById<View>(toolbarId)
+                    val contentId = if (target == NavTarget.Dashboard) com.zero.components.R.id.llIdentityTitle
+                        else com.zero.components.R.id.rvLeftActions
+                    val content = toolbar.findViewById<View>(contentId)
+                    // 检查实际内容边界，不能只看已在安全区内的 Toolbar 外框而漏掉重复 padding。
+                    assertEquals("根容器已避让状态栏，工具栏内容不能再次下移", safeTop, fullBounds(content).top)
+                    assertTrue("工具栏操作热区必须保留 48dp", content.height >= 48 * activity.resources.displayMetrics.density)
+                }
+            }
+        }
+    }
+
+    @Test
     fun firstEventCategoryShowsWholeSubtypeNames() {
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         try {

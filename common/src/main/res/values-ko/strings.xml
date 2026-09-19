@@ -289,9 +289,9 @@
     <string name="today_duration">합계 %1$s</string>
     <string name="next_prediction">다음 예측</string>
     <string name="predict_feeding">다음 수유 시간은 %1$s쯤 될 것입니다.</string>
-    <string name="predict_feeding_with_range">다음 수유 %1$s~%2$s</string>
+    <string name="predict_feeding_with_range">수유 %1$s–%2$s</string>
     <string name="predict_sleep">다음 수면 약 %1$s</string>
-    <string name="predict_sleep_with_range">다음 수면 %1$s~%2$s</string>
+    <string name="predict_sleep_with_range">수면 %1$s–%2$s</string>
     <string name="remain_time">최대 %1$s 남음</string>
     <string name="confidence_high">높은 정확도</string>
     <string name="confidence_medium">보통의 정확도</string>

@@ -1,81 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_popup_dialog"
-    android:paddingStart="24dp"
-    android:paddingEnd="24dp"
-    android:paddingTop="28dp"
-    android:paddingBottom="24dp">
+    android:orientation="vertical"
+    android:padding="@dimen/card_padding">
 
-    <!-- 标题 -->
-    <TextView
-        android:id="@+id/tv_title"
-        style="@style/TextAppearance.BabyCare.Heading2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textAlignment="center"
-        android:textColor="?attr/primary90"
-        android:letterSpacing="0.01"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="提示" />
-
-    <!-- 内容 -->
-    <TextView
-        android:id="@+id/tv_content"
-        style="@style/TextAppearance.BabyCare.Body2"
+    <!-- 有限窗口中仅压缩可滚动正文，操作区独立测量，长标题和报告不能把按钮推出屏幕。 -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_dialog_body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:lineSpacingExtra="4dp"
-        android:textColor="?attr/tertiary60"
-        app:layout_constraintTop_toBottomOf="@+id/tv_title"
-        tools:text="确定要执行此操作吗？" />
+        android:layout_weight="1"
+        android:overScrollMode="never">
 
-    <!-- 按钮区域 -->
-    <LinearLayout
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_title"
+                style="@style/TextAppearance.BabyCare.Heading2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textAlignment="center"
+                android:textColor="?attr/primary90"
+                android:letterSpacing="0.01"
+                tools:text="提示" />
+
+            <TextView
+                android:id="@+id/tv_content"
+                style="@style/TextAppearance.BabyCare.Body2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/card_padding"
+                android:gravity="center"
+                android:lineSpacingExtra="@dimen/content_gap_small"
+                android:textColor="?attr/tertiary60"
+                tools:text="确定要执行此操作吗？" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- 大字号/窄窗口时按钮上下排列，并按完整文案增高，始终保留最小触控区。 -->
+    <com.zero.components.widget.AdaptiveRowLayout
+        android:id="@+id/dialog_actions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="@dimen/card_padding"
         android:orientation="horizontal"
-        android:gravity="center"
-        app:layout_constraintTop_toBottomOf="@+id/tv_content">
+        android:gravity="center">
 
-        <!-- 取消按钮 -->
         <TextView
             android:id="@+id/tv_cancel"
             style="@style/TextAppearance.BabyCare.Action"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginEnd="12dp"
+            android:layout_marginEnd="@dimen/content_gap_large"
+            android:minHeight="@dimen/min_touch_target"
+            android:paddingStart="@dimen/content_gap_medium"
+            android:paddingEnd="@dimen/content_gap_medium"
+            android:paddingTop="@dimen/content_gap_medium"
+            android:paddingBottom="@dimen/content_gap_medium"
             android:gravity="center"
             android:text="@string/cancel"
             android:textColor="?attr/colorBrandForeground"
             android:background="@drawable/bg_btn_cancel"
             android:stateListAnimator="@null" />
 
-        <!-- 确认按钮 -->
         <TextView
             android:id="@+id/tv_confirm"
             style="@style/TextAppearance.BabyCare.Action"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:minHeight="@dimen/min_touch_target"
+            android:paddingStart="@dimen/content_gap_medium"
+            android:paddingEnd="@dimen/content_gap_medium"
+            android:paddingTop="@dimen/content_gap_medium"
+            android:paddingBottom="@dimen/content_gap_medium"
             android:gravity="center"
             android:text="@string/confirm"
             android:textColor="?attr/colorOnBrand"
             android:background="@drawable/bg_btn_confirm"
             android:stateListAnimator="@null" />
 
-    </LinearLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
-
-
+    </com.zero.components.widget.AdaptiveRowLayout>
+</LinearLayout>

@@ -897,6 +897,8 @@ class UiResourcePolicyTest {
             repoRoot(),
             "common/src/main/java/com/zero/common/util/StatusBarUtil.kt"
         ).readText()
+        val toolbar = File(repoRoot(),
+            "components/src/main/java/com/zero/components/widget/BaseToolbar.kt").readText()
 
         val offenders = buildList {
             if (!manifest.contains("""android:windowSoftInputMode="adjustResize"""")) {
@@ -904,6 +906,10 @@ class UiResourcePolicyTest {
             }
             if (activityMain.contains("""android:fitsSystemWindows="true"""")) {
                 add("activity root should not consume window insets before shared IME handling")
+            }
+            // 根容器统一处理安全区后，工具栏不能再重复增加状态栏 padding。
+            if (toolbar.contains("WindowInsetsCompat.Type.statusBars()")) {
+                add("toolbar must not apply a second status-bar inset inside the safe activity root")
             }
             if (!statusBarUtil.contains("WindowInsetsCompat.Type.ime()") ||
                 !(statusBarUtil.contains("WindowInsetsCompat.Type.navigationBars()") ||
@@ -1267,8 +1273,13 @@ class UiResourcePolicyTest {
             ) {
                 add("cancel button should use action typography and brand text color")
             }
-            if (!popupLayout.contains("android:layout_height=\"48dp\"")) {
-                add("dialog buttons should keep a 48dp touch target")
+            listOf("tv_cancel", "tv_confirm").forEach { id ->
+                val button = Regex("""<TextView\s[^>]*android:id="@\+id/$id"[^>]*/>""")
+                    .find(popupLayout)?.value.orEmpty()
+                if (!button.contains("android:minHeight=\"@dimen/min_touch_target\"") ||
+                    !button.contains("android:layout_height=\"wrap_content\"")) {
+                    add("dialog buttons should grow with text and keep the shared minimum touch target: $id")
+                }
             }
             if (!cancelBg.contains("control_surface_default") ||
                 !cancelBg.contains("control_surface_selected") ||

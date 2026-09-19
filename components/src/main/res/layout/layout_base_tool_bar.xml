@@ -71,7 +71,7 @@
             android:layout_height="24dp"
             android:layout_marginStart="2dp"
             android:contentDescription="@null"
-            android:visibility="invisible"
+            android:visibility="visible"
             android:src="@drawable/ic_chevron_down"
             app:tint="?attr/iconColorSecondary" />
 

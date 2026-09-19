@@ -60,8 +60,8 @@ class DashboardHeaderPolicyTest {
                     .contains("""android:textColor="?attr/colorTextPrimary"""")
         )
         assertTrue(
-            "Prediction title and first row need enough vertical separation.",
-            predictionFirstRowBlock.contains("""android:layout_marginTop="14dp"""")
+            "预测标题与内容应使用共享的紧凑间距。",
+            predictionFirstRowBlock.contains("""android:layout_marginTop="@dimen/content_gap_small"""")
         )
     }
 
@@ -82,7 +82,7 @@ class DashboardHeaderPolicyTest {
     fun `toolbar layout exposes identity title mode`() {
         val layout = File(repoRoot(), "components/src/main/res/layout/layout_base_tool_bar.xml").readText()
 
-        // 首页需要复用 BaseToolbar 的沉浸状态栏能力，同时用身份区替代居中页面标题。
+        // 首页复用 BaseToolbar 的身份区；状态栏安全区由 Activity 根容器统一负责。
         assertTrue("Toolbar should include an identity title container.", layout.contains("@+id/llIdentityTitle"))
         assertTrue("Toolbar identity should show the current baby name.", layout.contains("@+id/tvIdentityTitle"))
         assertTrue("Toolbar identity should show a dropdown chevron.", layout.contains("@+id/ivIdentityChevron"))

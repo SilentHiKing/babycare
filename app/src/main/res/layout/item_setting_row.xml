@@ -11,63 +11,55 @@
     android:paddingTop="@dimen/settings_row_vertical_padding"
     android:paddingBottom="@dimen/settings_row_vertical_padding">
 
-    <!-- 左侧文案和右侧值组成同一横向链，长文本时优先保留可读标题并压缩右侧值。 -->
-    <LinearLayout
-        android:id="@+id/rowTextContent"
+    <!-- 尾部值仅在宽度足够时同行；大字改为下排，标题和说明均完整展示。 -->
+    <com.zero.components.widget.AdaptiveTrailingLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/settings_row_content_gap"
-        android:gravity="center_vertical"
-        android:orientation="vertical"
+        android:layout_marginEnd="@dimen/settings_row_arrow_gap"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/tvValue"
+        app:layout_constraintEnd_toStartOf="@+id/ivArrow"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <LinearLayout
+            android:id="@+id/rowTextContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                style="@style/TextAppearance.BabyCare.Body2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:textColor="?attr/colorTextPrimary"
+                tools:text="标题" />
+
+            <TextView
+                android:id="@+id/tvSummary"
+                style="@style/TextAppearance.BabyCare.Label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/content_gap_small"
+                android:includeFontPadding="false"
+                android:textColor="?attr/colorTextSecondary"
+                android:visibility="gone"
+                tools:text="摘要内容"
+                tools:visibility="visible" />
+        </LinearLayout>
+
         <TextView
-            android:id="@+id/tvTitle"
+            android:id="@+id/tvValue"
             style="@style/TextAppearance.BabyCare.Body2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
+            android:gravity="start"
             android:includeFontPadding="false"
-            android:maxLines="2"
-            android:textColor="?attr/colorTextPrimary"
-            tools:text="标题" />
-
-        <TextView
-            android:id="@+id/tvSummary"
-            style="@style/TextAppearance.BabyCare.Label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:ellipsize="end"
-            android:includeFontPadding="false"
-            android:maxLines="2"
             android:textColor="?attr/colorTextSecondary"
-            android:visibility="gone"
-            tools:text="摘要内容"
-            tools:visibility="visible" />
-    </LinearLayout>
+            tools:text="设置值" />
 
-    <TextView
-        android:id="@+id/tvValue"
-        style="@style/TextAppearance.BabyCare.Body2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/settings_row_arrow_gap"
-        android:ellipsize="end"
-        android:gravity="end"
-        android:includeFontPadding="false"
-        android:maxLines="1"
-        android:textColor="?attr/colorTextSecondary"
-        app:layout_constrainedWidth="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/ivArrow"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@id/rowTextContent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="设置值" />
+    </com.zero.components.widget.AdaptiveTrailingLayout>
 
     <ImageView
         android:id="@+id/ivArrow"
@@ -81,4 +73,3 @@
         app:tint="?attr/colorTextHint" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

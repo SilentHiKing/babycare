@@ -11,56 +11,56 @@
     android:paddingTop="@dimen/settings_row_vertical_padding"
     android:paddingBottom="@dimen/settings_row_vertical_padding">
 
-    <!-- 文案列预留开关间距，摘要换行时不会贴到右侧控件。 -->
-    <LinearLayout
-        android:id="@+id/rowTextContent"
+    <!-- 开关保留独立热区，窄窗下放到完整说明之后，不挤压或截断文案。 -->
+    <com.zero.components.widget.AdaptiveTrailingLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/settings_row_content_gap"
-        android:gravity="center_vertical"
-        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/switchToggle"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/tvTitle"
-            style="@style/TextAppearance.BabyCare.Body2"
+        <LinearLayout
+            android:id="@+id/rowTextContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:includeFontPadding="false"
-            android:maxLines="2"
-            android:textColor="?attr/colorTextPrimary"
-            tools:text="提醒开关" />
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tvSummary"
-            style="@style/TextAppearance.BabyCare.Label"
-            android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tvTitle"
+                style="@style/TextAppearance.BabyCare.Body2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:labelFor="@+id/switchToggle"
+                android:text="@string/settings_reminder_switch_title"
+                android:textColor="?attr/colorTextPrimary"
+                tools:text="提醒开关" />
+
+            <TextView
+                android:id="@+id/tvSummary"
+                style="@style/TextAppearance.BabyCare.Label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/content_gap_small"
+                android:includeFontPadding="false"
+                android:textColor="?attr/colorTextSecondary"
+                android:visibility="gone"
+                tools:text="摘要说明"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchToggle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:ellipsize="end"
-            android:includeFontPadding="false"
-            android:maxLines="2"
-            android:textColor="?attr/colorTextSecondary"
-            android:visibility="gone"
-            tools:text="摘要说明"
-            tools:visibility="visible" />
-    </LinearLayout>
+            android:minWidth="@dimen/min_touch_target"
+            android:minHeight="@dimen/min_touch_target"
+            android:showText="false"
+            android:thumb="@drawable/bg_setting_switch_thumb"
+            android:track="@drawable/bg_setting_switch_track"
+            app:splitTrack="false" />
 
-    <androidx.appcompat.widget.SwitchCompat
-        android:id="@+id/switchToggle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:showText="false"
-        android:thumb="@drawable/bg_setting_switch_thumb"
-        android:track="@drawable/bg_setting_switch_track"
-        app:splitTrack="false"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    </com.zero.components.widget.AdaptiveTrailingLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

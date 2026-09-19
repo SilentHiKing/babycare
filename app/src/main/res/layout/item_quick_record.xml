@@ -5,10 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center"
-    android:minHeight="84dp"
     android:orientation="vertical"
-    android:paddingTop="12dp"
-    android:paddingBottom="12dp">
+    android:paddingTop="@dimen/content_gap_small"
+    android:paddingBottom="@dimen/content_gap_small">
 
     <FrameLayout
         android:id="@+id/iconContainer"
@@ -18,8 +17,8 @@
 
         <ImageView
             android:id="@+id/ivIcon"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
+            android:layout_width="@dimen/icon_size_standard"
+            android:layout_height="@dimen/icon_size_standard"
             android:layout_gravity="center"
             android:contentDescription="@null"
             app:tint="?attr/iconColorBrand"
@@ -29,10 +28,10 @@
 
     <TextView
         android:id="@+id/tvName"
-        style="@style/TextAppearance.BabyCare.Label"
+        style="@style/TextAppearance.BabyCare.Body2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="@dimen/content_gap_small"
         android:gravity="center"
         android:textColor="?attr/colorTextSecondary"
         tools:text="排泄" />

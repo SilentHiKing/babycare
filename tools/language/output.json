@@ -2847,7 +2847,7 @@
         "codeKey": "since_last",
         "language": {
           "zh-Hans": "距上次",
-          "en": "since last time",
+          "en": "Since last",
           "zh-Hant": "距離上次",
           "ja": "前回から",
           "ko": "지난번부터"
@@ -2877,7 +2877,7 @@
         "codeKey": "next_prediction",
         "language": {
           "zh-Hans": "下次预测",
-          "en": "next prediction",
+          "en": "Next prediction",
           "zh-Hant": "下次預測",
           "ja": "次の予測",
           "ko": "다음 예측"
@@ -2896,11 +2896,11 @@
       {
         "codeKey": "predict_feeding_with_range",
         "language": {
-          "zh-Hans": "下次喂奶 %1$s~%2$s",
-          "en": "Next feeding %1$s~%2$s",
-          "zh-Hant": "下次餵奶 %1$s~%2$s",
-          "ja": "次の給餌 %1$s~%2$s",
-          "ko": "다음 수유 %1$s~%2$s"
+          "zh-Hans": "喂奶 %1$s–%2$s",
+          "en": "Feeding %1$s–%2$s",
+          "zh-Hant": "餵奶 %1$s–%2$s",
+          "ja": "授乳 %1$s–%2$s",
+          "ko": "수유 %1$s–%2$s"
         }
       },
       {
@@ -2916,18 +2916,18 @@
       {
         "codeKey": "predict_sleep_with_range",
         "language": {
-          "zh-Hans": "下次睡觉 %1$s~%2$s",
-          "en": "Next sleep %1$s~%2$s",
-          "zh-Hant": "下次睡覺 %1$s~%2$s",
-          "ja": "次の睡眠 %1$s~%2$s",
-          "ko": "다음 수면 %1$s~%2$s"
+          "zh-Hans": "睡觉 %1$s–%2$s",
+          "en": "Sleep %1$s–%2$s",
+          "zh-Hant": "睡覺 %1$s–%2$s",
+          "ja": "睡眠 %1$s–%2$s",
+          "ko": "수면 %1$s–%2$s"
         }
       },
       {
         "codeKey": "remain_time",
         "language": {
           "zh-Hans": "最晚还有%1$s",
-          "en": "At most %1$s left",
+          "en": "Within %1$s",
           "zh-Hant": "最晚還有%1$s",
           "ja": "最長あと %1$s",
           "ko": "최대 %1$s 남음"
