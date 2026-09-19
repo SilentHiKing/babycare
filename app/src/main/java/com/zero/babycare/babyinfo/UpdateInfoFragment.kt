@@ -25,6 +25,7 @@ import com.zero.components.widget.ToolbarAction
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.flow.combine
 
 
 /**
@@ -63,7 +64,9 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
     private var primaryActionText: String = ""
 
     /** 页面进入某个模式后的初始表单值，用于判断编辑态是否真的发生改动。 */
-    private var initialSnapshot = FormSnapshot()
+    private var initialSnapshot = BabyInfoFormSnapshot()
+    private var activeTargetKey: String? = null
+    private var isRestoringForm = false
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
@@ -108,19 +111,44 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
             vm.uiState.collect {
                 when (it) {
                     is UiState.Loading -> showLoading()
-                    is UiState.Success -> {
-                        ToastUtils.showLong(com.zero.common.R.string.updateSuccess)
+                    is UiState.Success -> hideLoading()
+                    is UiState.Error -> {
                         hideLoading()
+                        ToastUtils.showShort(com.zero.common.R.string.save_failed)
                     }
-                    is UiState.Error -> hideLoading()
                     else -> {}
                 }
+                refreshPrimaryActionState()
             }
+        }
+
+        launchInLifecycle {
+            vm.saveEffects.collect { result ->
+                if (result.selectAsCurrent) mainVm.setCurrentBaby(result.baby)
+                else if (!result.created) mainVm.updateCurrentBabyIfNeeded(result.baby)
+                (activity as? MainActivity)?.refreshDrawerBabyInfo()
+                hideLoading()
+                ToastUtils.showLong(com.zero.common.R.string.updateSuccess)
+                goBack()
+            }
+        }
+
+        launchInLifecycle {
+            mainVm.navTarget.combine(mainVm.babyDataLoaded) { target, loaded -> target to loaded }
+                .collect { (_, loaded) ->
+                    if (loaded && !isHidden) refreshPageMode()
+                }
         }
 
         launchInLifecycle {
             vm.unitState.collect { unitState ->
                 bindUnitLabels(unitState)
+            }
+        }
+        launchInLifecycle {
+            mainVm.deletingBabyIds.collect {
+                if (!isHidden) refreshPageMode()
+                refreshPrimaryActionState()
             }
         }
     }
@@ -130,6 +158,10 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         if (!hidden) {
             // 页面显示时，刷新模式和数据
             refreshPageMode()
+        } else if (mainVm.navTarget.value !is NavTarget.BabyInfo) {
+            // 明确离开表单才结束本次草稿；切后台不会触发这一分支。
+            activeTargetKey = null
+            vm.clearDraft()
         }
     }
 
@@ -140,49 +172,59 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         }
     }
 
+    override fun onDestroyView() {
+        // Fragment 实例可在销毁 View 后继续存在，新 View 必须重新渲染，草稿仍由 ViewModel 保留。
+        activeTargetKey = null
+        primaryActionText = ""
+        super.onDestroyView()
+    }
+
     /**
      * 刷新页面模式
      * 根据导航参数决定是创建模式还是编辑模式
      */
     private fun refreshPageMode() {
+        if (!mainVm.babyDataLoaded.value) return
+        val target = mainVm.navTarget.value as? NavTarget.BabyInfo ?: return
+        // 删除过程中的 Room 快照可能先于完成意图到达，重建页面时等待统一结果。
+        if (mainVm.isDeletingBaby(target.babyId)) return
+        if (target.mode == NavTarget.BabyInfo.Mode.EDIT &&
+            target.babyId?.let(mainVm::getBabyById) == null
+        ) {
+            // 编辑对象已被删除时不能转成新建，否则同一份表单可能误创建另一个宝宝。
+            ToastUtils.showShort(com.zero.common.R.string.data_load_failed)
+            goBack()
+            return
+        }
+        val targetKey = "${target.mode}:${target.babyId}"
+        if (activeTargetKey == targetKey) return
+        val draft = vm.getDraft(targetKey)
+        activeTargetKey = targetKey
+        isRestoringForm = true
         vm.refreshUnitState()
-        val navTarget = mainVm.navTarget.value
-        
-        when (navTarget) {
-            is NavTarget.BabyInfo -> {
-                when (navTarget.mode) {
-                    NavTarget.BabyInfo.Mode.CREATE -> {
-                        editingBaby = null
-                        setupCreateMode()
-                    }
-                    NavTarget.BabyInfo.Mode.EDIT -> {
-                        // 编辑模式：通过 babyId 获取要编辑的宝宝（不依赖 currentBaby）
-                        val babyId = navTarget.babyId
-                        editingBaby = if (babyId != null) {
-                            mainVm.getBabyById(babyId)
-                        } else {
-                            null
-                        }
-                        
-                        if (editingBaby != null) {
-                            setupEditMode()
-                        } else {
-                            // 找不到宝宝，回退到创建模式
-                            setupCreateMode()
-                        }
-                    }
-                }
+        when (target.mode) {
+            NavTarget.BabyInfo.Mode.CREATE -> {
+                editingBaby = null
+                setupCreateMode()
             }
-            else -> {
-                // 兼容旧的导航方式：根据是否有当前宝宝判断模式
-                editingBaby = mainVm.getCurrentBabyInfo()
-                if (isEditMode) {
-                    setupEditMode()
-                } else {
-                    setupCreateMode()
-                }
+            NavTarget.BabyInfo.Mode.EDIT -> {
+                // 编辑对象只取导航参数，切换当前宝宝不会改写这份表单所属对象。
+                editingBaby = target.babyId?.let(mainVm::getBabyById)
+                setupEditMode()
             }
         }
+        if (draft != null) {
+            initialSnapshot = draft.initial
+            selectedGenderCode = draft.form.genderCode
+            binding.etName.setText(draft.form.name)
+            binding.etBirthday.setText(draft.form.birthday)
+            binding.etGender.setText(getGenderLabel(selectedGenderCode))
+            binding.etWeight.setText(draft.form.weight)
+            binding.etHeight.setText(draft.form.height)
+            binding.etBloodType.setText(draft.form.bloodType)
+        }
+        isRestoringForm = false
+        refreshPrimaryActionState()
     }
 
     /**
@@ -299,6 +341,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
      * 保存宝宝信息
      */
     private fun saveBabyInfo() {
+        if (mainVm.isDeletingBaby(editingBaby?.babyId)) return
         val name = binding.etName.text.toString().trim()
         if (name.isEmpty()) {
             ToastUtils.showLong(com.zero.common.R.string.nameIsNullTip)
@@ -311,49 +354,48 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
 
         // 编辑页允许把非必填出生信息清空，保存时需要同步清掉旧值。
         val birthdayText = binding.etBirthday.text?.toString()?.trim().orEmpty()
-        baby.birthDate = birthdayText
-            .takeIf { it.isNotEmpty() }
-            ?.let { CompatDateUtils.stringToTimestamp(it) }
-            ?: 0L
+        // 展示精度只到分钟/两位小数；未编辑的字段保留原始值，避免改姓名时损失出生数据精度。
+        if (!isEditMode || birthdayText != initialSnapshot.birthday.trim()) {
+            baby.birthDate = birthdayText
+                .takeIf { it.isNotEmpty() }
+                ?.let { CompatDateUtils.stringToTimestamp(it) }
+                ?: 0L
+        }
 
         val weightText = binding.etWeight.text?.toString()?.trim().orEmpty()
-        baby.birthWeight = weightText
+        val parsedWeight = weightText
             .takeIf { it.isNotEmpty() }
             ?.let { vm.parseBirthWeightToStorage(it) }
-            ?: 0f
+        if (weightText.isNotEmpty() && parsedWeight == null) {
+            binding.etWeight.error = getString(com.zero.common.R.string.measurement_value_invalid)
+            binding.etWeight.requestFocus()
+            return
+        }
+        if (!isEditMode || weightText != initialSnapshot.weight.trim()) {
+            baby.birthWeight = parsedWeight ?: 0f
+        }
 
         val heightText = binding.etHeight.text?.toString()?.trim().orEmpty()
-        baby.birthHeight = heightText
+        val parsedHeight = heightText
             .takeIf { it.isNotEmpty() }
             ?.let { vm.parseBirthHeightToStorage(it) }
-            ?: 0f
+        if (heightText.isNotEmpty() && parsedHeight == null) {
+            binding.etHeight.error = getString(com.zero.common.R.string.measurement_value_invalid)
+            binding.etHeight.requestFocus()
+            return
+        }
+        if (!isEditMode || heightText != initialSnapshot.height.trim()) {
+            baby.birthHeight = parsedHeight ?: 0f
+        }
 
         baby.bloodType = binding.etBloodType.text.toString()
 
         if (isEditMode) {
             // 更新
-            vm.update(baby) {
-                // 如果编辑的是当前选中的宝宝，更新缓存
-                mainVm.updateCurrentBabyIfNeeded(baby)
-                // 刷新侧边栏（如果编辑的是当前宝宝，侧边栏信息需要更新）
-                (activity as? MainActivity)?.refreshDrawerBabyInfo()
-                // 返回上一页
-                goBack()
-            }
+            vm.update(baby)
         } else {
             // 新增
-            val isFirstBaby = isFirstCreate  // 保存状态，因为 insert 后 isFirstCreate 会变化
-            vm.insert(baby) {
-                // 只有首次创建（之前没有任何宝宝）才设为当前宝宝
-                // 非首次添加不改变当前宝宝
-                if (isFirstBaby) {
-                    mainVm.setCurrentBaby(baby)
-                }
-                // 刷新侧边栏
-                (activity as? MainActivity)?.refreshDrawerBabyInfo()
-                // 返回来源页面
-                goBack()
-            }
+            vm.insert(baby, selectAsCurrent = isFirstCreate)
         }
     }
 
@@ -362,6 +404,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
      */
     private fun showDeleteConfirm() {
         val baby = editingBaby ?: return
+        if (mainVm.isDeletingBaby(baby.babyId) || vm.uiState.value is UiState.Loading) return
 
         DialogHelper.showConfirmDialog(
             context = requireContext(),
@@ -369,24 +412,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
             content = getString(com.zero.common.R.string.delete_baby_confirm, baby.name),
             confirmText = getString(com.zero.common.R.string.confirm),
             cancelText = getString(com.zero.common.R.string.cancel),
-            onConfirm = {
-                mainVm.deleteBaby(baby) {
-                    ToastUtils.showShort(com.zero.common.R.string.delete_success)
-                    // 刷新侧边栏
-                    (activity as? MainActivity)?.refreshDrawerBabyInfo()
-                    // 检查是否还有其他宝宝
-                    val remaining = mainVm.getAllBabies()
-                    if (remaining.isEmpty()) {
-                        // 没有宝宝了，进入创建模式
-                        editingBaby = null
-                        refreshPageMode()
-                    } else {
-                        // 切换到第一个宝宝
-                        mainVm.setCurrentBaby(remaining.first())
-                        goBack()
-                    }
-                }
-            }
+            onConfirm = { mainVm.deleteBaby(baby) }
         )
     }
 
@@ -400,6 +426,8 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
     }
 
     private fun goBack() {
+        vm.clearDraft()
+        activeTargetKey = null
         val navTarget = mainVm.navTarget.value
         val returnTarget = if (navTarget is NavTarget.BabyInfo) {
             navTarget.returnTarget
@@ -525,8 +553,8 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         initialSnapshot = currentSnapshot()
     }
 
-    private fun currentSnapshot(): FormSnapshot {
-        return FormSnapshot(
+    private fun currentSnapshot(): BabyInfoFormSnapshot {
+        return BabyInfoFormSnapshot(
             name = binding.etName.text?.toString().orEmpty(),
             birthday = binding.etBirthday.text?.toString().orEmpty(),
             genderCode = selectedGenderCode,
@@ -544,16 +572,12 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         if (primaryActionText.isBlank()) return
         val hasName = binding.etName.text?.toString()?.trim()?.isNotEmpty() == true
         val hasChanges = currentSnapshot() != initialSnapshot
-        val enabled = hasName && (!isEditMode || hasChanges)
+        val mutationInProgress = vm.uiState.value is UiState.Loading || mainVm.isDeletingBaby(editingBaby?.babyId)
+        val enabled = hasName && (!isEditMode || hasChanges) && !mutationInProgress
+        binding.tvDelete.isEnabled = !mutationInProgress
         setPrimaryAction(primaryActionText, enabled)
+        if (!isRestoringForm) {
+            activeTargetKey?.let { vm.saveDraft(BabyInfoDraft(it, currentSnapshot(), initialSnapshot)) }
+        }
     }
-
-    private data class FormSnapshot(
-        val name: String = "",
-        val birthday: String = "",
-        val genderCode: String = "",
-        val weight: String = "",
-        val height: String = "",
-        val bloodType: String = ""
-    )
 }

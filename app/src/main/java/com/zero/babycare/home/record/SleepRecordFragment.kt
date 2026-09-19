@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.annotation.StringRes
+import androidx.core.widget.doAfterTextChanged
+import com.google.gson.Gson
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.blankj.utilcode.util.ToastUtils
@@ -15,6 +17,9 @@ import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babydata.entity.SleepRecord
 import com.zero.common.R
 import com.zero.common.util.DateUtils
+import com.zero.common.ext.launchInLifecycle
+import kotlinx.coroutines.flow.combine
+import java.util.UUID
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
 import com.zero.components.widget.RecordView.RecordState
@@ -72,6 +77,10 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
     private var isProgrammaticChange = false
 
     private var timerController: RecordTimerController? = null
+    private var retainedDraft: Bundle? = null
+    private var draftForView: Bundle? = null
+    private var draftBabyId: Int? = null
+    private var draftId = UUID.randomUUID().toString()
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
@@ -80,16 +89,80 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
         setupTimerController()
         setupToolbar()
         setupSaveButton()
+        binding.etNote.doAfterTextChanged { if (!isProgrammaticChange) markAsUnsaved() }
 
-        // 初始化时重置页面数据
         resolveEditMode()
-        resetPage()
-        if (isEditMode) {
+        draftForView = (savedInstanceState?.getBundle(RecordDraftState.KEY) ?: retainedDraft)
+            ?.takeIf { mainVm.navTarget.value is NavTarget.SleepRecord &&
+                RecordDraftState.matches(it, mainVm.getCurrentBabyInfo()?.babyId, editRecordId) }
+        draftBabyId = draftForView?.getInt("baby_id")?.takeIf { it > 0 }
+            ?: mainVm.getCurrentBabyInfo()?.babyId
+        draftId = draftForView?.getString("draft_id") ?: UUID.randomUUID().toString()
+        if (draftForView == null) resetPage()
+        if (isEditMode && draftForView?.getString("editing_record") == null) {
             loadEditRecord()
+        }
+        launchInLifecycle {
+            mainVm.currentBaby.combine(mainVm.navTarget) { baby, target -> baby?.babyId to target }
+                .collect { (babyId, target) ->
+                    if (!isHidden && target is NavTarget.SleepRecord && babyId != null) {
+                        val changed = (draftBabyId != null && draftBabyId != babyId) || editRecordId != target.editRecordId
+                        if (draftBabyId == null) draftBabyId = babyId
+                        if (changed) openCurrentTarget()
+                    }
+                }
+        }
+        observeMutation()
+        // LiveData 自身绑定 View 生命周期；只注册一次，避免反复进入记录页累加观察者。
+        vm.lastSleepRecord.observe(viewLifecycleOwner) { record ->
+            if (record != null && record.babyId == currentDraftBabyId()) {
+                binding.tvLastSleep.text = getString(
+                    R.string.last_sleep_time,
+                    DateUtils.timestampToMMddHHmm(record.sleepEnd)
+                )
+                binding.tvLastSleep.visibility = View.VISIBLE
+            } else {
+                binding.tvLastSleep.visibility = View.GONE
+            }
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (view != null && !isHidden) outState.putBundle(RecordDraftState.KEY, captureDraft())
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        draftForView?.let { draft ->
+            isProgrammaticChange = true
+            editingRecord = draft.getString("editing_record")?.let { Gson().fromJson(it, SleepRecord::class.java) }
+                ?: editingRecord
+            editRecordId = draft.getInt("edit_id").takeIf { it > 0 }
+            isEditMode = editRecordId != null
+            RecordDraftState.restoreHierarchy(binding.root, draft)
+            draft.getBundle("timer")?.let { RecordDraftState.restoreTimer(binding.timerPanel, timerController, it) }
+            hasUnsavedChanges = draft.getBoolean("dirty")
+            isProgrammaticChange = false
+            applyTimerLockState()
+            updateToolbarAction()
+        }
+        draftForView = null
+        retainedDraft = null
+    }
+
+    private fun captureDraft(): Bundle = Bundle().apply {
+        putInt("edit_id", editRecordId ?: 0)
+        putString("draft_id", draftId)
+        putInt("baby_id", draftBabyId ?: mainVm.getCurrentBabyInfo()?.babyId ?: 0)
+        putBoolean("dirty", hasUnsavedChanges)
+        editingRecord?.let { putString("editing_record", Gson().toJson(it)) }
+        putBundle("timer", RecordDraftState.saveTimer(binding.timerPanel, timerController))
+        RecordDraftState.saveHierarchy(binding.root, this)
+    }
+
     override fun onDestroyView() {
+        retainedDraft = if (!isHidden) captureDraft() else null
         timerController?.dispose()
         timerController = null
         binding.timerPanel.timerView.release()
@@ -102,24 +175,29 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
         if (view == null) return
         
         if (hidden) {
+            retainedDraft = null
             // 隐藏时不重置计时器（保留进行中状态）
         } else {
-            resolveEditMode()
-            if (isEditMode) {
-                loadEditRecord()
-                return
-            }
-            // 检查是否有进行中的睡眠记录
-            val babyId = mainVm.getCurrentBabyInfo()?.babyId
-            if (babyId != null && OngoingRecordManager.isSleeping(babyId)) {
-                // 恢复进行中的记录
-                restoreOngoingSleep(babyId)
-            } else {
-                resetPage()
-            }
+            openCurrentTarget()
+        }
+    }
+
+    /** 同一个常驻页面也可能收到另一宝宝/编辑目标，必须先切换表单归属。 */
+    private fun openCurrentTarget() {
+        draftId = UUID.randomUUID().toString()
+        draftBabyId = mainVm.getCurrentBabyInfo()?.babyId
+        resolveEditMode()
+        resetPage()
+        if (isEditMode) {
+            loadEditRecord()
+        } else {
+            draftBabyId?.takeIf(OngoingRecordManager::isSleeping)?.let(::restoreOngoingSleep)
             loadLastSleepRecord()
         }
     }
+
+    private fun currentDraftBabyId(): Int? = mainVm.getCurrentBabyInfo()?.babyId
+        ?.takeIf { draftBabyId == null || draftBabyId == it }
 
     /**
      * 恢复进行中的睡眠记录
@@ -163,7 +241,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
             callbacks = RecordTimerController.Callbacks(
                 onStartTimeChanged = { startTime ->
                     markAsUnsaved()
-                    val babyId = mainVm.getCurrentBabyInfo()?.babyId
+                    val babyId = currentDraftBabyId()
                     if (!isEditMode && babyId != null && OngoingRecordManager.isSleeping(babyId)) {
                         // 同步进行中的开始时间，避免恢复与状态卡不一致
                         OngoingRecordManager.updateSleepStart(babyId, startTime)
@@ -171,16 +249,16 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
                 },
                 onEndTimeChanged = { markAsUnsaved() },
                 onTimerStart = { startTime ->
-                    mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
+                    currentDraftBabyId()?.let { babyId ->
                         OngoingRecordManager.startSleep(babyId, startTime)
                     }
                 },
                 onTimerResume = {
                     markAsUnsaved()
-                    mainVm.getCurrentBabyInfo()?.babyId?.let(OngoingRecordManager::resumeSleep)
+                    currentDraftBabyId()?.let(OngoingRecordManager::resumeSleep)
                 },
                 onTimerPause = { endTime ->
-                    mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
+                    currentDraftBabyId()?.let { babyId ->
                         OngoingRecordManager.pauseSleep(
                             babyId = babyId,
                             endTime = endTime,
@@ -250,14 +328,21 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
 
     private fun loadEditRecord() {
         val recordId = editRecordId ?: return
+        val expectedView = view
+        val expectedBabyId = draftBabyId
+        val expectedDraftId = draftId
         vm.loadSleepRecordById(recordId) { record ->
-            if (record == null) {
+            if (view !== expectedView || isHidden || editRecordId != recordId || draftId != expectedDraftId) return@loadSleepRecordById
+            if (record == null || (expectedBabyId != null && record.babyId != expectedBabyId) ||
+                (draftBabyId != null && record.babyId != draftBabyId)) {
                 mainVm.navigateTo(getReturnTarget())
                 return@loadSleepRecordById
             }
+            draftBabyId = record.babyId
             editingRecord = record
             updateToolbarAction()
-            applyRecordToUi(record)
+            // 等待数据库期间输入的草稿优先，只补齐保存编辑所需的原始记录身份。
+            if (!hasUnsavedChanges) applyRecordToUi(record)
         }
     }
 
@@ -276,7 +361,13 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
      * 保存睡眠记录
      */
     private fun saveSleepRecord() {
-        if (mutationInProgress) return
+        if (vm.mutation.isPending || (isEditMode && editingRecord == null)) return
+        val babyId = currentDraftBabyId()
+        if (babyId == null) {
+            ToastUtils.showShort(R.string.no_baby_selected)
+            return
+        }
+        if (isEditMode && editingRecord?.babyId != babyId) return
         clearValidationErrors()
 
         // 如果正在计时，先暂停
@@ -284,12 +375,6 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
             binding.timerPanel.timerView.forcePause(triggerCallback = true)
             // 更新醒来时间
             binding.timerPanel.endInput.setTimestamp(System.currentTimeMillis())
-        }
-
-        val babyId = mainVm.getCurrentBabyInfo()?.babyId
-        if (babyId == null) {
-            ToastUtils.showShort(R.string.no_baby_selected)
-            return
         }
 
         val startTime = binding.timerPanel.startInput.getTimestamp()
@@ -327,34 +412,14 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
             createdAt = editingRecord?.createdAt ?: System.currentTimeMillis()
         )
 
-        setMutationInProgress(true)
-        val onSaved = {
-            setMutationInProgress(false)
-            ToastUtils.showShort(R.string.sleep_save_success)
-            if (!isEditMode) {
-                // 清除进行中状态
-                OngoingRecordManager.endSleep(babyId)
-                view?.post { resetPage() }
-            }
-            hasUnsavedChanges = false
-            mainVm.navigateTo(getReturnTarget())
-        }
-        val onError = {
-            setMutationInProgress(false)
-            ToastUtils.showShort(R.string.save_failed)
-        }
-
-        if (isEditMode) {
-            vm.update(sleepRecord, onSaved, onError)
-        } else {
-            vm.insert(sleepRecord, onSaved, onError)
-        }
+        vm.save(sleepRecord, mutationTarget(babyId))
     }
 
     /** 删除是记录纠错的一部分，成功后同步触发统计与预测刷新。 */
     private fun showDeleteConfirmDialog() {
         val record = editingRecord ?: return
-        if (mutationInProgress) return
+        if (vm.mutation.isPending) return
+        val target = mutationTarget(record.babyId)
         DialogHelper.showConfirmDialog(
             context = requireContext(),
             title = getString(R.string.delete_record),
@@ -362,21 +427,9 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
             confirmText = getString(R.string.delete_record),
             cancelText = getString(R.string.cancel),
             onConfirm = {
-                setMutationInProgress(true)
-                vm.delete(
-                    sleepId = record.sleepId,
-                    babyId = record.babyId,
-                    onSuccess = {
-                        setMutationInProgress(false)
-                        hasUnsavedChanges = false
-                        ToastUtils.showShort(R.string.record_delete_success)
-                        mainVm.navigateTo(getReturnTarget())
-                    },
-                    onError = {
-                        setMutationInProgress(false)
-                        ToastUtils.showShort(R.string.record_delete_failed)
-                    }
-                )
+                if (target.belongsTo(draftId, currentDraftBabyId(), mainVm.navTarget.value)) {
+                    vm.delete(record.sleepId, target)
+                }
             }
         )
     }
@@ -387,6 +440,32 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
         binding.tvSave.isEnabled = !inProgress
         binding.tvSave.alpha = if (inProgress) 0.7f else 1f
         updateToolbarAction()
+    }
+
+    private fun mutationTarget(babyId: Int) = RecordMutationController.Target(
+        draftId, babyId, editRecordId, mainVm.navTarget.value, getReturnTarget()
+    )
+
+    /** 生命周期重建后由新 View 消费结果，旧 Fragment 不再被保存协程持有。 */
+    private fun observeMutation() {
+        launchInLifecycle {
+            vm.mutation.state.collect { state ->
+                setMutationInProgress(state is RecordMutationController.State.Running)
+                if (state is RecordMutationController.State.Finished && vm.mutation.consume(state)) {
+                    val belongs = state.target.belongsTo(draftId, currentDraftBabyId(), mainVm.navTarget.value)
+                    if (state.target.draftId == draftId && state.errorRes == null) {
+                        hasUnsavedChanges = false
+                        resetPage()
+                    }
+                    if (belongs && !isHidden) {
+                        val message = state.errorRes ?: if (state.kind == RecordMutationController.Kind.DELETE)
+                            R.string.record_delete_success else R.string.sleep_save_success
+                        ToastUtils.showShort(message)
+                        if (state.errorRes == null) mainVm.navigateTo(state.target.destination)
+                    }
+                }
+            }
+        }
     }
 
     /** 错误与具体字段绑定，确保用户能立即定位并修正记录。 */
@@ -407,19 +486,8 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
      * 加载上次睡眠记录
      */
     private fun loadLastSleepRecord() {
-        val babyId = mainVm.getCurrentBabyInfo()?.babyId ?: return
+        val babyId = currentDraftBabyId() ?: return
         vm.loadLastSleepRecord(babyId)
-        vm.lastSleepRecord.observe(viewLifecycleOwner) { record ->
-            if (record != null) {
-                binding.tvLastSleep.text = getString(
-                    R.string.last_sleep_time,
-                    DateUtils.timestampToMMddHHmm(record.sleepEnd)
-                )
-                binding.tvLastSleep.visibility = View.VISIBLE
-            } else {
-                binding.tvLastSleep.visibility = View.GONE
-            }
-        }
     }
 
     /**
@@ -444,7 +512,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
      * 标记为有未保存的更改
      */
     private fun markAsUnsaved() {
-        hasUnsavedChanges = true
+        if (!isProgrammaticChange) hasUnsavedChanges = true
     }
 
     /**
@@ -466,7 +534,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
                 onConfirm = {
                     hasUnsavedChanges = false
                     if (!isEditMode) {
-                        mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
+                        currentDraftBabyId()?.let { babyId ->
                             OngoingRecordManager.cancelSleep(babyId)
                         }
                     }

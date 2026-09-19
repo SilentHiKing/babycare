@@ -62,12 +62,16 @@ class EventSubtypeAdapter(
             val categoryColor = ContextCompat.getColor(context, item.category.colorResId)
             ivIcon.setColorFilter(categoryColor)
 
-            val brandColor = context.getThemeColor(com.zero.common.R.attr.colorBrand)
+            val brandColor = context.getThemeColor(com.zero.common.R.attr.colorBrandForeground)
             cardRoot.setCardBackgroundColor(
-                ContextCompat.getColor(context, com.zero.common.R.color.control_surface_default)
+                ContextCompat.getColor(
+                    context,
+                    if (isSelected) com.zero.common.R.color.control_surface_selected
+                    else com.zero.common.R.color.control_surface_default
+                )
             )
 
-            // 选中态统一使用品牌 tint；业务色只留给图标，避免同一控件出现两套强调色。
+            // 浅暖底与品牌前景共同表达选中；前景 token 在深色模式独立提高明度。
             if (isSelected) {
                 cardRoot.strokeWidth = context.resources
                     .getDimensionPixelSize(com.zero.common.R.dimen.surface_stroke_width)

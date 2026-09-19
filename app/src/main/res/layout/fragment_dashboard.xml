@@ -133,7 +133,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:text="@string/feeding"
-                        android:textColor="@color/feeding_primary"
+                        android:textColor="@color/feeding_primary_dark"
                         app:layout_constraintBottom_toBottomOf="@id/ivFeedingIcon"
                         app:layout_constraintStart_toEndOf="@id/ivFeedingIcon"
                         app:layout_constraintTop_toTopOf="@id/ivFeedingIcon" />
@@ -173,7 +173,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:textColor="@color/feeding_primary"
+                        android:textColor="@color/feeding_primary_dark"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/dividerFeeding"
                         tools:text="今日 5次" />
@@ -219,7 +219,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:text="@string/sleeping"
-                        android:textColor="@color/sleep_primary"
+                        android:textColor="@color/sleep_primary_dark"
                         app:layout_constraintBottom_toBottomOf="@id/ivSleepIcon"
                         app:layout_constraintStart_toEndOf="@id/ivSleepIcon"
                         app:layout_constraintTop_toTopOf="@id/ivSleepIcon" />
@@ -259,7 +259,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:textColor="@color/sleep_primary"
+                        android:textColor="@color/sleep_primary_dark"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/dividerSleep"
                         tools:text="今日 3次" />

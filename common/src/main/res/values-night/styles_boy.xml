@@ -10,6 +10,7 @@
 
         <!-- UI Tokens Override -->
         <item name="colorBrand">@color/boy_brand</item>
+        <item name="colorBrandForeground">@color/boy_accent</item>
         <item name="colorBrandLight">@color/boy_brand_light</item>
         <item name="colorBrandDark">@color/boy_brand_dark</item>
         <item name="colorSurfaceVariant">@color/boy_bg_brand</item>
@@ -21,7 +22,7 @@
         <!-- ========== 文本/语义色 ========== -->
         <item name="semantics_blue">@color/boy_accent</item>
         <item name="colorStatusTextPrimary">@color/boy_accent</item>
-        <item name="colorStatusTextSecondary">@color/boy_brand_dark</item>
+        <item name="colorStatusTextSecondary">@color/status_text_secondary</item>
 
         <!-- ========== 图标 ========== -->
         <item name="iconColorBrand">@color/boy_accent</item>

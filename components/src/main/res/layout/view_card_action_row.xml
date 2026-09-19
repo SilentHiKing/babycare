@@ -37,7 +37,7 @@
             android:paddingTop="6dp"
             android:paddingBottom="6dp"
             android:text="@string/edit"
-            android:textColor="?attr/colorBrand" />
+            android:textColor="?attr/colorBrandForeground" />
 
         <TextView
             android:id="@+id/tvSecondaryAction"

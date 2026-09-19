@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.view.doOnLayout
+import androidx.core.view.ViewCompat
 import androidx.core.widget.TextViewCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSnapHelper
@@ -26,7 +27,7 @@ import kotlin.math.roundToInt
  */
 internal class BabyCareDateTimePopup(
     context: Context,
-    title: String,
+    private val title: String,
     private val mode: DialogHelper.DateTimeMode,
     initialTime: Long,
     private val minTime: Long? = null,
@@ -80,6 +81,7 @@ internal class BabyCareDateTimePopup(
         timeGroup = findViewById(R.id.picker_time_group)
         groupGap = findViewById(R.id.picker_date_time_group_gap)
         contentTouchArea = findViewById(R.id.picker_frame)
+        ViewCompat.setAccessibilityPaneTitle(contentTouchArea, title)
 
         yearColumn = createColumn(findViewById(R.id.list_year))
         monthColumn = createColumn(findViewById(R.id.list_month))

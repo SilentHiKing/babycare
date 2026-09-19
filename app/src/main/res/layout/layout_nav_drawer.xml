@@ -52,7 +52,7 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:tint="?attr/colorBrand" />
+                    app:tint="?attr/colorBrandForeground" />
 
                 <TextView
                     android:id="@+id/tvBabyName"
@@ -121,7 +121,7 @@
                     android:layout_height="@dimen/drawer_menu_icon_size"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_all_babies"
-                    app:tint="?attr/colorBrand" />
+                    app:tint="?attr/colorBrandForeground" />
 
                 <TextView
                     style="@style/TextAppearance.BabyCare.Body2"
@@ -165,7 +165,7 @@
                     android:layout_height="@dimen/drawer_menu_icon_size"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_settings"
-                    app:tint="?attr/colorBrand" />
+                    app:tint="?attr/colorBrandForeground" />
 
                 <TextView
                     style="@style/TextAppearance.BabyCare.Body2"

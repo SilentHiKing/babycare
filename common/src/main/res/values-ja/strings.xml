@@ -278,8 +278,8 @@
     <string name="baby_awake">赤ちゃんは起きています</string>
     <string name="baby_sleeping">赤ちゃんは寝ています</string>
     <string name="baby_feeding">授乳中</string>
-    <string name="awake_duration">目覚めた%1$s</string>
-    <string name="sleeping_duration">もう寝ています %1$s</string>
+    <string name="awake_duration">起きてから %1$s</string>
+    <string name="sleeping_duration">睡眠時間 %1$s</string>
     <string name="no_sleep_record">睡眠記録はまだありません</string>
     <string name="no_feeding_record">まだ給餌記録がありません</string>
     <string name="feeding_duration">授乳中 %1$s</string>
@@ -540,4 +540,17 @@
     <string name="prediction_evidence_default">月齢の傾向を参考にしています。記録を続けると徐々に個別化されます</string>
     <string name="prediction_evidence_samples">有効な記録間隔 %1$d 件に基づく</string>
     <string name="prediction_evidence_weak_samples">有効な記録間隔 %1$d 件に基づいていますが、現在の規則性は弱めです</string>
+    <string name="summary_duration_days_compact">%1$d日</string>
+    <string name="dashboard_no_active_record">計測中の記録はありません</string>
+    <string name="dashboard_last_sleep_record">前回の睡眠から%1$s</string>
+    <string name="prediction_feeding_empty">授乳の予測はまだありません</string>
+    <string name="prediction_sleep_empty">睡眠の予測はまだありません</string>
+    <string name="prediction_feeding_empty_hint">最近の授乳を記録して、赤ちゃんのリズムを見つけましょう</string>
+    <string name="prediction_sleep_empty_hint">最近の睡眠を記録して、赤ちゃんのリズムを見つけましょう</string>
+    <string name="prediction_in_progress_hint">現在計測中です。記録を終了すると予測が更新されます</string>
+    <string name="settings_notifications_blocked">システムの通知またはリマインダーの通知がオフです。システム設定でオンにしてから戻ってください</string>
+    <string name="settings_open_notification_settings">通知設定</string>
+    <string name="measurement_value_invalid">0 より大きい有効な数値を入力してください</string>
+    <string name="calendar_today_date_format">%1$s、今日</string>
+    <string name="calendar_recorded_date_format">%1$s、記録あり</string>
 </resources>

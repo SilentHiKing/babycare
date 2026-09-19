@@ -14,11 +14,37 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.zero.babycare.home.record.RecordMutationController
 
 /**
  * 事件记录 ViewModel
  */
 class EventRecordViewModel : BaseViewModel() {
+    internal val mutation = RecordMutationController(viewModelScope)
+
+    /** 草稿只保存未提交的页面状态，详情原始输入由 View 层层级状态保留。 */
+    data class Draft(
+        val categoryId: Int?,
+        val subtypeType: Int?,
+        val eventTime: Long,
+        val durationStartTime: Long?,
+        val endTime: Long?
+    )
+
+    fun captureDraft(): Draft = Draft(
+        _selectedCategory.value?.id, _selectedSubtype.value?.type, _eventTime.value,
+        _durationStartTime.value, _endTime.value
+    )
+
+    /** 恢复依赖字段后再发布类型，防止详情重建时清空原有时间。 */
+    fun restoreDraft(draft: Draft) {
+        _extraData.value = null
+        _eventTime.value = draft.eventTime
+        _durationStartTime.value = draft.durationStartTime
+        _endTime.value = draft.endTime
+        _selectedCategory.value = draft.categoryId?.let(EventCategory::fromId)
+        _selectedSubtype.value = draft.subtypeType?.let(EventSubtype::fromType)
+    }
 
     /** 当前选中的大类 */
     private val _selectedCategory = MutableStateFlow<EventCategory?>(null)
@@ -214,16 +240,14 @@ class EventRecordViewModel : BaseViewModel() {
     /**
      * 保存事件记录
      */
-    fun saveRecord(
-        babyId: Int,
-        editRecordId: Int? = null,
+    internal fun saveRecord(
+        target: RecordMutationController.Target,
         createdAt: Long? = null,
-        onSuccess: () -> Unit,
-        onError: (Int) -> Unit
     ) {
+        if (mutation.isPending) return
         val validation = validateData()
         if (validation is ValidationResult.Error) {
-            onError(validation.messageResId)
+            mutation.reject(target, RecordMutationController.Kind.SAVE, validation.messageResId)
             return
         }
 
@@ -234,10 +258,10 @@ class EventRecordViewModel : BaseViewModel() {
             _eventTime.value
         }
 
-        viewModelScope.launch {
-            val record = EventRecord(
-                eventId = editRecordId ?: 0,
-                babyId = babyId,
+        // 提交时冻结表单，后续导航或类型切换不会改变正在写入的数据。
+        val record = EventRecord(
+                eventId = target.recordId ?: 0,
+                babyId = target.babyId,
                 type = subtype.type,
                 time = recordTime,
                 endTime = _endTime.value ?: 0L,
@@ -246,36 +270,21 @@ class EventRecordViewModel : BaseViewModel() {
                 createdAt = createdAt ?: System.currentTimeMillis()
             )
 
-            try {
-                if (editRecordId != null) {
-                    repository.updateEventRecord(record)
-                } else {
-                    repository.insertEventRecord(record)
-                }
-                BabyRecordChangeBus.notifyChanged(record.babyId)
-                onSuccess()
-            } catch (_: Exception) {
-                // 只有数据库真正失败时才进入错误终态，页面据此恢复保存按钮并允许重试。
-                onError(R.string.save_failed)
-            }
+        mutation.submit(target, RecordMutationController.Kind.SAVE, R.string.save_failed) {
+            if (target.recordId != null) repository.updateEventRecord(record)
+            else repository.insertEventRecord(record)
+            BabyRecordChangeBus.notifyChanged(record.babyId)
         }
     }
 
     /** 删除事件后通知所有记录消费者，保证时间轴、统计和预测立即失效重算。 */
-    fun deleteRecord(
+    internal fun deleteRecord(
         eventId: Int,
-        babyId: Int,
-        onSuccess: () -> Unit,
-        onError: () -> Unit
+        target: RecordMutationController.Target
     ) {
-        viewModelScope.launch {
-            try {
-                repository.deleteEventRecordById(eventId)
-                BabyRecordChangeBus.notifyChanged(babyId)
-                onSuccess()
-            } catch (_: Exception) {
-                onError()
-            }
+        mutation.submit(target, RecordMutationController.Kind.DELETE, R.string.record_delete_failed) {
+            repository.deleteEventRecordById(eventId)
+            BabyRecordChangeBus.notifyChanged(target.babyId)
         }
     }
 

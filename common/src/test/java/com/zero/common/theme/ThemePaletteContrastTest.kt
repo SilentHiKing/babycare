@@ -53,6 +53,105 @@ class ThemePaletteContrastTest {
         }
     }
 
+    @Test
+    fun `brand foreground remains readable on both control surfaces in every theme`() {
+        listOf(false, true).forEach { night ->
+            val colors = palette(night)
+            listOf("boy", "girl").forEach { gender ->
+                val foreground = resolveThemeColor(gender, night, "colorBrandForeground", colors)
+                listOf("surface_default", "control_surface_default", "control_surface_selected").forEach { surface ->
+                    // 按钮底通过白字测试不代表能作控件文字，必须单独验证真实前景与背景组合。
+                    assertContrastAtLeast("$gender/$night/$surface", foreground, colors.getValue(surface), 4.5)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `status title and elapsed time stay readable across baby themes and states`() {
+        listOf(false, true).forEach { night ->
+            val colors = palette(night)
+            listOf("boy", "girl").forEach { gender ->
+                listOf("colorStatusTextPrimary", "colorStatusTextSecondary").forEach { textToken ->
+                    val foreground = resolveThemeColor(gender, night, textToken, colors)
+                    listOf("status_awake_start", "status_sleeping_start", "status_feeding_start").forEach { surface ->
+                        assertContrastAtLeast("$gender/$night/$textToken/$surface", foreground, colors.getValue(surface), 4.5)
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `informational hint text meets normal text contrast on page and control surfaces`() {
+        listOf(false, true).forEach { night ->
+            val colors = palette(night)
+            listOf("bg_app_default", "surface_default", "control_surface_default", "control_surface_selected").forEach { surface ->
+                assertContrastAtLeast("hint/$night/$surface", colors.getValue("text_hint_default"), colors.getValue(surface), 4.5)
+            }
+        }
+    }
+
+    @Test
+    fun `feeding and sleep card text stays readable in light and night palettes`() {
+        listOf(false, true).forEach { night ->
+            val colors = palette(night)
+            listOf("feeding", "sleep").forEach { category ->
+                // 辅助说明和今日次数同样是有效信息，不能只校验大号时长数字。
+                listOf("primary_dark", "secondary").forEach { role ->
+                    val token = "${category}_$role"
+                    assertContrastAtLeast(token, colors.getValue(token), colors.getValue("${category}_bg"), 4.5)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `calendar and summary text remain readable on their surfaces`() {
+        listOf(false, true).forEach { night ->
+            val colors = palette(night)
+            listOf("text_primary_default", "text_secondary_default", "text_hint_default").forEach { text ->
+                assertContrastAtLeast("calendar/$night/$text", colors.getValue(text), colors.getValue("surface_default"), 4.5)
+            }
+            listOf("text_primary_default", "feeding_primary", "sleep_primary").forEach { text ->
+                assertContrastAtLeast("summary/$night/$text", colors.getValue(text), colors.getValue("control_surface_default"), 4.5)
+            }
+        }
+    }
+
+    private fun palette(night: Boolean): Map<String, String> {
+        val daytime = loadColors("common/src/main/res/values/colors_base.xml") +
+            loadColors("common/src/main/res/values/colors_theme.xml")
+        return if (night) {
+            daytime + loadColors("common/src/main/res/values-night/colors.xml") +
+                loadColors("common/src/main/res/values-night/colors_theme.xml")
+        } else {
+            daytime
+        }
+    }
+
+    /** 读取实际主题映射，避免测试只验证色值，却遗漏布局所用 token 被错误覆盖。 */
+    private fun resolveThemeColor(
+        gender: String,
+        night: Boolean,
+        token: String,
+        colors: Map<String, String>
+    ): String {
+        val directory = if (night) "values-night" else "values"
+        val document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+            .parse(File(repoRoot(), "common/src/main/res/$directory/styles_$gender.xml"))
+        val items = document.getElementsByTagName("item")
+        val mappings = (0 until items.length).associate { index ->
+            val element = items.item(index) as Element
+            element.getAttribute("name") to element.textContent.trim()
+        }
+        var reference = mappings.getValue(token)
+        while (reference.startsWith("?attr/")) {
+            reference = mappings.getValue(reference.removePrefix("?attr/"))
+        }
+        return colors.getValue(reference.removePrefix("@color/"))
+    }
+
     private fun loadColors(relativePath: String): Map<String, String> {
         val file = File(repoRoot(), relativePath)
         val document = DocumentBuilderFactory.newInstance()

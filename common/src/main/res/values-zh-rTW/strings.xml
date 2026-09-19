@@ -540,4 +540,17 @@
     <string name="prediction_evidence_default">參考月齡規律，持續記錄後會逐步個人化</string>
     <string name="prediction_evidence_samples">基於 %1$d 次有效記錄間隔</string>
     <string name="prediction_evidence_weak_samples">基於 %1$d 次有效記錄間隔，目前規律較弱</string>
+    <string name="summary_duration_days_compact">%1$d天</string>
+    <string name="dashboard_no_active_record">暫無進行中的記錄</string>
+    <string name="dashboard_last_sleep_record">距上次睡眠 %1$s</string>
+    <string name="prediction_feeding_empty">暫無餵奶預測</string>
+    <string name="prediction_sleep_empty">暫無睡眠預測</string>
+    <string name="prediction_feeding_empty_hint">記錄近期餵奶時間，逐步了解寶寶的節奏</string>
+    <string name="prediction_sleep_empty_hint">記錄近期睡眠時間，逐步了解寶寶的節奏</string>
+    <string name="prediction_in_progress_hint">本次記錄進行中，結束後更新預測</string>
+    <string name="settings_notifications_blocked">系統通知或提醒管道已關閉，請在系統設定中開啟後返回</string>
+    <string name="settings_open_notification_settings">通知設定</string>
+    <string name="measurement_value_invalid">請輸入大於 0 的有效數值</string>
+    <string name="calendar_today_date_format">%1$s，今天</string>
+    <string name="calendar_recorded_date_format">%1$s，有紀錄</string>
 </resources>

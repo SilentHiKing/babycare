@@ -11,26 +11,26 @@ interface Predictor {
     
     /**
      * 预测下次喂奶时间
-     * @param babyAgeMonths 宝宝月龄
+     * @param babyAgeMonths 宝宝月龄；未知生日时为 null，不能按新生儿作月龄推断
      * @param feedingRecords 历史喂奶记录（按时间升序）
      * @param sleepRecords 历史睡眠记录（可选，用于关联分析）
      * @return 预测结果，无法预测时返回 null
      */
     fun predictNextFeeding(
-        babyAgeMonths: Int,
+        babyAgeMonths: Int?,
         feedingRecords: List<FeedingRecord>,
         sleepRecords: List<SleepRecord>? = null
     ): PredictionResult?
     
     /**
      * 预测下次睡眠时间
-     * @param babyAgeMonths 宝宝月龄
+     * @param babyAgeMonths 宝宝月龄；未知生日时为 null
      * @param sleepRecords 历史睡眠记录（按时间升序）
      * @param feedingRecords 历史喂奶记录（可选，用于关联分析）
      * @return 预测结果，无法预测时返回 null
      */
     fun predictNextSleep(
-        babyAgeMonths: Int,
+        babyAgeMonths: Int?,
         sleepRecords: List<SleepRecord>,
         feedingRecords: List<FeedingRecord>? = null
     ): PredictionResult?

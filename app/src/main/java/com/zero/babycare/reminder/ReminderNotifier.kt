@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import com.zero.babycare.MainActivity
 import com.zero.babycare.home.OngoingRecordManager
 import com.zero.babycare.home.prediction.PredictionManager
+import com.zero.babycare.home.prediction.PredictionRecordSelector
 import com.zero.babydata.domain.BabyDataHelper.repository
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.mmkv.MMKVKeys
@@ -26,23 +27,25 @@ object ReminderNotifier {
     const val EXTRA_REMINDER_TYPE = "reminder_type"
     private const val CHANNEL_ID = "record_reminder"
 
-    suspend fun notifyIfDue(
+    internal suspend fun notifyIfDue(
         context: Context,
         babyId: Int,
         type: ReminderType,
         expectedDue: Long
-    ): Boolean {
+    ): ReminderDeliveryResult {
         if (!MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, false) ||
             !canPostNotifications(context)
         ) {
-            return false
+            return ReminderDeliveryResult.SUPPRESSED
         }
 
-        val baby = repository.getBabyInfo(babyId) ?: return false
-        val candidate = ReminderPolicy.loadCandidates(baby)[type] ?: return false
+        val baby = repository.getBabyInfo(babyId) ?: return ReminderDeliveryResult.SUPPRESSED
+        val candidate = ReminderPolicy.loadCandidates(baby)[type] ?: return ReminderDeliveryResult.SUPPRESSED
         val now = System.currentTimeMillis()
         // 任务可能因记录变化而过期；必须以当前候选时间为准，不能沿用旧任务的 due。
-        if (candidate.dueTime != expectedDue || now < candidate.dueTime) return false
+        if (candidate.dueTime != expectedDue || now < candidate.dueTime) {
+            return ReminderDeliveryResult.RESCHEDULE
+        }
 
         val posted = when (type) {
             ReminderType.FEEDING -> sendFeedingNotification(context, baby)
@@ -52,7 +55,7 @@ object ReminderNotifier {
             MMKVStore.put(ReminderPolicy.lastReminderKey(type, babyId), now)
             MMKVStore.put(ReminderPolicy.notifiedSourceKey(type, babyId), candidate.sourceRecordTime)
         }
-        return posted
+        return if (posted) ReminderDeliveryResult.DELIVERED else ReminderDeliveryResult.RETRY
     }
 
     private fun sendFeedingNotification(context: Context, baby: BabyInfo): Boolean {
@@ -131,13 +134,24 @@ object ReminderNotifier {
         manager.createNotificationChannel(channel)
     }
 
-    private fun canPostNotifications(context: Context): Boolean {
+    internal fun canPostNotifications(context: Context): Boolean {
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return false
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
-        return ContextCompat.checkSelfPermission(
-            context,
-            android.Manifest.permission.POST_NOTIFICATIONS
-        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) !=
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) return false
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+                ?: return false
+            // 应用总开关开启时，用户仍可单独关闭提醒渠道；notify 不会为此抛异常。
+            val channel = manager.getNotificationChannel(CHANNEL_ID)
+            if (channel?.importance == NotificationManager.IMPORTANCE_NONE) return false
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && channel?.group != null &&
+                manager.getNotificationChannelGroup(channel.group)?.isBlocked == true
+            ) return false
+        }
+        return true
     }
 }
 
@@ -151,9 +165,14 @@ internal object ReminderPolicy {
     private val maxPredictionHorizonMillis = TimeUnit.HOURS.toMillis(24)
 
     suspend fun loadCandidates(baby: BabyInfo): Map<ReminderType, ReminderCandidate> {
-        val feedings = repository.getRecentFeedings(baby.babyId, PREDICTION_RECORD_COUNT)
-        val sleeps = repository.getRecentSleeps(baby.babyId, PREDICTION_RECORD_COUNT)
-        val ageMonths = calculateAgeMonths(baby.birthDate)
+        // 候选数量和去重来源必须与预测采用同一组记录，辅食不能重置喂奶提醒来源。
+        val feedings = PredictionRecordSelector.completedMilkFeedings(
+            repository.getRecentFeedings(baby.babyId, PREDICTION_RECORD_COUNT)
+        )
+        val sleeps = PredictionRecordSelector.completedSleeps(
+            repository.getRecentSleeps(baby.babyId, PREDICTION_RECORD_COUNT)
+        )
+        val ageMonths = com.zero.babycare.home.prediction.PredictionAgePolicy.ageMonths(baby.birthDate)
         val result = mutableMapOf<ReminderType, ReminderCandidate>()
 
         if (!OngoingRecordManager.isFeeding(baby.babyId) && feedings.size >= MIN_RELEVANT_RECORDS) {
@@ -207,11 +226,6 @@ internal object ReminderPolicy {
         )
     }
 
-    private fun calculateAgeMonths(birthDate: Long): Int {
-        if (birthDate <= 0L) return 0
-        val days = TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - birthDate)
-        return (days / 30).toInt().coerceAtLeast(0)
-    }
 }
 
 internal data class ReminderCandidate(

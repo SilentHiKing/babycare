@@ -277,7 +277,7 @@ class TimeEditText @JvmOverloads constructor(
         return SpannableString(displayText).apply {
             val clockStart = displayText.indexOf(clockText)
             setSpan(
-                AbsoluteSizeSpan(RECORD_TIME_DATE_TEXT_SIZE_SP, true),
+                AbsoluteSizeSpan(resolveTextSizePx(com.zero.common.R.style.TextAppearance_BabyCare_Label)),
                 0,
                 dateText.length,
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -289,7 +289,7 @@ class TimeEditText @JvmOverloads constructor(
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
             setSpan(
-                AbsoluteSizeSpan(RECORD_TIME_CLOCK_TEXT_SIZE_SP, true),
+                AbsoluteSizeSpan(resolveTextSizePx(com.zero.common.R.style.TextAppearance_BabyCare_Body1)),
                 clockStart,
                 displayText.length,
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -319,6 +319,16 @@ class TimeEditText @JvmOverloads constructor(
         }
     }
 
+    /** 从 sp 字体样式读取已缩放像素；AbsoluteSizeSpan 的 dip=true 实际是 dp，会绕过系统字号。 */
+    private fun resolveTextSizePx(style: Int): Int {
+        val attributes = context.obtainStyledAttributes(style, intArrayOf(android.R.attr.textSize))
+        return try {
+            attributes.getDimensionPixelSize(0, textSize.toInt())
+        } finally {
+            attributes.recycle()
+        }
+    }
+
     /** 将光标移动到文本末尾 */
     private fun moveCursorToEnd() {
         val length = text?.length ?: 0
@@ -333,8 +343,4 @@ class TimeEditText @JvmOverloads constructor(
         imm.hideSoftInputFromWindow(windowToken, 0)
     }
 
-    private companion object {
-        const val RECORD_TIME_DATE_TEXT_SIZE_SP = 11
-        const val RECORD_TIME_CLOCK_TEXT_SIZE_SP = 16
-    }
 }

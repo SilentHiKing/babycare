@@ -22,7 +22,7 @@ colors:
   event-icon-surface: "#FFF2D9"
   foreground: "#12323A"
   text-secondary: "#3E5B63"
-  text-hint: "#7C98A1"
+  text-hint: "#596F76"
   border: "#CFE2E7"
   feeding: "#247BA0"
   sleep: "#6E65B7"
@@ -175,6 +175,8 @@ BabyCare 的产品理念是不可改变且具有最高优先级的基础：记�
 除主按钮、保存按钮外，普通选择控件采用 **Quiet Selection**：`control_surface_selected` 浅暖底 + 0.1dp 品牌描边 + 品牌文字。业务功能色只用于图标、图表和数据语义，不再同时参与选中边框或文字，避免同一控件出现两套强调色。禁止使用大面积品牌实色块、白字浅底、底部粗色条或多层浅色填充表达选中。
 
 深色模式必须单独定义颜色，不允许直接复用浅色灰阶。深色模式下的主按钮和选中态仍需满足白字 4.5:1；若需要在深色背景上展示品牌文字或图标，应优先使用 light / accent token，而不是把浅色 token 用作按钮底色。正文对比度至少满足 WCAG AA。
+
+品牌前景使用 `colorBrandForeground`：浅色模式映射 `brand_dark`，深色模式映射 `accent`。主按钮继续使用 `colorBrand` 与 `colorOnBrand`，普通选择控件的文字、描边和操作图标使用品牌前景，以保证浅暖选中底与深色控件底上的可读性。提示文字也可能承载预测依据等有效信息，必须保持至少 4.5:1 对比度。
 
 ## Typography
 

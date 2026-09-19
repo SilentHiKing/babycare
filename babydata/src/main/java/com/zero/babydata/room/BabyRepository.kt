@@ -8,6 +8,7 @@ import com.zero.babydata.entity.EventType
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.FeedingType
 import com.zero.babydata.entity.SleepRecord
+import com.zero.babydata.domain.RecordDurationCalculator
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
@@ -270,6 +271,9 @@ class BabyRepository(context: Context) {
 
         val feedings = feedingRecordDao.getFeedingRecordsForDay(babyId, startOfDay, endOfDay)
         val sleeps = sleepRecordDao.getSleepRecordsForDay(babyId, startOfDay, endOfDay)
+        // 次数按开始日计入，时长按当天重叠区间分摊，避免跨夜睡眠全部归到前一天。
+        val overlappingFeedings = feedingRecordDao.getFeedingRecordsIntersectingDay(babyId, startOfDay, endOfDay)
+        val overlappingSleeps = sleepRecordDao.getSleepRecordsIntersectingDay(babyId, startOfDay, endOfDay)
         val events = eventRecordDao.getEventRecordsForDay(babyId, startOfDay, endOfDay)
 
         var diaperWetCount = 0
@@ -289,9 +293,11 @@ class BabyRepository(context: Context) {
 
         return DaySummaryData(
             feedingCount = feedings.size,
-            feedingTotalMinutes = feedings.sumOf {
-                TimeUnit.MILLISECONDS.toMinutes(it.feedingDuration).toInt()
-            },
+            feedingTotalMinutes = TimeUnit.MILLISECONDS.toMinutes(overlappingFeedings.sumOf {
+                RecordDurationCalculator.overlappedDuration(
+                    it.feedingStart, it.feedingEnd, it.feedingDuration, startOfDay, endOfDay
+                )
+            }).toInt(),
             feedingTotalMl = feedings
                 .filter {
                     it.feedingType == FeedingType.FORMULA.type ||
@@ -299,9 +305,11 @@ class BabyRepository(context: Context) {
                 }
                 .sumOf { it.feedingAmount ?: 0 },
             sleepCount = sleeps.size,
-            sleepTotalMinutes = sleeps.sumOf {
-                TimeUnit.MILLISECONDS.toMinutes(it.sleepDuration).toInt()
-            },
+            sleepTotalMinutes = TimeUnit.MILLISECONDS.toMinutes(overlappingSleeps.sumOf {
+                RecordDurationCalculator.overlappedDuration(
+                    it.sleepStart, it.sleepEnd, it.sleepDuration, startOfDay, endOfDay
+                )
+            }).toInt(),
             diaperWetCount = diaperWetCount,
             diaperDirtyCount = diaperDirtyCount,
             diaperMixedCount = diaperMixedCount,

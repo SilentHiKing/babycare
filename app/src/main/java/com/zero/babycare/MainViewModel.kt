@@ -2,7 +2,9 @@ package com.zero.babycare
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.blankj.utilcode.util.Utils
 import com.zero.babycare.navigation.NavTarget
+import com.zero.babycare.reminder.ReminderScheduler
 import com.zero.babycare.reminder.ReminderType
 import com.zero.babydata.entity.BabyInfo
 import com.zero.components.base.vm.BaseViewModel
@@ -13,7 +15,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.zero.babydata.domain.BabyDataHelper.repository
 import com.zero.common.mmkv.MMKVKeys.CURRENT_BABY_ID
+import com.zero.common.mmkv.MMKVKeys.LEGACY_BABY_INFO
+import com.zero.babycare.babies.CurrentBabySelection
+import com.zero.babycare.babies.BabyDeletionNavigation
 import com.zero.common.mmkv.MMKVStore
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 
 
 class MainViewModel(
@@ -43,6 +51,16 @@ class MainViewModel(
     private val _allBabies = MutableStateFlow<List<BabyInfo>>(emptyList())
     val allBabies: StateFlow<List<BabyInfo>> = _allBabies.asStateFlow()
 
+    enum class BabyDeletionResult { SUCCESS, FAILED }
+
+    private val deletionResults = Channel<BabyDeletionResult>(Channel.BUFFERED)
+    // 仅由 MainActivity 收集，隐藏 Fragment 不争抢结果，配置重建期间也不丢失反馈。
+    val babyDeletionEffects = deletionResults.receiveAsFlow()
+    private val _deletingBabyIds = MutableStateFlow<Set<Int>>(emptySet())
+    val deletingBabyIds: StateFlow<Set<Int>> = _deletingBabyIds.asStateFlow()
+
+    fun isDeletingBaby(babyId: Int?): Boolean = babyId != null && babyId in _deletingBabyIds.value
+
     init {
         // Room Flow 自动跟踪增删改；缓存只负责恢复选择，不再触发主线程数据库查询。
         viewModelScope.launch {
@@ -51,6 +69,11 @@ class MainViewModel(
                 _babyDataLoaded.value = true
             }
         }
+    }
+
+    /** 系统通知设置可在应用外改变，返回前台时恢复因权限被关闭而结束的提醒任务。 */
+    fun onAppForeground() {
+        ReminderScheduler.ensureScheduled(Utils.getApp())
     }
 
     /**
@@ -107,8 +130,12 @@ class MainViewModel(
      */
     private fun reconcileBabies(babies: List<BabyInfo>) {
         _allBabies.value = babies
-        val selectedId = _currentBaby.value?.babyId
-            ?: MMKVStore.getInt(CURRENT_BABY_ID).takeIf { it > 0 }
+        val selectedId = CurrentBabySelection.resolveId(
+            availableIds = babies.map { it.babyId },
+            inMemoryId = _currentBaby.value?.babyId,
+            storedId = MMKVStore.getInt(CURRENT_BABY_ID).takeIf { it > 0 },
+            legacyJson = MMKVStore.getString(LEGACY_BABY_INFO)
+        )
         val selected = babies.firstOrNull { it.babyId == selectedId } ?: babies.firstOrNull()
         _currentBaby.value = selected
         if (selected == null) {
@@ -116,6 +143,8 @@ class MainViewModel(
         } else {
             MMKVStore.put(CURRENT_BABY_ID, selected.babyId)
         }
+        // 新缓存写入后再删除旧完整对象，升级中断时仍可重试恢复选择。
+        MMKVStore.remove(LEGACY_BABY_INFO)
     }
 
     /**
@@ -123,6 +152,7 @@ class MainViewModel(
      */
     fun setCurrentBaby(babyInfo: BabyInfo) {
         MMKVStore.put(CURRENT_BABY_ID, babyInfo.babyId)
+        MMKVStore.remove(LEGACY_BABY_INFO)
         _currentBaby.value = babyInfo
     }
 
@@ -153,26 +183,33 @@ class MainViewModel(
     /**
      * 删除宝宝信息
      */
-    fun deleteBaby(babyInfo: BabyInfo, onSuccess: () -> Unit) {
-        safeLaunch {
-            repository.deleteBabyInfo(babyInfo)
-            if (_currentBaby.value?.babyId == babyInfo.babyId) {
-                MMKVStore.remove(CURRENT_BABY_ID)
+    fun deleteBaby(babyInfo: BabyInfo) {
+        if (isDeletingBaby(babyInfo.babyId)) return
+        val requestedFrom = _navTarget.value
+        _deletingBabyIds.value += babyInfo.babyId
+        // 删除任务只持有数据和导航身份；页面销毁不会留下访问旧 binding 的完成闭包。
+        viewModelScope.launch {
+            try {
+                repository.deleteBabyInfo(babyInfo)
+                if (_currentBaby.value?.babyId == babyInfo.babyId) {
+                    MMKVStore.remove(CURRENT_BABY_ID)
+                }
+                val remaining = repository.getAllBabyInfo()
+                reconcileBabies(remaining)
+                BabyDeletionNavigation.destination(
+                    deletedBabyId = babyInfo.babyId,
+                    requestedFrom = requestedFrom,
+                    currentTarget = _navTarget.value,
+                    hasRemainingBabies = remaining.isNotEmpty()
+                )?.let(::navigateTo)
+                deletionResults.send(BabyDeletionResult.SUCCESS)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                deletionResults.send(BabyDeletionResult.FAILED)
+            } finally {
+                _deletingBabyIds.value -= babyInfo.babyId
             }
-            reconcileBabies(repository.getAllBabyInfo())
-            onSuccess()
-        }
-    }
-
-    /**
-     * 添加宝宝信息
-     */
-    fun insertBaby(babyInfo: BabyInfo, onSuccess: () -> Unit) {
-        safeLaunch {
-            repository.insertBabyInfo(babyInfo)
-            reconcileBabies(repository.getAllBabyInfo())
-            setCurrentBaby(babyInfo)
-            onSuccess()
         }
     }
 

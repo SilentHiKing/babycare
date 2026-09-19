@@ -18,6 +18,7 @@
         <!-- ==================== UI TOKENS MAPPING (BASE) ==================== -->
         <!-- Brand (Defaulting to Blue/Boy if not overridden) -->
         <item name="colorBrand">@color/boy_brand</item>
+        <item name="colorBrandForeground">@color/boy_brand_dark</item>
         <item name="colorBrandLight">@color/boy_brand_light</item>
         <item name="colorBrandDark">@color/boy_brand_dark</item>
         <item name="colorOnBrand">@color/White100</item>
@@ -621,7 +622,7 @@
     <!-- 操作文字：用于 Toolbar、弹窗按钮等需要中等强调的短操作。 -->
     <style name="TextAppearance.BabyCare.Action" parent="TextAppearance.BabyCare">
         <item name="android:textSize">14sp</item>
-        <item name="android:textColor">?attr/colorBrand</item>
+        <item name="android:textColor">?attr/colorBrandForeground</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textAllCaps">false</item>
     </style>

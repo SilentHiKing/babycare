@@ -26,7 +26,8 @@ object ReminderScheduler {
 
     fun ensureScheduled(context: Context) {
         val appContext = context.applicationContext
-        if (!MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, false)) {
+        if (!MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, false) ||
+            !ReminderNotifier.canPostNotifications(appContext)) {
             cancel(appContext)
             return
         }

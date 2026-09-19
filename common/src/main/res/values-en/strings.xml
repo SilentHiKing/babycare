@@ -6,7 +6,7 @@
     <string name="number_zero">0</string>
     <string name="number_decimal_zero">0.00</string>
     <string name="list_separator_dot"> · </string>
-    <string name="times_count_format">%1$d times</string>
+    <string name="times_count_format">Count: %1$d</string>
     <string name="baby_not_born_yet_playful">The time machine is not open yet - I have not been born!</string>
     <string name="statistics_add_birthdate_hint">You haven’t filled in your baby’s birthday yet, please remember to fill it in.</string>
     <string name="babyName">Name</string>
@@ -278,14 +278,14 @@
     <string name="baby_awake">Baby is awake</string>
     <string name="baby_sleeping">Baby is sleeping</string>
     <string name="baby_feeding">Feeding now</string>
-    <string name="awake_duration">Awakened %1$s</string>
-    <string name="sleeping_duration">Already asleep %1$s</string>
+    <string name="awake_duration">Awake for %1$s</string>
+    <string name="sleeping_duration">Asleep for %1$s</string>
     <string name="no_sleep_record">No sleep records yet</string>
     <string name="no_feeding_record">No feeding record yet</string>
     <string name="feeding_duration">Feeding %1$s</string>
     <string name="end_record">End record</string>
     <string name="since_last">since last time</string>
-    <string name="today_count">Today %1$d times</string>
+    <string name="today_count">Today: %1$d</string>
     <string name="today_duration">Total %1$s</string>
     <string name="next_prediction">next prediction</string>
     <string name="predict_feeding">The next feeding will be around %1$s</string>
@@ -540,4 +540,17 @@
     <string name="prediction_evidence_default">Based on age patterns; continued records will personalize it</string>
     <string name="prediction_evidence_samples">Based on %1$d valid record intervals</string>
     <string name="prediction_evidence_weak_samples">Based on %1$d valid record intervals; the current pattern is weak</string>
+    <string name="summary_duration_days_compact">%1$dd</string>
+    <string name="dashboard_no_active_record">No active timer</string>
+    <string name="dashboard_last_sleep_record">Last sleep: %1$s ago</string>
+    <string name="prediction_feeding_empty">No feeding estimate yet</string>
+    <string name="prediction_sleep_empty">No sleep estimate yet</string>
+    <string name="prediction_feeding_empty_hint">Log recent feeds to learn your baby’s rhythm</string>
+    <string name="prediction_sleep_empty_hint">Log recent sleep to learn your baby’s rhythm</string>
+    <string name="prediction_in_progress_hint">Timer is running; estimates update after you finish</string>
+    <string name="settings_notifications_blocked">Notifications or the reminder channel are off. Enable them in system settings, then return.</string>
+    <string name="settings_open_notification_settings">Notification settings</string>
+    <string name="measurement_value_invalid">Enter a valid number greater than 0</string>
+    <string name="calendar_today_date_format">%1$s, today</string>
+    <string name="calendar_recorded_date_format">%1$s, has records</string>
 </resources>

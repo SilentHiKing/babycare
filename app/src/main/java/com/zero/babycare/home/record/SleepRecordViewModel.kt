@@ -10,60 +10,37 @@ import com.zero.babydata.domain.BabyDataHelper.repository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.zero.babycare.home.OngoingRecordManager
+import com.zero.common.R
 
 class SleepRecordViewModel : BaseViewModel() {
+    internal val mutation = RecordMutationController(viewModelScope)
 
     private val _lastSleepRecord = MutableLiveData<SleepRecord?>()
     val lastSleepRecord: LiveData<SleepRecord?> = _lastSleepRecord
 
-    fun insert(
-        sleepRecord: SleepRecord,
-        onSuccess: () -> Unit,
-        onError: () -> Unit
-    ) {
-        persistRecord(sleepRecord, onSuccess, onError) {
-            repository.insertSleepRecord(sleepRecord)
-        }
-    }
-
-    fun update(
-        sleepRecord: SleepRecord,
-        onSuccess: () -> Unit,
-        onError: () -> Unit
-    ) {
-        persistRecord(sleepRecord, onSuccess, onError) {
-            repository.updateSleepRecord(sleepRecord)
-        }
-    }
-
-    /** 删除记录后触发同一条变更链，避免统计或预测继续引用已删除数据。 */
-    fun delete(sleepId: Int, babyId: Int, onSuccess: () -> Unit, onError: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                repository.deleteSleepRecordById(sleepId)
-                BabyRecordChangeBus.notifyChanged(babyId)
-                onSuccess()
-            } catch (_: Exception) {
-                onError()
+    internal fun save(sleepRecord: SleepRecord, target: RecordMutationController.Target) {
+        val submittedSession = OngoingRecordManager.getSleepSession(sleepRecord.babyId)
+            ?.takeIf { it.startAt == sleepRecord.sleepStart }
+        mutation.submit(target, RecordMutationController.Kind.SAVE, R.string.save_failed) {
+            if (target.recordId != null) repository.updateSleepRecord(sleepRecord)
+            else {
+                OngoingSessionSavePolicy.save(
+                    submittedSession = submittedSession,
+                    persist = { repository.insertSleepRecord(sleepRecord) },
+                    currentSession = { OngoingRecordManager.getSleepSession(sleepRecord.babyId) },
+                    finishSession = { OngoingRecordManager.endSleep(sleepRecord.babyId) }
+                )
             }
+            BabyRecordChangeBus.notifyChanged(sleepRecord.babyId)
         }
     }
 
-    private fun persistRecord(
-        sleepRecord: SleepRecord,
-        onSuccess: () -> Unit,
-        onError: () -> Unit,
-        operation: suspend () -> Unit
-    ) {
-        viewModelScope.launch {
-            try {
-                operation()
-                BabyRecordChangeBus.notifyChanged(sleepRecord.babyId)
-                onSuccess()
-            } catch (_: Exception) {
-                // 失败时不清空表单，页面恢复操作按钮后可以直接重试。
-                onError()
-            }
+    /** 删除结果由重建后的页面消费，后台写入不再反向持有旧 View。 */
+    internal fun delete(sleepId: Int, target: RecordMutationController.Target) {
+        mutation.submit(target, RecordMutationController.Kind.DELETE, R.string.record_delete_failed) {
+            repository.deleteSleepRecordById(sleepId)
+            BabyRecordChangeBus.notifyChanged(target.babyId)
         }
     }
 

@@ -568,7 +568,7 @@ class UiResourcePolicyTest {
             "common/src/main/res/drawable/selector_solid_subtype_bg.xml"
         )
         val selectedSurfaceOffenders = selectorPaths.filter { relativePath ->
-            File(repoRoot(), relativePath).readText().contains("control_surface_selected")
+            !File(repoRoot(), relativePath).readText().contains("control_surface_selected")
         }
         val subtypeLayout = File(repoRoot(), "app/src/main/res/layout/item_event_subtype.xml").readText()
         val categoryAdapter = File(
@@ -593,24 +593,24 @@ class UiResourcePolicyTest {
             if (subtypeLayout.contains("selectedIndicator") || subtypeAdapter.contains("selectedIndicator")) {
                 add("subtype selection should remove the old bottom indicator from layout and binding")
             }
-            if (subtypeAdapter.contains("control_surface_selected")) {
-                add("subtype selected card should not tint the whole card with warm selected fill")
+            if (!subtypeAdapter.contains("control_surface_selected")) {
+                add("subtype selected card should use the shared quiet selected surface")
             }
             if (subtypeAdapter.contains("cardRoot.strokeColor = categoryColor")) {
                 add("subtype selected border should use brand selection tint, not event semantic color")
             }
-            if (!subtypeAdapter.contains("colorBrand")) {
+            if (!subtypeAdapter.contains("colorBrandForeground")) {
                 add("subtype selected border and label should use the shared brand selection tint")
             }
             if (categoryAdapter.contains("tvName.setTextColor")) {
                 add("category chip text state should come from the shared selector, not per-item semantic code")
             }
             if (selectedSurfaceOffenders.isNotEmpty()) {
-                add("selection selectors should avoid warm filled selected surfaces: $selectedSurfaceOffenders")
+                add("selection selectors should use the shared quiet selected surface: $selectedSurfaceOffenders")
             }
         }
 
-        // 选择控件统一为 iOS 式轻量状态：业务色只保留在图标语义上，选中态使用品牌 tint 和细边框。
+        // Quiet Selection 统一浅暖底、品牌前景和细边框，业务色只保留在图标语义上。
         assertTrue(
             "Event selection state still uses heavy or legacy accents: $offenders",
             offenders.isEmpty()
@@ -662,18 +662,21 @@ class UiResourcePolicyTest {
         ).readText()
 
         val offenders = buildList {
-            if (!fragment.contains("if (saveInProgress) return") ||
-                !fragment.contains("setSaveInProgress(true)") ||
-                !fragment.contains("setSaveInProgress(false)") ||
+            if (!fragment.contains("vm.mutation.isPending") ||
+                !fragment.contains("vm.mutation.state.collect") ||
+                !fragment.contains("vm.mutation.consume(state)") ||
                 !fragment.contains("binding.btnSave.isEnabled = !inProgress")
             ) {
-                add("save button should be disabled until the write callback returns")
+                add("save button should follow retained mutation state and consume results once")
             }
             if (!fragment.contains("if (view == null) return")) {
                 add("setSaveInProgress should not touch binding before onCreateView or after onDestroyView")
             }
-            if (!viewModel.contains("onFailure") || !repository.contains("errorCallback")) {
-                add("event save should surface repository write failures back to the UI")
+            if (!viewModel.contains("mutation.submit(target, RecordMutationController.Kind.SAVE, R.string.save_failed)") ||
+                !repository.contains("suspend fun insertEventRecord") ||
+                !repository.contains("suspend fun updateEventRecord")
+            ) {
+                add("event save should await the repository write and surface failures back to the UI")
             }
         }
 
@@ -1090,16 +1093,16 @@ class UiResourcePolicyTest {
             if (categoryBg.contains("semantics_blue") || subtypeBg.contains("semantics_blue")) {
                 add("solid food chips still use legacy semantics_blue")
             }
-            if (categoryBg.contains("control_surface_selected") || subtypeBg.contains("control_surface_selected")) {
-                add("solid food selected backgrounds should not use a warm filled surface")
+            if (!categoryBg.contains("control_surface_selected") || !subtypeBg.contains("control_surface_selected")) {
+                add("solid food selected backgrounds should use the shared quiet selected surface")
             }
-            if (!feedingTypeBg.contains("?attr/colorBrand") ||
-                !categoryBg.contains("?attr/colorBrand") ||
-                !subtypeBg.contains("?attr/colorBrand")
+            if (!feedingTypeBg.contains("?attr/colorBrandForeground") ||
+                !categoryBg.contains("?attr/colorBrandForeground") ||
+                !subtypeBg.contains("?attr/colorBrandForeground")
             ) {
                 add("solid food selected borders should follow feeding type brand color")
             }
-            if (!radioText.contains("?attr/colorBrand")) {
+            if (!radioText.contains("?attr/colorBrandForeground")) {
                 add("feeding type text selector should use brand color for selected text")
             }
             if (solidStyles.size != 2 ||
@@ -1167,7 +1170,7 @@ class UiResourcePolicyTest {
             if (!timePanel.contains("fontFeatureSettings=\"tnum\"")) {
                 add("time values should use tabular numbers for calmer scanning")
             }
-            if (!timePanel.contains("android:layout_height=\"56dp\"") ||
+            if (!timePanel.contains("android:minHeight=\"56dp\"") ||
                 !timePanel.contains("android:maxLines=\"2\"") ||
                 timePanel.contains("android:scrollHorizontally=\"true\"")
             ) {
@@ -1185,11 +1188,22 @@ class UiResourcePolicyTest {
             if (!timeEditText.contains("SpannableString") ||
                 !timeEditText.contains("record_time_date_current_year_format") ||
                 !timeEditText.contains("record_time_clock_format") ||
-                !timeEditText.contains("AbsoluteSizeSpan(RECORD_TIME_CLOCK_TEXT_SIZE_SP") ||
+                !timeEditText.contains("AbsoluteSizeSpan(resolveTextSizePx(com.zero.common.R.style.TextAppearance_BabyCare_Body1))") ||
                 !timeEditText.contains("ForegroundColorSpan(resolveThemeColor(com.zero.common.R.attr.colorTextHint))") ||
                 !timeEditText.contains("TypefaceSpan(\"sans-serif-medium\")")
             ) {
                 add("TimeEditText should render date as weak context and HH:mm:ss as the primary readable value")
+            }
+            if (Regex("""AbsoluteSizeSpan\([^\n]*,\s*true\)""").containsMatchIn(timeEditText)) {
+                add("time spans should respect system font scaling instead of using dp text sizes")
+            }
+            listOf("ivStartTime", "ivEndTime").forEach { id ->
+                val picker = Regex("""<androidx.appcompat.widget.AppCompatImageView\s+android:id="@\+id/$id"[\s\S]*?/>""")
+                    .find(timePanel)?.value.orEmpty()
+                if (!picker.contains("android:layout_width=\"48dp\"") ||
+                    !picker.contains("android:layout_height=\"48dp\"")) {
+                    add("$id should expose a 48dp touch target independently from the editable time")
+                }
             }
         }
 
@@ -1236,7 +1250,7 @@ class UiResourcePolicyTest {
         val offenders = buildList {
             if (!popupLayout.contains("android:id=\"@+id/tv_cancel\"") ||
                 !popupLayout.contains("TextAppearance.BabyCare.Action") ||
-                !popupLayout.contains("android:textColor=\"?attr/colorBrand\"")
+                !popupLayout.contains("android:textColor=\"?attr/colorBrandForeground\"")
             ) {
                 add("cancel button should use action typography and brand text color")
             }

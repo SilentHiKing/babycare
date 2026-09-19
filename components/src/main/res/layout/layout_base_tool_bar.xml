@@ -23,7 +23,7 @@
     <!-- 首页身份标题：头像 + 宝宝名 + 下拉箭头，用于弱化页面标题感 -->
     <LinearLayout
         android:id="@+id/llIdentityTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="56dp"
         android:gravity="center_vertical"
         android:minWidth="48dp"
@@ -32,6 +32,7 @@
         android:paddingEnd="8dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/llRightActions"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible">
@@ -55,11 +56,11 @@
         <TextView
             android:id="@+id/tvIdentityTitle"
             style="@style/TextAppearance.BabyCare.Heading2"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginStart="12dp"
             android:ellipsize="end"
-            android:maxWidth="180dp"
             android:singleLine="true"
             android:textColor="?attr/colorTextPrimary"
             tools:text="宝宝" />

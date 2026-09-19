@@ -171,7 +171,7 @@
                         style="@style/TextAppearance.BabyCare.Heading3"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/event_diaper"
+                        android:textColor="?attr/colorTextPrimary"
                         tools:text="8次" />
 
                     <TextView
@@ -222,7 +222,7 @@
                         style="@style/TextAppearance.BabyCare.Heading3"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/event_other"
+                        android:textColor="?attr/colorTextPrimary"
                         tools:text="3次" />
 
                     <TextView

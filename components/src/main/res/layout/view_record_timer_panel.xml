@@ -18,6 +18,7 @@
         android:orientation="horizontal">
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/startTimeField"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1">
@@ -36,13 +37,14 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="wrap_content"
+                android:minHeight="56dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/bg_record_time_field"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingStart="12dp"
-                android:paddingEnd="12dp"
+                android:paddingEnd="0dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvStartTime">
@@ -51,7 +53,8 @@
                     android:id="@+id/etStartTime"
                     android:textAppearance="@style/TextAppearance.BabyCare.Body2"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="56dp"
                     android:layout_weight="1"
                     android:background="@null"
                     android:ellipsize="end"
@@ -68,8 +71,9 @@
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/ivStartTime"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:padding="14dp"
                     android:contentDescription="@string/startTime"
                     android:src="@drawable/ic_time"
                     app:tint="?attr/colorTextSecondary" />
@@ -79,10 +83,12 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <View
+            android:id="@+id/timeFieldGap"
             android:layout_width="8dp"
             android:layout_height="1dp" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/endTimeField"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1">
@@ -101,13 +107,14 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="wrap_content"
+                android:minHeight="56dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/bg_record_time_field"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingStart="12dp"
-                android:paddingEnd="12dp"
+                android:paddingEnd="0dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvEndTime">
@@ -116,7 +123,8 @@
                     android:id="@+id/etEndTime"
                     android:textAppearance="@style/TextAppearance.BabyCare.Body2"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="56dp"
                     android:layout_weight="1"
                     android:background="@null"
                     android:ellipsize="end"
@@ -133,8 +141,9 @@
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/ivEndTime"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:padding="14dp"
                     android:contentDescription="@string/endTime"
                     android:src="@drawable/ic_time"
                     app:tint="?attr/colorTextSecondary" />

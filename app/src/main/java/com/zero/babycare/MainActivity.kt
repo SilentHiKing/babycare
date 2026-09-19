@@ -13,6 +13,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import com.blankj.utilcode.util.FragmentUtils
+import com.blankj.utilcode.util.ToastUtils
 import com.zero.babycare.babies.AllChildrenFragment
 import com.zero.babycare.babyinfo.UpdateInfoFragment
 import com.zero.babycare.databinding.ActivityMainBinding
@@ -88,6 +89,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         handleReminderIntent(intent)
     }
 
+    override fun onResume() {
+        super.onResume()
+        vm.onAppForeground()
+    }
+
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         // 分屏、折叠或旋转改变窗口宽度时重新计算适配基线。
@@ -100,16 +106,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      * 根据当前选中的宝宝性别设置主题
      */
     override fun applyThemeIfNeeded() {
-        val currentBaby = vm.getCurrentBabyInfo()
-        if (currentBaby != null) {
-            // 有宝宝数据，根据性别设置主题
-            val theme = ThemeManager.getThemeByGender(currentBaby.gender)
-            ThemeManager.saveTheme(theme)
-            ThemeManager.applyTheme(this, theme)
-        } else {
-            // Room 首次快照尚未到达时沿用已保存的 Boy/Girl 主题，加载完成后再校验。
-            ThemeManager.applyTheme(this)
-        }
+        // 此入口在 super.onCreate 前调用，SavedStateRegistry 尚未恢复，不能创建带
+        // SavedStateHandle 的 ViewModel。先用缓存主题，Room 就绪后由观察者校正宝宝主题。
+        ThemeManager.applyTheme(this)
     }
 
     /**
@@ -139,6 +138,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // 监听 Fragment 切换
         observeFragmentStatus()
         observeCurrentBaby()
+        observeBabyDeletionResults()
     }
 
     /**
@@ -258,6 +258,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 }?.let { target ->
                     FragmentUtils.showHide(target, fragments.filter { it != target })
                 }
+            }
+        }
+    }
+
+    /** 全局删除结果仅在宿主显示，避免旧页面闭包或多个常驻页面重复消费。 */
+    private fun observeBabyDeletionResults() {
+        launchInLifecycle {
+            vm.babyDeletionEffects.collect { result ->
+                val message = when (result) {
+                    MainViewModel.BabyDeletionResult.SUCCESS -> com.zero.common.R.string.delete_success
+                    MainViewModel.BabyDeletionResult.FAILED -> com.zero.common.R.string.record_delete_failed
+                }
+                ToastUtils.showShort(message)
             }
         }
     }

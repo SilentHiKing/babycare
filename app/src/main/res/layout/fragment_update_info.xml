@@ -69,7 +69,7 @@
                             android:layout_gravity="center"
                             android:contentDescription="@null"
                             android:src="@drawable/ic_baby_default"
-                            app:tint="?attr/colorBrand" />
+                            app:tint="?attr/colorBrandForeground" />
                     </FrameLayout>
 
                     <TextView

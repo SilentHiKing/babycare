@@ -2,8 +2,11 @@ package com.zero.components.base.util
 
 import android.content.Context
 import android.graphics.Rect
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.widget.FrameLayout
+import androidx.core.view.updateLayoutParams
 import com.lxj.xpopup.core.BottomPopupView
 
 /**
@@ -14,6 +17,14 @@ import com.lxj.xpopup.core.BottomPopupView
  * 这里仅阻止父层拦截内容区触摸，不改变 XPopup 的拖拽布局状态。
  */
 internal abstract class BabyCareBottomSheetPopup(context: Context) : BottomPopupView(context) {
+
+    override fun onCreate() {
+        super.onCreate()
+        // XPopup 限宽会缩窄外层拖拽容器，默认 bottom 重力会让它贴左；单独补水平居中。
+        popupContentView.updateLayoutParams<FrameLayout.LayoutParams> {
+            gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+        }
+    }
 
     protected fun protectSheetDragForContentTouch(event: MotionEvent, contentView: View) {
         when (event.actionMasked) {

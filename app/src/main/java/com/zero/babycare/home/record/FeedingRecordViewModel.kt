@@ -10,68 +10,48 @@ import com.zero.babydata.domain.BabyDataHelper.repository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.zero.babycare.home.OngoingRecordManager
+import com.zero.common.R
 
 class FeedingRecordViewModel : BaseViewModel() {
+    internal val mutation = RecordMutationController(viewModelScope)
 
     private val _lastFeedingRecord = MutableLiveData<FeedingRecord?>()
     val lastFeedingRecord: LiveData<FeedingRecord?> = _lastFeedingRecord
+    private var lastRequestedBabyId: Int? = null
 
-    fun insert(
-        feedingRecord: FeedingRecord,
-        onSuccess: () -> Unit,
-        onError: () -> Unit
-    ) {
-        persistRecord(feedingRecord, onSuccess, onError) {
-            repository.insertFeedingRecord(feedingRecord)
-        }
-    }
-
-    fun update(
-        feedingRecord: FeedingRecord,
-        onSuccess: () -> Unit,
-        onError: () -> Unit
-    ) {
-        persistRecord(feedingRecord, onSuccess, onError) {
-            repository.updateFeedingRecord(feedingRecord)
-        }
-    }
-
-    /** 删除后统一发出记录变更，确保首页、统计和预测都基于最新数据重算。 */
-    fun delete(feedingId: Int, babyId: Int, onSuccess: () -> Unit, onError: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                repository.deleteFeedingRecordById(feedingId)
-                BabyRecordChangeBus.notifyChanged(babyId)
-                onSuccess()
-            } catch (_: Exception) {
-                onError()
+    internal fun save(feedingRecord: FeedingRecord, target: RecordMutationController.Target) {
+        val submittedSession = OngoingRecordManager.getFeedingSession(feedingRecord.babyId)
+            ?.takeIf { it.startAt == feedingRecord.feedingStart }
+        mutation.submit(target, RecordMutationController.Kind.SAVE, R.string.save_failed) {
+            if (target.recordId != null) repository.updateFeedingRecord(feedingRecord)
+            else {
+                OngoingSessionSavePolicy.save(
+                    submittedSession = submittedSession,
+                    persist = { repository.insertFeedingRecord(feedingRecord) },
+                    currentSession = { OngoingRecordManager.getFeedingSession(feedingRecord.babyId) },
+                    finishSession = { OngoingRecordManager.endFeeding(feedingRecord.babyId) }
+                )
             }
+            BabyRecordChangeBus.notifyChanged(feedingRecord.babyId)
         }
     }
 
-    private fun persistRecord(
-        feedingRecord: FeedingRecord,
-        onSuccess: () -> Unit,
-        onError: () -> Unit,
-        operation: suspend () -> Unit
-    ) {
-        viewModelScope.launch {
-            try {
-                operation()
-                BabyRecordChangeBus.notifyChanged(feedingRecord.babyId)
-                onSuccess()
-            } catch (_: Exception) {
-                // 数据库失败时保留当前表单，由页面恢复操作按钮供用户重试。
-                onError()
-            }
+    /** 删除后统一发出记录变更，界面仅消费有明确草稿归属的结果。 */
+    internal fun delete(feedingId: Int, target: RecordMutationController.Target) {
+        mutation.submit(target, RecordMutationController.Kind.DELETE, R.string.record_delete_failed) {
+            repository.deleteFeedingRecordById(feedingId)
+            BabyRecordChangeBus.notifyChanged(target.babyId)
         }
     }
 
     fun loadLastFeedingRecord(babyId: Int) {
-        // 查询走 IO，避免主线程阻塞
-        viewModelScope.launch(Dispatchers.IO) {
-            val record = repository.getLastFeedingRecord(babyId)
-            _lastFeedingRecord.postValue(record)
+        if (lastRequestedBabyId != babyId) _lastFeedingRecord.value = null
+        lastRequestedBabyId = babyId
+        // 查询走 IO；回到主线程核验请求归属，避免旧宝宝的慢查询覆盖新宝宝的结果。
+        viewModelScope.launch {
+            val record = withContext(Dispatchers.IO) { repository.getLastFeedingRecord(babyId) }
+            if (lastRequestedBabyId == babyId) _lastFeedingRecord.value = record
         }
     }
 

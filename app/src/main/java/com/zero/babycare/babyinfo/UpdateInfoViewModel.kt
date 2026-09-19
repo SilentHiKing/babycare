@@ -1,6 +1,7 @@
 package com.zero.babycare.babyinfo
 
 import androidx.annotation.StringRes
+import androidx.lifecycle.SavedStateHandle
 import com.zero.babydata.domain.BabyDataHelper.repository
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.util.UnitConfig
@@ -8,9 +9,28 @@ import com.zero.common.util.UnitConverter
 import com.zero.components.base.vm.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
+import com.zero.components.base.vm.UiState
+import java.io.Serializable
 
 
-class UpdateInfoViewModel : BaseViewModel() {
+class UpdateInfoViewModel(private val savedStateHandle: SavedStateHandle) : BaseViewModel() {
+
+    private val saveResults = Channel<BabyInfoSaveResult>(Channel.BUFFERED)
+    val saveEffects = saveResults.receiveAsFlow()
+
+    /** 草稿跟随具体编辑目标保存；配置重建或系统恢复不应抹掉用户尚未提交的输入。 */
+    fun getDraft(targetKey: String): BabyInfoDraft? = savedStateHandle.get<BabyInfoDraft>(DRAFT_KEY)
+        ?.takeIf { it.targetKey == targetKey }
+
+    fun saveDraft(draft: BabyInfoDraft) {
+        savedStateHandle[DRAFT_KEY] = draft
+    }
+
+    fun clearDraft() {
+        savedStateHandle.remove<BabyInfoDraft>(DRAFT_KEY)
+    }
 
     private val _unitState = MutableStateFlow(loadUnitState())
     val unitState: StateFlow<BabyInfoUnitState> = _unitState
@@ -61,36 +81,69 @@ class UpdateInfoViewModel : BaseViewModel() {
      * 将用户按当前体重单位输入的出生体重转换回克存储。
      */
     fun parseBirthWeightToStorage(input: String): Float? {
-        val displayValue = input.toDoubleOrNull() ?: return null
-        return UnitConverter.birthWeightToStorageGrams(displayValue, _unitState.value.weightUnit)
+        return parsePositiveMeasurement(input) { displayValue ->
+            UnitConverter.birthWeightToStorageGrams(displayValue, _unitState.value.weightUnit)
+        }
     }
 
     /**
      * 将用户按当前身高单位输入的出生身高转换回厘米存储。
      */
     fun parseBirthHeightToStorage(input: String): Float? {
-        val displayValue = input.toDoubleOrNull() ?: return null
-        return UnitConverter.heightToDisplay(
-            value = displayValue,
-            fromUnit = _unitState.value.heightUnit,
-            targetUnit = UnitConfig.HEIGHT_UNIT_CM
-        ).toFloat()
+        return parsePositiveMeasurement(input) { displayValue ->
+            UnitConverter.heightToDisplay(
+                value = displayValue,
+                fromUnit = _unitState.value.heightUnit,
+                targetUnit = UnitConfig.HEIGHT_UNIT_CM
+            ).toFloat()
+        }
     }
 
-    fun insert(babyInfo: BabyInfo, callback: Runnable) {
+    fun insert(babyInfo: BabyInfo, selectAsCurrent: Boolean) {
+        if (uiState.value is UiState.Loading) return
         safeLaunch {
             repository.insertBabyInfo(babyInfo)
-            callback.run()
+            clearDraft()
+            saveResults.send(BabyInfoSaveResult(babyInfo, created = true, selectAsCurrent = selectAsCurrent))
         }
     }
 
-    fun update(babyInfo: BabyInfo, callback: Runnable) {
+    fun update(babyInfo: BabyInfo) {
+        if (uiState.value is UiState.Loading) return
         safeLaunch {
             repository.updateBabyInfo(babyInfo)
-            callback.run()
+            clearDraft()
+            saveResults.send(BabyInfoSaveResult(babyInfo, created = false, selectAsCurrent = false))
         }
     }
+
+    private companion object {
+        const val DRAFT_KEY = "baby_info_draft"
+    }
 }
+
+/** 校验转换前后的数值，避免非法输入被静默清零或溢出为不可备份的 Infinity。 */
+internal fun parsePositiveMeasurement(input: String, convert: (Double) -> Float): Float? {
+    val value = input.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+    return convert(value).takeIf { it.isFinite() && it > 0f }
+}
+
+data class BabyInfoSaveResult(val baby: BabyInfo, val created: Boolean, val selectAsCurrent: Boolean)
+
+data class BabyInfoDraft(
+    val targetKey: String,
+    val form: BabyInfoFormSnapshot,
+    val initial: BabyInfoFormSnapshot
+) : Serializable
+
+data class BabyInfoFormSnapshot(
+    val name: String = "",
+    val birthday: String = "",
+    val genderCode: String = "",
+    val weight: String = "",
+    val height: String = "",
+    val bloodType: String = ""
+) : Serializable
 
 data class BabyInfoUnitState(
     val weightUnit: String,

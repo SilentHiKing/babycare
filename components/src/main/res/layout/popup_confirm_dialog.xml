@@ -57,7 +57,7 @@
             android:layout_marginEnd="12dp"
             android:gravity="center"
             android:text="@string/cancel"
-            android:textColor="?attr/colorBrand"
+            android:textColor="?attr/colorBrandForeground"
             android:background="@drawable/bg_btn_cancel"
             android:stateListAnimator="@null" />
 

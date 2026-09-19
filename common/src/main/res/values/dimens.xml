@@ -3,6 +3,8 @@
     <!-- Page Layout -->
     <dimen name="page_horizontal_padding">16dp</dimen>
     <dimen name="page_vertical_padding">12dp</dimen>
+    <dimen name="record_time_field_gap">8dp</dimen>
+    <dimen name="picker_sheet_max_width">560dp</dimen>
     
     <!-- Card -->
     <dimen name="card_padding">16dp</dimen>

@@ -6,24 +6,33 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Rect
+import android.graphics.Typeface
+import android.os.Bundle
 import android.util.AttributeSet
 import android.view.GestureDetector
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
+import android.view.accessibility.AccessibilityEvent
 import android.view.animation.DecelerateInterpolator
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import androidx.customview.widget.ExploreByTouchHelper
 import com.zero.babycare.statistics.mapper.StatisticsDateRange
+import com.zero.common.ext.getThemeColor
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
 import java.util.Locale
 import kotlin.math.abs
-import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 
@@ -66,7 +75,6 @@ class BabyCalendarView @JvmOverloads constructor(
     private val selectedBgPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val todayBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = 2f
     }
     private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
@@ -174,37 +182,59 @@ class BabyCalendarView @JvmOverloads constructor(
 
     // ==================== 星期标题（按 firstDayOfWeek 排序） ====================
     private val weekDayLabels: Array<String> = buildWeekDayLabels(firstDayOfWeek)
+    private val accessibilityHelper = CalendarAccessibilityHelper()
 
     init {
         initColors()
         initSizes()
         // 初始化 displayWeekStart：与周规则一致
         displayWeekStart = selectedDate.with(TemporalAdjusters.previousOrSame(firstDayOfWeek))
+        isFocusable = true
+        isFocusableInTouchMode = true
+        ViewCompat.setAccessibilityDelegate(this, accessibilityHelper)
     }
 
     private fun initColors() {
-        weekDayTextColor = ContextCompat.getColor(context, com.zero.common.R.color.Black40)
-        dateTextColor = ContextCompat.getColor(context, com.zero.common.R.color.Black90)
-        selectedTextColor = ContextCompat.getColor(context, com.zero.common.R.color.White100)
-        todayTextColor = ContextCompat.getColor(context, com.zero.common.R.color.feeding_primary)
-        otherMonthTextColor = ContextCompat.getColor(context, com.zero.common.R.color.Black30)
-        selectedBgColor = ContextCompat.getColor(context, com.zero.common.R.color.feeding_primary)
-        todayBgColor = ContextCompat.getColor(context, com.zero.common.R.color.feeding_primary)
-        dotColor = ContextCompat.getColor(context, com.zero.common.R.color.feeding_secondary)
+        weekDayTextColor = getThemeColor(com.zero.common.R.attr.colorTextSecondary)
+        dateTextColor = getThemeColor(com.zero.common.R.attr.colorTextPrimary)
+        selectedTextColor = getThemeColor(com.zero.common.R.attr.colorBrandForeground)
+        todayTextColor = selectedTextColor
+        otherMonthTextColor = getThemeColor(com.zero.common.R.attr.colorTextHint)
+        selectedBgColor = ContextCompat.getColor(context, com.zero.common.R.color.control_surface_selected)
+        todayBgColor = selectedTextColor
+        dotColor = getThemeColor(com.zero.common.R.attr.colorTextSecondary)
+        todayBgPaint.strokeWidth = resources.getDimension(com.zero.common.R.dimen.surface_stroke_width)
     }
 
     private fun initSizes() {
         val density = resources.displayMetrics.density
-        weekDayTextSize = 11 * density
-        dateTextSize = 14 * density
-        weekDayHeight = 24 * density
+        // 自绘文字同样从公共 sp 样式取值，保留系统字号与字体族设置。
+        applyTextAppearance(weekDayPaint, com.zero.common.R.style.TextAppearance_BabyCare_Label)
+        applyTextAppearance(datePaint, com.zero.common.R.style.TextAppearance_BabyCare_Body2)
+        weekDayTextSize = weekDayPaint.textSize
+        dateTextSize = datePaint.textSize
+        weekDayHeight = max(24 * density, weekDayPaint.fontSpacing + 8 * density)
         dotRadius = 2.5f * density
         recordDotTextGap = 4 * density
-        selectedRadius = 14 * density
+        selectedRadius = max(14 * density, datePaint.fontSpacing / 2 + 4 * density)
     }
 
-    private val interactiveRowCount: Int
-        get() = max(1, ceil(animatedRowCount.toDouble()).toInt())
+    private fun applyTextAppearance(paint: Paint, style: Int) {
+        val appearance = context.obtainStyledAttributes(
+            style, androidx.appcompat.R.styleable.TextAppearance
+        )
+        try {
+            paint.textSize = appearance.getDimension(
+                androidx.appcompat.R.styleable.TextAppearance_android_textSize, paint.textSize
+            )
+            paint.typeface = Typeface.create(
+                appearance.getString(androidx.appcompat.R.styleable.TextAppearance_android_fontFamily),
+                appearance.getInt(androidx.appcompat.R.styleable.TextAppearance_android_textStyle, Typeface.NORMAL)
+            )
+        } finally {
+            appearance.recycle()
+        }
+    }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val widthMode = MeasureSpec.getMode(widthMeasureSpec)
@@ -223,7 +253,11 @@ class BabyCalendarView @JvmOverloads constructor(
         // 日期行至少 48dp 高，保证自绘日期的纵向点击区域可稳定命中。
         cellHeight = max(
             cellWidth * DATE_ROW_HEIGHT_FACTOR,
-            MIN_DATE_CELL_HEIGHT_DP * resources.displayMetrics.density
+            max(
+                MIN_DATE_CELL_HEIGHT_DP * resources.displayMetrics.density,
+                max(selectedRadius * 2, dateTextSize + 2 * (recordDotTextGap + dotRadius)) +
+                    8 * resources.displayMetrics.density
+            )
         )
 
         val desiredHeight = (paddingTop + weekDayHeight + cellHeight * animatedRowCount + paddingBottom).toInt()
@@ -234,6 +268,11 @@ class BabyCalendarView @JvmOverloads constructor(
         }
 
         setMeasuredDimension(measuredWidth, measuredHeight)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        accessibilityHelper.invalidateRoot()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -247,7 +286,8 @@ class BabyCalendarView @JvmOverloads constructor(
         weekDayPaint.color = weekDayTextColor
 
         val contentLeft = paddingLeft.toFloat()
-        val y = paddingTop + weekDayHeight / 2 + weekDayTextSize / 3
+        val y = paddingTop + weekDayHeight / 2 -
+            (weekDayPaint.fontMetrics.ascent + weekDayPaint.fontMetrics.descent) / 2
         for (i in 0 until DAYS_IN_WEEK) {
             val x = contentLeft + cellWidth * i + cellWidth / 2
             canvas.drawText(weekDayLabels[i], x, y, weekDayPaint)
@@ -278,9 +318,10 @@ class BabyCalendarView @JvmOverloads constructor(
             if (isSelected) {
                 selectedBgPaint.color = selectedBgColor
                 canvas.drawCircle(centerX, centerY, selectedRadius, selectedBgPaint)
-            } else if (isToday) {
+            }
+            if (isSelected || isToday) {
                 todayBgPaint.color = todayBgColor
-                canvas.drawCircle(centerX, centerY, selectedRadius - 2, todayBgPaint)
+                canvas.drawCircle(centerX, centerY, selectedRadius, todayBgPaint)
             }
 
             datePaint.color = when {
@@ -290,9 +331,23 @@ class BabyCalendarView @JvmOverloads constructor(
                 else -> otherMonthTextColor
             }
             datePaint.isFakeBoldText = isSelected || isToday
+            // 今天恰好被选中时仍保留独立提示，不再用第二层底色叠加。
+            datePaint.isUnderlineText = isSelected && isToday
 
-            val textY = centerY + dateTextSize / 3
+            val textY = centerY - (datePaint.fontMetrics.ascent + datePaint.fontMetrics.descent) / 2
             canvas.drawText(date.dayOfMonth.toString(), centerX, textY, datePaint)
+
+            if (index == accessibilityHelper.keyboardFocusedVirtualViewId ||
+                index == accessibilityHelper.accessibilityFocusedVirtualViewId
+            ) {
+                val bounds = dateBounds(index)
+                val inset = 2 * resources.displayMetrics.density
+                todayBgPaint.color = todayBgColor
+                canvas.drawRoundRect(
+                    bounds.left + inset, bounds.top + inset, bounds.right - inset, bounds.bottom - inset,
+                    inset * 2, inset * 2, todayBgPaint
+                )
+            }
 
             if (shouldDrawRecordDot) {
                 dotPaint.color = dotColor
@@ -329,31 +384,128 @@ class BabyCalendarView @JvmOverloads constructor(
     }
 
     private fun handleClick(x: Float, y: Float): Boolean {
+        val index = dateIndexAt(x, y)
+        if (index == ExploreByTouchHelper.INVALID_ID) return false
+        return selectVisibleDate(index)
+    }
+
+    /** 手势、朗读焦点和键盘共用实际绘制的日期与边界，展开动画期间也不能点错日期。 */
+    private fun dateIndexAt(x: Float, y: Float): Int {
         val contentX = x - paddingLeft
         val contentY = y - paddingTop
-        if (contentY < weekDayHeight) return false
-        if (cellWidth <= 0f || cellHeight <= 0f) return false
+        if (contentY < weekDayHeight || y >= height - paddingBottom) return ExploreByTouchHelper.INVALID_ID
+        if (cellWidth <= 0f || cellHeight <= 0f) return ExploreByTouchHelper.INVALID_ID
 
         val contentWidth = max(0, width - paddingLeft - paddingRight).toFloat()
-        if (contentX < 0f || contentX > contentWidth) return false
+        if (contentX < 0f || contentX >= contentWidth) return ExploreByTouchHelper.INVALID_ID
 
-        val col = (contentX / cellWidth).toInt().coerceIn(0, DAYS_IN_WEEK - 1)
+        val col = (contentX / cellWidth).toInt()
         val row = ((contentY - weekDayHeight) / cellHeight).toInt()
-
-        val maxRow = interactiveRowCount
-        if (row < 0 || row >= maxRow) return false
-
-        val dates = getDisplayDates()
         val index = row * DAYS_IN_WEEK + col
-        if (index !in dates.indices) return false
+        return if (index in displayedDates().indices && !dateBounds(index).isEmpty) index
+        else ExploreByTouchHelper.INVALID_ID
+    }
 
-        setSelectedDate(dates[index], notify = true)
+    private fun displayedDates(): List<LocalDate> = transitionDates ?: getDisplayDates()
+
+    private fun dateBounds(index: Int): Rect {
+        val row = index / DAYS_IN_WEEK
+        val column = index % DAYS_IN_WEEK
+        val top = (paddingTop + weekDayHeight + row * cellHeight).toInt()
+        return Rect(
+            (paddingLeft + column * cellWidth).toInt(),
+            top,
+            (paddingLeft + (column + 1) * cellWidth).toInt(),
+            min((paddingTop + weekDayHeight + (row + 1) * cellHeight).toInt(), height - paddingBottom)
+        ).apply { if (bottom <= top) setEmpty() }
+    }
+
+    private fun selectVisibleDate(index: Int): Boolean {
+        if (!isEnabled || dateBounds(index).isEmpty) return false
+        val date = displayedDates().getOrNull(index) ?: return false
+        // 动画内选择使用当时可见日期，并立即结束过渡以同步命中区、行高和朗读内容。
+        expandAnimator?.cancel()
+        transitionDates = null
+        if (currentMode == ViewMode.WEEK) animatedRowCount = WEEK_ROWS.toFloat()
+        setSelectedDate(date, notify = true)
+        requestLayout()
+        val selectedIndex = displayedDates().indexOf(date)
+        if (accessibilityHelper.keyboardFocusedVirtualViewId != ExploreByTouchHelper.INVALID_ID) {
+            accessibilityHelper.requestKeyboardFocusForVirtualView(selectedIndex)
+        }
+        accessibilityHelper.sendEventForVirtualView(selectedIndex, AccessibilityEvent.TYPE_VIEW_CLICKED)
         return true
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (!isEnabled) return false
         // ✅ 不再在 ACTION_UP 二次处理点击
         return gestureDetector.onTouchEvent(event) || super.onTouchEvent(event)
+    }
+
+    override fun dispatchHoverEvent(event: MotionEvent): Boolean =
+        accessibilityHelper.dispatchHoverEvent(event) || super.dispatchHoverEvent(event)
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean =
+        accessibilityHelper.dispatchKeyEvent(event) || super.dispatchKeyEvent(event)
+
+    override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+        accessibilityHelper.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+    }
+
+    /** 自绘网格的每一天都是独立按钮节点，选择会走与触摸相同的页面回调。 */
+    private inner class CalendarAccessibilityHelper : ExploreByTouchHelper(this@BabyCalendarView) {
+        override fun getVirtualViewAt(x: Float, y: Float): Int = dateIndexAt(x, y)
+
+        override fun getVisibleVirtualViews(virtualViewIds: MutableList<Int>) {
+            displayedDates().indices.filterTo(virtualViewIds) { !dateBounds(it).isEmpty }
+        }
+
+        override fun onPopulateNodeForHost(node: AccessibilityNodeInfoCompat) {
+            node.className = "android.widget.GridView"
+            node.setCollectionInfo(AccessibilityNodeInfoCompat.CollectionInfoCompat.obtain(
+                displayedDates().size / DAYS_IN_WEEK, DAYS_IN_WEEK, false,
+                AccessibilityNodeInfoCompat.CollectionInfoCompat.SELECTION_MODE_SINGLE
+            ))
+        }
+
+        override fun onPopulateNodeForVirtualView(virtualViewId: Int, node: AccessibilityNodeInfoCompat) {
+            val date = displayedDates().getOrNull(virtualViewId)
+            if (date == null) {
+                // 月份切换后系统可能短暂请求旧节点；提供空边界避免暴露已消失日期。
+                node.contentDescription = ""
+                node.setBoundsInParent(Rect())
+                node.isEnabled = false
+                return
+            }
+            var description = date.format(
+                DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(resources.configuration.locales[0])
+            )
+            if (date == LocalDate.now()) {
+                description = context.getString(com.zero.common.R.string.calendar_today_date_format, description)
+            }
+            if (date in datesWithRecords) {
+                description = context.getString(com.zero.common.R.string.calendar_recorded_date_format, description)
+            }
+            node.contentDescription = description
+            node.className = "android.widget.Button"
+            node.isEnabled = isEnabled
+            node.isSelected = date == selectedDate
+            node.isClickable = isEnabled
+            node.setBoundsInParent(dateBounds(virtualViewId))
+            node.setCollectionItemInfo(AccessibilityNodeInfoCompat.CollectionItemInfoCompat.obtain(
+                virtualViewId / DAYS_IN_WEEK, 1, virtualViewId % DAYS_IN_WEEK, 1, false, date == selectedDate
+            ))
+            if (isEnabled) node.addAction(AccessibilityNodeInfoCompat.ACTION_CLICK)
+        }
+
+        override fun onPerformActionForVirtualView(virtualViewId: Int, action: Int, arguments: Bundle?): Boolean =
+            action == AccessibilityNodeInfoCompat.ACTION_CLICK && selectVisibleDate(virtualViewId)
+
+        override fun onVirtualViewKeyboardFocusChanged(virtualViewId: Int, hasFocus: Boolean) {
+            invalidate()
+        }
     }
 
     // ==================== 公开方法 ====================
@@ -381,6 +533,7 @@ class BabyCalendarView @JvmOverloads constructor(
 
         invalidate()
 
+        accessibilityHelper.invalidateRoot()
         if (notify && dateChanged) {
             onDateSelectedListener?.invoke(date)
         }
@@ -391,6 +544,7 @@ class BabyCalendarView @JvmOverloads constructor(
     fun setDatesWithRecords(dates: Set<LocalDate>) {
         datesWithRecords = dates
         invalidate()
+        accessibilityHelper.invalidateRoot()
     }
 
     fun setViewMode(mode: ViewMode, animate: Boolean = true) {
@@ -422,6 +576,7 @@ class BabyCalendarView @JvmOverloads constructor(
             transitionDates = collapseTransitionDates
             animateRowChange(targetRows.toFloat()) {
                 transitionDates = null
+                accessibilityHelper.invalidateRoot()
             }
         } else {
             transitionDates = null
@@ -429,6 +584,7 @@ class BabyCalendarView @JvmOverloads constructor(
             requestLayout()
             invalidate()
         }
+        accessibilityHelper.invalidateRoot()
     }
 
     fun getViewMode(): ViewMode = currentMode
@@ -461,6 +617,7 @@ class BabyCalendarView @JvmOverloads constructor(
                 invalidate()
             }
         }
+        accessibilityHelper.invalidateRoot()
     }
 
     fun navigateNext() {
@@ -487,6 +644,7 @@ class BabyCalendarView @JvmOverloads constructor(
                 invalidate()
             }
         }
+        accessibilityHelper.invalidateRoot()
     }
 
     fun goToToday() {

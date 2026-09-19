@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.zero.babycare.home.bean.DashboardData
 import com.zero.babycare.home.prediction.PredictionManager
 import com.zero.babydata.domain.BabyDataHelper.repository
+import com.zero.babydata.domain.RecordDurationCalculator
 import com.zero.babydata.entity.BabyInfo
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.SleepRecord
@@ -19,6 +20,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Date
+import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 
 class DashboardViewModel : BaseViewModel() {
@@ -28,6 +30,7 @@ class DashboardViewModel : BaseViewModel() {
 
     private var currentBaby: BabyInfo? = null
     private var loadJob: Job? = null
+    private var loadedSnapshot: LoadedDashboard? = null
 
     companion object {
         /** 预测使用的最近记录数 */
@@ -52,6 +55,7 @@ class DashboardViewModel : BaseViewModel() {
 
         if (baby == null) {
             loadJob?.cancel()
+            loadedSnapshot = null
             _dashboardUiState.value = DashboardUiState.NoBaby
             return
         }
@@ -86,12 +90,16 @@ class DashboardViewModel : BaseViewModel() {
             }
 
             try {
-                val data = buildDashboardData(baby)
+                val snapshot = buildDashboardData(baby)
+                loadedSnapshot = snapshot
                 _dashboardUiState.value = DashboardUiState.Content(
                     babyId = baby.babyId,
                     babyName = baby.name,
-                    data = data,
-                    nowMillis = System.currentTimeMillis()
+                    data = DashboardDurationMapper.update(
+                        snapshot.data, snapshot.feedingSession, snapshot.sleepSession, snapshot.sampledAt
+                    ),
+                    nowMillis = snapshot.sampledAt,
+                    timeZoneId = snapshot.timeZoneId
                 )
             } catch (throwable: Throwable) {
                 if (throwable is CancellationException) throw throwable
@@ -101,11 +109,12 @@ class DashboardViewModel : BaseViewModel() {
         }
     }
 
-    private suspend fun buildDashboardData(baby: BabyInfo): DashboardData {
+    private suspend fun buildDashboardData(baby: BabyInfo): LoadedDashboard {
         return withContext(Dispatchers.IO) {
             val babyId = baby.babyId
-            val babyAgeMonths = calculateBabyAgeMonths(baby.birthDate)
+            val babyAgeMonths = com.zero.babycare.home.prediction.PredictionAgePolicy.ageMonths(baby.birthDate)
             val now = Date()
+            val timeZoneId = ZoneId.systemDefault().id
             val (startOfDay, endOfDay) = DateUtils.getDayRange(now)
 
             // 查询今日数据
@@ -121,12 +130,8 @@ class DashboardViewModel : BaseViewModel() {
 
             // 计算当前状态（使用 OngoingRecordManager）
             val currentStatus = determineCurrentStatus(babyId)
-            val ongoingSleepStart = if (currentStatus == DashboardData.BabyStatus.SLEEPING) {
-                OngoingRecordManager.getOngoingSleepStart(babyId)
-            } else null
-            val ongoingFeedingStart = if (currentStatus == DashboardData.BabyStatus.FEEDING) {
-                OngoingRecordManager.getOngoingFeedingStart(babyId)
-            } else null
+            val sleepSession = OngoingRecordManager.getSleepSession(babyId)
+            val feedingSession = OngoingRecordManager.getFeedingSession(babyId)
 
             // 上次结束时间（用于"距上次"显示）
             // 1. 过滤进行中记录（feedingEnd <= feedingStart 表示未完成）
@@ -140,7 +145,7 @@ class DashboardViewModel : BaseViewModel() {
                 .maxByOrNull { it.sleepEnd }
                 ?.sleepEnd
 
-            // 今日统计（只包含已完成的记录，进行中的由 UI 层动态计算）
+            // 已完成记录与会话增量分别保留，分钟跳动只更新会话派生值。
             val feedingCount = feedings.size
             val totalFeedingMs = calculateOverlappedFeedingDuration(
                 records = feedingOverlaps,
@@ -169,10 +174,8 @@ class DashboardViewModel : BaseViewModel() {
                 feedingRecords = recentFeedings
             )
 
-            DashboardData(
+            val data = DashboardData(
                 currentStatus = currentStatus,
-                ongoingSleepStart = ongoingSleepStart,
-                ongoingFeedingStart = ongoingFeedingStart,
                 lastFeedingEndTime = lastFeedingEndTime,
                 feedingCount = feedingCount,
                 totalFeedingMinutes = totalFeedingMinutes,
@@ -182,8 +185,17 @@ class DashboardViewModel : BaseViewModel() {
                 feedingPrediction = feedingPrediction,
                 sleepPrediction = sleepPrediction
             )
+            LoadedDashboard(data, feedingSession, sleepSession, now.time, timeZoneId)
         }
     }
+
+    private data class LoadedDashboard(
+        val data: DashboardData,
+        val feedingSession: OngoingRecordManager.OngoingSession?,
+        val sleepSession: OngoingRecordManager.OngoingSession?,
+        val sampledAt: Long,
+        val timeZoneId: String
+    )
 
     private fun observeRecordChanges() {
         viewModelScope.launch {
@@ -205,26 +217,24 @@ class DashboardViewModel : BaseViewModel() {
     }
 
     /**
-     * 分钟级时钟只更新相对时间展示；预测过期时再重新查询，避免 Fragment 自己调度刷新。
+     * 分钟级时钟更新相对时间与会话时长，自然日改变时重载今日数据。
      */
     private fun refreshClock() {
         val state = _dashboardUiState.value as? DashboardUiState.Content ?: return
-        val shouldReloadPrediction =
-            state.data.feedingPrediction?.isExpired() == true ||
-                state.data.sleepPrediction?.isExpired() == true
-
-        if (shouldReloadPrediction) {
+        val now = System.currentTimeMillis()
+        // 即使没有可用预测也必须在午夜重载，避免整晚停留首页后仍展示昨天的次数。
+        // 过期预测由时间渲染隐藏即可；每分钟查询也无法凭空产生新样本。
+        if (DashboardClockPolicy.needsDayReload(state.nowMillis, now, state.timeZoneId)) {
             refreshDashboard()
         } else {
-            _dashboardUiState.value = state.copy(nowMillis = System.currentTimeMillis())
+            val snapshot = loadedSnapshot ?: return
+            _dashboardUiState.value = state.copy(
+                nowMillis = now,
+                data = DashboardDurationMapper.update(
+                    state.data, snapshot.feedingSession, snapshot.sleepSession, now
+                )
+            )
         }
-    }
-
-    private fun calculateBabyAgeMonths(birthDay: Long): Int {
-        if (birthDay <= 0) return 0
-        val diffMs = System.currentTimeMillis() - birthDay
-        val days = TimeUnit.MILLISECONDS.toDays(diffMs)
-        return (days / 30).toInt().coerceAtLeast(0)
     }
 
     /**
@@ -277,20 +287,7 @@ class DashboardViewModel : BaseViewModel() {
         startOfDay: Long,
         endOfDay: Long
     ): Long {
-        if (start <= 0L || end <= start) return 0L
-
-        val overlapStart = maxOf(start, startOfDay)
-        val overlapEnd = minOf(end, endOfDay)
-        val overlap = (overlapEnd - overlapStart).coerceAtLeast(0L)
-        if (overlap <= 0L) return 0L
-
-        val isFullyWithinDay = start >= startOfDay && end <= endOfDay
-        return if (isFullyWithinDay && duration > 0L) {
-            // 记录完全在当天内时，优先使用记录的真实时长
-            minOf(duration, overlap)
-        } else {
-            overlap
-        }
+        return RecordDurationCalculator.overlappedDuration(start, end, duration, startOfDay, endOfDay)
     }
 
     /**

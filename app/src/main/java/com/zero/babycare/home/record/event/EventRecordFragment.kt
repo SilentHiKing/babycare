@@ -14,6 +14,8 @@ import android.widget.TextView
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.core.widget.doAfterTextChanged
+import com.google.gson.Gson
 import com.blankj.utilcode.util.SizeUtils
 import com.zero.components.widget.GridSpacingItemDecoration
 import com.blankj.utilcode.util.ToastUtils
@@ -29,6 +31,7 @@ import com.zero.babycare.databinding.LayoutEventDetailCustomBinding
 import com.zero.babycare.databinding.LayoutEventDetailSymptomBinding
 import com.zero.babycare.databinding.LayoutEventDetailVaccineBinding
 import com.zero.babycare.home.record.RecordTimerController
+import com.zero.babycare.home.record.RecordDraftState
 import com.zero.babycare.home.record.TimerMode
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babycare.navigation.BackPressHandler
@@ -53,6 +56,9 @@ import com.zero.components.widget.ToolbarAction
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlinx.coroutines.flow.combine
+import java.util.UUID
+import com.zero.babycare.home.record.RecordMutationController
 
 /**
  * 事件记录页面
@@ -73,6 +79,15 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private var activityTimerController: RecordTimerController? = null
     private var saveInProgress = false
     private var noteExpanded = false
+    private var hasUnsavedChanges = false
+    private var isProgrammaticChange = false
+    private var cleanInputs = arrayListOf<String>()
+    private var retainedDraft: Bundle? = null
+    private var draftForView: Bundle? = null
+    private var draftBabyId: Int? = null
+    private var detailRendered = false
+    private var renderedDetailType: Int? = null
+    private var draftId = UUID.randomUUID().toString()
 
     private val dateFormat by lazy {
         // 日期标题跟随应用内语言，避免英文环境下仍显示中文“月/日”格式。
@@ -84,6 +99,12 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         super.initView(view, savedInstanceState)
 
         resolveEditMode()
+        draftForView = (savedInstanceState?.getBundle(RecordDraftState.KEY) ?: retainedDraft)
+            ?.takeIf { mainVm.navTarget.value is NavTarget.EventRecord &&
+                RecordDraftState.matches(it, mainVm.getCurrentBabyInfo()?.babyId, editRecordId) }
+        draftBabyId = draftForView?.getInt("baby_id")?.takeIf { it > 0 }
+            ?: mainVm.getCurrentBabyInfo()?.babyId
+        draftId = draftForView?.getString("draft_id") ?: UUID.randomUUID().toString()
 
         setupToolbar()
         setupTimeCard()
@@ -92,7 +113,17 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         setupNoteSection()
         setupSaveButton()
 
-        if (isEditMode) {
+        val draft = draftForView
+        if (draft != null) {
+            editingRecord = draft.getString("editing_record")?.let {
+                Gson().fromJson(it, com.zero.babydata.entity.EventRecord::class.java)
+            }
+            draft.getString("event_state")?.let { vm.restoreDraft(Gson().fromJson(it, EventRecordViewModel.Draft::class.java)) }
+            // 动态详情必须早于 Android 的 View 层级恢复创建，首次 Flow 重放不再重建它。
+            updateDetailView(vm.selectedSubtype.value)
+            updateUIVisibility(vm.selectedSubtype.value != null)
+            if (isEditMode && editingRecord == null) loadEditRecord()
+        } else if (isEditMode) {
             loadEditRecord()
         } else {
             // 常驻 Fragment 再次进入创建模式时，必须清掉上一次未保存的临时表单。
@@ -100,32 +131,97 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         }
 
         observeViewModel()
+        observeMutation()
+        launchInLifecycle {
+            mainVm.currentBaby.combine(mainVm.navTarget) { baby, target -> baby?.babyId to target }
+                .collect { (babyId, target) ->
+                    if (!isHidden && target is NavTarget.EventRecord && babyId != null) {
+                        val changed = (draftBabyId != null && draftBabyId != babyId) || editRecordId != target.editRecordId
+                        if (draftBabyId == null) draftBabyId = babyId
+                        if (changed) openCurrentTarget()
+                    }
+                }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (view != null && !isHidden) outState.putBundle(RecordDraftState.KEY, captureDraft())
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        draftForView?.let { draft ->
+            isProgrammaticChange = true
+            RecordDraftState.restoreHierarchy(binding.root, draft)
+            draft.getBundle("timer")?.let { timer ->
+                activityTimerPanel()?.let { RecordDraftState.restoreTimer(it, activityTimerController, timer) }
+            }
+            setNoteExpanded(draft.getBoolean("note_expanded"))
+            cleanInputs = draft.getStringArrayList("clean_inputs") ?: RecordDraftState.inputValues(binding.root)
+            hasUnsavedChanges = draft.getBoolean("dirty")
+            isProgrammaticChange = false
+            updateToolbarAction()
+        }
+        draftForView = null
+        retainedDraft = null
+    }
+
+    private fun captureDraft(): Bundle = Bundle().apply {
+        putInt("edit_id", editRecordId ?: 0)
+        putString("draft_id", draftId)
+        putInt("baby_id", draftBabyId ?: mainVm.getCurrentBabyInfo()?.babyId ?: 0)
+        putBoolean("dirty", hasUnsavedChanges || RecordDraftState.inputValues(binding.root) != cleanInputs)
+        putBoolean("note_expanded", noteExpanded)
+        putStringArrayList("clean_inputs", cleanInputs)
+        putString("event_state", Gson().toJson(vm.captureDraft()))
+        editingRecord?.let { putString("editing_record", Gson().toJson(it)) }
+        activityTimerPanel()?.let { putBundle("timer", RecordDraftState.saveTimer(it, activityTimerController)) }
+        RecordDraftState.saveHierarchy(binding.root, this)
+    }
+
+    private fun activityTimerPanel(): com.zero.components.widget.RecordTimerPanelView? {
+        if (activityTimerController == null || binding.containerDetail.childCount == 0) return null
+        return LayoutEventDetailActivityBinding.bind(binding.containerDetail.getChildAt(0)).timerPanel
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
+        if (view == null) return
         if (hidden) {
+            retainedDraft = null
             releaseActivityTimer()
             setSaveInProgress(false)
             return
         }
         if (!hidden) {
-            resolveEditMode()
-            if (isEditMode) {
-                loadEditRecord()
-            } else {
-                prepareCreateModeState()
-            }
+            openCurrentTarget()
         }
     }
 
+    private fun openCurrentTarget() {
+        draftId = UUID.randomUUID().toString()
+        draftBabyId = mainVm.getCurrentBabyInfo()?.babyId
+        hasUnsavedChanges = false
+        resolveEditMode()
+        prepareCreateModeState()
+        if (isEditMode) loadEditRecord()
+    }
+
     private fun prepareCreateModeState() {
+        isProgrammaticChange = true
         releaseActivityTimer()
+        detailRendered = false
         vm.reset()
         binding.etNote.setText("")
         setNoteExpanded(false)
         setSaveInProgress(false)
         handlePreSelectedCategory()
+        updateDetailView(vm.selectedSubtype.value)
+        updateUIVisibility(vm.selectedSubtype.value != null)
+        hasUnsavedChanges = false
+        cleanInputs = RecordDraftState.inputValues(binding.root)
+        isProgrammaticChange = false
     }
 
     /**
@@ -158,13 +254,21 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
     private fun loadEditRecord() {
         val recordId = editRecordId ?: return
+        val expectedView = view
+        val expectedBabyId = draftBabyId
+        val expectedDraftId = draftId
         vm.loadEventRecordById(recordId) { record ->
-            if (record == null) {
+            if (view !== expectedView || isHidden || editRecordId != recordId || draftId != expectedDraftId) return@loadEventRecordById
+            if (record == null || (expectedBabyId != null && record.babyId != expectedBabyId) ||
+                (draftBabyId != null && record.babyId != draftBabyId)) {
                 mainVm.navigateTo(getReturnTarget())
                 return@loadEventRecordById
             }
+            draftBabyId = record.babyId
             editingRecord = record
             updateToolbarAction()
+            if (hasUnsavedChanges) return@loadEventRecordById
+            isProgrammaticChange = true
             pendingExtraData = com.zero.babydata.entity.EventExtraData.parse(record.type, record.extraData)
 
             val category = EventCategory.fromId(com.zero.babydata.entity.EventType.getCategory(record.type))
@@ -187,6 +291,12 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             vm.setNote(record.note)
             binding.etNote.setText(record.note)
             setNoteExpanded(record.note.isNotBlank())
+            detailRendered = false
+            updateDetailView(subtype)
+            updateUIVisibility(subtype != null)
+            cleanInputs = RecordDraftState.inputValues(binding.root)
+            hasUnsavedChanges = false
+            isProgrammaticChange = false
         }
     }
 
@@ -224,6 +334,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private fun setupCategoryRecyclerView() {
         categoryAdapter = EventCategoryAdapter { category ->
             if (!isCategoryLocked) {
+                hasUnsavedChanges = true
                 vm.selectCategory(category)
             }
         }
@@ -236,6 +347,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private fun setupSubtypeRecyclerView() {
         subtypeAdapter = EventSubtypeAdapter { subtype ->
             if (!isCategoryLocked) {
+                hasUnsavedChanges = true
                 vm.selectSubtype(subtype)
             }
         }
@@ -252,6 +364,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     private fun setupNoteSection() {
+        binding.etNote.doAfterTextChanged { if (!isProgrammaticChange) hasUnsavedChanges = true }
         binding.noteCollapsedRow.setOnClickListener {
             setNoteExpanded(true)
         }
@@ -286,7 +399,8 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         launchInLifecycle {
             vm.selectedSubtype.collect { subtype ->
                 subtypeAdapter.setSelectedType(subtype?.type)
-                updateDetailView(subtype)
+                // 编辑加载最后统一重建详情，避免同步 Flow 重入提前消耗 pendingExtraData。
+                if (!isProgrammaticChange) updateDetailView(subtype)
                 updateUIVisibility(subtype != null)
             }
         }
@@ -312,6 +426,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             mode = DialogHelper.DateTimeMode.DATE_TIME,
             maxTime = System.currentTimeMillis(),
             onConfirm = { timestamp ->
+                hasUnsavedChanges = true
                 vm.setEventTime(timestamp)
                 val subtype = vm.selectedSubtype.value
                 if (subtype != null && EventType.hasDuration(subtype.type) && vm.durationStartTime.value != null) {
@@ -351,6 +466,9 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     private fun updateDetailView(subtype: EventSubtype?) {
+        if (detailRendered && renderedDetailType == subtype?.type) return
+        detailRendered = true
+        renderedDetailType = subtype?.type
         releaseActivityTimer()
         binding.containerDetail.removeAllViews()
         activityTimerController = null
@@ -399,6 +517,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         }
 
         applyEditDetailIfNeeded(subtype)
+        if (!hasUnsavedChanges) cleanInputs = RecordDraftState.inputValues(binding.root)
     }
 
     private fun applyEditDetailIfNeeded(subtype: EventSubtype) {
@@ -861,11 +980,13 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             endPicker = detailBinding.timerPanel.endPicker,
             config = RecordTimerController.Config(
                 invalidEndTimeMessageRes = R.string.event_end_time_invalid,
-                mode = TimerMode.ACTIVITY
+                mode = TimerMode.ACTIVITY,
+                shouldIgnoreInput = { isProgrammaticChange }
             ),
             callbacks = RecordTimerController.Callbacks(
                 onStartTimeChanged = { timestamp -> vm.setDurationStartTime(timestamp) },
-                onEndTimeChanged = { timestamp -> vm.setEndTime(timestamp) }
+                onEndTimeChanged = { timestamp -> vm.setEndTime(timestamp) },
+                onDirty = { if (!isProgrammaticChange) hasUnsavedChanges = true }
             )
         )
 
@@ -906,13 +1027,14 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     private fun saveRecord() {
-        if (saveInProgress) return
+        if (vm.mutation.isPending || (isEditMode && editingRecord == null)) return
 
         val babyId = mainVm.getCurrentBabyInfo()?.babyId
-        if (babyId == null) {
+        if (babyId == null || (draftBabyId != null && draftBabyId != babyId)) {
             ToastUtils.showShort(R.string.no_baby_selected)
             return
         }
+        if (isEditMode && editingRecord?.babyId != babyId) return
 
         syncRunningActivityTimerBeforeSave()
         syncDetailInputs()
@@ -920,21 +1042,9 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         // 获取备注
         vm.setNote(binding.etNote.text.toString().trim())
 
-        setSaveInProgress(true)
         vm.saveRecord(
-            babyId = babyId,
-            editRecordId = editRecordId,
-            createdAt = editingRecord?.createdAt,
-            onSuccess = {
-                setSaveInProgress(false)
-                ToastUtils.showShort(R.string.save_success)
-                vm.reset()
-                mainVm.navigateTo(getReturnTarget())
-            },
-            onError = { message ->
-                setSaveInProgress(false)
-                ToastUtils.showShort(getString(message))
-            }
+            target = mutationTarget(babyId),
+            createdAt = editingRecord?.createdAt
         )
     }
 
@@ -946,10 +1056,35 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         updateToolbarAction()
     }
 
+    private fun mutationTarget(babyId: Int) = RecordMutationController.Target(
+        draftId, babyId, editRecordId, mainVm.navTarget.value, getReturnTarget()
+    )
+
+    private fun observeMutation() {
+        launchInLifecycle {
+            vm.mutation.state.collect { state ->
+                setSaveInProgress(state is RecordMutationController.State.Running)
+                if (state is RecordMutationController.State.Finished && vm.mutation.consume(state)) {
+                    val belongs = state.target.belongsTo(draftId, mainVm.getCurrentBabyInfo()?.babyId, mainVm.navTarget.value)
+                    if (state.target.draftId == draftId && state.errorRes == null) {
+                        prepareCreateModeState()
+                    }
+                    if (belongs && !isHidden) {
+                        val message = state.errorRes ?: if (state.kind == RecordMutationController.Kind.DELETE)
+                            R.string.record_delete_success else R.string.save_success
+                        ToastUtils.showShort(message)
+                        if (state.errorRes == null) mainVm.navigateTo(state.target.destination)
+                    }
+                }
+            }
+        }
+    }
+
     /** 编辑态提供删除入口，让错误记录可以被纠正并同步刷新派生数据。 */
     private fun showDeleteConfirmDialog() {
         val record = editingRecord ?: return
-        if (saveInProgress) return
+        if (vm.mutation.isPending) return
+        val target = mutationTarget(record.babyId)
         DialogHelper.showConfirmDialog(
             context = requireContext(),
             title = getString(R.string.delete_record),
@@ -957,21 +1092,9 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             confirmText = getString(R.string.delete_record),
             cancelText = getString(R.string.cancel),
             onConfirm = {
-                setSaveInProgress(true)
-                vm.deleteRecord(
-                    eventId = record.eventId,
-                    babyId = record.babyId,
-                    onSuccess = {
-                        setSaveInProgress(false)
-                        ToastUtils.showShort(R.string.record_delete_success)
-                        vm.reset()
-                        mainVm.navigateTo(getReturnTarget())
-                    },
-                    onError = {
-                        setSaveInProgress(false)
-                        ToastUtils.showShort(R.string.record_delete_failed)
-                    }
-                )
+                if (target.belongsTo(draftId, mainVm.getCurrentBabyInfo()?.babyId, mainVm.navTarget.value)) {
+                    vm.deleteRecord(record.eventId, target)
+                }
             }
         )
     }
@@ -1174,7 +1297,21 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     private fun handleBack() {
-        mainVm.navigateTo(getReturnTarget())
+        if (hasUnsavedChanges || RecordDraftState.inputValues(binding.root) != cleanInputs) {
+            DialogHelper.showConfirmDialog(
+                context = requireContext(),
+                title = getString(R.string.tip),
+                content = getString(R.string.unsaved_record_tip),
+                confirmText = getString(R.string.confirm),
+                cancelText = getString(R.string.cancel),
+                onConfirm = {
+                    hasUnsavedChanges = false
+                    mainVm.navigateTo(getReturnTarget())
+                }
+            )
+        } else {
+            mainVm.navigateTo(getReturnTarget())
+        }
     }
 
     private fun applyCategoryLockState() {
@@ -1189,6 +1326,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
     private fun releaseActivityTimer() {
         if (activityTimerController == null) return
+        activityTimerController?.dispose()
         val detailRoot = binding.containerDetail.getChildAt(0)
         if (detailRoot != null) {
             runCatching {
@@ -1199,6 +1337,8 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     override fun onDestroyView() {
+        retainedDraft = if (!isHidden) captureDraft() else null
+        detailRendered = false
         releaseActivityTimer()
         super.onDestroyView()
     }

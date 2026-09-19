@@ -38,6 +38,9 @@ class RecordTimerController(
 
     private var pausedEndTimestamp = 0L
 
+    /** 与当前结束输入分开保存，重建后仍能识别暂停后手动修改过的结束时间。 */
+    val originalPauseTimestamp: Long get() = pausedEndTimestamp
+
     init {
         bind()
     }
@@ -314,9 +317,9 @@ class RecordTimerController(
     }
 
     /** 恢复进程退出前的暂停终态，并保留结束时间用于后续继续确认。 */
-    fun restorePausedSession(endTimestamp: Long, durationMs: Long) {
+    fun restorePausedSession(endTimestamp: Long, durationMs: Long, originalPauseTimestamp: Long = endTimestamp) {
         setEndTime(endTimestamp, notify = false)
-        pausedEndTimestamp = endTimestamp
+        pausedEndTimestamp = originalPauseTimestamp
         timerView.restorePaused(durationMs)
     }
 

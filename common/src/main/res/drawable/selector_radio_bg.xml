@@ -6,7 +6,7 @@
             <solid android:color="@color/control_surface_selected" />
             <stroke
                 android:width="@dimen/surface_stroke_width"
-                android:color="?attr/colorBrand" />
+                android:color="?attr/colorBrandForeground" />
             <corners android:radius="?attr/shapeCornerSmall" />
         </shape>
     </item>

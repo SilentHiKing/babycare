@@ -1,7 +1,10 @@
 package com.zero.babycare.settings.backup
 
 import android.app.Application
+import android.content.Intent
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.blankj.utilcode.util.AppUtils
 import com.zero.babydata.backup.BackupImportError
@@ -10,6 +13,7 @@ import com.zero.babydata.backup.BackupImportReport
 import com.zero.babydata.backup.BabyBackupEnvelope
 import com.zero.babydata.backup.BabyBackupExporter
 import com.zero.babydata.backup.BabyBackupImporter
+import com.zero.babydata.backup.BabyBackupParser
 import com.zero.babydata.backup.BackupImportStrategy
 import com.zero.babydata.domain.BabyDataHelper
 import com.zero.babycare.home.BabyRecordChangeBus
@@ -19,6 +23,7 @@ import com.zero.components.base.vm.UiState
 import com.zero.common.mmkv.MMKVKeys
 import com.zero.common.mmkv.MMKVStore
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,14 +39,17 @@ import com.google.gson.JsonSyntaxException
 /**
  * 备份导出 ViewModel
  */
-class BackupViewModel(application: Application) : AndroidViewModel(application) {
+class BackupViewModel(
+    application: Application,
+    private val savedStateHandle: SavedStateHandle
+) : AndroidViewModel(application) {
 
-    private val exporter = BabyBackupExporter(application)
-    private val importer = BabyBackupImporter(application)
+    private val exporter by lazy { BabyBackupExporter(application) }
+    private val importer by lazy { BabyBackupImporter(application) }
     private val gson = Gson()
 
-    private val _exportState = MutableStateFlow<UiState<BackupPayload>>(UiState.None)
-    val exportState: StateFlow<UiState<BackupPayload>> = _exportState.asStateFlow()
+    private val _exportState = MutableStateFlow<UiState<BackupExportRequest>>(UiState.None)
+    val exportState: StateFlow<UiState<BackupExportRequest>> = _exportState.asStateFlow()
 
     private val _importPreviewState = MutableStateFlow<UiState<BackupImportPreview>>(UiState.None)
     val importPreviewState: StateFlow<UiState<BackupImportPreview>> = _importPreviewState.asStateFlow()
@@ -58,8 +66,8 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
     private val _reportLoadState = MutableStateFlow<UiState<BackupReportItem>>(UiState.None)
     val reportLoadState: StateFlow<UiState<BackupReportItem>> = _reportLoadState.asStateFlow()
 
-    private val _reportExportState = MutableStateFlow<UiState<BackupReportExportPayload>>(UiState.None)
-    val reportExportState: StateFlow<UiState<BackupReportExportPayload>> = _reportExportState.asStateFlow()
+    private val _reportExportState = MutableStateFlow<UiState<BackupExportRequest>>(UiState.None)
+    val reportExportState: StateFlow<UiState<BackupExportRequest>> = _reportExportState.asStateFlow()
 
     private val _reportDeleteState = MutableStateFlow<UiState<String>>(UiState.None)
     val reportDeleteState: StateFlow<UiState<String>> = _reportDeleteState.asStateFlow()
@@ -71,6 +79,23 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
     val dedupMinutes: StateFlow<Int> = _dedupMinutes.asStateFlow()
 
     private var pendingImport: BabyBackupEnvelope? = null
+
+    // noBackupFilesDir 不会进入系统云备份，也不会像 cacheDir 一样被系统提前清理。
+    private val exportStore by lazy {
+        BackupExportStore(File(application.noBackupFilesDir, "pending_backup_exports"))
+    }
+    private val _documentExportState = MutableStateFlow<BackupDocumentExportState>(
+        savedStateHandle.get<BackupDocumentExportResult>(EXPORT_RESULT_KEY)
+            ?.let { BackupDocumentExportState.Finished(it) } ?: BackupDocumentExportState.Idle
+    )
+    val documentExportState: StateFlow<BackupDocumentExportState> = _documentExportState.asStateFlow()
+
+    init {
+        // 若系统在写出期间回收进程，恢复后从私有正文重写目标；目标使用截断模式避免重复追加。
+        savedStateHandle.get<String>(EXPORT_URI_KEY)?.takeIf {
+            _documentExportState.value is BackupDocumentExportState.Idle
+        }?.let { writePendingExport(Uri.parse(it)) }
+    }
 
     /**
      * 允许的去重分钟配置
@@ -84,6 +109,7 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
      * 生成备份 JSON 并返回可保存的文件名
      */
     fun prepareExport() {
+        if (isPreparingOrWritingExport()) return
         viewModelScope.launch {
             _exportState.value = UiState.Loading
             try {
@@ -95,7 +121,9 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
                         json = json
                     )
                 }
-                _exportState.value = UiState.Success(payload)
+                _exportState.value = UiState.Success(stageExport(payload, isReport = false))
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 val message = getApplication<Application>()
                     .getString(com.zero.common.R.string.backup_export_failed)
@@ -107,17 +135,22 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
     /**
      * 解析导入文件
      */
-    fun prepareImport(json: String) {
+    fun prepareImport(uri: Uri) {
+        if (_importPreviewState.value is UiState.Loading || _importState.value is UiState.Loading) return
         viewModelScope.launch {
             pendingImport = null
             _importPreviewState.value = UiState.Loading
             try {
-                val preview = withContext(Dispatchers.IO) {
-                    val envelope = importer.parse(json)
-                    pendingImport = envelope
-                    buildImportPreview(envelope)
+                val envelope = withContext(Dispatchers.IO) {
+                    // 使用 Application 级文件入口，读取期间不持有已销毁的 Fragment。
+                    getApplication<Application>().contentResolver.openInputStream(uri)?.use { stream ->
+                        stream.bufferedReader().use { reader -> BabyBackupParser.parse(reader) }
+                    } ?: throw BackupImportException(BackupImportError.INVALID_JSON)
                 }
-                _importPreviewState.value = UiState.Success(preview)
+                pendingImport = envelope
+                _importPreviewState.value = UiState.Success(buildImportPreview(envelope))
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _importPreviewState.value = UiState.Error(e, resolveImportErrorMessage(e))
             }
@@ -128,6 +161,7 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
      * 执行覆盖导入
      */
     fun executeImportOverwrite() {
+        if (_importState.value is UiState.Loading) return
         val envelope = pendingImport ?: run {
             _importState.value = UiState.Error(
                 IllegalStateException("empty"),
@@ -155,6 +189,7 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
      * 执行合并导入
      */
     fun executeImportMerge() {
+        if (_importState.value is UiState.Loading) return
         val envelope = pendingImport ?: run {
             _importState.value = UiState.Error(
                 IllegalStateException("empty"),
@@ -248,6 +283,87 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
         // Room Flow 会重建当前宝宝；变更总线负责让已存在的 Dashboard/预测实例立即丢弃旧派生数据。
         BabyDataHelper.repository.getAllBabyInfo().forEach { baby ->
             BabyRecordChangeBus.notifyChanged(baby.babyId)
+        }
+    }
+
+    private fun isPreparingOrWritingExport(): Boolean =
+        _exportState.value is UiState.Loading || _reportExportState.value is UiState.Loading ||
+            _documentExportState.value !is BackupDocumentExportState.Idle
+
+    private suspend fun stageExport(payload: BackupPayload, isReport: Boolean): BackupExportRequest {
+        val previous = savedStateHandle.get<BackupExportRequest>(PENDING_EXPORT_KEY)
+        val request = withContext(Dispatchers.IO) {
+            exportStore.stage(payload, isReport, previous?.token)
+        }
+        // 文件完整落盘后才允许打开系统选择器；SavedState 中不存任何宝宝记录正文。
+        savedStateHandle[PENDING_EXPORT_KEY] = request
+        if (previous != null) withContext(Dispatchers.IO) { exportStore.discard(previous) }
+        return request
+    }
+
+    /** 文件选择结果只携带 Uri，所有读写由 Application resolver 和 VM 生命周期承担。 */
+    fun writePendingExport(uri: Uri?) {
+        if (_documentExportState.value !is BackupDocumentExportState.Idle) return
+        val request = savedStateHandle.get<BackupExportRequest>(PENDING_EXPORT_KEY)
+        if (uri == null) {
+            finishDocumentExport(request, BackupExportOutcome.CANCELLED)
+            return
+        }
+        if (request == null) {
+            finishDocumentExport(null, BackupExportOutcome.FAILED)
+            return
+        }
+        savedStateHandle[EXPORT_URI_KEY] = uri.toString()
+        _documentExportState.value = BackupDocumentExportState.Writing
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    val resolver = getApplication<Application>().contentResolver
+                    // 支持持久授权的文档提供方可在进程恢复后继续写入；不支持时仍完成当前写出。
+                    try {
+                        resolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                    } catch (_: SecurityException) {
+                        // 部分提供方仅提供临时授权，不影响当前已授权的导出。
+                    } catch (_: IllegalArgumentException) {
+                        // file Uri 等入口没有持久授权机制。
+                    }
+                    exportStore.writeTo(request) {
+                        resolver.openOutputStream(uri, "wt") ?: error("无法打开导出文件")
+                    }
+                }
+                finishDocumentExport(request, BackupExportOutcome.SUCCEEDED)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                finishDocumentExport(request, BackupExportOutcome.FAILED)
+            }
+        }
+    }
+
+    fun onExportPickerUnavailable() {
+        finishDocumentExport(savedStateHandle[PENDING_EXPORT_KEY], BackupExportOutcome.FAILED)
+    }
+
+    private fun finishDocumentExport(request: BackupExportRequest?, outcome: BackupExportOutcome) {
+        val result = BackupDocumentExportResult(request?.fileName.orEmpty(), request?.isReport == true, outcome)
+        savedStateHandle[EXPORT_RESULT_KEY] = result
+        _documentExportState.value = BackupDocumentExportState.Finished(result)
+    }
+
+    /** 结果由 View 确认展示后再消费；View 销毁、旋转和主题重建都不删除待导出文件。 */
+    fun consumeDocumentExportResult() {
+        if (_documentExportState.value !is BackupDocumentExportState.Finished) return
+        val request = savedStateHandle.remove<BackupExportRequest>(PENDING_EXPORT_KEY)
+        savedStateHandle.remove<BackupDocumentExportResult>(EXPORT_RESULT_KEY)
+        val destination = savedStateHandle.remove<String>(EXPORT_URI_KEY)
+        _documentExportState.value = BackupDocumentExportState.Idle
+        viewModelScope.launch(Dispatchers.IO) {
+            if (request != null) exportStore.discard(request)
+            if (destination != null) runCatching {
+                getApplication<Application>().contentResolver.releasePersistableUriPermission(
+                    Uri.parse(destination), Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            }
         }
     }
 
@@ -367,28 +483,26 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
      * 准备导出报告
      */
     fun prepareReportExport(item: BackupReportItem) {
+        if (isPreparingOrWritingExport()) return
         viewModelScope.launch {
             _reportExportState.value = UiState.Loading
-            val payload = withContext(Dispatchers.IO) {
-                try {
+            try {
+                val payload = withContext(Dispatchers.IO) {
                     val file = File(item.filePath)
-                    if (!file.exists()) return@withContext null
                     val content = file.readText()
-                    BackupReportExportPayload(
+                    BackupPayload(
                         fileName = item.fileName,
                         json = content
                     )
-                } catch (_: Exception) {
-                    null
                 }
-            }
-            if (payload == null) {
+                _reportExportState.value = UiState.Success(stageExport(payload, isReport = true))
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
                 _reportExportState.value = UiState.Error(
                     IllegalStateException("export failed"),
                     getApplication<Application>().getString(com.zero.common.R.string.backup_import_report_export_failed)
                 )
-            } else {
-                _reportExportState.value = UiState.Success(payload)
             }
         }
     }
@@ -526,5 +640,11 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
             else -> com.zero.common.R.string.backup_import_failed
         }
         return getApplication<Application>().getString(resId)
+    }
+
+    internal companion object {
+        const val PENDING_EXPORT_KEY = "pending_backup_export"
+        const val EXPORT_RESULT_KEY = "backup_export_result"
+        const val EXPORT_URI_KEY = "backup_export_destination"
     }
 }

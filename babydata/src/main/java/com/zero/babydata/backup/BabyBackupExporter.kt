@@ -4,16 +4,13 @@ import android.content.Context
 import androidx.room.withTransaction
 import com.google.gson.Gson
 import com.zero.babydata.room.BabyDatabase
-import com.zero.babydata.room.BabyRepository
 
 /**
  * 数据备份导出器
  * 负责收集全量数据并序列化为 JSON。
  */
-class BabyBackupExporter(context: Context) {
-
-    private val database = BabyDatabase.getInstance(context)
-    private val repository = BabyRepository(context)
+class BabyBackupExporter internal constructor(private val database: BabyDatabase) {
+    constructor(context: Context) : this(BabyDatabase.getInstance(context))
     private val gson = Gson()
 
     /**
@@ -22,20 +19,20 @@ class BabyBackupExporter(context: Context) {
     suspend fun buildEnvelope(appVersion: String? = null): BabyBackupEnvelope {
         // 所有表在同一个读事务内采集，避免导出过程中新增记录造成跨表时间点不一致。
         return database.withTransaction {
-            val babies = repository.getAllBabyInfo()
+            val babies = database.babyInfoDao().getAllBabyInfo()
             val feedingRecords = ArrayList<BackupFeedingRecord>()
             val sleepRecords = ArrayList<BackupSleepRecord>()
             val eventRecords = ArrayList<BackupEventRecord>()
             val childDailyRecords = ArrayList<BackupChildDailyRecord>()
 
             babies.forEach { baby ->
-                feedingRecords += repository.getAllFeedingRecords(baby.babyId)
+                feedingRecords += database.feedingRecordDao().getAllFeedingRecords(baby.babyId)
                     .map { it.toBackup(baby.stableId) }
-                sleepRecords += repository.getAllSleepRecords(baby.babyId)
+                sleepRecords += database.sleepRecordDao().getAllSleepRecords(baby.babyId)
                     .map { it.toBackup(baby.stableId) }
-                eventRecords += repository.getAllEventRecords(baby.babyId)
+                eventRecords += database.eventRecordDao().getAllEventRecord(baby.babyId)
                     .map { it.toBackup(baby.stableId) }
-                childDailyRecords += repository.getAllChildDailyRecords(baby.babyId)
+                childDailyRecords += database.childDailyRecordDao().getAllRecordsByBabyId(baby.babyId)
                     .map { it.toBackup(baby.stableId) }
             }
 

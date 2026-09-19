@@ -1,26 +1,20 @@
 package com.zero.components.viewbinding
 
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.viewbinding.ViewBinding
-import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KProperty
 
 interface FragmentBinding<VB : ViewBinding> {
     val binding: VB
     fun Fragment.createViewWithBinding(inflater: LayoutInflater, container: ViewGroup?): View
+    fun clearBinding()
 }
 
 class FragmentBindingDelegate<VB : ViewBinding> : FragmentBinding<VB> {
     private var _binding: VB? = null
-    private val handler by lazy { Handler(Looper.getMainLooper()) }
 
     override val binding: VB
         get() = requireNotNull(_binding) { "The property of binding has been destroyed." }
@@ -29,14 +23,14 @@ class FragmentBindingDelegate<VB : ViewBinding> : FragmentBinding<VB> {
         inflater: LayoutInflater,
         container: ViewGroup?
     ): View {
-        if (_binding == null) {
-            _binding = ViewBindingUtil.inflateWithGeneric(this, inflater, container, false)
-            viewLifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
-                override fun onDestroy(owner: LifecycleOwner) {
-                    handler.post { _binding = null }
-                }
-            })
-        }
-        return _binding!!.root
+        // 每次创建 View 都生成新的绑定，不复用上一轮已销毁的视图树。
+        val newBinding = ViewBindingUtil.inflateWithGeneric<VB>(this, inflater, container, false)
+        _binding = newBinding
+        return newBinding.root
+    }
+
+    override fun clearBinding() {
+        (_binding as? ViewDataBinding)?.unbind()
+        _binding = null
     }
 }

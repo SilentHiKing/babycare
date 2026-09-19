@@ -11,11 +11,3 @@ data class BackupReportItem(
     val lastModified: Long,
     val report: BackupImportReport? = null
 )
-
-/**
- * 报告导出载体
- */
-data class BackupReportExportPayload(
-    val fileName: String,
-    val json: String
-)

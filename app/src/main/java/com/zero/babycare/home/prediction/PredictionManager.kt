@@ -12,7 +12,7 @@ object PredictionManager {
     private val predictor: Predictor = LocalRulePredictor()
 
     fun predictNextFeeding(
-        babyAgeMonths: Int,
+        babyAgeMonths: Int?,
         feedingRecords: List<FeedingRecord>,
         sleepRecords: List<SleepRecord>? = null
     ): PredictionResult? {
@@ -24,12 +24,12 @@ object PredictionManager {
             )
         }.onFailure {
             // 日志只保留故障类别，不记录宝宝时间线或预测时间。
-            LogUtils.e("feeding prediction failed")
+            LogUtils.e("喂养预测失败，原因：${it.javaClass.simpleName}")
         }.getOrNull()
     }
 
     fun predictNextSleep(
-        babyAgeMonths: Int,
+        babyAgeMonths: Int?,
         sleepRecords: List<SleepRecord>,
         feedingRecords: List<FeedingRecord>? = null
     ): PredictionResult? {
@@ -40,7 +40,7 @@ object PredictionManager {
                 feedingRecords?.sortedBy { it.feedingStart }
             )
         }.onFailure {
-            LogUtils.e("sleep prediction failed")
+            LogUtils.e("睡眠预测失败，原因：${it.javaClass.simpleName}")
         }.getOrNull()
     }
 }

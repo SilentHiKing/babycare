@@ -35,6 +35,7 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
 }
 
 // Room schema 导出配置（用于数据库版本追踪和迁移测试）

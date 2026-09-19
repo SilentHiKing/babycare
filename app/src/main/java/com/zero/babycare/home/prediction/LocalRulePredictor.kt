@@ -65,14 +65,12 @@ class LocalRulePredictor : Predictor {
     override fun getName(): String = "LocalRulePredictor"
 
     override fun predictNextFeeding(
-        babyAgeMonths: Int,
+        babyAgeMonths: Int?,
         feedingRecords: List<FeedingRecord>,
         sleepRecords: List<SleepRecord>?
     ): PredictionResult? {
         // 下次“喂奶”只参考奶类记录，辅食/其他会打断时间轴但不代表宝宝下一次吃奶规律。
-        val completedRecords = feedingRecords
-            .filter { it.feedingEnd > it.feedingStart }
-            .filter { it.isMilkFeeding() }
+        val completedRecords = PredictionRecordSelector.completedMilkFeedings(feedingRecords)
         
         // 数据不足时使用默认值
         if (completedRecords.size < MIN_RECORDS_FOR_PREDICTION) {
@@ -99,7 +97,8 @@ class LocalRulePredictor : Predictor {
         
         // 时段数据不足时，合并使用所有数据
         if (relevantIntervals.size < MIN_PERIOD_RECORDS) {
-            val allIntervals = dayIntervals + nightIntervals
+            // 合并时仍沿用发生顺序，否则 EWMA 会把旧夜间样本当作最新记录。
+            val allIntervals = intervals.map { it.first }
             if (allIntervals.size >= MIN_PERIOD_RECORDS) {
                 relevantIntervals = allIntervals
             } else if (allIntervals.isEmpty()) {
@@ -150,12 +149,12 @@ class LocalRulePredictor : Predictor {
     }
 
     override fun predictNextSleep(
-        babyAgeMonths: Int,
+        babyAgeMonths: Int?,
         sleepRecords: List<SleepRecord>,
         feedingRecords: List<FeedingRecord>?
     ): PredictionResult? {
         // 过滤掉进行中/无效记录（sleepEnd 必须大于 sleepStart）
-        val completedRecords = sleepRecords.filter { it.sleepEnd > it.sleepStart }
+        val completedRecords = PredictionRecordSelector.completedSleeps(sleepRecords)
         
         // 数据不足时使用默认清醒窗口
         if (completedRecords.size < MIN_RECORDS_FOR_PREDICTION) {
@@ -188,7 +187,7 @@ class LocalRulePredictor : Predictor {
         
         // 时段数据不足时，合并使用所有数据
         if (relevantIntervals.size < MIN_PERIOD_RECORDS) {
-            val allIntervals = dayIntervals + nightIntervals
+            val allIntervals = awakeIntervals.map { it.first }
             if (allIntervals.size >= MIN_PERIOD_RECORDS) {
                 relevantIntervals = allIntervals
             } else if (allIntervals.isEmpty()) {
@@ -234,11 +233,13 @@ class LocalRulePredictor : Predictor {
      * 使用默认值预测（冷启动/数据不足）
      */
     private fun predictWithDefault(
-        babyAgeMonths: Int,
+        babyAgeMonths: Int?,
         lastEndTime: Long?,
         isFeeding: Boolean
     ): PredictionResult? {
         val baseTime = lastEndTime ?: return null
+        // 生日是可选项；没有月龄依据时不能把宝宝当作新生儿提供群体默认预测。
+        if (babyAgeMonths == null || babyAgeMonths < 0) return null
         
         val defaultInterval = if (isFeeding) {
             DEFAULT_FEEDING_INTERVALS[babyAgeMonths.coerceIn(0, 6)]
@@ -362,7 +363,9 @@ class LocalRulePredictor : Predictor {
     /**
      * 月龄修正因子
      */
-    private fun getAgeFactor(ageMonths: Int, isFeeding: Boolean): Double {
+    private fun getAgeFactor(ageMonths: Int?, isFeeding: Boolean): Double {
+        // 历史记录足够时仍可个性化预测，但未知月龄不施加年龄修正。
+        if (ageMonths == null || ageMonths < 0) return 1.0
         return if (isFeeding) {
             when (ageMonths) {
                 in 0..1 -> 0.9    // 新生儿更频繁
@@ -501,16 +504,6 @@ class LocalRulePredictor : Predictor {
         val cal = Calendar.getInstance().apply { timeInMillis = timestamp }
         val hour = cal.get(Calendar.HOUR_OF_DAY)
         return hour in DAY_START_HOUR until DAY_END_HOUR
-    }
-
-    private fun FeedingRecord.isMilkFeeding(): Boolean {
-        return when (getFeedingTypeEnum()) {
-            FeedingType.BREAST,
-            FeedingType.FORMULA,
-            FeedingType.MIXED -> true
-            FeedingType.SOLID_FOOD,
-            FeedingType.OTHER -> false
-        }
     }
 
     /**

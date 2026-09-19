@@ -278,8 +278,8 @@
     <string name="baby_awake">아기가 깨어 있어요</string>
     <string name="baby_sleeping">아기가 자고 있어요</string>
     <string name="baby_feeding">수유 중</string>
-    <string name="awake_duration">깨어남 %1$s</string>
-    <string name="sleeping_duration">이미 자고 있어요 %1$s</string>
+    <string name="awake_duration">깨어 있는 시간 %1$s</string>
+    <string name="sleeping_duration">수면 시간 %1$s</string>
     <string name="no_sleep_record">아직 수면 기록이 없습니다.</string>
     <string name="no_feeding_record">아직 수유 기록이 없습니다.</string>
     <string name="feeding_duration">수유 중 %1$s</string>
@@ -540,4 +540,17 @@
     <string name="prediction_evidence_default">월령별 경향을 참고하며, 기록이 쌓이면 점차 맞춤화됩니다</string>
     <string name="prediction_evidence_samples">%1$d개의 유효한 기록 간격을 기반으로 함</string>
     <string name="prediction_evidence_weak_samples">%1$d개의 유효한 기록 간격을 기반으로 하며, 현재 규칙성이 낮습니다</string>
+    <string name="summary_duration_days_compact">%1$d일</string>
+    <string name="dashboard_no_active_record">진행 중인 기록 없음</string>
+    <string name="dashboard_last_sleep_record">마지막 수면 후 %1$s</string>
+    <string name="prediction_feeding_empty">아직 수유 예측이 없어요</string>
+    <string name="prediction_sleep_empty">아직 수면 예측이 없어요</string>
+    <string name="prediction_feeding_empty_hint">최근 수유를 기록하며 아기의 패턴을 알아보세요</string>
+    <string name="prediction_sleep_empty_hint">최근 수면을 기록하며 아기의 패턴을 알아보세요</string>
+    <string name="prediction_in_progress_hint">기록이 진행 중이에요. 종료 후 예측이 업데이트돼요</string>
+    <string name="settings_notifications_blocked">시스템 알림 또는 기록 알림 채널이 꺼져 있어요. 시스템 설정에서 켠 후 돌아와 주세요</string>
+    <string name="settings_open_notification_settings">알림 설정</string>
+    <string name="measurement_value_invalid">0보다 큰 올바른 숫자를 입력해 주세요</string>
+    <string name="calendar_today_date_format">%1$s, 오늘</string>
+    <string name="calendar_recorded_date_format">%1$s, 기록 있음</string>
 </resources>

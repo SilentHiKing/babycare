@@ -6,6 +6,8 @@ import com.zero.babydata.entity.SleepRecord
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import java.time.LocalDate
+import java.time.ZoneId
 import kotlin.math.abs
 
 /**
@@ -22,6 +24,28 @@ class LocalRulePredictorTest {
     }
 
     // ==================== 基本预测测试 ====================
+
+    @Test
+    fun `unknown age must not produce population estimates from sparse records`() {
+        val now = System.currentTimeMillis()
+        assertNull(predictor.predictNextFeeding(null,
+            listOf(createFeedingRecord(now - HOUR, now - 30 * MINUTE)), null))
+        assertNull(predictor.predictNextSleep(null,
+            listOf(createSleepRecord(now - HOUR, now - 30 * MINUTE)), null))
+    }
+
+    @Test
+    fun `unknown age still allows history based prediction without age correction`() {
+        val times = mixedPeriodTimes()
+        val feeding = times.map { createFeedingRecord(it, it + 10 * MINUTE) }
+        val sleep = times.map { createSleepRecord(it, it + 10 * MINUTE) }
+        val feedingResult = predictor.predictNextFeeding(null, feeding, null)
+        val sleepResult = predictor.predictNextSleep(null, sleep, null)
+        assertEquals(PredictionSource.LOCAL_RULE, feedingResult!!.source)
+        assertEquals(PredictionSource.LOCAL_RULE, sleepResult!!.source)
+        assertEquals(feeding.last().feedingEnd + (125.6 * MINUTE).toLong(), feedingResult.predictedTime.time)
+        assertEquals(sleep.last().sleepEnd + (125.6 * MINUTE).toLong(), sleepResult.predictedTime.time)
+    }
 
     @Test
     fun `predictNextFeeding returns null when no records`() {
@@ -293,6 +317,43 @@ class LocalRulePredictorTest {
     }
 
     // ==================== 辅助方法 ====================
+
+    @Test
+    fun `mixed day and night samples keep chronological weights for feeding`() {
+        val times = mixedPeriodTimes()
+        val records = times.map { createFeedingRecord(it, it + 10 * MINUTE) }
+        val result = predictor.predictNextFeeding(4, records, null)
+        // 夜间 140 分钟、白天 100/120 分钟按发生顺序做 EWMA，结果为 125.6 分钟。
+        val expected = records.last().feedingEnd + (125.6 * MINUTE).toLong()
+        assertEquals(expected, result!!.predictedTime.time)
+    }
+
+    @Test
+    fun `mixed day and night samples keep chronological weights for sleep`() {
+        val times = mixedPeriodTimes()
+        val records = times.map { createSleepRecord(it, it + 10 * MINUTE) }
+        val result = predictor.predictNextSleep(4, records, null)
+        val expected = records.last().sleepEnd + (125.6 * MINUTE).toLong()
+        assertEquals(expected, result!!.predictedTime.time)
+    }
+
+    @Test
+    fun `milk reminder source excludes newer solid food and incomplete records`() {
+        val milk = createFeedingRecord(1_000, 2_000)
+        val solid = createFeedingRecord(3_000, 4_000, FeedingType.SOLID_FOOD)
+        val unfinished = createFeedingRecord(5_000, 0)
+        val selected = PredictionRecordSelector.completedMilkFeedings(listOf(solid, unfinished, milk))
+        assertEquals(listOf(milk), selected)
+        assertEquals(2_000L, selected.maxOf { it.feedingEnd })
+    }
+
+    private fun mixedPeriodTimes(): List<Long> {
+        val day = LocalDate.now().minusDays(2)
+        val zone = ZoneId.systemDefault()
+        return listOf(4 to 0, 6 to 30, 8 to 20, 10 to 30).map { (hour, minute) ->
+            day.atTime(hour, minute).atZone(zone).toInstant().toEpochMilli()
+        }
+    }
 
     private fun createFeedingRecord(
         start: Long,

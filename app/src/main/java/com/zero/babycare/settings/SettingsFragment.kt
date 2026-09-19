@@ -1,9 +1,12 @@
 package com.zero.babycare.settings
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
@@ -18,6 +21,7 @@ import com.zero.babycare.databinding.FragmentSettingsBinding
 import com.zero.babycare.databinding.ItemSettingRowBinding
 import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babycare.navigation.NavTarget
+import com.zero.babycare.reminder.ReminderNotifier
 import com.zero.common.ext.getThemeColor
 import com.zero.common.ext.launchInLifecycle
 import com.zero.components.base.BaseFragment
@@ -36,22 +40,23 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
     private val vm by viewModels<SettingsViewModel>()
     private val mainVm by activityViewModels<MainViewModel>()
 
-    private val reminderRow by lazy { binding.rowReminder }
-    private val feedingUnitRow by lazy { binding.rowFeedingUnit }
-    private val weightUnitRow by lazy { binding.rowWeightUnit }
-    private val heightUnitRow by lazy { binding.rowHeightUnit }
-    private val versionRow by lazy { binding.rowVersion }
-    private val languageRow by lazy { binding.rowLanguage }
-    private val backupRow by lazy { binding.rowBackup }
-    private val familyRow by lazy { binding.rowFamily }
+    // Fragment 的 View 可以独立重建，不能用 lazy 长期持有第一次创建的行绑定。
+    private val reminderRow get() = binding.rowReminder
+    private val feedingUnitRow get() = binding.rowFeedingUnit
+    private val weightUnitRow get() = binding.rowWeightUnit
+    private val heightUnitRow get() = binding.rowHeightUnit
+    private val versionRow get() = binding.rowVersion
+    private val languageRow get() = binding.rowLanguage
+    private val backupRow get() = binding.rowBackup
+    private val familyRow get() = binding.rowFamily
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             // 通知权限结果决定是否真正开启提醒，避免无权限时“假开启”
-            if (granted) {
+            if (granted && ReminderNotifier.canPostNotifications(requireContext())) {
                 vm.setReminderEnabled(true)
             } else {
                 bindReminderSwitch(false)
-                ToastUtils.showShort(localizedString(com.zero.common.R.string.settings_notification_permission_denied))
+                showNotificationSettingsDialog()
             }
         }
 
@@ -60,6 +65,12 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
         setupToolbar()
         setupRows()
         observeState()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 从系统通知设置返回后重读权限，保留用户的提醒偏好并如实说明被系统阻止的状态。
+        if (view != null) bindRowTexts()
     }
 
     /**
@@ -163,12 +174,37 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
             return
         }
         if (hasNotificationPermission()) {
+            if (!ReminderNotifier.canPostNotifications(requireContext())) {
+                bindReminderSwitch(false)
+                showNotificationSettingsDialog()
+                return
+            }
             vm.setReminderEnabled(true)
             return
         }
         // 无权限时先恢复为关闭态，再引导系统权限弹窗
         bindReminderSwitch(false)
         requestNotificationPermission()
+    }
+
+    /** 系统总开关、渠道关闭或永久拒绝均提供可恢复入口，避免出现无法生效的“已开启”。 */
+    private fun showNotificationSettingsDialog() {
+        DialogHelper.showConfirmDialog(
+            context = requireContext(),
+            title = getString(com.zero.common.R.string.settings_reminder),
+            content = getString(com.zero.common.R.string.settings_notifications_blocked),
+            confirmText = getString(com.zero.common.R.string.settings_open_notification_settings),
+            onConfirm = {
+                val settingsIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                        .putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
+                } else {
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        .setData(Uri.parse("package:${requireContext().packageName}"))
+                }
+                startActivity(settingsIntent)
+            }
+        )
     }
 
     /**
@@ -335,7 +371,12 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(), BackPressHandl
         binding.tvMoreTitle.text = localizedString(com.zero.common.R.string.settings_more)
 
         reminderRow.tvTitle.text = localizedString(com.zero.common.R.string.settings_reminder_switch_title)
-        reminderRow.tvSummary.text = localizedString(com.zero.common.R.string.settings_reminder_switch_summary)
+        reminderRow.tvSummary.text = localizedString(
+            if (vm.settingsState.value.reminderEnabled &&
+                !ReminderNotifier.canPostNotifications(requireContext()))
+                com.zero.common.R.string.settings_notifications_blocked
+            else com.zero.common.R.string.settings_reminder_switch_summary
+        )
         reminderRow.tvSummary.visibility = View.VISIBLE
         feedingUnitRow.tvTitle.text = localizedString(com.zero.common.R.string.settings_unit_feeding_title)
         weightUnitRow.tvTitle.text = localizedString(com.zero.common.R.string.settings_unit_weight_title)

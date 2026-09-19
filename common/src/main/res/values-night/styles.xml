@@ -12,6 +12,7 @@
         <!-- ==================== UI TOKENS MAPPING (DARK) ==================== -->
         <!-- Brand -->
         <item name="colorBrand">@color/boy_brand</item>
+        <item name="colorBrandForeground">@color/boy_accent</item>
         <item name="colorBrandLight">@color/boy_brand_light</item>
         <item name="colorBrandDark">@color/boy_brand_dark</item>
         <item name="colorOnBrand">@color/White100</item>

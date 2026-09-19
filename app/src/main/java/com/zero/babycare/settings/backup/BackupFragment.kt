@@ -6,7 +6,6 @@ import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.blankj.utilcode.util.ToastUtils
 import com.zero.babycare.MainViewModel
@@ -20,9 +19,6 @@ import com.zero.components.base.util.DialogHelper
 import com.zero.components.base.vm.UiState
 import com.zero.babydata.backup.BackupImportReport
 import com.zero.babydata.backup.BackupImportStrategy
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * 数据备份页面
@@ -36,10 +32,10 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     private val vm by viewModels<BackupViewModel>()
     private val mainVm by activityViewModels<MainViewModel>()
 
-    private val exportRow by lazy { binding.rowBackupExport }
-    private val importRow by lazy { binding.rowBackupImport }
-    private val dedupRow by lazy { binding.rowBackupDedup }
-    private val reportClearRow by lazy { binding.rowBackupReportClear }
+    private val exportRow get() = binding.rowBackupExport
+    private val importRow get() = binding.rowBackupImport
+    private val dedupRow get() = binding.rowBackupDedup
+    private val reportClearRow get() = binding.rowBackupReportClear
     private val reportAdapter by lazy {
         BackupReportAdapter(
             onItemClick = { item -> handleReportClick(item) },
@@ -47,11 +43,9 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
         )
     }
 
-    private var pendingPayload: BackupPayload? = null
-
     private val createDocumentLauncher =
         registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-            handleCreateDocumentResult(uri)
+            vm.writePendingExport(uri)
         }
 
     private val openDocumentLauncher =
@@ -144,12 +138,28 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
                     is UiState.Loading -> showLoading(getString(com.zero.common.R.string.backup_exporting))
                     is UiState.Success -> {
                         hideLoading()
-                        startCreateDocument(state.data)
                         vm.resetExportState()
+                        startCreateDocument(state.data)
                     }
                     is UiState.Error -> {
                         hideLoading()
                         ToastUtils.showShort(com.zero.common.R.string.backup_export_failed)
+                        vm.resetExportState()
+                    }
+                }
+            }
+        }
+
+        launchInLifecycle {
+            vm.documentExportState.collect { state ->
+                when (state) {
+                    BackupDocumentExportState.Idle -> Unit
+                    BackupDocumentExportState.Writing ->
+                        showLoading(getString(com.zero.common.R.string.backup_exporting))
+                    is BackupDocumentExportState.Finished -> {
+                        hideLoading()
+                        showDocumentExportResult(state.result)
+                        vm.consumeDocumentExportResult()
                     }
                 }
             }
@@ -260,12 +270,14 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             vm.reportExportState.collect { state ->
                 when (state) {
                     is UiState.None -> Unit
-                    is UiState.Loading -> Unit
+                    is UiState.Loading -> showLoading(getString(com.zero.common.R.string.backup_exporting))
                     is UiState.Success -> {
+                        hideLoading()
                         vm.resetReportExportState()
-                        startCreateReportDocument(state.data)
+                        startCreateDocument(state.data)
                     }
                     is UiState.Error -> {
+                        hideLoading()
                         ToastUtils.showShort(state.message)
                         vm.resetReportExportState()
                     }
@@ -323,45 +335,38 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     /**
      * 发起文件创建流程
      */
-    private fun startCreateDocument(payload: BackupPayload?) {
-        if (payload == null) {
-            ToastUtils.showShort(com.zero.common.R.string.backup_export_failed)
+    private fun startCreateDocument(request: BackupExportRequest?) {
+        if (request == null) {
+            vm.onExportPickerUnavailable()
             return
         }
-        pendingPayload = payload
-        createDocumentLauncher.launch(payload.fileName)
+        try {
+            createDocumentLauncher.launch(request.fileName)
+        } catch (_: Exception) {
+            vm.onExportPickerUnavailable()
+        }
     }
 
-    private fun startCreateReportDocument(payload: BackupReportExportPayload?) {
-        if (payload == null) {
-            ToastUtils.showShort(com.zero.common.R.string.backup_import_report_export_failed)
-            return
+    /** 文件读写结果由 VM 保留，页面恢复后只负责反馈，不持有正在进行的 IO。 */
+    private fun showDocumentExportResult(result: BackupDocumentExportResult) {
+        when (result.outcome) {
+            BackupExportOutcome.CANCELLED -> ToastUtils.showShort(com.zero.common.R.string.backup_export_cancelled)
+            BackupExportOutcome.FAILED -> ToastUtils.showShort(
+                if (result.isReport) com.zero.common.R.string.backup_import_report_export_failed
+                else com.zero.common.R.string.backup_export_failed
+            )
+            BackupExportOutcome.SUCCEEDED -> {
+                ToastUtils.showShort(
+                    if (result.isReport) com.zero.common.R.string.backup_import_report_exported
+                    else com.zero.common.R.string.backup_export_success
+                )
+                showExportHint(
+                    result.fileName,
+                    if (result.isReport) com.zero.common.R.string.backup_import_report_export_hint_format
+                    else com.zero.common.R.string.backup_export_hint_format
+                )
+            }
         }
-        pendingPayload = BackupPayload(payload.fileName, payload.json)
-        createDocumentLauncher.launch(payload.fileName)
-    }
-
-    /**
-     * 处理文件创建结果
-     */
-    private fun handleCreateDocumentResult(uri: Uri?) {
-        val payload = pendingPayload
-        pendingPayload = null
-        if (uri == null || payload == null) {
-            ToastUtils.showShort(com.zero.common.R.string.backup_export_cancelled)
-            return
-        }
-        val successTextResId = if (payload.fileName.contains("import_report")) {
-            com.zero.common.R.string.backup_import_report_exported
-        } else {
-            com.zero.common.R.string.backup_export_success
-        }
-        val hintResId = if (payload.fileName.contains("import_report")) {
-            com.zero.common.R.string.backup_import_report_export_hint_format
-        } else {
-            com.zero.common.R.string.backup_export_hint_format
-        }
-        writeBackupToUri(uri, payload.json, payload.fileName, successTextResId, hintResId)
     }
 
     /**
@@ -372,52 +377,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             ToastUtils.showShort(com.zero.common.R.string.backup_import_cancelled)
             return
         }
-        lifecycleScope.launch {
-            val json = withContext(Dispatchers.IO) {
-                try {
-                    requireContext().contentResolver.openInputStream(uri)?.use { stream ->
-                        stream.bufferedReader().use { it.readText() }
-                    }
-                } catch (_: Exception) {
-                    null
-                }
-            }
-            if (json.isNullOrBlank()) {
-                ToastUtils.showShort(com.zero.common.R.string.backup_import_invalid_file)
-            } else {
-                vm.prepareImport(json)
-            }
-        }
-    }
-
-    /**
-     * 将备份内容写入目标 Uri
-     */
-    private fun writeBackupToUri(
-        uri: Uri,
-        json: String,
-        fileName: String,
-        successTextResId: Int,
-        hintResId: Int
-    ) {
-        lifecycleScope.launch {
-            val success = withContext(Dispatchers.IO) {
-                try {
-                    requireContext().contentResolver.openOutputStream(uri)?.use { stream ->
-                        stream.write(json.toByteArray(Charsets.UTF_8))
-                    } ?: return@withContext false
-                    true
-                } catch (_: Exception) {
-                    false
-                }
-            }
-            if (success) {
-                ToastUtils.showShort(successTextResId)
-                showExportHint(fileName, hintResId)
-            } else {
-                ToastUtils.showShort(com.zero.common.R.string.backup_export_failed)
-            }
-        }
+        vm.prepareImport(uri)
     }
 
     /**
@@ -632,6 +592,11 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     override fun onSystemBackPressed(): Boolean {
         handleBack()
         return true
+    }
+
+    override fun onDestroyView() {
+        binding.rvBackupReports.adapter = null
+        super.onDestroyView()
     }
 
     private fun handleBack() {

@@ -43,7 +43,7 @@
             android:layout_height="match_parent"
             android:gravity="center_vertical|end"
             android:text="@string/confirm"
-            android:textColor="?attr/colorBrand" />
+            android:textColor="?attr/colorBrandForeground" />
 
     </LinearLayout>
 

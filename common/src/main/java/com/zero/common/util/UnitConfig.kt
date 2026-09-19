@@ -14,8 +14,11 @@ object UnitConfig {
     const val FEEDING_UNIT_ML = "ml"
     const val FEEDING_UNIT_OZ = "oz"
     const val WEIGHT_UNIT_KG = "kg"
+    const val WEIGHT_UNIT_G = "g"
     const val WEIGHT_UNIT_LB = "lb"
+    const val WEIGHT_UNIT_OZ = "oz"
     const val HEIGHT_UNIT_CM = "cm"
+    const val HEIGHT_UNIT_MM = "mm"
     const val HEIGHT_UNIT_IN = "in"
 
     /**

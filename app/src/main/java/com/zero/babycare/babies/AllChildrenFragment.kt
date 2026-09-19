@@ -17,6 +17,7 @@ import com.zero.babycare.navigation.NavTarget
 import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.util.BabyGender
+import com.zero.common.ext.launchInLifecycle
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
 import com.zero.components.widget.ToolbarAction
@@ -24,6 +25,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.flow.combine
 
 /**
  * 所有宝宝列表页面
@@ -78,7 +80,11 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
 
     override fun initData(view: View, savedInstanceState: Bundle?) {
         super.initData(view, savedInstanceState)
-        loadBabies()
+        // 新建/编辑提交后 Room 通知可能晚于页面显示，持续收集避免停留在旧宝宝列表。
+        launchInLifecycle {
+            mainVm.allBabies.combine(mainVm.currentBaby) { babies, current -> babies to current }
+                .collect { (babies, current) -> renderBabies(babies, current) }
+        }
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
@@ -92,9 +98,10 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
      * 加载宝宝列表
      */
     private fun loadBabies() {
-        val babies = mainVm.getAllBabies()
-        val currentBaby = mainVm.getCurrentBabyInfo()
+        renderBabies(mainVm.getAllBabies(), mainVm.getCurrentBabyInfo())
+    }
 
+    private fun renderBabies(babies: List<BabyInfo>, currentBaby: BabyInfo?) {
         if (babies.isEmpty()) {
             binding.rvBabies.visibility = View.GONE
             binding.llEmpty.visibility = View.VISIBLE
@@ -144,13 +151,13 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
             content = localizedString(com.zero.common.R.string.delete_baby_confirm, baby.name),
             confirmText = localizedString(com.zero.common.R.string.confirm),
             cancelText = localizedString(com.zero.common.R.string.cancel),
-            onConfirm = {
-                mainVm.deleteBaby(baby) {
-                    loadBabies()
-                    (activity as? MainActivity)?.refreshDrawerBabyInfo()
-                }
-            }
+            onConfirm = { mainVm.deleteBaby(baby) }
         )
+    }
+
+    override fun onDestroyView() {
+        binding.rvBabies.adapter = null
+        super.onDestroyView()
     }
 
     /**
@@ -169,7 +176,10 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
         private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
         fun setCurrentBabyId(id: Int) {
+            if (currentBabyId == id) return
             currentBabyId = id
+            // 宝宝列表内容不变时也要刷新选中标记。
+            notifyDataSetChanged()
         }
 
         inner class VH(

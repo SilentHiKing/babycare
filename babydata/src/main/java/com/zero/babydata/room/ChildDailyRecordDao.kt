@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 interface ChildDailyRecordDao {
 
     @Insert
-    suspend fun insertChildDailyRecord(record: ChildDailyRecord)
+    suspend fun insertChildDailyRecord(record: ChildDailyRecord): Long
 
     @Update
     suspend fun updateChildDailyRecord(record: ChildDailyRecord)
@@ -21,16 +21,16 @@ interface ChildDailyRecordDao {
     @Delete
     suspend fun deleteChildDailyRecord(record: ChildDailyRecord)
 
-    @Query("SELECT * FROM ChildDailyRecord WHERE babyId = :babyId AND recordDate = :recordDate LIMIT 1")
+    @Query("SELECT * FROM ChildDailyRecord WHERE babyId = :babyId AND recordDate = :recordDate ORDER BY recordId DESC LIMIT 1")
     suspend fun getRecordByDate(babyId: Int, recordDate: Long): ChildDailyRecord?
 
-    @Query("SELECT * FROM ChildDailyRecord WHERE babyId = :babyId ORDER BY recordDate DESC")
+    @Query("SELECT * FROM ChildDailyRecord WHERE babyId = :babyId ORDER BY recordDate DESC, recordId DESC")
     fun observeAllRecordsByBabyId(babyId: Int): Flow<List<ChildDailyRecord>>
 
     /**
      * 一次性查询成长记录（备份使用）。
      */
-    @Query("SELECT * FROM ChildDailyRecord WHERE babyId = :babyId ORDER BY recordDate DESC")
+    @Query("SELECT * FROM ChildDailyRecord WHERE babyId = :babyId ORDER BY recordDate DESC, recordId DESC")
     suspend fun getAllRecordsByBabyId(babyId: Int): List<ChildDailyRecord>
 
     @Query("DELETE FROM ChildDailyRecord")

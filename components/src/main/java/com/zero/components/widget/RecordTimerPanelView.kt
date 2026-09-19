@@ -42,6 +42,35 @@ class RecordTimerPanelView @JvmOverloads constructor(
         applyAttributes(attrs, defStyleAttr)
     }
 
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val availableWidth = (MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight)
+            .coerceAtLeast(0)
+        val narrowWidth = MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.UNSPECIFIED &&
+            availableWidth / resources.displayMetrics.density < 320f
+        updateTimeFieldLayout(narrowWidth || resources.configuration.fontScale > 1.3f)
+        // 必须先确定排列方向再测量；在 onSizeChanged 中切换会沿用旧行高并裁掉结束字段。
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    }
+
+    private fun updateTimeFieldLayout(stackFields: Boolean) {
+        val targetOrientation = if (stackFields) VERTICAL else HORIZONTAL
+        if (viewBinding.timeRow.orientation == targetOrientation) return
+
+        // 大字号和窄窗改为上下排列，给日期、秒级时间和 48dp 选择入口保留足够空间。
+        viewBinding.timeRow.orientation = targetOrientation
+        listOf(viewBinding.startTimeField, viewBinding.endTimeField).forEach { field ->
+            field.updateLayoutParams<LayoutParams> {
+                width = if (stackFields) LayoutParams.MATCH_PARENT else 0
+                weight = if (stackFields) 0f else 1f
+            }
+        }
+        val gap = resources.getDimensionPixelSize(com.zero.common.R.dimen.record_time_field_gap)
+        viewBinding.timeFieldGap.updateLayoutParams<LayoutParams> {
+            width = if (stackFields) 1 else gap
+            height = if (stackFields) gap else 1
+        }
+    }
+
     fun setStartLabelText(text: CharSequence?) {
         if (!text.isNullOrBlank()) {
             viewBinding.tvStartTime.text = text

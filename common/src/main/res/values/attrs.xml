@@ -31,6 +31,8 @@
     <!-- 1. Color Tokens (Semantic) -->
     <!-- Brand Colors -->
     <attr name="colorBrand" format="color"/>           <!-- Brand Primary -->
+    <!-- 品牌前景与按钮底分离，保证浅暖选中底和深色 surface 上的文字可读。 -->
+    <attr name="colorBrandForeground" format="color"/>
     <attr name="colorBrandLight" format="color"/>      <!-- Brand Light/Pastel variant -->
     <attr name="colorBrandDark" format="color"/>       <!-- Brand Dark/Contrast variant -->
     <attr name="colorOnBrand" format="color"/>         <!-- Text/Icon color on top of Brand bg -->

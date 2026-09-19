@@ -10,10 +10,12 @@ data class DashboardData(
     // ==================== 实时状态 ====================
     /** 当前宝宝状态 */
     val currentStatus: BabyStatus = BabyStatus.AWAKE,
-    /** 正在进行的睡眠开始时间（如果正在睡觉） */
-    val ongoingSleepStart: Long? = null,
-    /** 正在进行的喂奶开始时间（如果正在喂奶） */
-    val ongoingFeedingStart: Long? = null,
+    /** 会话时长由 ViewModel 统一计算，暂停时不再继续增长。 */
+    val ongoingSleepDurationMillis: Long? = null,
+    val ongoingFeedingDurationMillis: Long? = null,
+    /** 含未保存会话的今日展示值，与已完成记录总量分开，避免分钟刷新重复叠加。 */
+    val displayFeedingMinutes: Long = 0,
+    val displaySleepMinutes: Long = 0,
 
     // ==================== 喂养数据 ====================
     /** 上次喂奶结束时间（时间戳，用于实时计算距上次时间） */

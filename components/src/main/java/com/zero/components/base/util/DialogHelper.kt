@@ -59,6 +59,9 @@ object DialogHelper {
         return XPopup.Builder(context)
             .isViewMode(false)
             .hasShadowBg(true)
+            // 选择器在平板上居中限宽，避免确认按钮和选项横跨整个窗口。
+            .maxWidth(min(context.resources.displayMetrics.widthPixels,
+                context.resources.getDimensionPixelSize(com.zero.common.R.dimen.picker_sheet_max_width)))
     }
 
     /**

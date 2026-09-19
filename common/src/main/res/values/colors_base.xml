@@ -30,7 +30,8 @@
     <!-- Brand-driven default text/background tokens -->
     <color name="text_primary_default">#12323A</color>
     <color name="text_secondary_default">#3E5B63</color>
-    <color name="text_hint_default">#7C98A1</color>
+    <!-- 提示也承载预测依据等有效信息，浅暖底上仍需满足正文可读性。 -->
+    <color name="text_hint_default">#596F76</color>
     <color name="bg_app_default">#F7FBFA</color>
     <color name="surface_default">#FFFFFF</color>
     <color name="surface_variant_default">#EEF7F5</color>
@@ -210,14 +211,14 @@
     <!-- 喂养：清爽蓝绿，活泼但不使用老式高饱和蓝。 -->
     <color name="feeding_primary">#247BA0</color>
     <color name="feeding_primary_dark">#155E78</color>
-    <color name="feeding_secondary">#68BCD0</color>
+    <color name="feeding_secondary">#3D7480</color>
     <color name="feeding_divider">#BFE7EE</color>
     <color name="feeding_bg">#E8F5F7</color>
 
     <!-- 睡眠：柔和靛紫，保留安静感但避免灰暗。 -->
     <color name="sleep_primary">#6E65B7</color>
     <color name="sleep_primary_dark">#51489A</color>
-    <color name="sleep_secondary">#A99EE8</color>
+    <color name="sleep_secondary">#6A6390</color>
     <color name="sleep_divider">#DDD8F4</color>
     <color name="sleep_bg">#F1EEFB</color>
 

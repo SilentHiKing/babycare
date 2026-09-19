@@ -10,6 +10,7 @@
 
         <!-- UI Tokens Override -->
         <item name="colorBrand">@color/girl_brand</item>
+        <item name="colorBrandForeground">@color/girl_accent</item>
         <item name="colorBrandLight">@color/girl_brand_light</item>
         <item name="colorBrandDark">@color/girl_brand_dark</item>
         <item name="colorSurfaceVariant">@color/girl_bg_brand</item>
@@ -21,7 +22,7 @@
         <!-- ========== 文本/语义色 ========== -->
         <item name="semantics_blue">@color/girl_accent</item>
         <item name="colorStatusTextPrimary">@color/girl_accent</item>
-        <item name="colorStatusTextSecondary">@color/girl_brand_dark</item>
+        <item name="colorStatusTextSecondary">@color/status_text_secondary</item>
 
         <!-- ========== 图标 ========== -->
         <item name="iconColorBrand">@color/girl_accent</item>

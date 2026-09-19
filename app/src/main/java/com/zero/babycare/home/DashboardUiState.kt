@@ -1,6 +1,7 @@
 package com.zero.babycare.home
 
 import com.zero.babycare.home.bean.DashboardData
+import java.time.ZoneId
 
 /**
  * 首页完整渲染状态。
@@ -15,7 +16,8 @@ sealed interface DashboardUiState {
         val babyId: Int,
         val babyName: String,
         val data: DashboardData,
-        val nowMillis: Long
+        val nowMillis: Long,
+        val timeZoneId: String = ZoneId.systemDefault().id
     ) : DashboardUiState
 
     data object Error : DashboardUiState

@@ -34,7 +34,6 @@ import com.zero.babycare.statistics.standard.WhoSex
 import com.zero.babydata.entity.BabyInfo
 import com.zero.babydata.entity.FeedingType
 import com.zero.babydata.entity.EventType
-import com.zero.babydata.entity.GrowthData
 import com.zero.babydata.entity.EventRecord
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.room.BabyRepository
@@ -634,9 +633,12 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
             // 以平均月天数换算，便于对接 WHO 月龄表
             val ageMonths = ageDays / 30.4375
             val standardValue = when (indicator) {
-                WhoIndicator.WEIGHT -> convertWeightToKg(data.value, data.unit)
-                WhoIndicator.LENGTH_HEIGHT -> convertLengthToCm(data.value, data.unit)
-                WhoIndicator.HEAD -> convertLengthToCm(data.value, data.unit)
+                WhoIndicator.WEIGHT -> UnitConverter.weightToDisplay(
+                    data.value, data.unit, UnitConfig.WEIGHT_UNIT_KG
+                )
+                WhoIndicator.LENGTH_HEIGHT, WhoIndicator.HEAD -> UnitConverter.heightToDisplay(
+                    data.value, data.unit, UnitConfig.HEIGHT_UNIT_CM
+                )
             }
             val percentile = whoStandardProvider.computePercentile(
                 indicator = indicator,
@@ -749,28 +751,6 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
             .toLocalDate()
         val days = java.time.temporal.ChronoUnit.DAYS.between(birthDate, recordDate)
         return if (days < 0) null else days.toInt()
-    }
-
-    /**
-     * 体重单位换算为 kg
-     */
-    private fun convertWeightToKg(value: Double, unit: String): Double {
-        return when (unit) {
-            GrowthData.UNIT_G -> value / 1000.0
-            GrowthData.UNIT_KG -> value
-            else -> value
-        }
-    }
-
-    /**
-     * 长度/头围单位换算为 cm
-     */
-    private fun convertLengthToCm(value: Double, unit: String): Double {
-        return when (unit) {
-            GrowthData.UNIT_MM -> value / 10.0
-            GrowthData.UNIT_CM -> value
-            else -> value
-        }
     }
 
     /**

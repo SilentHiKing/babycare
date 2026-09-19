@@ -22,6 +22,8 @@ object MMKVKeys {
 
     // 只缓存当前宝宝的数据库 ID，姓名、生日和健康数据始终从 Room 读取。
     const val CURRENT_BABY_ID = "current_baby_id"
+    // 仅供升级迁移读取，迁移完成即删除旧的完整宝宝缓存。
+    const val LEGACY_BABY_INFO = "BABY_INFO"
 
     // --- 调试/环境 ---
     const val DEBUG_MODE = "debug_mode"

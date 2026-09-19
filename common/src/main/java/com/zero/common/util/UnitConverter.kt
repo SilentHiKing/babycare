@@ -10,7 +10,7 @@ import kotlin.math.roundToInt
 object UnitConverter {
 
     private const val OZ_TO_ML = 29.5735
-    private const val KG_TO_LB = 2.20462
+    private const val LB_TO_KG = 0.45359237
     private const val IN_TO_CM = 2.54
     private val decimalFormat = DecimalFormat("0.#")
 
@@ -52,15 +52,19 @@ object UnitConverter {
      * 体重：任意单位转为目标单位
      */
     fun weightToDisplay(value: Double, fromUnit: String, targetUnit: String): Double {
-        val valueInKg = if (fromUnit == UnitConfig.WEIGHT_UNIT_LB) {
-            value / KG_TO_LB
-        } else {
-            value
+        // 成长历史与备份可使用 g/oz，统一先换算成 kg，避免将克数当千克显示。
+        // 体重 oz 是质量盎司，与喂养量的液体盎司使用不同换算关系。
+        val valueInKg = when (fromUnit) {
+            UnitConfig.WEIGHT_UNIT_G -> value / 1000.0
+            UnitConfig.WEIGHT_UNIT_LB -> value * LB_TO_KG
+            UnitConfig.WEIGHT_UNIT_OZ -> value * LB_TO_KG / 16.0
+            else -> value
         }
-        return if (targetUnit == UnitConfig.WEIGHT_UNIT_LB) {
-            valueInKg * KG_TO_LB
-        } else {
-            valueInKg
+        return when (targetUnit) {
+            UnitConfig.WEIGHT_UNIT_G -> valueInKg * 1000.0
+            UnitConfig.WEIGHT_UNIT_LB -> valueInKg / LB_TO_KG
+            UnitConfig.WEIGHT_UNIT_OZ -> valueInKg / LB_TO_KG * 16.0
+            else -> valueInKg
         }
     }
 
@@ -91,15 +95,16 @@ object UnitConverter {
      * 身高/头围：任意单位转为目标单位
      */
     fun heightToDisplay(value: Double, fromUnit: String, targetUnit: String): Double {
-        val valueInCm = if (fromUnit == UnitConfig.HEIGHT_UNIT_IN) {
-            value * IN_TO_CM
-        } else {
-            value
+        // 毫米历史数据与英寸输入均转换到 cm，再供趋势、时间轴和 WHO 标准使用。
+        val valueInCm = when (fromUnit) {
+            UnitConfig.HEIGHT_UNIT_MM -> value / 10.0
+            UnitConfig.HEIGHT_UNIT_IN -> value * IN_TO_CM
+            else -> value
         }
-        return if (targetUnit == UnitConfig.HEIGHT_UNIT_IN) {
-            valueInCm / IN_TO_CM
-        } else {
-            valueInCm
+        return when (targetUnit) {
+            UnitConfig.HEIGHT_UNIT_MM -> valueInCm * 10.0
+            UnitConfig.HEIGHT_UNIT_IN -> valueInCm / IN_TO_CM
+            else -> valueInCm
         }
     }
 

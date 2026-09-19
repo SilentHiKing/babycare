@@ -18,7 +18,7 @@ import com.zero.babydata.entity.SleepRecord
         ChildDailyRecord::class,
         EventRecord::class
     ],
-    version = 1,
+    version = 5,
     exportSchema = true
 )
 abstract class BabyDatabase : RoomDatabase() {
@@ -41,6 +41,7 @@ abstract class BabyDatabase : RoomDatabase() {
                     BabyDatabase::class.java,
                     "baby_database"
                 )
+                    .addMigrations(*DatabaseMigrations.getAllMigrations())
                     .build()
                     .also { instance = it }
             }

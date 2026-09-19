@@ -35,17 +35,21 @@ BabyCare 是婴儿生活记录与规律洞察工具，不是装饰型相册应�
 - 行动色用于主按钮、保存按钮、选中 Chip、Tab 选中底和关键强调，叠加白色文字时对比度必须不低于 4.5:1。
 - 柔和背景色只能搭配深色文字或用于头像底、浅卡片、轻量状态与普通选中态，禁止承载白字按钮或白字选中控件。
 
+品牌前景与按钮底必须分开：`colorBrand` 保留为承载白字的主按钮底色；文字、选择控件描边和浅底操作图标使用 `colorBrandForeground`。该前景在浅色模式使用对应 `brand_dark`，在深色模式使用对应 `accent`，以保证普通控件和暖选中底上的文字对比度均不低于 4.5:1。状态卡的深色辅助文字使用 `status_text_secondary`，不能将深色按钮按压色用作状态时长文字。
+
 ## Soft Utility 2.0 色板
 
 功能色固定，不随男孩 / 女孩主题变化：
 
-- 喂养：`feeding_primary #247BA0`，浅底 `feeding_bg #EAF7F9`。
+- 喂养：`feeding_primary #247BA0`，浅底 `feeding_bg #E8F5F7`。
 - 睡眠：`sleep_primary #6E65B7`，浅底 `sleep_bg #F1EEFB`。
 - 排泄：`event_diaper #F59E32`，浅底 `event_diaper_light #FFE9C7`。
 - 健康：`event_health #1FAE9B`，浅底 `event_health_light #D8F4EE`。
 - 成长：`event_growth #5FAE63`，浅底 `event_growth_light #E1F2DF`。
 - 里程碑：`event_milestone #D95C75`，浅底 `event_milestone_light #FCE2E8`。
 - 护理：`event_care #4E9FE6`，活动：`event_activity #9A72E6`，其他：`event_other #73808C`。
+
+喂养与睡眠卡片上的文字使用各自的 `primary_dark` 和 `secondary`，需在对应 `bg` 上满足至少 4.5:1；`primary` 保留用于图标，不能因配色柔和而降低“距上次”和今日总量等辅助信息的可读性。
 
 记录控件底色固定使用：
 
@@ -56,9 +60,9 @@ BabyCare 是婴儿生活记录与规律洞察工具，不是装饰型相册应�
 
 普通选择控件统一采用 **Quiet Selection**：`control_surface_selected` 浅暖底 + 0.1dp 品牌描边 + 品牌文字，不做白字实色块、底部粗色条或多层浅色填充。业务功能色只用于图标、图表和数据语义，不能同时参与选中边框或选中文字。保存按钮和真正主行动按钮例外，继续使用品牌实色底。
 
-喂养页的辅食分类和子类型位于喂养类型下方，选中态必须参考上方喂养类型分段控件：`control_surface_selected` 浅暖底、`?attr/colorBrand` 描边、`?attr/colorBrand` 文字。辅食 Chip 文字复用 `selector_radio_text_color`，不得另建一套 `feeding_primary`、业务色描边或固定蓝色选中态，避免同页出现两套状态色。
+喂养页的辅食分类和子类型位于喂养类型下方，选中态必须参考上方喂养类型分段控件：`control_surface_selected` 浅暖底、`?attr/colorBrandForeground` 描边、`?attr/colorBrandForeground` 文字。辅食 Chip 文字复用 `selector_radio_text_color`，不得另建一套 `feeding_primary`、业务色描边或固定蓝色选中态，避免同页出现两套状态色。
 
-确认弹窗按钮必须清楚区分主次操作：确认按钮使用 `?attr/colorBrand` 实色底和 `?attr/colorOnBrand` 文字；取消按钮使用 `control_surface_default` 浅底、`control_border_default` 边框、`?attr/colorBrand` 文字，按压态切到 `control_surface_selected` + 品牌描边。取消按钮不能做成接近空白或禁用态，也不能在按压态写死旧蓝色。
+确认弹窗按钮必须清楚区分主次操作：确认按钮使用 `?attr/colorBrand` 实色底和 `?attr/colorOnBrand` 文字；取消按钮使用 `control_surface_default` 浅底、`control_border_default` 边框、`?attr/colorBrandForeground` 文字，按压态切到 `control_surface_selected` + 品牌前景描边。取消按钮不能做成接近空白或禁用态，也不能在按压态写死旧蓝色。
 
 ## 层级与阴影
 
@@ -101,7 +105,7 @@ XML 中优先使用语义属性：
 - 背景：`?attr/colorBackground`、`?attr/colorSurface`、`?attr/colorSurfaceVariant`。
 - 记录控件：`@color/control_surface_default`、`@color/control_surface_selected`、`@color/control_border_default`、`@color/event_icon_surface`。
 - 文本：`?attr/colorTextPrimary`、`?attr/colorTextSecondary`、`?attr/colorTextHint`。
-- 品牌：`?attr/colorBrand`、`?attr/colorBrandLight`、`?attr/colorBrandDark`、`?attr/colorOnBrand`。
+- 品牌：`?attr/colorBrand`、`?attr/colorBrandForeground`、`?attr/colorBrandLight`、`?attr/colorBrandDark`、`?attr/colorOnBrand`。
 - 图标：`?attr/iconColorPrimary`、`?attr/iconColorSecondary`、`?attr/iconColorBrand`。
 
 禁止在页面 XML 中新增硬编码 `#RRGGBB`。如需新颜色，先判断它是业务功能色还是主题 token，再放入 `common/src/main/res/values` 与 `values-night` 的对应资源文件。
@@ -155,6 +159,8 @@ XML 中优先使用语义属性：
 
 记录页的开始 / 结束时间字段使用 `bg_record_time_field`，时间值使用等宽数字特性，开始与结束列的标题均与字段左边界对齐。时间字段右侧使用统一线性 `ic_time` 图标，不使用通用新增图标或实心圆点。不要把结束时间标题右对齐，也不要使用过大的正文样式承载 `MM-dd HH:mm:ss`。
 
+时间选择图标保留 20dp 图形和至少 48dp 触控范围；时间字段使用最小高度而非固定高度，日期与时钟的文本 span 从公共 TextAppearance 读取 sp 字号。窄窗或较大系统字号下开始 / 结束字段改为上下排列，保证输入、日期和秒级时间完整可读。
+
 记录事件详情里的字段标签（如“大便性状”“测量部位”“疫苗名称”“备注”）统一使用 `EventDetailFieldLabel`：12sp、`colorTextSecondary`，标签到输入/选项使用 `event_detail_label_option_gap`，相邻字段组使用 `event_detail_field_gap`。字段标签只承担分组说明，输入内容和选项仍使用正文层级，避免标签与可操作选项层级过近。
 
 统计页：
@@ -175,6 +181,9 @@ XML 中优先使用语义属性：
 - 动效只用于状态变化、进入退出和按压反馈，时长控制在 150-300ms。
 - 滚动到内容边界时不得显示发光、拉伸或回弹到头动画；页面滚动控件统一通过基类设置 `View.OVER_SCROLL_NEVER`，新增独立滚动控件或弹层滚动列表必须显式设置 `android:overScrollMode="never"` 或复用同等组件能力。
 - 尊重系统字体缩放，不能为了布局稳定全局禁用缩放。
+- 选择类底部弹层在宽窗口中使用 `picker_sheet_max_width` 居中限宽；读屏需获得弹层用途、单选项选中状态，切换选项不能通过重建列表丢失焦点。
+- 自绘日历同样读取公共 TextAppearance 的 sp 字号；选中日期使用暖选中底、0.1dp 品牌前景描边与文字，今天兼为选中日时以下划线区分。记录点沿用弱提示层级，选中或今天不叠加记录点；完整日期、今天、有记录及选中状态仍需通过独立无障碍日期节点表达，并支持键盘选择。
+- 统计摘要的数量文字必须在指标块底色上达到 4.5:1；排泄和其他类别使用正文色，业务功能色保留在对应图标上。
 
 ## 本地化
 

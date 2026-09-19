@@ -8,6 +8,8 @@ import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.core.widget.TextViewCompat
+import androidx.core.widget.doAfterTextChanged
+import com.google.gson.Gson
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.blankj.utilcode.util.ToastUtils
@@ -31,6 +33,8 @@ import com.zero.components.base.vm.UiState
 import com.zero.components.widget.RecordView.RecordState
 import com.zero.components.widget.ToolbarAction
 import java.util.Locale
+import kotlinx.coroutines.flow.combine
+import java.util.UUID
 
 /**
  * 喂养记录页面
@@ -95,6 +99,10 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
     private var isProgrammaticChange = false
 
     private var timerController: RecordTimerController? = null
+    private var retainedDraft: Bundle? = null
+    private var draftForView: Bundle? = null
+    private var draftBabyId: Int? = null
+    private var draftId = UUID.randomUUID().toString()
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
@@ -106,16 +114,85 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         setupSaveButton()
         setupFirstTimeCheckbox()
         updateFeedingUnitDisplay()
+        listOf(binding.etNote, binding.etFeedingAmount, binding.etLeftBreastDuration,
+            binding.etRightBreastDuration, binding.etSolidFoodName, binding.etSolidAmount,
+            binding.etOtherFoodName).forEach { input -> input.doAfterTextChanged { markAsUnsaved() } }
         
         // 初始化时重置页面数据
         resolveEditMode()
-        resetPage()
-        if (isEditMode) {
+        draftForView = (savedInstanceState?.getBundle(RecordDraftState.KEY) ?: retainedDraft)
+            ?.takeIf { mainVm.navTarget.value is NavTarget.FeedingRecord &&
+                RecordDraftState.matches(it, mainVm.getCurrentBabyInfo()?.babyId, editRecordId) }
+        draftBabyId = draftForView?.getInt("baby_id")?.takeIf { it > 0 }
+            ?: mainVm.getCurrentBabyInfo()?.babyId
+        draftId = draftForView?.getString("draft_id") ?: UUID.randomUUID().toString()
+        if (draftForView == null) resetPage()
+        if (isEditMode && draftForView?.getString("editing_record") == null) {
             loadEditRecord()
         }
+        launchInLifecycle {
+            mainVm.currentBaby.combine(mainVm.navTarget) { baby, target -> baby?.babyId to target }
+                .collect { (babyId, target) ->
+                    if (!isHidden && target is NavTarget.FeedingRecord && babyId != null) {
+                        val changed = (draftBabyId != null && draftBabyId != babyId) || editRecordId != target.editRecordId
+                        if (draftBabyId == null) draftBabyId = babyId
+                        if (changed) openCurrentTarget()
+                    }
+                }
+        }
+        observeMutation()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (view != null && !isHidden) outState.putBundle(RecordDraftState.KEY, captureDraft())
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        draftForView?.let { draft ->
+            isProgrammaticChange = true
+            editingRecord = draft.getString("editing_record")?.let { Gson().fromJson(it, FeedingRecord::class.java) }
+                ?: editingRecord
+            RecordDraftState.restoreHierarchy(binding.root, draft)
+            selectedFeedingType = FeedingType.fromType(draft.getInt("feeding_type"))
+            selectedSolidCategory = draft.getInt("solid_category").takeIf { it != 0 }
+            // 动态 RadioButton 的 View ID 重建后会变化，必须按稳定的业务类型恢复。
+            updateFeedingTypeVisibility()
+            updateSolidSubtypes()
+            selectedSolidSubtype = draft.getInt("solid_subtype").takeIf { it != 0 }
+            for (index in 0 until binding.rgSolidSubtype.childCount) {
+                val radio = binding.rgSolidSubtype.getChildAt(index) as? android.widget.RadioButton
+                if (radio?.tag == selectedSolidSubtype) radio?.isChecked = true
+            }
+            updateSolidFoodNameVisibility()
+            updateSolidUnit()
+            updateAllergenTip()
+            draft.getBundle("timer")?.let { RecordDraftState.restoreTimer(binding.timerPanel, timerController, it) }
+            hasUnsavedChanges = draft.getBoolean("dirty")
+            isProgrammaticChange = false
+            applyTimerLockState()
+            updateToolbarAction()
+        }
+        draftForView = null
+        retainedDraft = null
+    }
+
+    private fun captureDraft(): Bundle = Bundle().apply {
+        putInt("edit_id", editRecordId ?: 0)
+        putString("draft_id", draftId)
+        putInt("baby_id", draftBabyId ?: mainVm.getCurrentBabyInfo()?.babyId ?: 0)
+        putBoolean("dirty", hasUnsavedChanges)
+        putInt("feeding_type", selectedFeedingType.type)
+        putInt("solid_category", selectedSolidCategory ?: 0)
+        putInt("solid_subtype", selectedSolidSubtype ?: 0)
+        editingRecord?.let { putString("editing_record", Gson().toJson(it)) }
+        putBundle("timer", RecordDraftState.saveTimer(binding.timerPanel, timerController))
+        RecordDraftState.saveHierarchy(binding.root, this)
     }
 
     override fun onDestroyView() {
+        retainedDraft = if (!isHidden) captureDraft() else null
         timerController?.dispose()
         timerController = null
         binding.timerPanel.timerView.release()
@@ -142,7 +219,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             updateFeedingTypeVisibility()
             markAsUnsaved()
 
-            val babyId = mainVm.getCurrentBabyInfo()?.babyId
+            val babyId = currentDraftBabyId()
             if (!isEditMode && babyId != null && OngoingRecordManager.isFeeding(babyId)) {
                 // 同步进行中的喂养类型，避免恢复与状态卡不一致
                 OngoingRecordManager.updateFeedingType(babyId, selectedFeedingType.type)
@@ -399,7 +476,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             callbacks = RecordTimerController.Callbacks(
                 onStartTimeChanged = { startTime ->
                     markAsUnsaved()
-                    val babyId = mainVm.getCurrentBabyInfo()?.babyId
+                    val babyId = currentDraftBabyId()
                     if (!isEditMode && babyId != null && OngoingRecordManager.isFeeding(babyId)) {
                         // 同步进行中的开始时间，避免恢复与状态卡不一致
                         OngoingRecordManager.updateFeedingStart(babyId, startTime)
@@ -407,16 +484,16 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
                 },
                 onEndTimeChanged = { markAsUnsaved() },
                 onTimerStart = { startTime ->
-                    mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
+                    currentDraftBabyId()?.let { babyId ->
                         OngoingRecordManager.startFeeding(babyId, selectedFeedingType.type, startTime)
                     }
                 },
                 onTimerResume = {
                     markAsUnsaved()
-                    mainVm.getCurrentBabyInfo()?.babyId?.let(OngoingRecordManager::resumeFeeding)
+                    currentDraftBabyId()?.let(OngoingRecordManager::resumeFeeding)
                 },
                 onTimerPause = { endTime ->
-                    mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
+                    currentDraftBabyId()?.let { babyId ->
                         OngoingRecordManager.pauseFeeding(
                             babyId = babyId,
                             endTime = endTime,
@@ -581,14 +658,20 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
 
     private fun loadEditRecord() {
         val recordId = editRecordId ?: return
+        val expectedView = view
+        val expectedBabyId = draftBabyId
+        val expectedDraftId = draftId
         vm.loadFeedingRecordById(recordId) { record ->
-            if (record == null) {
+            if (view !== expectedView || isHidden || editRecordId != recordId || draftId != expectedDraftId) return@loadFeedingRecordById
+            if (record == null || (expectedBabyId != null && record.babyId != expectedBabyId) ||
+                (draftBabyId != null && record.babyId != draftBabyId)) {
                 mainVm.navigateTo(getReturnTarget())
                 return@loadFeedingRecordById
             }
+            draftBabyId = record.babyId
             editingRecord = record
             updateToolbarAction()
-            applyRecordToUi(record)
+            if (!hasUnsavedChanges) applyRecordToUi(record)
         }
     }
 
@@ -685,7 +768,13 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 保存记录
      */
     private fun saveRecord() {
-        if (mutationInProgress) return
+        if (vm.mutation.isPending || (isEditMode && editingRecord == null)) return
+        val babyId = currentDraftBabyId()
+        if (babyId == null || babyId < 0) {
+            ToastUtils.showShort(R.string.no_baby_selected)
+            return
+        }
+        if (isEditMode && editingRecord?.babyId != babyId) return
         clearValidationErrors()
 
         // 如果正在计时，先暂停
@@ -712,13 +801,6 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         }
 
         if (!validateTimeRange()) {
-            return
-        }
-
-        // 校验 babyId
-        val babyId = mainVm.getCurrentBabyInfo()?.babyId
-        if (babyId == null || babyId < 0) {
-            ToastUtils.showShort(R.string.no_baby_selected)
             return
         }
 
@@ -776,6 +858,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         endTime: Long,
         duration: Long
     ) {
+        val expectedDraftId = draftId
         val durationMinutes = DateUtils.millisecondsToSmartMinutes(duration)
         val startTimeStr = timestampToMMddHHmm(startTime)
         val endTimeStr = timestampToMMddHHmm(endTime)
@@ -793,7 +876,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             content = message,
             confirmText = getString(R.string.confirm),
             cancelText = getString(R.string.cancel),
-            onConfirm = { doSaveRecord(babyId, startTime, endTime, duration) }
+            onConfirm = { if (expectedDraftId == draftId && !isHidden) doSaveRecord(babyId, startTime, endTime, duration) }
         )
     }
 
@@ -806,7 +889,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         endTime: Long,
         duration: Long
     ) {
-        if (mutationInProgress) return
+        if (vm.mutation.isPending || currentDraftBabyId() != babyId) return
 
         // 获取左右乳房时长（仅母乳喂养时）
         val leftBreastDuration = if (selectedFeedingType == FeedingType.BREAST) {
@@ -868,34 +951,14 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             this.createdAt = editingRecord?.createdAt ?: System.currentTimeMillis()
         }
 
-        setMutationInProgress(true)
-        val onSaved = {
-            setMutationInProgress(false)
-            if (!isEditMode) {
-                // 清除进行中状态
-                OngoingRecordManager.endFeeding(babyId)
-                // 重置页面数据，防止再次进入时显示历史数据
-                view?.post { resetPage() }
-            }
-            hasUnsavedChanges = false
-            mainVm.navigateTo(getReturnTarget())
-        }
-        val onError = {
-            setMutationInProgress(false)
-            ToastUtils.showShort(R.string.save_failed)
-        }
-
-        if (isEditMode) {
-            vm.update(feedingRecord, onSaved, onError)
-        } else {
-            vm.insert(feedingRecord, onSaved, onError)
-        }
+        vm.save(feedingRecord, mutationTarget(babyId))
     }
 
     /** 编辑态允许纠正误记录；删除完成后由变更总线统一刷新依赖数据。 */
     private fun showDeleteConfirmDialog() {
         val record = editingRecord ?: return
-        if (mutationInProgress) return
+        if (vm.mutation.isPending) return
+        val target = mutationTarget(record.babyId)
         DialogHelper.showConfirmDialog(
             context = requireContext(),
             title = getString(R.string.delete_record),
@@ -903,21 +966,9 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             confirmText = getString(R.string.delete_record),
             cancelText = getString(R.string.cancel),
             onConfirm = {
-                setMutationInProgress(true)
-                vm.delete(
-                    feedingId = record.feedingId,
-                    babyId = record.babyId,
-                    onSuccess = {
-                        setMutationInProgress(false)
-                        hasUnsavedChanges = false
-                        ToastUtils.showShort(R.string.record_delete_success)
-                        mainVm.navigateTo(getReturnTarget())
-                    },
-                    onError = {
-                        setMutationInProgress(false)
-                        ToastUtils.showShort(R.string.record_delete_failed)
-                    }
-                )
+                if (target.belongsTo(draftId, currentDraftBabyId(), mainVm.navTarget.value)) {
+                    vm.delete(record.feedingId, target)
+                }
             }
         )
     }
@@ -928,6 +979,31 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         binding.tvSave.isEnabled = !inProgress
         binding.tvSave.alpha = if (inProgress) 0.7f else 1f
         updateToolbarAction()
+    }
+
+    private fun mutationTarget(babyId: Int) = RecordMutationController.Target(
+        draftId, babyId, editRecordId, mainVm.navTarget.value, getReturnTarget()
+    )
+
+    private fun observeMutation() {
+        launchInLifecycle {
+            vm.mutation.state.collect { state ->
+                setMutationInProgress(state is RecordMutationController.State.Running)
+                if (state is RecordMutationController.State.Finished && vm.mutation.consume(state)) {
+                    val belongs = state.target.belongsTo(draftId, currentDraftBabyId(), mainVm.navTarget.value)
+                    if (state.target.draftId == draftId && state.errorRes == null) {
+                        hasUnsavedChanges = false
+                        resetPage()
+                    }
+                    if (belongs && !isHidden) {
+                        val message = state.errorRes ?: if (state.kind == RecordMutationController.Kind.DELETE)
+                            R.string.record_delete_success else R.string.save_success
+                        ToastUtils.showShort(message)
+                        if (state.errorRes == null) mainVm.navigateTo(state.target.destination)
+                    }
+                }
+            }
+        }
     }
 
     /** 校验失败后把错误留在字段上，并把辅助功能焦点带回可修正的位置。 */
@@ -959,7 +1035,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             onConfirm = {
                 hasUnsavedChanges = false
                 if (!isEditMode) {
-                    mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
+                    currentDraftBabyId()?.let { babyId ->
                         OngoingRecordManager.cancelFeeding(babyId)
                     }
                 }
@@ -976,7 +1052,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 标记为有未保存的更改
      */
     private fun markAsUnsaved() {
-        hasUnsavedChanges = true
+        if (!isProgrammaticChange) hasUnsavedChanges = true
     }
 
     /**
@@ -1031,25 +1107,30 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         if (view == null) return
         
         if (hidden) {
+            retainedDraft = null
             // 隐藏时不重置计时器（保留进行中状态）
         } else {
-            updateFeedingUnitDisplay()
-            resolveEditMode()
-            if (isEditMode) {
-                loadEditRecord()
-                return
-            }
-            // 检查是否有进行中的喂养记录
-            val babyId = mainVm.getCurrentBabyInfo()?.babyId
-            if (babyId != null && OngoingRecordManager.isFeeding(babyId)) {
-                // 恢复进行中的记录
-                restoreOngoingFeeding(babyId)
-            } else {
-                resetPage()
-            }
+            openCurrentTarget()
+        }
+    }
+
+    /** 同页收到新宝宝或编辑目标时先清除旧表单，禁止旧草稿写入新目标。 */
+    private fun openCurrentTarget() {
+        draftId = UUID.randomUUID().toString()
+        draftBabyId = mainVm.getCurrentBabyInfo()?.babyId
+        updateFeedingUnitDisplay()
+        resolveEditMode()
+        resetPage()
+        if (isEditMode) {
+            loadEditRecord()
+        } else {
+            draftBabyId?.takeIf(OngoingRecordManager::isFeeding)?.let(::restoreOngoingFeeding)
             loadLastFeedingRecord()
         }
     }
+
+    private fun currentDraftBabyId(): Int? = mainVm.getCurrentBabyInfo()?.babyId
+        ?.takeIf { draftBabyId == null || draftBabyId == it }
 
     /**
      * 恢复进行中的喂养记录
@@ -1092,7 +1173,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 加载上次喂奶记录
      */
     private fun loadLastFeedingRecord() {
-        mainVm.getCurrentBabyInfo()?.babyId?.let { babyId ->
+        currentDraftBabyId()?.let { babyId ->
             vm.loadLastFeedingRecord(babyId)
         }
     }
@@ -1103,17 +1184,14 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         // 加载上次喂奶记录
         loadLastFeedingRecord()
 
-        // 观察上次喂奶记录
-        launchInLifecycle {
-            vm.lastFeedingRecord.observe(viewLifecycleOwner) { lastRecord ->
-                lastRecord?.let {
-                    val lastTimeStr = timestampToMMddHHmm(it.feedingEnd)
-                    binding.tvLastFeeding.text = getString(
-                        R.string.last_feeding_time,
-                        lastTimeStr
-                    )
-                    binding.tvLastFeeding.visibility = View.VISIBLE
-                }
+        // LiveData 已绑定 View 生命周期，只注册一次，避免每次前台恢复都累加观察者。
+        vm.lastFeedingRecord.observe(viewLifecycleOwner) { lastRecord ->
+            if (lastRecord != null && lastRecord.babyId == currentDraftBabyId()) {
+                val lastTimeStr = timestampToMMddHHmm(lastRecord.feedingEnd)
+                binding.tvLastFeeding.text = getString(R.string.last_feeding_time, lastTimeStr)
+                binding.tvLastFeeding.visibility = View.VISIBLE
+            } else {
+                binding.tvLastFeeding.visibility = View.GONE
             }
         }
 

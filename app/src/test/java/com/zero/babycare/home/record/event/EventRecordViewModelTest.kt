@@ -2,6 +2,7 @@ package com.zero.babycare.home.record.event
 
 import com.zero.babydata.entity.EventType
 import com.zero.babydata.entity.TemperatureData
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.drop
@@ -12,6 +13,43 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class EventRecordViewModelTest {
+
+    @Test
+    fun `serialized draft restores duration and selection into new view model`() {
+        val original = EventRecordViewModel()
+        val outdoor = requireNotNull(EventSubtype.fromType(EventType.ACTIVITY_OUTDOOR))
+        original.selectCategory(EventCategory.ACTIVITY)
+        original.selectSubtype(outdoor)
+        original.setDurationStartTime(START_AT)
+        original.setEndTime(START_AT + TEN_MINUTES)
+        val serialized = Gson().toJson(original.captureDraft())
+        val restored = EventRecordViewModel()
+        restored.restoreDraft(Gson().fromJson(serialized, EventRecordViewModel.Draft::class.java))
+
+        assertEquals(EventCategory.ACTIVITY, restored.selectedCategory.value)
+        assertEquals(outdoor, restored.selectedSubtype.value)
+        assertEquals(START_AT, restored.eventTime.value)
+        assertEquals(START_AT, restored.durationStartTime.value)
+        assertEquals(START_AT + TEN_MINUTES, restored.endTime.value)
+    }
+
+    @Test
+    fun `restored subtype observes the complete draft timing without reset`() {
+        val restored = EventRecordViewModel()
+        val observed = mutableListOf<ObservedSubtypeState>()
+        val collectionJob = CoroutineScope(Dispatchers.Unconfined).launch {
+            restored.selectedSubtype.drop(1).collect { subtype ->
+                subtype?.let { observed += ObservedSubtypeState(it.type,
+                    restored.durationStartTime.value, restored.endTime.value) }
+            }
+        }
+        restored.restoreDraft(EventRecordViewModel.Draft(EventType.CATEGORY_ACTIVITY,
+            EventType.ACTIVITY_OUTDOOR, START_AT, START_AT, START_AT + TEN_MINUTES))
+        collectionJob.cancel()
+
+        assertEquals(listOf(ObservedSubtypeState(EventType.ACTIVITY_OUTDOOR,
+            START_AT, START_AT + TEN_MINUTES)), observed)
+    }
 
     @Test
     fun `page event time does not create duration start time`() {

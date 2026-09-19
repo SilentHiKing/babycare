@@ -13,6 +13,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.widget.TextViewCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.AccessibilityDelegateCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import com.zero.components.R
 import kotlin.math.max
 
@@ -23,7 +26,7 @@ import kotlin.math.max
  */
 internal class BabyCareChoicePopup<T>(
     context: Context,
-    title: String,
+    private val title: String,
     private val items: List<DialogHelper.PickerOption<T>>,
     initialIndex: Int,
     private val onSelected: (T) -> Unit,
@@ -45,6 +48,7 @@ internal class BabyCareChoicePopup<T>(
     override fun onCreate() {
         super.onCreate()
         contentTouchArea = findViewById(R.id.option_container)
+        ViewCompat.setAccessibilityPaneTitle(contentTouchArea, title)
         findViewById<TextView>(R.id.tv_cancel).setOnClickListener {
             onCancel?.invoke()
             dismiss()
@@ -78,6 +82,7 @@ internal class BabyCareChoicePopup<T>(
             setPadding(dp(16), 0, dp(16), 0)
             isClickable = true
             isFocusable = true
+            this.isSelected = isSelected
             foreground = context.getThemeDrawable(android.R.attr.selectableItemBackground)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -86,12 +91,23 @@ internal class BabyCareChoicePopup<T>(
             setOnClickListener {
                 if (selectedIndex == index) return@setOnClickListener
                 selectedIndex = index
-                renderOptions()
+                // 保留原节点，读屏焦点不会因重建整张选项列表而跳回页首。
+                refreshSelection()
             }
         }
+        ViewCompat.setAccessibilityDelegate(row, object : AccessibilityDelegateCompat() {
+            override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                super.onInitializeAccessibilityNodeInfo(host, info)
+                info.className = android.widget.RadioButton::class.java.name
+                info.text = item.label
+                info.isCheckable = true
+                info.isChecked = index == selectedIndex
+            }
+        })
 
         row.addView(TextView(context).apply {
             text = item.label
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             gravity = Gravity.CENTER
             includeFontPadding = false
             TextViewCompat.setTextAppearance(this, com.zero.common.R.style.TextAppearance_BabyCare_Body1)
@@ -110,9 +126,10 @@ internal class BabyCareChoicePopup<T>(
         row.addView(AppCompatImageView(context).apply {
             visibility = if (isSelected) View.VISIBLE else View.INVISIBLE
             setImageResource(com.zero.common.R.drawable.ic_check)
-            imageTintList = ColorStateList.valueOf(context.resolveThemeColor(com.zero.common.R.attr.colorBrand))
+            imageTintList = ColorStateList.valueOf(context.resolveThemeColor(com.zero.common.R.attr.colorBrandForeground))
             scaleType = ImageView.ScaleType.CENTER
             contentDescription = null
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             layoutParams = FrameLayout.LayoutParams(
                 dp(24),
                 dp(24),
@@ -134,6 +151,19 @@ internal class BabyCareChoicePopup<T>(
             })
         }
         return wrapper
+    }
+
+    private fun refreshSelection() {
+        val container = findViewById<LinearLayout>(R.id.option_container)
+        for (index in items.indices) {
+            val row = (container.getChildAt(index) as LinearLayout).getChildAt(0) as FrameLayout
+            val selected = index == selectedIndex
+            (row.getChildAt(0) as TextView).typeface = Typeface.create(
+                if (selected) "sans-serif-medium" else "sans-serif", Typeface.NORMAL
+            )
+            row.getChildAt(1).visibility = if (selected) View.VISIBLE else View.INVISIBLE
+            row.isSelected = selected
+        }
     }
 
     private fun dp(value: Int): Int {
