@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 普通桌面图标不随夜间改变身份色；主题图标由系统通过 monochrome 着色。 -->
+    <color name="launcher_background">#2A74B8</color>
+    <color name="launcher_foreground">#FFF8ED</color>
+</resources>

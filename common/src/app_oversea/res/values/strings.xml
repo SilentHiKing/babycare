@@ -5,7 +5,7 @@
     <string name="loading">Loading</string>
     <string name="number_zero">0</string>
     <string name="number_decimal_zero">0.00</string>
-    <string name="list_separator_dot"> · </string>
+    <string name="list_separator_dot">\u0020·\u0020</string>
     <string name="times_count_format">Count: %1$d</string>
     <string name="baby_not_born_yet_playful">The time machine is not open yet - I have not been born!</string>
     <string name="statistics_add_birthdate_hint">Add a birthday to see your baby’s age</string>
@@ -81,7 +81,7 @@
     <string name="feeding_type_other">Other</string>
     <string name="feeding_type_title_format">%1$s feeding</string>
     <string name="feeding_amount">Feeding volume</string>
-    <string name="feeding_breast_side_minutes_format">%1$s%2$d minutes</string>
+    <string name="feeding_breast_side_minutes_format">%1$s %2$d min</string>
     <string name="feeding_total_minutes_format">Total %1$d min</string>
     <string name="feeding_amount_unit_format">%1$s%2$s</string>
     <string name="solid_food_type">Solid food type</string>

@@ -83,6 +83,7 @@ object ReminderScheduler {
             return
         }
 
+        ReminderNotifier.reconcileMissingBabies(context)
         val workManager = WorkManager.getInstance(context.applicationContext)
         repository.getAllBabyInfo().forEach { baby ->
             val candidates = ReminderPolicy.loadCandidates(baby)

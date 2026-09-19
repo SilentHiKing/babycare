@@ -56,11 +56,11 @@
       {
         "codeKey": "list_separator_dot",
         "language": {
-          "zh-Hans": " · ",
-          "en": " · ",
-          "zh-Hant": " · ",
-          "ja": " · ",
-          "ko": " · "
+          "zh-Hans": "\\u0020·\\u0020",
+          "en": "\\u0020·\\u0020",
+          "zh-Hant": "\\u0020·\\u0020",
+          "ja": "\\u0020·\\u0020",
+          "ko": "\\u0020·\\u0020"
         }
       },
       {
@@ -817,7 +817,7 @@
         "codeKey": "feeding_breast_side_minutes_format",
         "language": {
           "zh-Hans": "%1$s%2$d分钟",
-          "en": "%1$s%2$d minutes",
+          "en": "%1$s %2$d min",
           "zh-Hant": "%1$s%2$d分鐘",
           "ja": "%1$s%2$d分",
           "ko": "%1$s%2$d분"
@@ -5688,11 +5688,11 @@
       {
         "codeKey": "app_name",
         "language": {
-          "zh-Hans": "babycare",
-          "en": "babycare",
-          "zh-Hant": "babycare",
-          "ja": "babycare",
-          "ko": "babycare"
+          "zh-Hans": "BabyCare",
+          "en": "BabyCare",
+          "zh-Hant": "BabyCare",
+          "ja": "BabyCare",
+          "ko": "BabyCare"
         }
       }
     ],

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="72dp"
+    android:height="72dp"
+    android:viewportWidth="72"
+    android:viewportHeight="72">
+    <!-- 圆头与交叠襁褓表达被照护的婴儿；单一轮廓可被系统主题图标直接着色。 -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M36,31a8,8 0,1 0,0 -16a8,8 0,0 0,0 16zM18,33C15,35 14,40 15,44C17,53 25,60 36,62C47,60 55,53 57,44C58,40 57,35 54,33M18,33C27,35 34,41 43,48M54,33C44,37 33,45 24,54"
+        android:strokeColor="@color/launcher_foreground"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="4.5" />
+</vector>

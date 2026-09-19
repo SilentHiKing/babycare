@@ -42,6 +42,32 @@ class StatisticsTimelineMapperTest {
     )
 
     @Test
+    fun `overnight records show the original start date and keep their edit identity`() {
+        val feeding = FeedingRecord(feedingId = 51, babyId = 1, feedingType = FeedingType.BREAST.type,
+            feedingStart = Instant.parse("2026-05-02T15:30:00Z").toEpochMilli(),
+            feedingEnd = Instant.parse("2026-05-02T16:30:00Z").toEpochMilli(), feedingDuration = 30 * 60_000L)
+        val sleep = SleepRecord(sleepId = 52, babyId = 1,
+            sleepStart = Instant.parse("2026-05-02T14:30:00Z").toEpochMilli(),
+            sleepEnd = Instant.parse("2026-05-02T23:00:00Z").toEpochMilli(), sleepDuration = 510 * 60_000L)
+        val feedingItem = mapper.mapFeeding(feeding)
+        val sleepItem = mapper.mapSleep(sleep)
+        assertEquals("05-02 23:30", feedingItem.timeText)
+        assertEquals("05-02 22:30", sleepItem.timeText)
+        assertEquals(TimelineEditTarget.Feeding(51), feedingItem.editTarget)
+        assertEquals(TimelineEditTarget.Sleep(52), sleepItem.editTarget)
+        // 起点不截成所选日午夜；同日旧格式仍保持紧凑。
+        assertEquals("23:30", mapper.mapFeeding(feeding.copy(feedingEnd = feeding.feedingStart + 60_000L)).timeText)
+    }
+
+    @Test
+    fun `cross year record start includes its year instead of looking like a future December`() {
+        val sleep = SleepRecord(sleepId = 53, babyId = 1,
+            sleepStart = Instant.parse("2025-12-31T15:00:00Z").toEpochMilli(),
+            sleepEnd = Instant.parse("2026-01-01T00:00:00Z").toEpochMilli(), sleepDuration = 9 * 3_600_000L)
+        assertEquals("2025-12-31 23:00", mapper.mapSleep(sleep).timeText)
+    }
+
+    @Test
     fun `feeding item exposes edit target and semantic feeding color`() {
         val item = mapper.mapFeeding(
             FeedingRecord(

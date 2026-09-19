@@ -22,6 +22,7 @@ import com.zero.common.util.UnitConverter
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.time.ZoneId
+import java.time.Instant
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -67,6 +68,23 @@ class StatisticsTimelineMapper(
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
         timeZone = TimeZone.getTimeZone(zone)
     }
+    private val dateTimeFormat = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone(zone)
+    }
+    private val yearDateTimeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone(zone)
+    }
+
+    /** 跨日记录会在覆盖日重复可见，原起点必须带日期，不能让昨天的 22 点看成今天。 */
+    private fun formatIntervalStart(start: Long, end: Long): String {
+        if (start > 0L && end > start) {
+            val firstDate = Instant.ofEpochMilli(start).atZone(zone).toLocalDate()
+            val lastDate = Instant.ofEpochMilli(end - 1L).atZone(zone).toLocalDate()
+            if (firstDate.year != lastDate.year) return yearDateTimeFormat.format(Date(start))
+            if (firstDate != lastDate) return dateTimeFormat.format(Date(start))
+        }
+        return timeFormat.format(Date(start))
+    }
 
     fun mapFeeding(record: FeedingRecord): TimelineUiItem {
         val type = record.getFeedingTypeEnum()
@@ -76,7 +94,7 @@ class StatisticsTimelineMapper(
         )
         return TimelineUiItem(
             stableId = stableId("feeding", record.feedingId),
-            timeText = timeFormat.format(Date(record.feedingStart)),
+            timeText = formatIntervalStart(record.feedingStart, record.feedingEnd),
             titleText = title,
             detailText = buildFeedingDetail(record, type),
             noteText = record.note.takeIf { it.isNotBlank() },
@@ -90,7 +108,7 @@ class StatisticsTimelineMapper(
     fun mapSleep(record: SleepRecord): TimelineUiItem {
         return TimelineUiItem(
             stableId = stableId("sleep", record.sleepId),
-            timeText = timeFormat.format(Date(record.sleepStart)),
+            timeText = formatIntervalStart(record.sleepStart, record.sleepEnd),
             titleText = strings.get(CommonR.string.sleeping),
             detailText = buildSleepDuration(record.sleepDuration),
             noteText = record.note.takeIf { it.isNotBlank() },

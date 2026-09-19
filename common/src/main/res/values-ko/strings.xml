@@ -5,7 +5,7 @@
     <string name="loading">로딩 중</string>
     <string name="number_zero">0</string>
     <string name="number_decimal_zero">0.00</string>
-    <string name="list_separator_dot"> · </string>
+    <string name="list_separator_dot">\u0020·\u0020</string>
     <string name="times_count_format">%1$d회</string>
     <string name="baby_not_born_yet_playful">타임머신은 열리지 않았고, 나는 아직 태어나지도 않았습니다!</string>
     <string name="statistics_add_birthdate_hint">생일을 추가하고 월령 확인하기</string>

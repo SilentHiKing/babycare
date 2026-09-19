@@ -22,7 +22,9 @@ import com.zero.babydata.entity.BabyInfo
 import com.zero.common.mmkv.MMKVKeys
 import com.zero.common.mmkv.MMKVStore
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 
 /** 到期任务执行时再次校验最新记录、权限、进行中状态与可信度，再决定是否通知。 */
 object ReminderNotifier {
@@ -49,7 +51,12 @@ object ReminderNotifier {
             return ReminderDeliveryResult.SUPPRESSED
         }
 
-        val baby = source.getBaby(babyId) ?: return ReminderDeliveryResult.SUPPRESSED
+        val baby = source.getBaby(babyId) ?: run {
+            currentCoroutineContext().ensureActive()
+            // 删除可能已提交但来不及撤通知；旧到期任务也负责补齐这一派生状态。
+            deliveryGate.ifCurrent(ticket) { clearForBaby(context, babyId) }
+            return ReminderDeliveryResult.SUPPRESSED
+        }
         val candidate = source.getCandidate(baby, type) ?: return ReminderDeliveryResult.SUPPRESSED
         val coroutineContext = currentCoroutineContext()
         coroutineContext.ensureActive()
@@ -109,6 +116,26 @@ object ReminderNotifier {
                 manager.cancel(notificationTag(babyId), recordType.ordinal)
             }
         }
+
+    /** 冷恢复按 Room 核对已显示通知，补齐删除提交后退出留下的系统状态。 */
+    internal suspend fun reconcileMissingBabies(
+        context: Context,
+        source: ReminderDataSource = RepositoryReminderDataSource
+    ) = withContext(Dispatchers.IO) {
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        // 先枚举通知再查库，不用较早的宝宝全集误删查询期间新建宝宝的有效通知。
+        val displayedBabyIds = manager.activeNotifications.mapNotNull { notification ->
+            notification.tag?.takeIf { it.startsWith(TAG_PREFIX) }
+                ?.removePrefix(TAG_PREFIX)?.toIntOrNull()?.takeIf { it > 0 }
+        }.toSet()
+        displayedBabyIds.forEach { babyId ->
+            if (source.getBaby(babyId) == null) {
+                currentCoroutineContext().ensureActive()
+                // 与最终发布共用 gate；查询期间取得旧候选的任务不能在撤回后补发。
+                clearForBaby(context, babyId)
+            }
+        }
+    }
 
     /** 旧通知的截断 ID 无法可靠还原宝宝归属，升级后在重新规划前统一撤回。 */
     internal fun clearLegacy(context: Context) {

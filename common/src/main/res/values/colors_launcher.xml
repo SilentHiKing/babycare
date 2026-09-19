@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 桌面标志保持固定应用身份；页面仍只使用男孩/女孩主题，不据此新增主题分支。 -->
+    <color name="launcher_background">#2A74B8</color>
+    <color name="launcher_foreground">#FFF8ED</color>
+</resources>

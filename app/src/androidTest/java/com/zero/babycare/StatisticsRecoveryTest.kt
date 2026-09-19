@@ -1,11 +1,14 @@
 package com.zero.babycare
 
 import android.app.Application
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.view.ContextThemeWrapper
 import android.view.View
 import android.widget.FrameLayout
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.recyclerview.widget.ConcatAdapter
@@ -13,6 +16,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babycare.statistics.StatisticsFragment
 import com.zero.babycare.statistics.StatisticsViewModel
@@ -30,16 +35,22 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.LocalDate
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.FutureTask
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 /** 控制只读内存快照与真实 View 重建，不创建宝宝、不保存记录，也不依赖设备已有数据。 */
 @RunWith(AndroidJUnit4::class)
 class StatisticsRecoveryTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
+    private val mainHandler = Handler(Looper.getMainLooper())
     private val target = NavTarget.Statistics(returnTarget = NavTarget.Dashboard)
 
     @Test
     fun recreatedStatisticsWaitsForDelayedFirstBabySnapshot() = withScenario { scenario, fallbackBaby ->
-        scenario.onActivity { activity ->
+        onActivity(scenario) { activity ->
             val main = mainVm(activity)
             // 精确重现冷恢复的先后顺序：导航已恢复，但 Room 的第一个宝宝快照尚未到达。
             stateFlow<Boolean>(main, "_babyDataLoaded").value = false
@@ -47,9 +58,9 @@ class StatisticsRecoveryTest {
             main.navigateTo(target)
         }
         await(scenario) { isStatisticsVisible(it) }
-        scenario.recreate()
+        recreate(scenario)
         await(scenario) { isStatisticsVisible(it) }
-        scenario.onActivity { activity ->
+        onActivity(scenario) { activity ->
             assertEquals("未加载不能被解释为没有宝宝", target, mainVm(activity).navTarget.value)
             val root = stats(activity).requireView()
             assertFalse(root.findViewById<View>(R.id.rvStatistics).isShown)
@@ -59,7 +70,7 @@ class StatisticsRecoveryTest {
         }
         await(scenario) { isStatisticsVisible(it) && !statsVm(it).uiState.value.isLoading &&
             statsVm(it).uiState.value.babyId == fallbackBaby.babyId }
-        scenario.onActivity { activity ->
+        onActivity(scenario) { activity ->
             assertEquals(target, mainVm(activity).navTarget.value)
             assertTrue(stats(activity).requireView().findViewById<View>(R.id.rvStatistics).isShown)
         }
@@ -67,7 +78,7 @@ class StatisticsRecoveryTest {
 
     @Test
     fun calendarRebindingKeepsBrowsedMonthAndWeekSeparateFromSelectedDate() {
-        instrumentation.runOnMainSync {
+        onMain {
             val context = ContextThemeWrapper(instrumentation.targetContext, com.zero.common.R.style.AppTheme_Boy)
             val adapter = StatisticsCalendarAdapter({}, {}, {})
             val selected = LocalDate.of(2025, 1, 15)
@@ -100,7 +111,7 @@ class StatisticsRecoveryTest {
 
     @Test
     fun delayedCalendarMarkersDoNotRebindTimelineOrResetBrowsedMonth() = withScenario { scenario, fallbackBaby ->
-        scenario.onActivity { activity ->
+        onActivity(scenario) { activity ->
             stateFlow<BabyInfo?>(mainVm(activity), "_currentBaby").value = fallbackBaby
             mainVm(activity).navigateTo(target)
         }
@@ -118,7 +129,7 @@ class StatisticsRecoveryTest {
             override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) { changes++ }
         }
         try {
-            scenario.onActivity { activity ->
+            onActivity(scenario) { activity ->
                 val root = stats(activity).requireView()
                 val list = root.findViewById<RecyclerView>(R.id.rvStatistics)
                 timeline = (list.adapter as ConcatAdapter).adapters.filterIsInstance<TimelineAdapter>().single().also {
@@ -130,27 +141,27 @@ class StatisticsRecoveryTest {
                 calendar.navigateNext()
                 expectedBrowse = calendar.getBrowseState()
             }
-            instrumentation.waitForIdleSync()
+            onMain { }
             // 独立一次主线程投递模拟月标记晚于页面内容返回，不改动任何数据库数据。
-            scenario.onActivity { activity ->
+            onActivity(scenario) { activity ->
                 val flow = stateFlow<StatisticsUiState>(statsVm(activity), "_uiState")
                 flow.value = flow.value.copy(datesWithRecords = setOf(expectedBrowse.anchorDate.plusDays(2)))
             }
-            instrumentation.waitForIdleSync()
-            scenario.onActivity { activity ->
+            onMain { }
+            onActivity(scenario) { activity ->
                 val calendar = stats(activity).requireView().findViewById<BabyCalendarView>(R.id.calendarView)
                 assertEquals(expectedBrowse, calendar.getBrowseState())
                 assertEquals(selected, calendar.getSelectedDate())
                 assertEquals("只更新日期标记不能通知时间轴整表重绑", 0, changes)
             }
         } finally {
-            scenario.onActivity { timeline?.unregisterAdapterDataObserver(observer) }
+            onActivity(scenario) { timeline?.unregisterAdapterDataObserver(observer) }
         }
     }
 
     @Test
     fun savedStatisticsContextRestoresSelectedDateAndIndependentBrowsePeriod() {
-        instrumentation.runOnMainSync {
+        onMain {
             val app = instrumentation.targetContext.applicationContext as Application
             val store = ViewModelStore()
             try {
@@ -177,7 +188,7 @@ class StatisticsRecoveryTest {
         lateinit var fallbackBaby: BabyInfo
         try {
             await(scenario) { mainVm(it).babyDataLoaded.value }
-            scenario.onActivity { activity ->
+            onActivity(scenario) { activity ->
                 originalBaby = mainVm(activity).getCurrentBabyInfo()
                 fallbackBaby = originalBaby ?: BabyInfo(
                     babyId = Int.MAX_VALUE,
@@ -187,10 +198,21 @@ class StatisticsRecoveryTest {
             }
             block(scenario, fallbackBaby)
         } finally {
-            scenario.onActivity { activity ->
+            lateinit var closingActivity: MainActivity
+            onActivity(scenario) { activity ->
                 mainVm(activity).navigateTo(NavTarget.Dashboard)
                 stateFlow<BabyInfo?>(mainVm(activity), "_currentBaby").value = originalBaby
                 stateFlow<Boolean>(mainVm(activity), "_babyDataLoaded").value = true
+                closingActivity = activity
+                activity.finish()
+            }
+            // Scenario.close 内部仍使用平台 Idler；先有界结束窗口，停止故意保留的加载动画。
+            val closeDeadline = SystemClock.uptimeMillis() + 10_000L
+            while (onMain { closingActivity.lifecycle.currentState != Lifecycle.State.DESTROYED }) {
+                if (SystemClock.uptimeMillis() >= closeDeadline) {
+                    throw AssertionError("统计测试 Activity 未在限定时间内销毁")
+                }
+                SystemClock.sleep(50L)
             }
             scenario.close()
         }
@@ -205,12 +227,51 @@ class StatisticsRecoveryTest {
     private fun statsVm(activity: MainActivity) = ViewModelProvider(stats(activity))[StatisticsViewModel::class.java]
     private fun isStatisticsVisible(activity: MainActivity) = !stats(activity).isHidden && stats(activity).view?.isShown == true
 
+    /** 故意保留加载动画时不能等全局队列空闲；主线程直接使用 Scenario 的当前实例。 */
+    private fun onActivity(scenario: ActivityScenario<MainActivity>, action: (MainActivity) -> Unit) {
+        onMain { scenario.onActivity(action) }
+    }
+
+    /** 触发真实系统重建，并以新实例恢复至 RESUMED 作为完成条件，不依赖 Idler。 */
+    private fun recreate(scenario: ActivityScenario<MainActivity>) {
+        lateinit var original: MainActivity
+        onActivity(scenario) { activity ->
+            original = activity
+            activity.recreate()
+        }
+        await(scenario) { it !== original && it.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) }
+    }
+
+    /** 每次 UI 读取都有独立上限；超时移除待执行任务，避免失败后再修改页面。 */
+    private fun <T> onMain(action: () -> T): T {
+        if (Looper.myLooper() == Looper.getMainLooper()) return action()
+        val task = FutureTask(Callable { action() })
+        mainHandler.post(task)
+        return try {
+            task.get(2, TimeUnit.SECONDS)
+        } catch (error: ExecutionException) {
+            throw (error.cause ?: error)
+        } catch (error: TimeoutException) {
+            task.cancel(false)
+            throw AssertionError("统计测试主线程操作未在限定时间内完成", error)
+        } finally {
+            mainHandler.removeCallbacks(task)
+        }
+    }
+
     private fun await(scenario: ActivityScenario<MainActivity>, predicate: (MainActivity) -> Boolean) {
         val deadline = SystemClock.uptimeMillis() + 10_000L
         do {
-            instrumentation.waitForIdleSync()
             var ready = false
-            scenario.onActivity { ready = predicate(it) }
+            onMain {
+                // 重建窗口内 Scenario 暂无当前实例；等真实 Activity 恢复再读取页面状态。
+                if (ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                        .any { it is MainActivity }) {
+                    scenario.onActivity { activity ->
+                        ready = activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && predicate(activity)
+                    }
+                }
+            }
             if (ready) return
             SystemClock.sleep(50L)
         } while (SystemClock.uptimeMillis() < deadline)

@@ -8,6 +8,36 @@ import java.io.File
 class UiResourcePolicyTest {
 
     @Test
+    fun `launcher variants share the care mark without stale density bitmaps`() {
+        val root = repoRoot()
+        val res = File(root, "app/src/main/res")
+        val staleBitmaps = res.walkTopDown().filter {
+            it.isFile && it.parentFile?.name?.startsWith("mipmap") == true &&
+                it.nameWithoutExtension in setOf("ic_launcher", "ic_launcher_round") &&
+                it.extension.lowercase() in setOf("png", "webp", "jpg", "jpeg")
+        }.toList()
+        // 旧密度文件不能继续携带模板图形，平台选择哪种图标都应来自同一份照护标志。
+        assertTrue("Launcher仍保留旧密度位图：$staleBitmaps", staleBitmaps.isEmpty())
+        listOf("ic_launcher", "ic_launcher_round").forEach { name ->
+            val legacy = File(res, "mipmap-anydpi/$name.xml").readText()
+            assertTrue("旧平台须解析到公共照护图标：$name", legacy.contains("@drawable/ic_babycare_launcher_legacy"))
+            val adaptive = File(res, "mipmap-anydpi-v26/$name.xml").readText()
+            val foreground = Regex("""<foreground\s+android:drawable="([^"]+)"\s*/>""")
+                .find(adaptive)?.groupValues?.get(1)
+            val monochrome = Regex("""<monochrome\s+android:drawable="([^"]+)"\s*/>""")
+                .find(adaptive)?.groupValues?.get(1)
+            assertTrue("自适应图标必须使用统一前景：$name", foreground == "@drawable/ic_babycare_adaptive_foreground")
+            assertTrue("单色图标须保留相同透明轮廓：$name", monochrome == foreground)
+        }
+        val foreground = File(root, "common/src/main/res/drawable-v26/ic_babycare_adaptive_foreground.xml").readText()
+        assertTrue("自适应安全区包装须复用单一标志", foreground.contains("@drawable/ic_babycare_mark"))
+        listOf("ic_babycare_launcher_legacy", "ic_babycare_launcher_legacy_round").forEach { name ->
+            assertTrue("旧版图标须复用单一标志：$name",
+                File(root, "common/src/main/res/drawable/$name.xml").readText().contains("@drawable/ic_babycare_mark"))
+        }
+    }
+
+    @Test
     fun `growth percentile chart uses shared semantic colors and guide stroke`() {
         val chart = File(repoRoot(),
             "app/src/main/java/com/zero/babycare/statistics/widget/PercentileChartView.kt").readText()

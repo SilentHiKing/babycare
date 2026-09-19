@@ -31,6 +31,14 @@ interface SleepRecordDao {
     @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId AND sleepStart BETWEEN :startOfDay AND :endOfDay ORDER BY sleepStart DESC")
     suspend fun getSleepRecordsForDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<SleepRecord>
 
+    /** 原日记录保留纠错入口；跨日只纳入已结束且有效的交叠区间，午夜结束不算次日。 */
+    @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId AND sleepStart <= :endOfDay AND (sleepStart >= :startOfDay OR (sleepStart > 0 AND sleepEnd > :startOfDay)) ORDER BY sleepStart DESC, sleepId DESC")
+    suspend fun getSleepRecordsCoveringDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<SleepRecord>
+
+    /** 日历投影只取时间端点，不加载整月记录正文。 */
+    @Query("SELECT sleepStart AS startTime, sleepEnd AS endTime FROM Sleep_Records WHERE babyId = :babyId AND sleepStart <= :endTime AND (sleepStart >= :startTime OR (sleepStart > 0 AND sleepEnd > :startTime))")
+    suspend fun getSleepTimeSpans(babyId: Int, startTime: Long, endTime: Long): List<RecordTimeSpan>
+
     /**
      * 获取与当天有重叠的睡眠记录（用于跨天时长统计）
      */

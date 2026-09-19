@@ -31,6 +31,14 @@ interface FeedingRecordDao {
     @Query("SELECT * FROM Feeding_Records WHERE babyId = :babyId AND feedingStart BETWEEN :startOfDay AND :endOfDay ORDER BY feedingStart DESC")
     suspend fun getFeedingRecordsForDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<FeedingRecord>
 
+    /** 原日记录保留纠错入口；跨日只纳入已结束且有效的交叠区间，午夜结束不算次日。 */
+    @Query("SELECT * FROM Feeding_Records WHERE babyId = :babyId AND feedingStart <= :endOfDay AND (feedingStart >= :startOfDay OR (feedingStart > 0 AND feedingEnd > :startOfDay)) ORDER BY feedingStart DESC, feedingId DESC")
+    suspend fun getFeedingRecordsCoveringDay(babyId: Int, startOfDay: Long, endOfDay: Long): List<FeedingRecord>
+
+    /** 与时间轴相同的覆盖范围，区间投影可直接使用现有开始/结束复合索引。 */
+    @Query("SELECT feedingStart AS startTime, feedingEnd AS endTime FROM Feeding_Records WHERE babyId = :babyId AND feedingStart <= :endTime AND (feedingStart >= :startTime OR (feedingStart > 0 AND feedingEnd > :startTime))")
+    suspend fun getFeedingTimeSpans(babyId: Int, startTime: Long, endTime: Long): List<RecordTimeSpan>
+
     /**
      * 获取与当天有重叠的喂养记录（用于跨天时长统计）
      */

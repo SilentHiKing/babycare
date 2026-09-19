@@ -19,10 +19,13 @@ import com.zero.babydata.domain.BabyWriteException
 import com.zero.babydata.domain.BabyWriteFailure
 import java.util.UUID
 import java.time.LocalDate
+import java.time.Instant
 import java.time.YearMonth
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 /**
  * BabyCare 数据访问边界。
@@ -434,22 +437,45 @@ class BabyRepository(private val database: BabyDatabase) {
 
     /** 获取指定月份存在任意生活记录的日期集合。 */
     suspend fun getDatesWithRecords(babyId: Int, yearMonth: YearMonth): Set<LocalDate> {
+        val zone = ZoneId.systemDefault()
         val startOfMonth = yearMonth.atDay(1)
-            .atStartOfDay(ZoneId.systemDefault())
+            .atStartOfDay(zone)
             .toInstant()
             .toEpochMilli()
         val endOfMonth = yearMonth.atEndOfMonth()
             .plusDays(1)
-            .atStartOfDay(ZoneId.systemDefault())
+            .atStartOfDay(zone)
             .toInstant()
             .toEpochMilli() - 1
 
-        val feedingDates = feedingRecordDao.getDatesWithFeedings(babyId, startOfMonth, endOfMonth)
-        val sleepDates = sleepRecordDao.getDatesWithSleeps(babyId, startOfMonth, endOfMonth)
+        val feedingSpans = feedingRecordDao.getFeedingTimeSpans(babyId, startOfMonth, endOfMonth)
+        val sleepSpans = sleepRecordDao.getSleepTimeSpans(babyId, startOfMonth, endOfMonth)
         val eventDates = eventRecordDao.getDatesWithEvents(babyId, startOfMonth, endOfMonth)
+        val context = currentCoroutineContext()
 
         return buildSet {
-            (feedingDates + sleepDates + eventDates).forEach { dateText ->
+            fun addSpan(span: RecordTimeSpan) {
+                context.ensureActive()
+                // 旧未完成或倒置记录只标记开始日，仍能进入编辑，不向后扩散成持续事件。
+                if (span.startTime in startOfMonth..endOfMonth) {
+                    add(Instant.ofEpochMilli(span.startTime).atZone(zone).toLocalDate())
+                }
+                if (span.startTime <= 0L || span.endTime <= span.startTime) return
+                val first = maxOf(span.startTime, startOfMonth)
+                val last = minOf(span.endTime - 1L, endOfMonth)
+                if (first > last) return
+                var date = Instant.ofEpochMilli(first).atZone(zone).toLocalDate()
+                val lastDate = Instant.ofEpochMilli(last).atZone(zone).toLocalDate()
+                // 按本地日期递进并截在本月内，夏令时日不是固定 24 小时。
+                while (date <= lastDate) {
+                    add(date)
+                    date = date.plusDays(1)
+                }
+            }
+            feedingSpans.forEach(::addSpan)
+            sleepSpans.forEach(::addSpan)
+            eventDates.forEach { dateText ->
+                context.ensureActive()
                 runCatching { LocalDate.parse(dateText) }.getOrNull()?.let(::add)
             }
         }
@@ -531,7 +557,7 @@ class BabyRepository(private val database: BabyDatabase) {
         data class Event(val record: EventRecord) : TimelineRecord(record.time)
     }
 
-    /** 获取当日时间轴记录，并按发生时间倒序返回。 */
+    /** 返回当天发生或持续至当天的原记录，保留编辑身份和原始起止时间。 */
     suspend fun getTimelineRecords(babyId: Int, date: LocalDate): List<TimelineRecord> {
         val startOfDay = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         val endOfDay = date.plusDays(1)
@@ -539,9 +565,9 @@ class BabyRepository(private val database: BabyDatabase) {
             .toInstant()
             .toEpochMilli() - 1
 
-        val feedings = feedingRecordDao.getFeedingRecordsForDay(babyId, startOfDay, endOfDay)
+        val feedings = feedingRecordDao.getFeedingRecordsCoveringDay(babyId, startOfDay, endOfDay)
             .map { TimelineRecord.Feeding(it) }
-        val sleeps = sleepRecordDao.getSleepRecordsForDay(babyId, startOfDay, endOfDay)
+        val sleeps = sleepRecordDao.getSleepRecordsCoveringDay(babyId, startOfDay, endOfDay)
             .map { TimelineRecord.Sleep(it) }
         val events = eventRecordDao.getEventRecordsForDay(babyId, startOfDay, endOfDay)
             .map { TimelineRecord.Event(it) }

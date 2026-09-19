@@ -5,7 +5,7 @@
     <string name="loading">読み込み中</string>
     <string name="number_zero">0</string>
     <string name="number_decimal_zero">0.00</string>
-    <string name="list_separator_dot"> · </string>
+    <string name="list_separator_dot">\u0020·\u0020</string>
     <string name="times_count_format">%1$d 回</string>
     <string name="baby_not_born_yet_playful">タイムマシンは開かず、私はまだ生まれていませんでした。</string>
     <string name="statistics_add_birthdate_hint">誕生日を追加して月齢を表示</string>

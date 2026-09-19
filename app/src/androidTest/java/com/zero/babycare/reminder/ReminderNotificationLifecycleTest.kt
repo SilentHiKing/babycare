@@ -5,12 +5,18 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.zero.babycare.home.BabyRecordChangeBus
 import com.zero.babycare.home.OngoingRecordManager
 import com.zero.babycare.settings.SettingsViewModel
+import com.zero.babydata.domain.BabyDataHelper
 import com.zero.babydata.entity.BabyInfo
+import com.zero.babydata.room.BabyDatabase
+import com.zero.babydata.room.BabyRepository
 import com.zero.common.mmkv.MMKVKeys
 import com.zero.common.mmkv.MMKVStore
 import kotlinx.coroutines.CompletableDeferred
@@ -18,6 +24,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -27,6 +34,7 @@ import org.junit.Before
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
 
 /** 仅在审查用 AVD 发布合成通知；候选完全注入，不向应用数据库写入宝宝或记录。 */
 @RunWith(AndroidJUnit4::class)
@@ -51,6 +59,9 @@ class ReminderNotificationLifecycleTest {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             instrumentation.uiAutomation.grantRuntimePermission(context.packageName, Manifest.permission.POST_NOTIFICATIONS)
         }
+        // 投递用独立合成数据；先停止上一项的真实规划，避免它按应用库合理清理这些通知。
+        WorkManager.getInstance(context).cancelAllWorkByTag(ReminderScheduler.TAG_REMINDER)
+            .result.get(5, TimeUnit.SECONDS)
         listOf(first, second).forEach { baby ->
             assertNull(OngoingRecordManager.getFeedingSession(baby.babyId))
             assertNull(OngoingRecordManager.getSleepSession(baby.babyId))
@@ -76,14 +87,15 @@ class ReminderNotificationLifecycleTest {
     }
 
     @Test
-    fun differentBabiesHaveDistinctNotificationsAndRecordChangeOnlyRemovesItsBaby() = runBlocking {
+    fun differentBabiesHaveDistinctNotificationsAndScopedClearOnlyRemovesItsBaby() = runBlocking {
         assertEquals(ReminderDeliveryResult.DELIVERED, deliver(first))
         assertEquals(ReminderDeliveryResult.DELIVERED, deliver(second))
         awaitNotifications(2)
         val posted = syntheticNotifications()
         assertNotEquals(posted[0].notification.contentIntent, posted[1].notification.contentIntent)
 
-        BabyRecordChangeBus.notifyChanged(first.babyId)
+        // 单宝宝撤回不影响另一宝宝；总线异步查询失效另有独立集成用例。
+        ReminderNotifier.clearForBaby(context, first.babyId)
         awaitNotifications(1)
         assertEquals("babycare_reminder:${second.babyId}", syntheticNotifications().single().tag)
     }
@@ -167,6 +179,87 @@ class ReminderNotificationLifecycleTest {
         awaitNotifications(1)
         assertEquals(candidate.expiresAt, MMKVStore.getLong(ReminderPolicy.lastReminderKey(ReminderType.FEEDING, first.babyId)))
         assertEquals(candidate.sourceRecordTime, MMKVStore.getLong(ReminderPolicy.notifiedSourceKey(ReminderType.FEEDING, first.babyId)))
+    }
+
+    @Test
+    fun committedBabyDeletionIsReconciledWhenStartupSchedulingResumes() = runBlocking {
+        // 合成对象只写独立库；实际恢复 Worker 读取应用库时也必须确认该身份不存在。
+        assertNull(BabyDataHelper.repository.getBabyInfo(first.babyId))
+        val workManager = WorkManager.getInstance(context)
+        workManager.cancelAllWorkByTag(ReminderScheduler.TAG_REMINDER).result.get(5, TimeUnit.SECONDS)
+        val database = Room.inMemoryDatabaseBuilder(context, BabyDatabase::class.java).build()
+        val repository = BabyRepository(database)
+        try {
+            repository.insertBabyInfo(first.copy())
+            val source = object : ReminderDataSource {
+                override suspend fun getBaby(babyId: Int) = repository.getBabyInfo(babyId)
+                override suspend fun getCandidate(baby: BabyInfo, type: ReminderType) = candidate
+            }
+            assertEquals(ReminderDeliveryResult.DELIVERED, ReminderNotifier.notifyIfDue(
+                context, first.babyId, ReminderType.FEEDING, candidate.dueTime, source
+            ))
+            awaitNotifications(1)
+
+            // 明确重建 Room 已提交、clearForBaby 尚未执行的退出窗口，不随机中断 SQLite。
+            repository.deleteBabyInfo(first)
+            assertNull(repository.getBabyInfo(first.babyId))
+            val previousPlanIds = workManager.getWorkInfosForUniqueWork("babycare_reminder_plan")
+                .get(5, TimeUnit.SECONDS).map { it.id }.toSet()
+            ReminderScheduler.ensureScheduledAndAwait(context)
+            // 等真实启动规划完成，不能仅以 WorkManager 接受入队作为恢复成功。
+            withTimeout(15_000L) {
+                while (workManager.getWorkInfosForUniqueWork("babycare_reminder_plan")
+                        .get(5, TimeUnit.SECONDS).none { it.id !in previousPlanIds && it.state == WorkInfo.State.SUCCEEDED }) {
+                    delay(50L)
+                }
+            }
+            withTimeoutOrNull(2_000L) {
+                while (syntheticNotifications().isNotEmpty()) delay(20L)
+            }
+            assertEquals("删除提交后的启动恢复应撤下已不存在宝宝的通知", 0, syntheticNotifications().size)
+        } finally {
+            database.close()
+        }
+    }
+
+    @Test
+    fun missingBabyCleanupPreservesExistingBabyAndRejectsLateCandidate() = runBlocking {
+        val database = Room.inMemoryDatabaseBuilder(context, BabyDatabase::class.java).build()
+        val repository = BabyRepository(database)
+        val release = CompletableDeferred<Unit>()
+        try {
+            repository.insertBabyInfo(first.copy())
+            repository.insertBabyInfo(second.copy())
+            val source = object : ReminderDataSource {
+                override suspend fun getBaby(babyId: Int) = repository.getBabyInfo(babyId)
+                override suspend fun getCandidate(baby: BabyInfo, type: ReminderType) = candidate
+            }
+            suspend fun deliverFromRoom(baby: BabyInfo) = ReminderNotifier.notifyIfDue(
+                context, baby.babyId, ReminderType.FEEDING, candidate.dueTime, source
+            )
+            assertEquals(ReminderDeliveryResult.DELIVERED, deliverFromRoom(first))
+            assertEquals(ReminderDeliveryResult.DELIVERED, deliverFromRoom(second))
+            awaitNotifications(2)
+            MMKVStore.remove(ReminderPolicy.notifiedSourceKey(ReminderType.FEEDING, first.babyId))
+            val entered = CompletableDeferred<Unit>()
+            val late = async { deliver(first, beforeCandidate = { entered.complete(Unit); release.await() }) }
+            entered.await()
+            repository.deleteBabyInfo(first)
+            ReminderNotifier.reconcileMissingBabies(context, source)
+            awaitNotifications(1)
+            assertEquals("babycare_reminder:${second.babyId}", syntheticNotifications().single().tag)
+            release.complete(Unit)
+            assertEquals(ReminderDeliveryResult.SUPPRESSED, late.await())
+            assertEquals(0L, MMKVStore.getLong(ReminderPolicy.notifiedSourceKey(ReminderType.FEEDING, first.babyId)))
+
+            // 到期任务无需等下次启动规划，也应在 Room 返回缺失时撤掉原来的通知。
+            repository.deleteBabyInfo(second)
+            assertEquals(ReminderDeliveryResult.SUPPRESSED, deliverFromRoom(second))
+            awaitNotifications(0)
+        } finally {
+            release.complete(Unit)
+            database.close()
+        }
     }
 
     private suspend fun assertNoDeliveryRecorded() {
