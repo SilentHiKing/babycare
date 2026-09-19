@@ -123,7 +123,7 @@ class BackupExportRecoveryTest {
     private suspend fun createSession(values: Map<String, Any?> = emptyMap()): Session =
         withContext(Dispatchers.Main) {
             val handle = SavedStateHandle(values)
-            val vm = BackupViewModel(app, handle)
+            val vm = BackupViewModel(app, handle, ApplicationBackupImportOperations(app), FileBackupReportStore(testDirectory))
             Session(vm, handle, ViewModelStore().apply { put("test", vm) }).also { sessions += it }
         }
 

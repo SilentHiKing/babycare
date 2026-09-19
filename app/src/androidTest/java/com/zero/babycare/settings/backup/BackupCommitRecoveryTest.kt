@@ -23,6 +23,7 @@ import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.UUID
+import java.io.File
 
 /** 独立库、合成高位 ID 与受控调度；绝不向应用真实数据库导入样本。 */
 @RunWith(AndroidJUnit4::class)
@@ -49,6 +50,7 @@ class BackupCommitRecoveryTest {
     @Test
     fun cancellationAfterCommitAndReopenRestoreReportBeforeOldUriWithoutReimport() = runBlocking {
         val name = "backup-app-commit-${UUID.randomUUID()}.db"
+        val reports = File(app.cacheDir, "backup-commit-reports-${UUID.randomUUID()}")
         var db = Room.databaseBuilder(app, BabyDatabase::class.java, name).build()
         val entered = CompletableDeferred<Unit>()
         val effects = object : BackupImportSideEffects {
@@ -75,7 +77,9 @@ class BackupCommitRecoveryTest {
             }
             val handle = SavedStateHandle(mapOf(BackupViewModel.PENDING_IMPORT_URI_KEY to "file:/old-synthetic-backup.json"))
             val vm = withContext(Dispatchers.Main) {
-                BackupViewModel(app, handle, operations).also { model -> store = ViewModelStore().apply { put("test", model) } }
+                BackupViewModel(app, handle, operations, FileBackupReportStore(reports)).also { model ->
+                    store = ViewModelStore().apply { put("test", model) }
+                }
             }
             val result = withTimeout(10_000) { vm.importState.filterIsInstance<UiState.Success<CommittedBackupImport>>().first().data!! }
             assertEquals(expectedId, result.commitId)
@@ -90,6 +94,7 @@ class BackupCommitRecoveryTest {
         } finally {
             withContext(Dispatchers.Main) { store?.clear() }
             db.close(); app.deleteDatabase(name)
+            reports.deleteRecursively()
         }
     }
 

@@ -10,7 +10,6 @@ import com.blankj.utilcode.util.AppUtils
 import com.blankj.utilcode.util.LogUtils
 import com.zero.babydata.backup.BackupImportError
 import com.zero.babydata.backup.BackupImportException
-import com.zero.babydata.backup.BackupImportReport
 import com.zero.babydata.backup.CommittedBackupImport
 import com.zero.babydata.backup.BabyBackupEnvelope
 import com.zero.babydata.backup.BabyBackupExporter
@@ -30,8 +29,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
-import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
 
 /**
  * 备份导出 ViewModel
@@ -39,14 +36,20 @@ import com.google.gson.JsonSyntaxException
 class BackupViewModel internal constructor(
     application: Application,
     private val savedStateHandle: SavedStateHandle,
-    private val importOperations: BackupImportOperations
+    private val importOperations: BackupImportOperations,
+    reportStore: BackupReportStore? = null
 ) : AndroidViewModel(application) {
 
     constructor(application: Application, savedStateHandle: SavedStateHandle) :
         this(application, savedStateHandle, ApplicationBackupImportOperations(application))
 
     private val exporter by lazy { BabyBackupExporter(application) }
-    private val gson = Gson()
+    private val reportStore by lazy {
+        reportStore ?: FileBackupReportStore(File(application.filesDir, "backup_reports"), ::reportDisplayName)
+    }
+    val reportPrompt: StateFlow<BackupReportPrompt?> = savedStateHandle.getStateFlow(REPORT_PROMPT_KEY, null)
+    private var reportListGeneration = 0L
+    private var reportLoadGeneration = 0L
 
     private val _exportState = MutableStateFlow<UiState<BackupExportRequest>>(UiState.None)
     val exportState: StateFlow<UiState<BackupExportRequest>> = _exportState.asStateFlow()
@@ -95,6 +98,13 @@ class BackupViewModel internal constructor(
     val documentExportState: StateFlow<BackupDocumentExportState> = _documentExportState.asStateFlow()
 
     init {
+        reportPrompt.value?.takeIf { it.action == BackupReportPrompt.Action.DETAIL }?.let(::readReportPrompt)
+        // 尚未打开选择器的导出在冷恢复后仍待用户发起；已打开的请求交 ActivityResult 恢复。
+        savedStateHandle.get<BackupExportRequest>(PENDING_EXPORT_KEY)?.takeIf {
+            savedStateHandle.get<Boolean>(EXPORT_PICKER_LAUNCHED_KEY) != true &&
+                savedStateHandle.get<String>(EXPORT_URI_KEY) == null &&
+                _documentExportState.value is BackupDocumentExportState.Idle
+        }?.let { if (it.isReport) _reportExportState.value = UiState.Success(it) else _exportState.value = UiState.Success(it) }
         // 若系统在写出期间回收进程，恢复后从私有正文重写目标；目标使用截断模式避免重复追加。
         savedStateHandle.get<String>(EXPORT_URI_KEY)?.takeIf {
             _documentExportState.value is BackupDocumentExportState.Idle
@@ -266,29 +276,8 @@ class BackupViewModel internal constructor(
      */
     fun resetImportState() {
         val commitId = activeImportCommitId
-        if (_importState.value !is UiState.Success || commitId == null) {
-            _importState.value = UiState.None
-            return
-        }
-        if (consumingImportResult) return
-        consumingImportResult = true
-        viewModelScope.launch {
-            try {
-                val next = withContext(Dispatchers.IO) {
-                    importOperations.consumeReport(commitId)
-                    importOperations.recoverReport()
-                }
-                activeImportCommitId = next?.commitId
-                _importState.value = next?.let { UiState.Success(it) } ?: UiState.None
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                // 消费失败保留成功结果，可在下次显示后重试；不能将已提交导入改成失败。
-                LogUtils.w("导入报告消费待重试：${error.javaClass.simpleName}")
-            } finally {
-                consumingImportResult = false
-            }
-        }
+        if (_importState.value is UiState.Success && commitId != null) consumeImportResult(commitId)
+        else _importState.value = UiState.None
     }
 
     /**
@@ -317,7 +306,8 @@ class BackupViewModel internal constructor(
 
     private fun isPreparingOrWritingExport(): Boolean =
         _exportState.value is UiState.Loading || _reportExportState.value is UiState.Loading ||
-            _documentExportState.value !is BackupDocumentExportState.Idle
+            _documentExportState.value !is BackupDocumentExportState.Idle ||
+            savedStateHandle.get<BackupExportRequest>(PENDING_EXPORT_KEY) != null
 
     private suspend fun stageExport(payload: BackupPayload, isReport: Boolean): BackupExportRequest {
         val previous = savedStateHandle.get<BackupExportRequest>(PENDING_EXPORT_KEY)
@@ -326,6 +316,7 @@ class BackupViewModel internal constructor(
         }
         // 文件完整落盘后才允许打开系统选择器；SavedState 中不存任何宝宝记录正文。
         savedStateHandle[PENDING_EXPORT_KEY] = request
+        savedStateHandle[EXPORT_PICKER_LAUNCHED_KEY] = false
         if (previous != null) withContext(Dispatchers.IO) { exportStore.discard(previous) }
         return request
     }
@@ -370,7 +361,40 @@ class BackupViewModel internal constructor(
     }
 
     fun consumeImportResult(commitId: String) {
-        if (activeImportCommitId == commitId) resetImportState()
+        val committed = (_importState.value as? UiState.Success)?.data ?: return
+        if (activeImportCommitId != commitId || committed.commitId != commitId || consumingImportResult) return
+        consumingImportResult = true
+        viewModelScope.launch {
+            var archived = false
+            _reportSaveState.value = UiState.Loading
+            try {
+                // 文件成功落盘才允许确认已读；提交 ID 使取消、重试和重复关闭都复用同一归档。
+                val item = reportStore.archive(committed)
+                archived = true
+                _reportSaveState.value = UiState.Success(item.fileName)
+                loadReportList()
+                val next = withContext(Dispatchers.IO) {
+                    importOperations.consumeReport(commitId)
+                    importOperations.recoverReport()
+                }
+                activeImportCommitId = next?.commitId
+                _importState.value = next?.let { UiState.Success(it) } ?: UiState.None
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                LogUtils.w("导入报告归档或确认待重试：${error.javaClass.simpleName}")
+                if (!archived) _reportSaveState.value = UiState.Error(error,
+                    getApplication<Application>().getString(com.zero.common.R.string.backup_import_report_save_failed))
+            } finally {
+                consumingImportResult = false
+            }
+        }
+    }
+
+    fun markExportPickerLaunched(request: BackupExportRequest) {
+        if (savedStateHandle.get<BackupExportRequest>(PENDING_EXPORT_KEY)?.token != request.token) return
+        savedStateHandle[EXPORT_PICKER_LAUNCHED_KEY] = true
+        if (request.isReport) resetReportExportState() else resetExportState()
     }
 
     fun onExportPickerUnavailable() {
@@ -387,6 +411,7 @@ class BackupViewModel internal constructor(
     fun consumeDocumentExportResult() {
         if (_documentExportState.value !is BackupDocumentExportState.Finished) return
         val request = savedStateHandle.remove<BackupExportRequest>(PENDING_EXPORT_KEY)
+        savedStateHandle.remove<Boolean>(EXPORT_PICKER_LAUNCHED_KEY)
         savedStateHandle.remove<BackupDocumentExportResult>(EXPORT_RESULT_KEY)
         val destination = savedStateHandle.remove<String>(EXPORT_URI_KEY)
         _documentExportState.value = BackupDocumentExportState.Idle
@@ -413,71 +438,21 @@ class BackupViewModel internal constructor(
     }
 
     /**
-     * 保存导入报告到文件
-     */
-    fun saveImportReport(report: BackupImportReport) {
-        viewModelScope.launch {
-            _reportSaveState.value = UiState.Loading
-            val result = withContext(Dispatchers.IO) {
-                try {
-                    val app = getApplication<Application>()
-                    val dir = File(app.filesDir, "backup_reports")
-                    if (!dir.exists()) {
-                        dir.mkdirs()
-                    }
-                    val fileName = buildReportFileName()
-                    val target = File(dir, fileName)
-                    val content = gson.toJson(report)
-                    target.writeText(content)
-                    target.absolutePath
-                } catch (_: Exception) {
-                    null
-                }
-            }
-            if (result == null) {
-                _reportSaveState.value = UiState.Error(
-                    IllegalStateException("save failed"),
-                    getApplication<Application>().getString(com.zero.common.R.string.backup_import_report_save_failed)
-                )
-            } else {
-                _reportSaveState.value = UiState.Success(result)
-            }
-        }
-    }
-
-    /**
      * 加载报告列表
      */
     fun loadReportList() {
+        val generation = ++reportListGeneration
         viewModelScope.launch {
             _reportListState.value = UiState.Loading
-            val result = withContext(Dispatchers.IO) {
-                try {
-                    val dir = getReportDir()
-                    if (!dir.exists()) {
-                        return@withContext emptyList()
-                    }
-                    dir.listFiles()
-                        ?.filter { it.isFile && it.name.endsWith(".json") }
-                        ?.sortedByDescending { it.lastModified() }
-                        ?.map { file ->
-                            BackupReportItem(
-                                fileName = file.name,
-                                filePath = file.absolutePath,
-                                lastModified = file.lastModified()
-                            )
-                        } ?: emptyList()
-                } catch (_: Exception) {
-                    null
-                }
-            }
-            if (result == null) {
-                _reportListState.value = UiState.Error(
-                    IllegalStateException("list failed"),
+            try {
+                val result = reportStore.list()
+                if (generation == reportListGeneration) _reportListState.value = UiState.Success(result)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                if (generation == reportListGeneration) _reportListState.value = UiState.Error(error,
                     getApplication<Application>().getString(com.zero.common.R.string.backup_import_report_list_failed)
                 )
-            } else {
-                _reportListState.value = UiState.Success(result)
             }
         }
     }
@@ -486,31 +461,59 @@ class BackupViewModel internal constructor(
      * 读取报告详情
      */
     fun loadReport(item: BackupReportItem) {
+        val prompt = promptFor(BackupReportPrompt.Action.DETAIL, item)
+        savedStateHandle[REPORT_PROMPT_KEY] = prompt
+        readReportPrompt(prompt)
+    }
+
+    private fun readReportPrompt(prompt: BackupReportPrompt) {
+        val item = prompt.item() ?: return
+        val generation = ++reportLoadGeneration
         viewModelScope.launch {
             _reportLoadState.value = UiState.Loading
-            val result = withContext(Dispatchers.IO) {
-                try {
-                    val file = File(item.filePath)
-                    if (!file.exists()) return@withContext null
-                    val content = file.readText()
-                    val report = gson.fromJson(content, BackupImportReport::class.java)
-                    item.copy(report = report)
-                } catch (_: JsonSyntaxException) {
-                    null
-                } catch (_: Exception) {
-                    null
+            try {
+                val result = reportStore.read(item)
+                if (generation == reportLoadGeneration && reportPrompt.value?.id == prompt.id) {
+                    _reportLoadState.value = UiState.Success(result)
                 }
-            }
-            if (result == null) {
-                _reportLoadState.value = UiState.Error(
-                    IllegalStateException("load failed"),
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                if (generation == reportLoadGeneration && reportPrompt.value?.id == prompt.id) _reportLoadState.value = UiState.Error(error,
                     getApplication<Application>().getString(com.zero.common.R.string.backup_import_report_load_failed)
                 )
-            } else {
-                _reportLoadState.value = UiState.Success(result)
             }
         }
     }
+
+    fun requestReportDeletion(item: BackupReportItem) {
+        savedStateHandle[REPORT_PROMPT_KEY] = promptFor(BackupReportPrompt.Action.DELETE, item)
+    }
+
+    fun requestReportClear() {
+        savedStateHandle[REPORT_PROMPT_KEY] = BackupReportPrompt(action = BackupReportPrompt.Action.CLEAR)
+    }
+
+    fun dismissReportPrompt(id: String) {
+        if (reportPrompt.value?.id != id) return
+        savedStateHandle[REPORT_PROMPT_KEY] = null
+        reportLoadGeneration++
+        _reportLoadState.value = UiState.None
+    }
+
+    fun confirmReportPrompt(id: String) {
+        val prompt = reportPrompt.value?.takeIf { it.id == id } ?: return
+        dismissReportPrompt(id)
+        when (prompt.action) {
+            BackupReportPrompt.Action.DETAIL -> prompt.item()?.let(::prepareReportExport)
+            BackupReportPrompt.Action.DELETE -> prompt.item()?.let(::deleteReport)
+            BackupReportPrompt.Action.CLEAR -> clearReports()
+        }
+    }
+
+    private fun promptFor(action: BackupReportPrompt.Action, item: BackupReportItem) = BackupReportPrompt(
+        action = action, fileName = item.fileName, filePath = item.filePath, lastModified = item.lastModified
+    )
 
     /**
      * 准备导出报告
@@ -520,14 +523,7 @@ class BackupViewModel internal constructor(
         viewModelScope.launch {
             _reportExportState.value = UiState.Loading
             try {
-                val payload = withContext(Dispatchers.IO) {
-                    val file = File(item.filePath)
-                    val content = file.readText()
-                    BackupPayload(
-                        fileName = item.fileName,
-                        json = content
-                    )
-                }
+                val payload = reportStore.export(item)
                 _reportExportState.value = UiState.Success(stageExport(payload, isReport = true))
             } catch (error: CancellationException) {
                 throw error
@@ -565,22 +561,20 @@ class BackupViewModel internal constructor(
      * 删除指定报告
      */
     fun deleteReport(item: BackupReportItem) {
+        reportListGeneration++
         viewModelScope.launch {
             _reportDeleteState.value = UiState.Loading
-            val success = withContext(Dispatchers.IO) {
-                try {
-                    File(item.filePath).delete()
-                } catch (_: Exception) {
-                    false
-                }
-            }
-            if (success) {
+            try {
+                reportStore.delete(item)
                 _reportDeleteState.value = UiState.Success(item.fileName)
-            } else {
-                _reportDeleteState.value = UiState.Error(
-                    IllegalStateException("delete failed"),
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _reportDeleteState.value = UiState.Error(error,
                     getApplication<Application>().getString(com.zero.common.R.string.backup_report_delete_failed)
                 )
+            } finally {
+                loadReportList()
             }
         }
     }
@@ -589,29 +583,19 @@ class BackupViewModel internal constructor(
      * 清空所有报告
      */
     fun clearReports() {
+        reportListGeneration++
         viewModelScope.launch {
             _reportClearState.value = UiState.Loading
-            val result = withContext(Dispatchers.IO) {
-                try {
-                    val dir = getReportDir()
-                    if (!dir.exists()) return@withContext 0
-                    val files = dir.listFiles()?.filter { it.isFile } ?: emptyList()
-                    var deleted = 0
-                    files.forEach { file ->
-                        if (file.delete()) deleted++
-                    }
-                    deleted
-                } catch (_: Exception) {
-                    null
-                }
-            }
-            if (result == null) {
-                _reportClearState.value = UiState.Error(
-                    IllegalStateException("clear failed"),
+            try {
+                _reportClearState.value = UiState.Success(reportStore.clear())
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                _reportClearState.value = UiState.Error(error,
                     getApplication<Application>().getString(com.zero.common.R.string.backup_report_clear_failed)
                 )
-            } else {
-                _reportClearState.value = UiState.Success(result)
+            } finally {
+                loadReportList()
             }
         }
     }
@@ -641,17 +625,15 @@ class BackupViewModel internal constructor(
     /**
      * 生成导入报告文件名
      */
-    private fun buildReportFileName(): String {
+    private fun reportDisplayName(file: File): String {
+        val id = runCatching { UUID.fromString(file.nameWithoutExtension).toString() }.getOrNull()
+            ?: return file.name
         val formatter = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-        val datePart = formatter.format(Date())
+        val datePart = formatter.format(Date(file.lastModified()))
         return getApplication<Application>().getString(
             com.zero.common.R.string.backup_import_report_file_name_format,
-            datePart
+            "${datePart}_${id.take(8)}"
         )
-    }
-
-    private fun getReportDir(): File {
-        return File(getApplication<Application>().filesDir, "backup_reports")
     }
 
     /**
@@ -680,5 +662,7 @@ class BackupViewModel internal constructor(
         const val EXPORT_RESULT_KEY = "backup_export_result"
         const val EXPORT_URI_KEY = "backup_export_destination"
         const val PENDING_IMPORT_URI_KEY = "pending_backup_import_uri"
+        const val REPORT_PROMPT_KEY = "backup_report_prompt"
+        const val EXPORT_PICKER_LAUNCHED_KEY = "backup_export_picker_launched"
     }
 }

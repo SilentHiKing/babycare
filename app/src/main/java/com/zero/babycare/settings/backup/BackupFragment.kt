@@ -22,6 +22,7 @@ import com.zero.components.base.util.DialogHelper
 import com.zero.components.base.vm.UiState
 import com.zero.babydata.backup.BackupImportStrategy
 import com.zero.babydata.backup.CommittedBackupImport
+import kotlinx.coroutines.flow.combine
 
 /**
  * 数据备份页面
@@ -40,6 +41,9 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     private var importReportDialog: BasePopupView? = null
     private var displayedImportCommitId: String? = null
     private var importReportEpoch = 0L
+    private var reportActionDialog: BasePopupView? = null
+    private var displayedReportActionId: String? = null
+    private var reportActionEpoch = 0L
 
     private val exportRow get() = binding.rowBackupExport
     private val importRow get() = binding.rowBackupImport
@@ -133,193 +137,121 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
         reportClearRow.tvSummary.text = getString(com.zero.common.R.string.backup_report_clear_summary)
         reportClearRow.tvSummary.visibility = View.VISIBLE
         reportClearRow.tvValue.text = ""
-        reportClearRow.root.setOnClickListener { showClearReportsConfirm() }
+        reportClearRow.root.setOnClickListener { vm.requestReportClear() }
     }
 
     /**
      * 观察导出状态
      */
     private fun observeState() {
-        launchInLifecycle {
-            vm.exportState.collect { state ->
-                when (state) {
-                    is UiState.None -> Unit
-                    is UiState.Loading -> showLoading(getString(com.zero.common.R.string.backup_exporting))
-                    is UiState.Success -> {
-                        hideLoading()
-                        vm.resetExportState()
-                        startCreateDocument(state.data)
-                    }
-                    is UiState.Error -> {
-                        hideLoading()
-                        ToastUtils.showShort(com.zero.common.R.string.backup_export_failed)
-                        vm.resetExportState()
-                    }
-                }
-            }
+        viewLifecycleOwner.launchInLifecycle(minActiveState = Lifecycle.State.RESUMED) {
+            combine(vm.exportState, vm.reportExportState, vm.documentExportState) { _, _, _ -> Unit }
+                .collect { renderPendingExports() }
         }
-
-        launchInLifecycle {
-            vm.documentExportState.collect { state ->
-                when (state) {
-                    BackupDocumentExportState.Idle -> Unit
-                    BackupDocumentExportState.Writing ->
-                        showLoading(getString(com.zero.common.R.string.backup_exporting))
-                    is BackupDocumentExportState.Finished -> {
-                        hideLoading()
-                        showDocumentExportResult(state.result)
-                        vm.consumeDocumentExportResult()
-                    }
-                }
-            }
-        }
-
         viewLifecycleOwner.launchInLifecycle(minActiveState = Lifecycle.State.RESUMED) {
             vm.importPromptState.collect { renderImportPrompt() }
         }
-
         viewLifecycleOwner.launchInLifecycle(minActiveState = Lifecycle.State.RESUMED) {
             vm.importState.collect { renderImportResult() }
         }
-
-        launchInLifecycle {
-            vm.dedupMinutes.collect { minutes ->
-                dedupRow.tvValue.text = formatDedupMinutes(minutes)
-            }
+        viewLifecycleOwner.launchInLifecycle(minActiveState = Lifecycle.State.RESUMED) {
+            combine(vm.reportPrompt, vm.reportLoadState) { _, _ -> Unit }.collect { renderReportAction() }
         }
-
-        launchInLifecycle {
-            vm.reportSaveState.collect { state ->
-                when (state) {
-                    is UiState.None -> Unit
-                    is UiState.Loading -> Unit
-                    is UiState.Success -> {
-                        ToastUtils.showShort(
-                            getString(
-                                com.zero.common.R.string.backup_import_report_saved,
-                                state.data
-                            )
-                        )
-                        vm.resetReportSaveState()
-                        vm.loadReportList()
-                    }
-                    is UiState.Error -> {
-                        ToastUtils.showShort(state.message)
-                        vm.resetReportSaveState()
-                    }
-                }
-            }
+        viewLifecycleOwner.launchInLifecycle(minActiveState = Lifecycle.State.RESUMED) {
+            combine(vm.reportSaveState, vm.reportDeleteState, vm.reportClearState) { _, _, _ -> Unit }
+                .collect { renderReportFeedback() }
         }
-
+        launchInLifecycle {
+            vm.dedupMinutes.collect { minutes -> dedupRow.tvValue.text = formatDedupMinutes(minutes) }
+        }
         launchInLifecycle {
             vm.reportListState.collect { state ->
-                when (state) {
-                    is UiState.None -> Unit
-                    is UiState.Loading -> Unit
-                    is UiState.Success -> {
-                        updateReportList(state.data ?: emptyList())
-                        vm.resetReportListState()
-                    }
-                    is UiState.Error -> {
-                        ToastUtils.showShort(state.message)
-                        vm.resetReportListState()
-                    }
-                }
-            }
-        }
-
-        launchInLifecycle {
-            vm.reportLoadState.collect { state ->
-                when (state) {
-                    is UiState.None -> Unit
-                    is UiState.Loading -> Unit
-                    is UiState.Success -> {
-                        vm.resetReportLoadState()
-                        showReportDetail(state.data)
-                    }
-                    is UiState.Error -> {
-                        ToastUtils.showShort(state.message)
-                        vm.resetReportLoadState()
-                    }
-                }
-            }
-        }
-
-        launchInLifecycle {
-            vm.reportExportState.collect { state ->
-                when (state) {
-                    is UiState.None -> Unit
-                    is UiState.Loading -> showLoading(getString(com.zero.common.R.string.backup_exporting))
-                    is UiState.Success -> {
-                        hideLoading()
-                        vm.resetReportExportState()
-                        startCreateDocument(state.data)
-                    }
-                    is UiState.Error -> {
-                        hideLoading()
-                        ToastUtils.showShort(state.message)
-                        vm.resetReportExportState()
-                    }
-                }
-            }
-        }
-
-        launchInLifecycle {
-            vm.reportDeleteState.collect { state ->
-                when (state) {
-                    is UiState.None -> Unit
-                    is UiState.Loading -> Unit
-                    is UiState.Success -> {
-                        ToastUtils.showShort(
-                            getString(
-                                com.zero.common.R.string.backup_report_deleted_format,
-                                state.data
-                            )
-                        )
-                        vm.resetReportDeleteState()
-                        vm.loadReportList()
-                    }
-                    is UiState.Error -> {
-                        ToastUtils.showShort(state.message)
-                        vm.resetReportDeleteState()
-                    }
-                }
-            }
-        }
-
-        launchInLifecycle {
-            vm.reportClearState.collect { state ->
-                when (state) {
-                    is UiState.None -> Unit
-                    is UiState.Loading -> Unit
-                    is UiState.Success -> {
-                        ToastUtils.showShort(
-                            getString(
-                                com.zero.common.R.string.backup_report_cleared_format,
-                                state.data ?: 0
-                            )
-                        )
-                        vm.resetReportClearState()
-                        vm.loadReportList()
-                    }
-                    is UiState.Error -> {
-                        ToastUtils.showShort(state.message)
-                        vm.resetReportClearState()
-                    }
-                }
+                if (state is UiState.Success) updateReportList(state.data.orEmpty())
+                if (state is UiState.Error) renderReportFeedback()
             }
         }
     }
 
-    /**
-     * 发起文件创建流程
-     */
+    /** 文件准备可以后台完成；系统选择器和结果反馈只由当前可见页面执行。 */
+    private fun renderPendingExports() {
+        if (!canShowImportUi()) return
+        when (val state = vm.exportState.value) {
+            UiState.None -> Unit
+            UiState.Loading -> showLoading(getString(com.zero.common.R.string.backup_exporting))
+            is UiState.Success -> {
+                hideLoading()
+                startCreateDocument(state.data)
+            }
+            is UiState.Error -> {
+                hideLoading()
+                ToastUtils.showShort(com.zero.common.R.string.backup_export_failed)
+                vm.resetExportState()
+            }
+        }
+        when (val state = vm.reportExportState.value) {
+            UiState.None -> Unit
+            UiState.Loading -> showLoading(getString(com.zero.common.R.string.backup_exporting))
+            is UiState.Success -> {
+                hideLoading()
+                startCreateDocument(state.data)
+            }
+            is UiState.Error -> {
+                hideLoading()
+                ToastUtils.showShort(state.message)
+                vm.resetReportExportState()
+            }
+        }
+        when (val state = vm.documentExportState.value) {
+            BackupDocumentExportState.Idle -> Unit
+            BackupDocumentExportState.Writing -> showLoading(getString(com.zero.common.R.string.backup_exporting))
+            is BackupDocumentExportState.Finished -> {
+                hideLoading()
+                showDocumentExportResult(state.result)
+                vm.consumeDocumentExportResult()
+            }
+        }
+    }
+
+    private fun renderReportFeedback() {
+        if (!canShowImportUi()) return
+        when (val state = vm.reportSaveState.value) {
+            is UiState.Success -> {
+                ToastUtils.showShort(getString(com.zero.common.R.string.backup_import_report_saved, state.data))
+                vm.resetReportSaveState()
+            }
+            is UiState.Error -> { ToastUtils.showShort(state.message); vm.resetReportSaveState() }
+            else -> Unit
+        }
+        when (val state = vm.reportDeleteState.value) {
+            is UiState.Success -> {
+                ToastUtils.showShort(getString(com.zero.common.R.string.backup_report_deleted_format, state.data))
+                vm.resetReportDeleteState()
+            }
+            is UiState.Error -> { ToastUtils.showShort(state.message); vm.resetReportDeleteState() }
+            else -> Unit
+        }
+        when (val state = vm.reportClearState.value) {
+            is UiState.Success -> {
+                ToastUtils.showShort(getString(com.zero.common.R.string.backup_report_cleared_format, state.data ?: 0))
+                vm.resetReportClearState()
+            }
+            is UiState.Error -> { ToastUtils.showShort(state.message); vm.resetReportClearState() }
+            else -> Unit
+        }
+        (vm.reportListState.value as? UiState.Error)?.let {
+            ToastUtils.showShort(it.message)
+            vm.resetReportListState()
+        }
+    }
+
+    /** 发起选择前先登记状态，配置重建不能重复打开同一个系统选择器。 */
     private fun startCreateDocument(request: BackupExportRequest?) {
         if (request == null) {
             vm.onExportPickerUnavailable()
             return
         }
         try {
+            vm.markExportPickerLaunched(request)
             createDocumentLauncher.launch(request.fileName)
         } catch (_: Exception) {
             vm.onExportPickerUnavailable()
@@ -521,7 +453,6 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
                     if (importReportEpoch != epoch || displayedImportCommitId != committed.commitId || !canShowImportUi()) return
                     displayedImportCommitId = null
                     importReportDialog = null
-                    vm.saveImportReport(report)
                     vm.consumeImportResult(committed.commitId)
                 }
             }
@@ -533,30 +464,59 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     }
 
     private fun handleReportLongClick(item: BackupReportItem) {
-        val content = getString(
-            com.zero.common.R.string.backup_report_delete_confirm_format,
-            item.fileName
-        )
-        DialogHelper.showConfirmDialog(
-            context = requireContext(),
-            title = getString(com.zero.common.R.string.backup_report_delete_title),
-            content = content,
-            confirmText = getString(com.zero.common.R.string.confirm),
-            cancelText = getString(com.zero.common.R.string.cancel),
-            onConfirm = { vm.deleteReport(item) }
-        )
+        vm.requestReportDeletion(item)
     }
 
-    private fun showClearReportsConfirm() {
-        DialogHelper.showConfirmDialog(
-            context = requireContext(),
-            title = getString(com.zero.common.R.string.backup_report_clear_title),
-            content = getString(com.zero.common.R.string.backup_report_clear_confirm),
-            confirmText = getString(com.zero.common.R.string.confirm),
-            cancelText = getString(com.zero.common.R.string.cancel),
-            onConfirm = { vm.clearReports() }
-        )
+    /** 历史报告窗口由 VM 描述；生命周期关闭只撤下窗口，不确认删除、不丢失详情。 */
+    private fun renderReportAction() {
+        if (!canShowImportUi()) return
+        val prompt = vm.reportPrompt.value
+        if (prompt == null) { dismissReportActionDialog(); return }
+        if (displayedReportActionId == prompt.id) return
+        val item = when (prompt.action) {
+            BackupReportPrompt.Action.DETAIL -> when (val state = vm.reportLoadState.value) {
+                is UiState.Success -> state.data?.takeIf { it.filePath == prompt.filePath } ?: return
+                is UiState.Error -> {
+                    ToastUtils.showShort(state.message)
+                    vm.dismissReportPrompt(prompt.id)
+                    return
+                }
+                else -> return
+            }
+            else -> prompt.item()
+        }
+        dismissReportActionDialog()
+        displayedReportActionId = prompt.id
+        val epoch = reportActionEpoch
+        val confirm = {
+            if (acceptsReportAction(prompt.id, epoch)) vm.confirmReportPrompt(prompt.id)
+        }
+        val cancel = {
+            if (acceptsReportAction(prompt.id, epoch)) vm.dismissReportPrompt(prompt.id)
+        }
+        reportActionDialog = when (prompt.action) {
+            BackupReportPrompt.Action.DETAIL -> showReportDetail(requireNotNull(item), confirm, cancel)
+            BackupReportPrompt.Action.DELETE -> DialogHelper.showConfirmDialog(
+                requireContext(), getString(com.zero.common.R.string.backup_report_delete_title),
+                getString(com.zero.common.R.string.backup_report_delete_confirm_format, requireNotNull(item).fileName),
+                onConfirm = confirm, onCancel = cancel
+            )
+            BackupReportPrompt.Action.CLEAR -> DialogHelper.showConfirmDialog(
+                requireContext(), getString(com.zero.common.R.string.backup_report_clear_title),
+                getString(com.zero.common.R.string.backup_report_clear_confirm),
+                onConfirm = confirm, onCancel = cancel
+            )
+        }.also { popup ->
+            popup.popupInfo.xPopupCallback = object : SimpleCallback() {
+                override fun onDismiss(popupView: BasePopupView?) {
+                    if (acceptsReportAction(prompt.id, epoch)) vm.dismissReportPrompt(prompt.id)
+                }
+            }
+        }
     }
+
+    private fun acceptsReportAction(id: String, epoch: Long): Boolean =
+        reportActionEpoch == epoch && displayedReportActionId == id && canShowImportUi()
 
     private fun updateReportList(list: List<BackupReportItem>) {
         reportAdapter.items = list
@@ -565,12 +525,8 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
         binding.tvReportEmpty.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
 
-    private fun showReportDetail(item: BackupReportItem?) {
-        if (item?.report == null) {
-            ToastUtils.showShort(com.zero.common.R.string.backup_import_report_load_failed)
-            return
-        }
-        val report = item.report
+    private fun showReportDetail(item: BackupReportItem, confirm: () -> Unit, cancel: () -> Unit): BasePopupView {
+        val report = requireNotNull(item.report)
         val modeLabel = when (report.strategy) {
             com.zero.babydata.backup.BackupImportStrategy.OVERWRITE ->
                 getString(com.zero.common.R.string.backup_import_mode_overwrite)
@@ -592,14 +548,14 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             report.childDailyInserted,
             report.childDailyUpdated
         )
-        DialogHelper.showConfirmDialog(
+        return DialogHelper.showConfirmDialog(
             context = requireContext(),
             title = getString(com.zero.common.R.string.backup_import_report_detail_title),
             content = content,
             confirmText = getString(com.zero.common.R.string.backup_import_report_export),
             cancelText = getString(com.zero.common.R.string.cancel),
-            onConfirm = { vm.prepareReportExport(item) },
-            onCancel = {}
+            onConfirm = confirm,
+            onCancel = cancel
         )
     }
 
@@ -647,6 +603,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     }
 
     override fun onDestroyView() {
+        dismissReportActionDialog()
         dismissImportDialog()
         dismissImportReportDialog()
         binding.rvBackupReports.adapter = null
@@ -654,6 +611,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     }
 
     override fun onPause() {
+        dismissReportActionDialog()
         // Activity 重建、系统选择器和离开前台都只撤下窗口，不取消用户正在确认的导入。
         dismissImportDialog()
         dismissImportReportDialog()
@@ -664,12 +622,16 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (hidden) {
+            dismissReportActionDialog()
             dismissImportDialog()
             dismissImportReportDialog()
             hideLoading()
         } else {
             renderImportPrompt()
             renderImportResult()
+            renderReportAction()
+            renderReportFeedback()
+            renderPendingExports()
         }
     }
 
@@ -686,6 +648,14 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
         displayedImportCommitId = null
         val popup = importReportDialog
         importReportDialog = null
+        popup?.dismiss()
+    }
+
+    private fun dismissReportActionDialog() {
+        reportActionEpoch++
+        displayedReportActionId = null
+        val popup = reportActionDialog
+        reportActionDialog = null
         popup?.dismiss()
     }
 

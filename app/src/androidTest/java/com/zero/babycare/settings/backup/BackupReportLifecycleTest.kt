@@ -2,12 +2,17 @@ package com.zero.babycare.settings.backup
 
 import android.app.Activity
 import android.app.Application
+import android.app.Instrumentation
+import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -31,6 +36,7 @@ import com.zero.babydata.backup.BackupImportStrategy
 import com.zero.babydata.backup.BabyBackupEnvelope
 import com.zero.babydata.backup.CommittedBackupImport
 import com.zero.components.base.vm.UiState
+import com.google.gson.Gson
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
@@ -52,6 +58,105 @@ import java.util.concurrent.atomic.AtomicReference
 class BackupReportLifecycleTest {
     private val app = ApplicationProvider.getApplicationContext<Application>()
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
+    private var pickerMonitor: Instrumentation.ActivityMonitor? = null
+
+    @Test
+    fun delayedHistoryAndExportWaitForVisiblePageAndDetailSurvivesRecreation() {
+        val directory = File(app.cacheDir, "backup-report-history-${UUID.randomUUID()}")
+        check(directory.mkdirs())
+        val isolatedApp = ReportApplication(app, directory)
+        val operations = ReportOperations(hasReport = false)
+        val reportDirectory = File(isolatedApp.filesDir, "backup_reports").apply { check(mkdirs()) }
+        val source = File(reportDirectory, "legacy-test-report.json").apply {
+            writeText(Gson().toJson(operations.commit.report))
+        }
+        val disk = FileBackupReportStore(reportDirectory)
+        val readEntered = CountDownLatch(1)
+        val allowRead = CompletableDeferred<Unit>()
+        val exportEntered = CountDownLatch(1)
+        val allowExport = CompletableDeferred<Unit>()
+        val delayed = object : BackupReportStore by disk {
+            override suspend fun read(item: BackupReportItem): BackupReportItem {
+                readEntered.countDown()
+                allowRead.await()
+                return disk.read(item)
+            }
+            override suspend fun export(item: BackupReportItem): BackupPayload {
+                exportEntered.countDown()
+                allowExport.await()
+                return disk.export(item)
+            }
+        }
+        val injectedVm = AtomicReference<BackupViewModel>()
+        val callbacks = ReportInjection(isolatedApp, operations, injectedVm, delayed)
+        // 截获系统选择器并返回取消，验证启动次数而不创建外部文件。
+        val pickerFilter = IntentFilter(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            addDataType("application/json")
+        }
+        val pickerIntent = ActivityResultContracts.CreateDocument("application/json")
+            .createIntent(isolatedApp, "synthetic-report.json")
+        // 只有 action 的 filter 会漏掉 MIME/type 和 OPENABLE，意外打开真实 DocumentsUI。
+        assertTrue("测试监视器必须匹配实际报告选择器 Intent", pickerFilter.match(
+            pickerIntent.action, pickerIntent.type, pickerIntent.scheme, pickerIntent.data,
+            pickerIntent.categories, "BackupReportLifecycleTest"
+        ) >= 0)
+        val monitor = instrumentation.addMonitor(pickerFilter,
+            Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null), true)
+        pickerMonitor = monitor
+        app.registerActivityLifecycleCallbacks(callbacks)
+        var scenario: ActivityScenario<MainActivity>? = null
+        try {
+            val current = ActivityScenario.launch(MainActivity::class.java)
+            scenario = current
+            awaitActivity(current) { injectedVm.get() != null && ViewModelProvider(it)[MainViewModel::class.java].babyDataLoaded.value }
+            navigate(current, NavTarget.Backup())
+            awaitActivity(current) { (backupVm(it).reportListState.value as? UiState.Success)?.data?.size == 1 }
+            onView(withText(source.name)).perform(click())
+            assertTrue(readEntered.await(10, TimeUnit.SECONDS))
+            navigate(current, NavTarget.Settings())
+            allowRead.complete(Unit)
+            awaitActivity(current) { backupVm(it).reportLoadState.value is UiState.Success }
+            current.onActivity {
+                val model = backupVm(it)
+                val loaded = (model.reportLoadState.value as UiState.Success).data!!
+                assertEquals("加载结果必须保留原报告定位标识", model.reportPrompt.value?.filePath, loaded.filePath)
+            }
+            onView(withText(com.zero.common.R.string.backup_import_report_detail_title)).check(doesNotExist())
+            navigate(current, NavTarget.Backup())
+            awaitReportVisibility(true, com.zero.common.R.string.backup_import_report_detail_title)
+            var detailId: String? = null
+            current.onActivity { detailId = backupVm(it).reportPrompt.value?.id }
+            current.recreate()
+            awaitActivity(current) { backupVm(it).reportPrompt.value?.id == detailId }
+            awaitReportVisibility(true, com.zero.common.R.string.backup_import_report_detail_title)
+            onView(withId(com.zero.components.R.id.tv_confirm)).perform(click())
+            assertTrue(exportEntered.await(10, TimeUnit.SECONDS))
+            navigate(current, NavTarget.Settings())
+            allowExport.complete(Unit)
+            awaitActivity(current) { backupVm(it).reportExportState.value is UiState.Success }
+            assertEquals("隐藏页面不能弹系统选择器", 0, monitor.hits)
+            navigate(current, NavTarget.Backup())
+            awaitActivity(current) { monitor.hits == 1 }
+            current.recreate()
+            awaitActivity(current) { ViewModelProvider(it)[MainViewModel::class.java].babyDataLoaded.value }
+            assertEquals("已发起的选择器不能因重建再次打开", 1, monitor.hits)
+            assertTrue(source.exists())
+        } finally {
+            try { scenario?.close() } finally {
+                app.unregisterActivityLifecycleCallbacks(callbacks)
+                instrumentation.removeMonitor(monitor)
+                pickerMonitor = null
+                allowRead.complete(Unit)
+                allowExport.complete(Unit)
+                var jobs = emptyList<Job>()
+                instrumentation.runOnMainSync { jobs = callbacks.clearStores() }
+                runBlocking { withTimeout(10_000) { jobs.forEach { it.join() } } }
+                check(directory.canonicalFile.parentFile == app.cacheDir.canonicalFile)
+                directory.deleteRecursively()
+            }
+        }
+    }
 
     @Test
     fun reportSurvivesRecreationAndHiddenPageThenClosesAfterUserConsumption() {
@@ -135,29 +240,47 @@ class BackupReportLifecycleTest {
 
     private fun navigate(scenario: ActivityScenario<MainActivity>, target: NavTarget) {
         scenario.onActivity { ViewModelProvider(it)[MainViewModel::class.java].navigateTo(target) }
-        awaitActivity(scenario) { activity -> activity.supportFragmentManager.fragments.any {
-            target.fragmentClass.isInstance(it) && !it.isHidden && it.view?.isShown == true
-        } }
+        awaitActivity(scenario) { activity ->
+            ViewModelProvider(activity)[MainViewModel::class.java].navTarget.value.fragmentClass == target.fragmentClass &&
+                activity.supportFragmentManager.fragments.any {
+                    target.fragmentClass.isInstance(it) && !it.isHidden && it.isResumed && it.view?.isShown == true &&
+                        it.viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+                }
+        }
     }
 
     private fun awaitActivity(scenario: ActivityScenario<MainActivity>, predicate: (MainActivity) -> Boolean) {
         val deadline = SystemClock.uptimeMillis() + 10_000
+        var lastState = "尚未收到 Activity"
         do {
             instrumentation.waitForIdleSync()
             var ready = false
-            scenario.onActivity { ready = predicate(it) }
+            scenario.onActivity { activity ->
+                ready = predicate(activity)
+                if (!ready) {
+                    // 只记录合成测试的导航/生命周期，不包含宝宝资料、报告正文或文件路径。
+                    val target = ViewModelProvider(activity)[MainViewModel::class.java].navTarget.value.fragmentClass.simpleName
+                    val fragments = activity.supportFragmentManager.fragments.filter {
+                        it is BackupFragment || it is com.zero.babycare.settings.SettingsFragment
+                    }.joinToString { fragment ->
+                        val viewState = if (fragment.view == null) "无视图" else fragment.viewLifecycleOwner.lifecycle.currentState.name
+                        "${fragment.javaClass.simpleName}(hidden=${fragment.isHidden},resumed=${fragment.isResumed},shown=${fragment.view?.isShown},view=$viewState)"
+                    }
+                    lastState = "target=$target,activity=${activity.lifecycle.currentState},picker=${pickerMonitor?.hits},$fragments"
+                }
+            }
             if (ready) return
             SystemClock.sleep(50)
         } while (SystemClock.uptimeMillis() < deadline)
-        throw AssertionError("备份报告页面未恢复预期状态")
+        throw AssertionError("备份报告页面未恢复预期状态：$lastState")
     }
 
     /** XPopup 有退出动画，等待窗口实际消失，避免只看 Fragment 字段造成假通过。 */
-    private fun awaitReportVisibility(visible: Boolean) {
+    private fun awaitReportVisibility(visible: Boolean, titleRes: Int = com.zero.common.R.string.backup_import_report_title) {
         val deadline = SystemClock.uptimeMillis() + 10_000
         do {
             try {
-                onView(withText(com.zero.common.R.string.backup_import_report_title)).check(
+                onView(withText(titleRes)).check(
                     if (visible) matches(isDisplayed()) else doesNotExist()
                 )
                 return
@@ -174,7 +297,8 @@ class BackupReportLifecycleTest {
     private class ReportInjection(
         private val application: Application,
         private val operations: BackupImportOperations,
-        private val injectedVm: AtomicReference<BackupViewModel>
+        private val injectedVm: AtomicReference<BackupViewModel>,
+        private val reportStore: BackupReportStore? = null
     ) : Application.ActivityLifecycleCallbacks {
         private val stores = mutableSetOf<androidx.lifecycle.ViewModelStore>()
         private val models = mutableSetOf<BackupViewModel>()
@@ -190,7 +314,7 @@ class BackupReportLifecycleTest {
                             @Suppress("UNCHECKED_CAST")
                             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                                 check(modelClass == BackupViewModel::class.java)
-                                return BackupViewModel(application, SavedStateHandle(), operations) as T
+                                return BackupViewModel(application, SavedStateHandle(), operations, reportStore) as T
                             }
                         })[BackupViewModel::class.java]
                         models += model
@@ -222,7 +346,7 @@ class BackupReportLifecycleTest {
         override fun getNoBackupFilesDir(): File = privateFiles
     }
 
-    private class ReportOperations : BackupImportOperations {
+    private class ReportOperations(private val hasReport: Boolean = true) : BackupImportOperations {
         val commit = CommittedBackupImport(UUID.randomUUID().toString(), BackupImportReport(
             BackupImportStrategy.MERGE, 1, 0, 0, 2, 0, 3, 0, 4, 0, 0, 0
         ), emptyList())
@@ -234,7 +358,7 @@ class BackupReportLifecycleTest {
         val allowConsume = CompletableDeferred<Unit>()
 
         override suspend fun recoverReport(): CommittedBackupImport? =
-            if (consumedCommitId.get() == null) commit else null
+            if (hasReport && consumedCommitId.get() == null) commit else null
 
         override suspend fun consumeReport(commitId: String) {
             check(commitId == commit.commitId)
