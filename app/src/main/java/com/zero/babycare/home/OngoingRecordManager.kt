@@ -8,6 +8,12 @@ import com.zero.babycare.reminder.ReminderScheduler
 import com.zero.common.util.TimerClock
 import com.zero.common.util.TimerClockSnapshot
 import java.util.UUID
+import com.zero.babydata.entity.FeedingRecord
+import com.zero.babydata.entity.SleepRecord
+import com.zero.babydata.domain.RecordWriteException
+import com.zero.babydata.domain.RecordWriteFailure
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * 进行中记录的持久化单一事实源。
@@ -19,6 +25,66 @@ object OngoingRecordManager {
 
     private const val KEY_SESSION_PREFIX = "ongoing_session_"
     private const val KEY_TRACKED_BABY_IDS = "ongoing_session_baby_ids"
+    private val mutableCommittingSessions = MutableStateFlow<Set<String>>(emptySet())
+    val committingSessions = mutableCommittingSessions.asStateFlow()
+
+    /** 运行锁不持久化，进程退出后由回执恢复；持久 pending 只阻止未经核验的继续计时。 */
+    @Synchronized
+    internal fun tryAcquireCommit(sessionId: String): Boolean {
+        if (sessionId in mutableCommittingSessions.value) return false
+        mutableCommittingSessions.value = mutableCommittingSessions.value + sessionId
+        return true
+    }
+
+    @Synchronized
+    internal fun releaseCommit(sessionId: String) {
+        mutableCommittingSessions.value = mutableCommittingSessions.value - sessionId
+    }
+
+    private fun isFrozen(session: OngoingSession): Boolean =
+        session.pendingSave || session.sessionId in mutableCommittingSessions.value
+
+    internal fun getSession(babyId: Int, type: RecordType): OngoingSession? = readSession(babyId, type)
+
+    /** 请求身份由原会话确定，丢失页面草稿或提交标记也不能生成第二个插入请求。 */
+    internal fun requestId(sessionId: String): String = UUID.nameUUIDFromBytes(
+        "babycare-session-save-v1:$sessionId".toByteArray(Charsets.UTF_8)
+    ).toString()
+
+    /** IO 上同步保存完整提交快照后才允许 Room 写入；锁保护覆盖导入不能被旧快照复活。 */
+    @Synchronized
+    internal fun prepareCommit(
+        expected: OngoingSession,
+        feeding: FeedingRecord? = null,
+        sleep: SleepRecord? = null
+    ): OngoingSession {
+        val current = readSession(expected.babyId, expected.type)
+            ?: throw RecordWriteException(RecordWriteFailure.CONTENT_CONFLICT)
+        if (expected.sessionId.isNullOrBlank() || current.sessionId != expected.sessionId || current.startAt != expected.startAt) {
+            throw RecordWriteException(RecordWriteFailure.CONTENT_CONFLICT)
+        }
+        val frozen = current.copy(
+            status = SessionStatus.PAUSED,
+            endAt = feeding?.feedingEnd ?: sleep?.sleepEnd ?: current.endAt,
+            activeDurationMs = feeding?.feedingDuration ?: sleep?.sleepDuration ?: current.activeDurationMs,
+            resumedAt = 0L,
+            pendingSave = true,
+            pendingFeeding = feeding?.copy(),
+            pendingSleep = sleep?.copy()
+        )
+        MMKVStore.putDurable(sessionKey(current.babyId, current.type), frozen, encrypt = true)
+        return frozen
+    }
+
+    /** 成功只移除原身份；尚未提交则释放持久冻结，保留原记录供页面恢复。 */
+    @Synchronized
+    internal fun resolveCommit(expected: OngoingSession, committed: Boolean) {
+        val current = readSession(expected.babyId, expected.type) ?: return
+        if (current.sessionId != expected.sessionId || current != expected) return
+        if (committed) removeSession(current.babyId, current.type)
+        // 解锁和 View 接收恢复结果之间仍可能退出；保留详情种子，后续计时以会话字段为准。
+        else if (current.pendingSave) saveSession(current.copy(pendingSave = false))
+    }
 
     private fun sessionKey(babyId: Int, type: RecordType): String {
         return "$KEY_SESSION_PREFIX${type.name.lowercase()}_$babyId"
@@ -81,9 +147,13 @@ object OngoingRecordManager {
     }
 
     fun startSleep(babyId: Int, startTime: Long = System.currentTimeMillis(), automaticStart: Boolean = false) {
-        if (babyId <= 0 || startTime <= 0L) return
-        saveSession(OngoingSession.running(babyId, RecordType.SLEEP, startTime,
-            automaticStart = automaticStart, now = TimerClock.snapshot()))
+        synchronized(this) {
+            if (babyId <= 0 || startTime <= 0L) return
+            if (getSleepSession(babyId)?.let(::isFrozen) == true) return
+            saveSession(OngoingSession.running(babyId, RecordType.SLEEP, startTime,
+                automaticStart = automaticStart, now = TimerClock.snapshot()))
+        }
+        // 通知发布也会读取会话；离开会话锁再失效通知，避免与发布锁形成锁反转。
         ReminderNotifier.clearForBaby(Utils.getApp(), babyId, ReminderType.SLEEP)
     }
 
@@ -97,8 +167,8 @@ object OngoingRecordManager {
 
     fun endSleep(babyId: Int): Long? = removeSession(babyId, RecordType.SLEEP)?.startAt
 
-    fun cancelSleep(babyId: Int) {
-        cancelSession(babyId, RecordType.SLEEP)
+    fun cancelSleep(babyId: Int, expectedSessionId: String? = null) {
+        cancelSession(babyId, RecordType.SLEEP, expectedSessionId)
     }
 
     fun getOngoingSleepStart(babyId: Int): Long? = getSleepSession(babyId)?.startAt
@@ -117,17 +187,20 @@ object OngoingRecordManager {
         startTime: Long = System.currentTimeMillis(),
         automaticStart: Boolean = false
     ) {
-        if (babyId <= 0 || startTime <= 0L) return
-        saveSession(
-            OngoingSession.running(
-                babyId = babyId,
-                type = RecordType.FEEDING,
-                startAt = startTime,
-                feedingType = feedingType,
-                automaticStart = automaticStart,
-                now = TimerClock.snapshot()
+        synchronized(this) {
+            if (babyId <= 0 || startTime <= 0L) return
+            if (getFeedingSession(babyId)?.let(::isFrozen) == true) return
+            saveSession(
+                OngoingSession.running(
+                    babyId = babyId,
+                    type = RecordType.FEEDING,
+                    startAt = startTime,
+                    feedingType = feedingType,
+                    automaticStart = automaticStart,
+                    now = TimerClock.snapshot()
+                )
             )
-        )
+        }
         ReminderNotifier.clearForBaby(Utils.getApp(), babyId, ReminderType.FEEDING)
     }
 
@@ -141,17 +214,25 @@ object OngoingRecordManager {
 
     fun endFeeding(babyId: Int): Long? = removeSession(babyId, RecordType.FEEDING)?.startAt
 
-    fun cancelFeeding(babyId: Int) {
-        cancelSession(babyId, RecordType.FEEDING)
+    fun cancelFeeding(babyId: Int, expectedSessionId: String? = null) {
+        cancelSession(babyId, RecordType.FEEDING, expectedSessionId)
     }
 
     /** 用户放弃会话后重新评估之前被抑制的提醒；保存/覆盖清理仍由各自事务善后调度。 */
     internal fun cancelSession(
         babyId: Int,
         type: RecordType,
+        expectedSessionId: String? = null,
         reschedule: () -> Unit = { ReminderScheduler.ensureScheduled(Utils.getApp()) }
     ) {
-        if (removeSession(babyId, type) != null) reschedule()
+        val removed = synchronized(this) {
+            val session = readSession(babyId, type) ?: return
+            if (expectedSessionId != null && session.sessionId != expectedSessionId) return
+            if (session.sessionId in mutableCommittingSessions.value) return
+            // 失败后的持久快照可由用户明确放弃；仍在提交时不能删除其身份。
+            removeSession(babyId, type)
+        }
+        if (removed != null) reschedule()
     }
 
     fun getOngoingFeedingStart(babyId: Int): Long? = getFeedingSession(babyId)?.startAt
@@ -167,6 +248,7 @@ object OngoingRecordManager {
     @Synchronized
     fun updateFeedingType(babyId: Int, feedingType: Int, expectedSessionId: String? = null) {
         val session = getFeedingSession(babyId) ?: return
+        if (isFrozen(session)) return
         if (expectedSessionId != null && session.sessionId != expectedSessionId) return
         saveSession(session.copy(feedingType = feedingType))
     }
@@ -206,6 +288,7 @@ object OngoingRecordManager {
     private fun updateStart(babyId: Int, type: RecordType, startTime: Long, expectedSessionId: String?) {
         if (startTime <= 0L) return
         val session = readSession(babyId, type) ?: return
+        if (isFrozen(session)) return
         if (expectedSessionId != null && session.sessionId != expectedSessionId) return
         if (session.startAt == startTime) {
             // 确认原值也是手工选择；仅改变日期来源，不能重算累计或重建会话身份。
@@ -241,6 +324,7 @@ object OngoingRecordManager {
     ) {
         if (expectedSessionId.isBlank() || startTime <= 0L) return
         val session = readSession(babyId, type) ?: return
+        if (isFrozen(session)) return
         if (session.sessionId != expectedSessionId || !session.automaticStart) return
         // 暂停后继续也允许同步其原身份；调用方只在运行/暂停转换时发出此事件。
         val shift = startTime - session.startAt
@@ -262,6 +346,7 @@ object OngoingRecordManager {
         expectedSessionId: String?
     ) {
         val session = readSession(babyId, type) ?: return
+        if (isFrozen(session)) return
         if (expectedSessionId != null && session.sessionId != expectedSessionId) return
         // 即使墙钟回拨让手工日期暂时无效，也必须保存暂停事实，不能恢复成仍在运行。
         saveSession(session.paused(endTime, activeDurationMs, TimerClock.snapshot()))
@@ -270,6 +355,7 @@ object OngoingRecordManager {
     @Synchronized
     private fun updateRunning(babyId: Int, type: RecordType, expectedSessionId: String?) {
         val session = readSession(babyId, type) ?: return
+        if (isFrozen(session)) return
         if (expectedSessionId != null && session.sessionId != expectedSessionId) return
         saveSession(session.resumed(TimerClock.snapshot()))
     }
@@ -287,7 +373,11 @@ object OngoingRecordManager {
         // 旧 JSON 未包含此字段时为 false；不能将历史手工日期当作自动计时起点挪动。
         val automaticStart: Boolean = false,
         // 仅用于本机会话归属；旧 JSON 在首次读取时补一次，日期校正不改变此身份。
-        val sessionId: String? = null
+        val sessionId: String? = null,
+        // 冻结记录与会话同键同步落盘；只用于本机提交恢复，不进入 Room schema 或备份协议。
+        val pendingSave: Boolean = false,
+        val pendingFeeding: FeedingRecord? = null,
+        val pendingSleep: SleepRecord? = null
     ) {
         fun elapsedDuration(): Long = elapsedDuration(TimerClock.snapshot())
 

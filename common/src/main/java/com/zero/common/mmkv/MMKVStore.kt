@@ -171,6 +171,16 @@ object MMKVStore {
         kv.removeValueForKey(key)
     }
 
+    /** 跨存储提交前同步保存对象；调用方必须在 IO 线程执行，写入失败不能继续数据库提交。 */
+    fun putDurable(key: String, value: Any, space: String? = null, encrypt: Boolean = false) {
+        val kv = space?.let { withSpace(it) } ?: default
+        val json = gson.toJson(value)
+        val encoded = if (encrypt) encryptAES(json) else json
+        check(kv.encode(key, encoded)) { "持久状态写入失败" }
+        // encode 仅更新映射内存；同步刷盘为后续 Room 事务建立明确的先后顺序。
+        kv.sync()
+    }
+
     /** 按前缀清理派生状态，避免宝宝删除或数据域替换后遗留动态 key。 */
     fun removeByPrefix(prefix: String, space: String? = null) {
         val kv = space?.let { withSpace(it) } ?: default

@@ -3,8 +3,12 @@ package com.zero.babycare.home
 import android.os.Bundle
 import android.text.Layout
 import android.view.View
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.view.AccessibilityDelegateCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
@@ -68,6 +72,17 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         binding.cardStatus.setOnClickListener {
             mainVm.navigateTo(NavTarget.Statistics(returnTarget = NavTarget.Dashboard))
         }
+        binding.cardRecords.setOnClickListener {
+            mainVm.navigateTo(NavTarget.Statistics(returnTarget = NavTarget.Dashboard))
+        }
+        // 入口合并朗读标题和说明，保留真实子文字，避免多语言拼接和重复焦点。
+        ViewCompat.setScreenReaderFocusable(binding.cardRecords, true)
+        ViewCompat.setAccessibilityDelegate(binding.cardRecords, object : AccessibilityDelegateCompat() {
+            override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                super.onInitializeAccessibilityNodeInfo(host, info)
+                info.className = Button::class.java.name
+            }
+        })
 
         // 卡片点击
         binding.cardFeeding.setOnClickListener {

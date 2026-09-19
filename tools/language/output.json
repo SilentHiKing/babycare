@@ -827,7 +827,7 @@
         "codeKey": "feeding_total_minutes_format",
         "language": {
           "zh-Hans": "共%1$d分钟",
-          "en": "Total %1$d minutes",
+          "en": "Total %1$d min",
           "zh-Hant": "共%1$d分鐘",
           "ja": "合計 %1$d 分",
           "ko": "총 %1$d분"
@@ -2997,7 +2997,7 @@
         "codeKey": "hour_min_format",
         "language": {
           "zh-Hans": "%1$d小时%2$d分",
-          "en": "%1$d hours %2$d minutes",
+          "en": "%1$d hr %2$d min",
           "zh-Hant": "%1$d小時%2$d分",
           "ja": "%1$d時間 %2$d分",
           "ko": "%1$d시간 %2$d분"
@@ -3007,7 +3007,7 @@
         "codeKey": "min_format",
         "language": {
           "zh-Hans": "%1$d分钟",
-          "en": "%1$d minutes",
+          "en": "%1$d min",
           "zh-Hant": "%1$d分鐘",
           "ja": "%1$d分",
           "ko": "%1$d분"
@@ -4487,7 +4487,7 @@
         "codeKey": "statistics_trend_feeding_value_format",
         "language": {
           "zh-Hans": "%1$d次 · %2$s",
-          "en": "%1$d times / %2$s",
+          "en": "Count: %1$d · %2$s",
           "zh-Hant": "%1$d次 · %2$s",
           "ja": "%1$d 回 · %2$s",
           "ko": "%1$d회 · %2$s"
@@ -4497,7 +4497,7 @@
         "codeKey": "statistics_trend_sleep_value_format",
         "language": {
           "zh-Hans": "%1$d次 · %2$s",
-          "en": "%1$d times / %2$s",
+          "en": "Count: %1$d · %2$s",
           "zh-Hant": "%1$d次 · %2$s",
           "ja": "%1$d 回 · %2$s",
           "ko": "%1$d회 · %2$s"
@@ -4507,7 +4507,7 @@
         "codeKey": "statistics_trend_count_format",
         "language": {
           "zh-Hans": "%1$d次",
-          "en": "%1$d times",
+          "en": "Count: %1$d",
           "zh-Hant": "%1$d次",
           "ja": "%1$d 回",
           "ko": "%1$d회"
@@ -4577,7 +4577,7 @@
         "codeKey": "statistics_structure_legend_format",
         "language": {
           "zh-Hans": "%1$d次 · %2$d%%",
-          "en": "%1$d times / %2$d%%",
+          "en": "Count: %1$d · %2$d%%",
           "zh-Hant": "%1$d次 · %2$d%%",
           "ja": "%1$d 回 · %2$d%%",
           "ko": "%1$d회 · %2$d%%"
@@ -4667,7 +4667,7 @@
         "codeKey": "statistics_health_total_format",
         "language": {
           "zh-Hans": "健康事件 %1$d次",
-          "en": "Health events %1$d times",
+          "en": "Health records: %1$d",
           "zh-Hant": "健康事件 %1$d次",
           "ja": "健康関連イベント %1$d 回",
           "ko": "건강 관련 이벤트 %1$d회"
@@ -4677,7 +4677,7 @@
         "codeKey": "statistics_health_temperature_format",
         "language": {
           "zh-Hans": "体温 %1$d次",
-          "en": "Temperature %1$d times",
+          "en": "Temperature checks: %1$d",
           "zh-Hant": "體溫 %1$d次",
           "ja": "体温%1$d回",
           "ko": "체온 %1$d회"
@@ -4687,7 +4687,7 @@
         "codeKey": "statistics_health_medicine_format",
         "language": {
           "zh-Hans": "用药 %1$d次",
-          "en": "Medicine %1$d times",
+          "en": "Medication entries: %1$d",
           "zh-Hant": "用藥 %1$d次",
           "ja": "%1$d回の投薬",
           "ko": "약물 치료 %1$d회"
@@ -4697,7 +4697,7 @@
         "codeKey": "statistics_health_doctor_format",
         "language": {
           "zh-Hans": "就医 %1$d次",
-          "en": "Doctor %1$d times",
+          "en": "Doctor visits: %1$d",
           "zh-Hant": "就醫 %1$d次",
           "ja": "医療処置%1$d回",
           "ko": "진료 %1$d회"
@@ -4707,7 +4707,7 @@
         "codeKey": "statistics_health_symptom_format",
         "language": {
           "zh-Hans": "症状 %1$d次",
-          "en": "Symptoms %1$d times",
+          "en": "Symptom entries: %1$d",
           "zh-Hant": "症狀 %1$d次",
           "ja": "症状が%1$d回発生",
           "ko": "증상 %1$d회"
@@ -4717,7 +4717,7 @@
         "codeKey": "statistics_health_vaccine_format",
         "language": {
           "zh-Hans": "疫苗 %1$d次",
-          "en": "Vaccines %1$d times",
+          "en": "Vaccinations: %1$d",
           "zh-Hant": "疫苗 %1$d次",
           "ja": "ワクチンを%1$d回",
           "ko": "백신 %1$d회"
@@ -4747,7 +4747,7 @@
         "codeKey": "statistics_day_record_count_format",
         "language": {
           "zh-Hans": "当天 %1$d 条记录",
-          "en": "%1$d records that day",
+          "en": "Records: %1$d",
           "zh-Hant": "當天 %1$d 條記錄",
           "ja": "当日 %1$d 件の記録",
           "ko": "해당 날짜 기록 %1$d개"
@@ -4847,7 +4847,7 @@
         "codeKey": "count_times",
         "language": {
           "zh-Hans": "%d次",
-          "en": "%d times",
+          "en": "Count: %d",
           "zh-Hant": "%d次",
           "ja": "%d 回",
           "ko": "%d회"
@@ -4887,7 +4887,7 @@
         "codeKey": "duration_min",
         "language": {
           "zh-Hans": "%d分钟",
-          "en": "%d minutes",
+          "en": "%d min",
           "zh-Hant": "%d分鐘",
           "ja": "%d分",
           "ko": "%d분"
@@ -5167,7 +5167,7 @@
         "codeKey": "relative_time_minutes_ago_format",
         "language": {
           "zh-Hans": "%1$d分钟前",
-          "en": "%1$d minutes ago",
+          "en": "%1$d min ago",
           "zh-Hant": "%1$d分鐘前",
           "ja": "%1$d分前",
           "ko": "%1$d분 전"
@@ -5177,7 +5177,7 @@
         "codeKey": "relative_time_minutes_later_format",
         "language": {
           "zh-Hans": "%1$d分钟后",
-          "en": "in %1$d minutes",
+          "en": "in %1$d min",
           "zh-Hant": "%1$d分鐘後",
           "ja": "%1$d分後",
           "ko": "%1$d분 후"
@@ -5187,7 +5187,7 @@
         "codeKey": "relative_time_hours_ago_format",
         "language": {
           "zh-Hans": "%1$d小时前",
-          "en": "%1$d hours ago",
+          "en": "%1$d hr ago",
           "zh-Hant": "%1$d小時前",
           "ja": "%1$d時間前",
           "ko": "%1$d시간 전"
@@ -5197,7 +5197,7 @@
         "codeKey": "relative_time_hours_later_format",
         "language": {
           "zh-Hans": "%1$d小时后",
-          "en": "in %1$d hours",
+          "en": "in %1$d hr",
           "zh-Hant": "%1$d小時後",
           "ja": "%1$d時間後",
           "ko": "%1$d시간 후"

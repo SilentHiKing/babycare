@@ -216,6 +216,76 @@ class RecordWriteReceiptTest {
         assertEquals(0, count(db, Kind.FEEDING, babyId))
     }
 
+    @Test
+    fun committedSessionLookupIsReadOnlyAndKeepsLaterEdits() = withDatabase { db ->
+        val babyId = insertBaby(db)
+        val repository = BabyRepository(db)
+        listOf(Kind.FEEDING, Kind.SLEEP).forEach { kind ->
+            val token = UUID.randomUUID().toString()
+            assertNull(findCommitted(repository, kind, babyId, token))
+            assertTrue(!repository.hasRecordWriteReceipt(token))
+            assertEquals(0, count(db, kind, babyId))
+            val id = write(repository, kind, babyId, token)
+            when (kind) {
+                Kind.FEEDING -> db.feedingRecordDao().getFeedingRecordById(id)!!.let {
+                    db.feedingRecordDao().updateFeedingRecord(it.copy(note = "提交后主动修改"))
+                }
+                Kind.SLEEP -> db.sleepRecordDao().getSleepRecordById(id)!!.let {
+                    db.sleepRecordDao().updateSleepRecord(it.copy(note = "提交后主动修改"))
+                }
+                else -> error("此测试只涵盖持久计时会话")
+            }
+            assertTrue(repository.hasRecordWriteReceipt(token.uppercase()))
+            assertEquals(id, findCommitted(repository, kind, babyId, token.uppercase()))
+            val storedNote = if (kind == Kind.FEEDING) db.feedingRecordDao().getFeedingRecordById(id)?.note
+                else db.sleepRecordDao().getSleepRecordById(id)?.note
+            assertEquals("提交后主动修改", storedNote)
+            assertEquals(1, count(db, kind, babyId))
+        }
+    }
+
+    @Test
+    fun committedSessionLookupRejectsChangedPayloadOwnershipKindAndDeletedRecord() = withDatabase { db ->
+        val babyId = insertBaby(db)
+        val anotherBabyId = insertBaby(db)
+        val repository = BabyRepository(db)
+        listOf(Kind.FEEDING, Kind.SLEEP).forEach { kind ->
+            val token = UUID.randomUUID().toString()
+            val id = write(repository, kind, babyId, token)
+            expectFailure(RecordWriteFailure.CONTENT_CONFLICT) {
+                findCommitted(repository, kind, babyId, token, note = "恢复时变更")
+            }
+            expectFailure(RecordWriteFailure.CONTENT_CONFLICT) {
+                findCommitted(repository, kind, anotherBabyId, token)
+            }
+            expectFailure(RecordWriteFailure.CONTENT_CONFLICT) {
+                findCommitted(repository, if (kind == Kind.FEEDING) Kind.SLEEP else Kind.FEEDING, babyId, token)
+            }
+            if (kind == Kind.FEEDING) repository.deleteFeedingRecordById(id)
+            else repository.deleteSleepRecordById(id)
+            assertTrue(repository.hasRecordWriteReceipt(token))
+            expectFailure(RecordWriteFailure.RECORD_DELETED) { findCommitted(repository, kind, babyId, token) }
+            assertEquals(0, count(db, kind, babyId))
+        }
+        listOf("", "not-a-uuid", "1-1-1-1-1").forEach { token ->
+            expectFailure(RecordWriteFailure.INVALID_REQUEST) { repository.hasRecordWriteReceipt(token) }
+            expectFailure(RecordWriteFailure.INVALID_REQUEST) { findCommitted(repository, Kind.SLEEP, babyId, token) }
+        }
+    }
+
+    private suspend fun findCommitted(repository: BabyRepository, kind: Kind, babyId: Int, token: String,
+                                      note: String = "合成记录"): Int? = when (kind) {
+        Kind.FEEDING -> repository.findCommittedFeedingRecord(FeedingRecord(
+            feedingId = 999, babyId = babyId, feedingStart = 1_000, feedingEnd = 2_000,
+            feedingDuration = 1_000, note = note, createdAt = 99_000
+        ), token)
+        Kind.SLEEP -> repository.findCommittedSleepRecord(SleepRecord(
+            sleepId = 999, babyId = babyId, sleepStart = 1_000, sleepEnd = 2_000,
+            sleepDuration = 1_000, note = note, createdAt = 99_000
+        ), token)
+        else -> error("事件没有持久计时会话")
+    }
+
     private suspend fun insertBaby(db: BabyDatabase): Int = db.babyInfoDao()
         .insertBabyInfo(BabyInfo(name = "合成测试", gender = "boy")).toInt()
 

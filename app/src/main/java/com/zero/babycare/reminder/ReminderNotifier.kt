@@ -30,7 +30,7 @@ object ReminderNotifier {
     const val EXTRA_BABY_ID = "reminder_baby_id"
     const val EXTRA_BABY_STABLE_ID = "reminder_baby_stable_id"
     const val EXTRA_REMINDER_TYPE = "reminder_type"
-    private const val CHANNEL_ID = "record_reminder"
+    internal const val CHANNEL_ID = "record_reminder"
     private const val TAG_PREFIX = "babycare_reminder:"
     private val deliveryGate = ReminderDeliveryGate()
 

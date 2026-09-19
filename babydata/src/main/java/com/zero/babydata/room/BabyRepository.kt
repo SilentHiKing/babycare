@@ -121,6 +121,13 @@ class BabyRepository(private val database: BabyDatabase) {
         )
     }
 
+    /** 会话清理恢复只确认已有提交，不把未提交会话变成新记录。 */
+    suspend fun findCommittedFeedingRecord(record: FeedingRecord, requestId: String): Int? {
+        val snapshot = record.copy()
+        return findCommittedRecord(requestId, snapshot.babyId, RecordWritePayload.FEEDING,
+            RecordWritePayload.feeding(snapshot)) { feedingRecordDao.getFeedingRecordById(it)?.babyId }
+    }
+
     suspend fun updateFeedingRecord(feedingRecord: FeedingRecord) {
         val snapshot = feedingRecord.copy()
         database.withTransaction {
@@ -193,6 +200,12 @@ class BabyRepository(private val database: BabyDatabase) {
             insert = { sleepRecordDao.insertSleepRecord(snapshot) },
             recordOwner = { sleepRecordDao.getSleepRecordById(it)?.babyId }
         )
+    }
+
+    suspend fun findCommittedSleepRecord(record: SleepRecord, requestId: String): Int? {
+        val snapshot = record.copy()
+        return findCommittedRecord(requestId, snapshot.babyId, RecordWritePayload.SLEEP,
+            RecordWritePayload.sleep(snapshot)) { sleepRecordDao.getSleepRecordById(it)?.babyId }
     }
 
     suspend fun updateSleepRecord(sleepRecord: SleepRecord) {
@@ -320,16 +333,7 @@ class BabyRepository(private val database: BabyDatabase) {
             }
             val receipt = recordWriteReceiptDao.getReceipt(normalizedRequestId)
             if (receipt != null) {
-                if (receipt.babyId != babyId || receipt.recordType != recordType) {
-                    throw RecordWriteException(RecordWriteFailure.CONTENT_CONFLICT)
-                }
-                val owner = recordOwner(receipt.recordId)
-                    ?: throw RecordWriteException(RecordWriteFailure.RECORD_DELETED)
-                if (owner != babyId || receipt.payloadHash != payloadHash) {
-                    throw RecordWriteException(RecordWriteFailure.CONTENT_CONFLICT)
-                }
-                // 原记录可能后来已被编辑；重放旧请求只能确认成功，不能覆盖更新后的内容。
-                return@withTransaction receipt.recordId
+                return@withTransaction validateCommittedRecord(receipt, babyId, recordType, payloadHash, recordOwner)
             }
             val recordId = insert().toInt()
             recordWriteReceiptDao.insertReceipt(RecordWriteReceipt(
@@ -341,6 +345,47 @@ class BabyRepository(private val database: BabyDatabase) {
             ))
             recordId
         }
+    }
+
+    /** 损坏会话缺少冻结正文时只查询请求是否已提交，不向界面暴露回执摘要或业务内容。 */
+    suspend fun hasRecordWriteReceipt(requestId: String): Boolean = database.withTransaction {
+        // 此查询尚无宝宝信息；使用既有 UUID 校验，正数仅满足该工具的独立参数前置条件。
+        val normalized = RecordWritePayload.requestId(requestId, babyId = 1)
+        recordWriteReceiptDao.getReceipt(normalized) != null
+    }
+
+    private suspend fun findCommittedRecord(
+        requestId: String,
+        babyId: Int,
+        recordType: Int,
+        payloadHash: String,
+        recordOwner: suspend (Int) -> Int?
+    ): Int? = database.withTransaction {
+        val normalized = RecordWritePayload.requestId(requestId, babyId)
+        val receipt = recordWriteReceiptDao.getReceipt(normalized) ?: return@withTransaction null
+        if (babyInfoDao.getBabyInfo(babyId) == null) {
+            throw RecordWriteException(RecordWriteFailure.BABY_NOT_FOUND)
+        }
+        validateCommittedRecord(receipt, babyId, recordType, payloadHash, recordOwner)
+    }
+
+    /** 查询与重复插入采用同一核验次序；确认原请求成功时保留后来主动编辑的内容。 */
+    private suspend fun validateCommittedRecord(
+        receipt: RecordWriteReceipt,
+        babyId: Int,
+        recordType: Int,
+        payloadHash: String,
+        recordOwner: suspend (Int) -> Int?
+    ): Int {
+        if (receipt.babyId != babyId || receipt.recordType != recordType) {
+            throw RecordWriteException(RecordWriteFailure.CONTENT_CONFLICT)
+        }
+        val owner = recordOwner(receipt.recordId)
+            ?: throw RecordWriteException(RecordWriteFailure.RECORD_DELETED)
+        if (owner != babyId || receipt.payloadHash != payloadHash) {
+            throw RecordWriteException(RecordWriteFailure.CONTENT_CONFLICT)
+        }
+        return receipt.recordId
     }
 
     suspend fun updateEventRecord(record: EventRecord) {

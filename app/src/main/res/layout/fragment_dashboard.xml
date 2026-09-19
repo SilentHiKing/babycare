@@ -484,6 +484,66 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <!-- 显式回看入口位于快速记录之后，保留高频记录区域的首屏位置。 -->
+            <LinearLayout
+                android:id="@+id/cardRecords"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/content_gap_large"
+                android:background="@drawable/bg_r16_surface_stroke_control_border"
+                android:clickable="true"
+                android:clipToOutline="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/min_touch_target"
+                android:orientation="horizontal"
+                android:outlineProvider="background"
+                android:padding="@dimen/card_padding_compact">
+
+                <ImageView
+                    android:layout_width="@dimen/icon_size_standard"
+                    android:layout_height="@dimen/icon_size_standard"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_statistics"
+                    app:tint="?attr/iconColorBrand" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/content_gap_large"
+                    android:layout_marginEnd="@dimen/content_gap_large"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvRecordsTitle"
+                        style="@style/TextAppearance.BabyCare.Body1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/daily_records"
+                        android:textColor="?attr/colorTextPrimary" />
+
+                    <TextView
+                        android:id="@+id/tvRecordsSummary"
+                        style="@style/TextAppearance.BabyCare.Label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/content_gap_small"
+                        android:text="@string/data_statistics"
+                        android:textColor="?attr/colorTextSecondary" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="@dimen/icon_size_standard"
+                    android:layout_height="@dimen/icon_size_standard"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_arrow_right"
+                    app:tint="?attr/iconColorSecondary" />
+
+            </LinearLayout>
+
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>

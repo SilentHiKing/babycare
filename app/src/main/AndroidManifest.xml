@@ -28,6 +28,18 @@
             </intent-filter>
         </activity>
 
+        <!-- 相对延迟无法自动跟随校时；通知重新打开也不一定会返回 Activity。 -->
+        <receiver
+            android:name=".reminder.ReminderSystemReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.app.action.APP_BLOCK_STATE_CHANGED" />
+                <action android:name="android.app.action.NOTIFICATION_CHANNEL_BLOCK_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

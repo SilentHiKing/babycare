@@ -14,6 +14,7 @@ import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.widget.TextViewCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.AccessibilityDelegateCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import com.zero.components.R
@@ -38,6 +39,15 @@ internal class BabyCareChoicePopup<T>(
 
     override fun getImplLayoutId(): Int = R.layout.popup_babycare_choice_sheet
 
+    override fun getMaxHeight(): Int {
+        // 按宿主实际窗口扣除系统安全区，横屏/分屏不能用整张选项列表撑高底部弹层。
+        val decor = activity?.window?.decorView
+        val windowHeight = decor?.height?.takeIf { it > 0 } ?: resources.displayMetrics.heightPixels
+        val insets = decor?.let(ViewCompat::getRootWindowInsets)
+            ?.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+        return (windowHeight - (insets?.top ?: 0) - (insets?.bottom ?: 0)).coerceAtLeast(1)
+    }
+
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         if (::contentTouchArea.isInitialized) {
             protectSheetDragForContentTouch(event, contentTouchArea)
@@ -47,8 +57,8 @@ internal class BabyCareChoicePopup<T>(
 
     override fun onCreate() {
         super.onCreate()
-        contentTouchArea = findViewById(R.id.option_container)
-        ViewCompat.setAccessibilityPaneTitle(contentTouchArea, title)
+        contentTouchArea = findViewById(R.id.choice_scroll)
+        ViewCompat.setAccessibilityPaneTitle(findViewById(R.id.option_container), title)
         findViewById<TextView>(R.id.tv_cancel).setOnClickListener {
             onCancel?.invoke()
             dismiss()
@@ -70,6 +80,10 @@ internal class BabyCareChoicePopup<T>(
 
     private fun createOptionRow(index: Int, item: DialogHelper.PickerOption<T>, isLast: Boolean): View {
         val isSelected = index == selectedIndex
+        val horizontalPadding = resources.getDimensionPixelSize(com.zero.common.R.dimen.page_horizontal_padding)
+        val gap = resources.getDimensionPixelSize(com.zero.common.R.dimen.content_gap_medium)
+        val iconSize = resources.getDimensionPixelSize(com.zero.common.R.dimen.icon_size_standard)
+        val touchHeight = resources.getDimensionPixelSize(com.zero.common.R.dimen.min_touch_target)
         val wrapper = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(
@@ -78,15 +92,15 @@ internal class BabyCareChoicePopup<T>(
             )
         }
         val row = FrameLayout(context).apply {
-            minimumHeight = dp(52)
-            setPadding(dp(16), 0, dp(16), 0)
+            minimumHeight = touchHeight + gap
+            setPadding(horizontalPadding, 0, horizontalPadding, 0)
             isClickable = true
             isFocusable = true
             this.isSelected = isSelected
             foreground = context.getThemeDrawable(android.R.attr.selectableItemBackground)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(56)
+                LinearLayout.LayoutParams.WRAP_CONTENT
             )
             setOnClickListener {
                 if (selectedIndex == index) return@setOnClickListener
@@ -111,7 +125,8 @@ internal class BabyCareChoicePopup<T>(
             gravity = Gravity.CENTER
             includeFontPadding = false
             TextViewCompat.setTextAppearance(this, com.zero.common.R.style.TextAppearance_BabyCare_Body1)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, CHOICE_ITEM_TEXT_SIZE_SP)
+            // 两侧对称保留勾选图标宽度，长选项换行增高且不会与尾部图标重叠。
+            setPaddingRelative(iconSize + gap, gap, iconSize + gap, gap)
             setTextColor(context.resolveThemeColor(com.zero.common.R.attr.colorTextPrimary))
             typeface = Typeface.create(
                 if (isSelected) "sans-serif-medium" else "sans-serif",
@@ -119,7 +134,8 @@ internal class BabyCareChoicePopup<T>(
             )
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.CENTER
             )
         })
 
@@ -131,8 +147,8 @@ internal class BabyCareChoicePopup<T>(
             contentDescription = null
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             layoutParams = FrameLayout.LayoutParams(
-                dp(24),
-                dp(24),
+                iconSize,
+                iconSize,
                 Gravity.END or Gravity.CENTER_VERTICAL
             )
         })
@@ -144,8 +160,8 @@ internal class BabyCareChoicePopup<T>(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     max(1, resources.getDimensionPixelSize(com.zero.common.R.dimen.surface_stroke_width))
                 ).apply {
-                    leftMargin = dp(16)
-                    rightMargin = dp(16)
+                    marginStart = horizontalPadding
+                    marginEnd = horizontalPadding
                 }
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             })
@@ -166,13 +182,6 @@ internal class BabyCareChoicePopup<T>(
         }
     }
 
-    private fun dp(value: Int): Int {
-        return (value * resources.displayMetrics.density).toInt()
-    }
-
-    private companion object {
-        const val CHOICE_ITEM_TEXT_SIZE_SP = 15f
-    }
 }
 
 internal fun Context.resolveThemeColor(attr: Int): Int {

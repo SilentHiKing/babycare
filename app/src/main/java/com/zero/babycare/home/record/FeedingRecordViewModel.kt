@@ -19,6 +19,7 @@ class FeedingRecordViewModel(private val injectedRepository: BabyRepository? = n
     // 延迟获取默认数据源，让草稿状态恢复独立于数据库初始化，并支持隔离的数据层验证。
     private val repository by lazy { injectedRepository ?: BabyDataHelper.repository }
     internal val mutation = RecordMutationController(viewModelScope)
+    internal val sessions = SessionCommitCoordinator(viewModelScope, { repository }, OngoingRecordManager.RecordType.FEEDING)
 
     private val _lastFeedingRecord = MutableLiveData<FeedingRecord?>()
     val lastFeedingRecord: LiveData<FeedingRecord?> = _lastFeedingRecord
@@ -31,20 +32,14 @@ class FeedingRecordViewModel(private val injectedRepository: BabyRepository? = n
         )
     }
 
-    internal fun save(feedingRecord: FeedingRecord, target: RecordMutationController.Target) {
-        val submittedSession = OngoingRecordManager.getFeedingSession(feedingRecord.babyId)
-            ?.takeIf { it.startAt == feedingRecord.feedingStart }
+    internal fun save(feedingRecord: FeedingRecord, target: RecordMutationController.Target, sessionId: String? = null) {
+        val frozenRecord = feedingRecord.copy()
         mutation.submit(target, RecordMutationController.Kind.SAVE, R.string.save_failed) {
-            if (target.recordId != null) repository.updateFeedingRecord(feedingRecord)
-            else {
-                OngoingSessionSavePolicy.save(
-                    submittedSession = submittedSession,
-                    persist = { repository.insertFeedingRecordOnce(feedingRecord, target.draftId) },
-                    currentSession = { OngoingRecordManager.getFeedingSession(feedingRecord.babyId) },
-                    finishSession = { OngoingRecordManager.endFeeding(feedingRecord.babyId) }
-                )
-            }
-            BabyRecordChangeBus.notifyChanged(feedingRecord.babyId)
+            if (target.recordId != null) repository.updateFeedingRecord(frozenRecord)
+            else sessions.saveFeeding(frozenRecord, target.draftId, sessionId)
+            // 保存已由 Room 确认，派生刷新失败只记录原因，不能让页面再次插入。
+            runCatching { BabyRecordChangeBus.notifyChanged(feedingRecord.babyId) }
+                .onFailure { com.blankj.utilcode.util.LogUtils.w("喂养已保存，派生状态刷新失败：${it.javaClass.simpleName}") }
         }
     }
 

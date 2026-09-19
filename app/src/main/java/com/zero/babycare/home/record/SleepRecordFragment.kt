@@ -69,6 +69,12 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
     private var editingRecord: SleepRecord? = null
     private var isEditMode = false
     private var mutationInProgress = false
+    private val formFreeze = RecordFormFreeze()
+    private var sessionChecking = false
+    private var sessionCheckFailed = false
+    private var sessionCommitting = false
+    private var preserveRecoveredDraft = false
+    private var renderedRecovery: SessionCommitCoordinator.Recovery? = null
 
     // 是否有未保存的记录
     private var hasUnsavedChanges = false
@@ -113,6 +119,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
                 }
         }
         observeMutation()
+        observeSessionRecovery()
         // LiveData 自身绑定 View 生命周期；只注册一次，避免反复进入记录页累加观察者。
         vm.lastSleepRecord.observe(viewLifecycleOwner) { record ->
             if (record != null && record.babyId == currentDraftBabyId()) {
@@ -134,6 +141,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
+        val restoredDraft = draftForView != null
         draftForView?.let { draft ->
             isProgrammaticChange = true
             editingRecord = draft.getString("editing_record")?.let { Gson().fromJson(it, SleepRecord::class.java) }
@@ -149,6 +157,9 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
         }
         draftForView = null
         retainedDraft = null
+        if (!isHidden && mainVm.navTarget.value is NavTarget.SleepRecord) {
+            requestSessionRecovery(preserveDraft = restoredDraft)
+        }
     }
 
     private fun captureDraft(): Bundle = Bundle().apply {
@@ -165,6 +176,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
         retainedDraft = if (!isHidden) captureDraft() else null
         timerController?.dispose()
         timerController = null
+        formFreeze.clear()
         binding.timerPanel.timerView.release()
         super.onDestroyView()
     }
@@ -185,6 +197,10 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
 
     /** 同一个常驻页面也可能收到另一宝宝/编辑目标，必须先切换表单归属。 */
     private fun openCurrentTarget() {
+        sessionChecking = false
+        sessionCheckFailed = false
+        sessionCommitting = false
+        formFreeze.render(false)
         draftId = UUID.randomUUID().toString()
         draftBabyId = mainVm.getCurrentBabyInfo()?.babyId
         resolveEditMode()
@@ -192,7 +208,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
         if (isEditMode) {
             loadEditRecord()
         } else {
-            draftBabyId?.takeIf(OngoingRecordManager::isSleeping)?.let(::restoreOngoingSleep)
+            requestSessionRecovery(preserveDraft = false)
             loadLastSleepRecord()
         }
     }
@@ -203,8 +219,8 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
     /**
      * 恢复进行中的睡眠记录
      */
-    private fun restoreOngoingSleep(babyId: Int) {
-        val session = OngoingRecordManager.getSleepSession(babyId) ?: return
+    private fun restoreOngoingSleep(session: OngoingRecordManager.OngoingSession) {
+        session.pendingSleep?.let(::applyRecordToUi)
         val startTime = session.startAt
         
         isProgrammaticChange = true
@@ -340,7 +356,8 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
 
     private fun applyTimerLockState() {
         val returnTarget = (mainVm.navTarget.value as? NavTarget.SleepRecord)?.returnTarget
-        val locked = isEditMode && returnTarget is NavTarget.Statistics
+        val locked = (isEditMode && returnTarget is NavTarget.Statistics) ||
+            mutationInProgress || sessionChecking || sessionCommitting || sessionCheckFailed
         binding.timerPanel.timerView.isEnabled = !locked
         binding.timerPanel.timerView.isClickable = !locked
         binding.timerPanel.timerView.alpha = if (locked) 0.4f else 1f
@@ -381,6 +398,11 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
      * 保存睡眠记录
      */
     private fun saveSleepRecord() {
+        if (sessionCheckFailed) {
+            requestSessionRecovery(preserveDraft = true)
+            return
+        }
+        if (sessionChecking || sessionCommitting) return
         if (vm.mutation.isPending || (isEditMode && editingRecord == null)) return
         val babyId = currentDraftBabyId()
         if (babyId == null) {
@@ -406,8 +428,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
         // 如果正在计时，先暂停
         if (binding.timerPanel.timerView.currentShowState == RecordState.RECORDING) {
             binding.timerPanel.timerView.forcePause(triggerCallback = true)
-            // 更新醒来时间
-            binding.timerPanel.endInput.setTimestamp(System.currentTimeMillis())
+            // 暂停回调已同时冻结页面与会话的结束时刻，不能再次采样制造不同提交内容。
         }
 
         val startTime = binding.timerPanel.startInput.getTimestamp()
@@ -445,7 +466,8 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
             createdAt = editingRecord?.createdAt ?: System.currentTimeMillis()
         )
 
-        vm.save(sleepRecord, mutationTarget(babyId))
+        vm.save(sleepRecord, mutationTarget(babyId),
+            if (isEditMode) null else timerController?.ongoingSessionId)
     }
 
     /** 删除是记录纠错的一部分，成功后同步触发统计与预测刷新。 */
@@ -469,10 +491,69 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
 
     private fun setMutationInProgress(inProgress: Boolean) {
         mutationInProgress = inProgress
+        renderInputFreeze()
+    }
+
+    private fun renderInputFreeze() {
         if (view == null) return
+        val inProgress = mutationInProgress || sessionChecking || sessionCommitting
         binding.tvSave.isEnabled = !inProgress
         binding.tvSave.alpha = if (inProgress) 0.7f else 1f
+        val frozen = inProgress || sessionCheckFailed
+        if (frozen) timerController?.dismissPendingUi()
+        formFreeze.render(frozen, binding.cardTimer)
+        applyTimerLockState()
         updateToolbarAction()
+    }
+
+    /** 草稿恢复先核对同一会话的数据库结果；核验完成前不能继续计时或改写冻结输入。 */
+    private fun requestSessionRecovery(preserveDraft: Boolean) {
+        sessionChecking = false
+        sessionCheckFailed = false
+        sessionCommitting = false
+        renderedRecovery = null
+        val babyId = currentDraftBabyId()
+        val sessionId = timerController?.ongoingSessionId
+        if (isEditMode || babyId == null || (preserveDraft && sessionId == null)) {
+            renderInputFreeze()
+            return
+        }
+        preserveRecoveredDraft = preserveDraft
+        sessionChecking = true
+        renderInputFreeze()
+        vm.sessions.recover(mutationTarget(babyId), if (preserveDraft) sessionId else null)
+    }
+
+    private fun observeSessionRecovery() {
+        launchInLifecycle {
+            vm.sessions.committingSessions.collect { sessions ->
+                sessionCommitting = !isEditMode && timerController?.ongoingSessionId?.let { it in sessions } == true
+                renderInputFreeze()
+            }
+        }
+        launchInLifecycle {
+            vm.sessions.recovery.collect { state ->
+                if (state == null || state === renderedRecovery ||
+                    !state.target.belongsTo(draftId, currentDraftBabyId(), mainVm.navTarget.value) || isHidden) return@collect
+                renderedRecovery = state
+                sessionChecking = state.loading
+                sessionCheckFailed = state.errorRes != null
+                if (!state.loading) {
+                    when {
+                        state.errorRes != null -> {
+                            if (!preserveRecoveredDraft) state.session?.let(::restoreOngoingSleep)
+                            ToastUtils.showShort(getString(state.errorRes))
+                        }
+                        state.committed -> {
+                            resetPage()
+                            ToastUtils.showShort(getString(R.string.sleep_save_success))
+                        }
+                        !preserveRecoveredDraft -> state.session?.let(::restoreOngoingSleep)
+                    }
+                }
+                renderInputFreeze()
+            }
+        }
     }
 
     private fun mutationTarget(babyId: Int) = RecordMutationController.Target(
@@ -495,6 +576,9 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
                             R.string.record_delete_success else R.string.sleep_save_success
                         ToastUtils.showShort(getString(message))
                         if (state.errorRes == null) mainVm.navigateTo(state.target.destination)
+                        else if (!isEditMode && timerController?.ongoingSessionId != null) {
+                            requestSessionRecovery(preserveDraft = true)
+                        }
                     }
                 }
             }
@@ -557,7 +641,14 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
     }
 
     private fun handleBack() {
+        if (mutationInProgress || sessionChecking || sessionCommitting) {
+            mainVm.navigateTo(getReturnTarget())
+            return
+        }
         if (hasUnsavedChanges) {
+            val expectedDraftId = draftId
+            val expectedBabyId = currentDraftBabyId()
+            val expectedSessionId = timerController?.ongoingSessionId
             DialogHelper.showConfirmDialog(
                 context = requireContext(),
                 title = getString(R.string.tip),
@@ -565,10 +656,11 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
                 confirmText = getString(R.string.confirm),
                 cancelText = getString(R.string.cancel),
                 onConfirm = {
+                    if (isHidden || view == null || draftId != expectedDraftId || currentDraftBabyId() != expectedBabyId) return@showConfirmDialog
                     hasUnsavedChanges = false
-                    if (!isEditMode) {
+                    if (!isEditMode && expectedSessionId != null) {
                         currentDraftBabyId()?.let { babyId ->
-                            OngoingRecordManager.cancelSleep(babyId)
+                            OngoingRecordManager.cancelSleep(babyId, expectedSessionId)
                         }
                     }
                     mainVm.navigateTo(getReturnTarget())

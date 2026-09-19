@@ -81,12 +81,18 @@ object DialogHelper {
     fun createLoadingDialog(context: Context, title: String? = null): LoadingPopupView {
         val displayTitle = title?.takeIf { it.isNotBlank() }
             ?: context.getString(com.zero.common.R.string.loading)
-        return XPopup.Builder(context)
+        val popup = BabyCareLoadingPopup(context).apply {
+            setTitle(displayTitle)
+            setStyle(LoadingPopupView.Style.Spinner)
+        }
+        XPopup.Builder(context)
             .isViewMode(false)
             .hasShadowBg(true)
             .dismissOnTouchOutside(false)
             .dismissOnBackPressed(false)
-            .asLoading(displayTitle, LoadingPopupView.Style.Spinner)
+            .asCustom(popup)
+            .bindSystemBack()
+        return popup
     }
 
     /**
@@ -123,6 +129,7 @@ object DialogHelper {
 
         return XPopup.Builder(context)
             .asCustom(popup)
+            .bindSystemBack()
             .show()
     }
 
@@ -146,6 +153,7 @@ object DialogHelper {
 
         return XPopup.Builder(context)
             .asCustom(popup)
+            .bindSystemBack()
             .show()
     }
 
@@ -175,6 +183,7 @@ object DialogHelper {
         )
         return createBottomSheetBuilder(context)
             .asCustom(popup)
+            .bindSystemBack()
             .show()
     }
 
@@ -207,6 +216,7 @@ object DialogHelper {
         )
         return createBottomSheetBuilder(context)
             .asCustom(popup)
+            .bindSystemBack()
             .show()
     }
 

@@ -1,6 +1,7 @@
 package com.zero.components.base.util
 
 import android.content.Context
+import android.view.KeyEvent
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -12,6 +13,11 @@ import com.zero.components.R
  * 统一样式，适配手机和平板设备
  */
 class ConfirmPopup(context: Context) : CenterPopupView(context) {
+
+    override fun processKeyEvent(keyCode: Int, event: KeyEvent): Boolean =
+        isCanceledBackEvent(keyCode, event) || super.processKeyEvent(keyCode, event)
+
+    override fun dismissOrHideSoftInput() = dismissOrHideSystemIme()
 
     private var title: String = ""
     private var content: String = ""

@@ -19,24 +19,19 @@ class SleepRecordViewModel(private val injectedRepository: BabyRepository? = nul
     // 延迟获取默认数据源，让草稿状态恢复独立于数据库初始化，并支持隔离的数据层验证。
     private val repository by lazy { injectedRepository ?: BabyDataHelper.repository }
     internal val mutation = RecordMutationController(viewModelScope)
+    internal val sessions = SessionCommitCoordinator(viewModelScope, { repository }, OngoingRecordManager.RecordType.SLEEP)
 
     private val _lastSleepRecord = MutableLiveData<SleepRecord?>()
     val lastSleepRecord: LiveData<SleepRecord?> = _lastSleepRecord
 
-    internal fun save(sleepRecord: SleepRecord, target: RecordMutationController.Target) {
-        val submittedSession = OngoingRecordManager.getSleepSession(sleepRecord.babyId)
-            ?.takeIf { it.startAt == sleepRecord.sleepStart }
+    internal fun save(sleepRecord: SleepRecord, target: RecordMutationController.Target, sessionId: String? = null) {
+        val frozenRecord = sleepRecord.copy()
         mutation.submit(target, RecordMutationController.Kind.SAVE, R.string.save_failed) {
-            if (target.recordId != null) repository.updateSleepRecord(sleepRecord)
-            else {
-                OngoingSessionSavePolicy.save(
-                    submittedSession = submittedSession,
-                    persist = { repository.insertSleepRecordOnce(sleepRecord, target.draftId) },
-                    currentSession = { OngoingRecordManager.getSleepSession(sleepRecord.babyId) },
-                    finishSession = { OngoingRecordManager.endSleep(sleepRecord.babyId) }
-                )
-            }
-            BabyRecordChangeBus.notifyChanged(sleepRecord.babyId)
+            if (target.recordId != null) repository.updateSleepRecord(frozenRecord)
+            else sessions.saveSleep(frozenRecord, target.draftId, sessionId)
+            // 数据事务成功后通知刷新失败不能误报保存失败，引导用户再次创建记录。
+            runCatching { BabyRecordChangeBus.notifyChanged(sleepRecord.babyId) }
+                .onFailure { com.blankj.utilcode.util.LogUtils.w("睡眠已保存，派生状态刷新失败：${it.javaClass.simpleName}") }
         }
     }
 

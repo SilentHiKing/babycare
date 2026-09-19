@@ -3,6 +3,7 @@ package com.zero.components.base.util
 import android.content.Context
 import android.graphics.Rect
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
@@ -17,6 +18,11 @@ import com.lxj.xpopup.core.BottomPopupView
  * 这里仅阻止父层拦截内容区触摸，不改变 XPopup 的拖拽布局状态。
  */
 internal abstract class BabyCareBottomSheetPopup(context: Context) : BottomPopupView(context) {
+
+    override fun processKeyEvent(keyCode: Int, event: KeyEvent): Boolean =
+        isCanceledBackEvent(keyCode, event) || super.processKeyEvent(keyCode, event)
+
+    override fun dismissOrHideSoftInput() = dismissOrHideSystemIme()
 
     override fun onCreate() {
         super.onCreate()

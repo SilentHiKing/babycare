@@ -59,7 +59,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private val vm by viewModels<MainViewModel>()
     private val fragments = mutableListOf<Fragment>()
-    private val backPressCallback = object : OnBackPressedCallback(true) {
+    private val backPressCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
             handleSystemBack()
         }
@@ -205,8 +205,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED, GravityCompat.START)
         binding.drawerLayout.setScrimColor(ContextCompat.getColor(this, com.zero.common.R.color.drawer_scrim))
         binding.drawerLayout.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+                updateBackPressAvailability(drawerVisible = slideOffset > 0f)
+            }
+
             override fun onDrawerOpened(drawerView: View) {
                 vm.refreshBabyAges()
+                updateBackPressAvailability()
+            }
+
+            override fun onDrawerClosed(drawerView: View) {
+                updateBackPressAvailability()
             }
         })
         
@@ -246,6 +255,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private fun setupBackPressDispatcher() {
         onBackPressedDispatcher.addCallback(this, backPressCallback)
+        updateBackPressAvailability()
+    }
+
+    private fun updateBackPressAvailability(
+        drawerVisible: Boolean = binding.drawerLayout.isDrawerVisible(GravityCompat.START)
+    ) {
+        // 系统在手势开始前决定返回目的地：首页无抽屉时提前放行，才能显示回桌面预览。
+        backPressCallback.isEnabled = drawerVisible || vm.navTarget.value !is NavTarget.Dashboard
     }
 
     /**
@@ -280,6 +297,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun observeFragmentStatus() {
         launchInLifecycle {
             vm.navTarget.collectLatest { navTarget ->
+                updateBackPressAvailability()
                 val targetClass = navTarget.fragmentClass
                 fragments.firstOrNull { f ->
                     targetClass.isInstance(f)
@@ -336,6 +354,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      * 打开侧边栏
      */
     fun openDrawer() {
+        // 打开动画的首帧之前也应先关闭抽屉，不能让快速返回直接退出首页。
+        backPressCallback.isEnabled = true
         binding.drawerLayout.openDrawer(GravityCompat.START)
     }
 
@@ -468,7 +488,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun handleSystemBack() {
-        if (isDrawerOpen()) {
+        if (binding.drawerLayout.isDrawerVisible(GravityCompat.START)) {
             closeDrawer()
             return
         }
@@ -487,9 +507,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             return
         }
 
-        backPressCallback.isEnabled = false
-        onBackPressedDispatcher.onBackPressed()
-        backPressCallback.isEnabled = true
+        updateBackPressAvailability()
     }
 
     /**

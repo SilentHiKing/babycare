@@ -82,6 +82,12 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
     private var editingRecord: FeedingRecord? = null
     private var isEditMode = false
     private var mutationInProgress = false
+    private val formFreeze = RecordFormFreeze()
+    private var sessionChecking = false
+    private var sessionCheckFailed = false
+    private var sessionCommitting = false
+    private var preserveRecoveredDraft = false
+    private var renderedRecovery: SessionCommitCoordinator.Recovery? = null
 
     // 当前选择的喂养类型
     private var selectedFeedingType = FeedingType.BREAST
@@ -147,6 +153,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
                 }
         }
         observeMutation()
+        observeSessionRecovery()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -156,6 +163,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
+        val restoredDraft = draftForView != null
         draftForView?.let { draft ->
             isProgrammaticChange = true
             editingRecord = draft.getString("editing_record")?.let { Gson().fromJson(it, FeedingRecord::class.java) }
@@ -182,6 +190,9 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         }
         draftForView = null
         retainedDraft = null
+        if (!isHidden && mainVm.navTarget.value is NavTarget.FeedingRecord) {
+            requestSessionRecovery(preserveDraft = restoredDraft)
+        }
     }
 
     private fun captureDraft(): Bundle = Bundle().apply {
@@ -208,6 +219,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         retainedDraft = if (!isHidden) captureDraft() else null
         timerController?.dispose()
         timerController = null
+        formFreeze.clear()
         binding.timerPanel.timerView.release()
         super.onDestroyView()
     }
@@ -580,6 +592,10 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
     }
 
     private fun handleBack() {
+        if (mutationInProgress || sessionChecking || sessionCommitting) {
+            mainVm.navigateTo(getReturnTarget())
+            return
+        }
         if (hasUnsavedChanges) {
             showExitConfirmDialog()
         } else {
@@ -679,7 +695,8 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
 
     private fun applyTimerLockState() {
         val returnTarget = (mainVm.navTarget.value as? NavTarget.FeedingRecord)?.returnTarget
-        val locked = isEditMode && returnTarget is NavTarget.Statistics
+        val locked = (isEditMode && returnTarget is NavTarget.Statistics) ||
+            mutationInProgress || sessionChecking || sessionCommitting || sessionCheckFailed
         binding.timerPanel.timerView.isEnabled = !locked
         binding.timerPanel.timerView.isClickable = !locked
         binding.timerPanel.timerView.alpha = if (locked) 0.4f else 1f
@@ -803,6 +820,11 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 保存记录
      */
     private fun saveRecord() {
+        if (sessionCheckFailed) {
+            requestSessionRecovery(preserveDraft = true)
+            return
+        }
+        if (sessionChecking || sessionCommitting) return
         if (vm.mutation.isPending || (isEditMode && editingRecord == null)) return
         val babyId = currentDraftBabyId()
         if (babyId == null || babyId < 0) {
@@ -826,8 +848,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         // 如果正在计时，先暂停
         if (binding.timerPanel.timerView.currentShowState == RecordState.RECORDING) {
             binding.timerPanel.timerView.forcePause(triggerCallback = true)
-            // 更新结束时间
-            binding.timerPanel.endInput.setTimestamp(System.currentTimeMillis())
+            // 使用暂停回调已同步给持久会话的同一结束时刻，避免重试内容发生毫秒漂移。
         }
 
         // 校验必填项
@@ -991,7 +1012,8 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             this.createdAt = editingRecord?.createdAt ?: System.currentTimeMillis()
         }
 
-        vm.save(feedingRecord, mutationTarget(babyId))
+        vm.save(feedingRecord, mutationTarget(babyId),
+            if (isEditMode) null else timerController?.ongoingSessionId)
     }
 
     /** 编辑态允许纠正误记录；删除完成后由变更总线统一刷新依赖数据。 */
@@ -1015,10 +1037,69 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
 
     private fun setMutationInProgress(inProgress: Boolean) {
         mutationInProgress = inProgress
+        renderInputFreeze()
+    }
+
+    private fun renderInputFreeze() {
         if (view == null) return
+        val inProgress = mutationInProgress || sessionChecking || sessionCommitting
         binding.tvSave.isEnabled = !inProgress
         binding.tvSave.alpha = if (inProgress) 0.7f else 1f
+        val frozen = inProgress || sessionCheckFailed
+        if (frozen) timerController?.dismissPendingUi()
+        formFreeze.render(frozen, binding.cardTimer, binding.cardFeedingContent)
+        applyTimerLockState()
         updateToolbarAction()
+    }
+
+    /** 草稿恢复先核对同一会话的数据库结果；核验完成前不能继续计时或改写冻结输入。 */
+    private fun requestSessionRecovery(preserveDraft: Boolean) {
+        sessionChecking = false
+        sessionCheckFailed = false
+        sessionCommitting = false
+        renderedRecovery = null
+        val babyId = currentDraftBabyId()
+        val sessionId = timerController?.ongoingSessionId
+        if (isEditMode || babyId == null || (preserveDraft && sessionId == null)) {
+            renderInputFreeze()
+            return
+        }
+        preserveRecoveredDraft = preserveDraft
+        sessionChecking = true
+        renderInputFreeze()
+        vm.sessions.recover(mutationTarget(babyId), if (preserveDraft) sessionId else null)
+    }
+
+    private fun observeSessionRecovery() {
+        launchInLifecycle {
+            vm.sessions.committingSessions.collect { sessions ->
+                sessionCommitting = !isEditMode && timerController?.ongoingSessionId?.let { it in sessions } == true
+                renderInputFreeze()
+            }
+        }
+        launchInLifecycle {
+            vm.sessions.recovery.collect { state ->
+                if (state == null || state === renderedRecovery ||
+                    !state.target.belongsTo(draftId, currentDraftBabyId(), mainVm.navTarget.value) || isHidden) return@collect
+                renderedRecovery = state
+                sessionChecking = state.loading
+                sessionCheckFailed = state.errorRes != null
+                if (!state.loading) {
+                    when {
+                        state.errorRes != null -> {
+                            if (!preserveRecoveredDraft) state.session?.let(::restoreOngoingFeeding)
+                            ToastUtils.showShort(getString(state.errorRes))
+                        }
+                        state.committed -> {
+                            resetPage()
+                            ToastUtils.showShort(getString(R.string.save_success))
+                        }
+                        !preserveRecoveredDraft -> state.session?.let(::restoreOngoingFeeding)
+                    }
+                }
+                renderInputFreeze()
+            }
+        }
     }
 
     private fun mutationTarget(babyId: Int) = RecordMutationController.Target(
@@ -1040,6 +1121,9 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
                             R.string.record_delete_success else R.string.save_success
                         ToastUtils.showShort(getString(message))
                         if (state.errorRes == null) mainVm.navigateTo(state.target.destination)
+                        else if (!isEditMode && timerController?.ongoingSessionId != null) {
+                            requestSessionRecovery(preserveDraft = true)
+                        }
                     }
                 }
             }
@@ -1066,6 +1150,9 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 显示退出确认对话框
      */
     private fun showExitConfirmDialog() {
+        val expectedDraftId = draftId
+        val expectedBabyId = currentDraftBabyId()
+        val expectedSessionId = timerController?.ongoingSessionId
         DialogHelper.showConfirmDialog(
             context = requireContext(),
             title = getString(R.string.tip),
@@ -1073,10 +1160,11 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             confirmText = getString(R.string.confirm),
             cancelText = getString(R.string.cancel),
             onConfirm = {
+                if (isHidden || view == null || draftId != expectedDraftId || currentDraftBabyId() != expectedBabyId) return@showConfirmDialog
                 hasUnsavedChanges = false
-                if (!isEditMode) {
+                if (!isEditMode && expectedSessionId != null) {
                     currentDraftBabyId()?.let { babyId ->
-                        OngoingRecordManager.cancelFeeding(babyId)
+                        OngoingRecordManager.cancelFeeding(babyId, expectedSessionId)
                     }
                 }
                 mainVm.navigateTo(getReturnTarget())
@@ -1161,6 +1249,10 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
 
     /** 同页收到新宝宝或编辑目标时先清除旧表单，禁止旧草稿写入新目标。 */
     private fun openCurrentTarget() {
+        sessionChecking = false
+        sessionCheckFailed = false
+        sessionCommitting = false
+        formFreeze.render(false)
         draftId = UUID.randomUUID().toString()
         draftBabyId = mainVm.getCurrentBabyInfo()?.babyId
         updateFeedingUnitDisplay()
@@ -1169,7 +1261,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         if (isEditMode) {
             loadEditRecord()
         } else {
-            draftBabyId?.takeIf(OngoingRecordManager::isFeeding)?.let(::restoreOngoingFeeding)
+            requestSessionRecovery(preserveDraft = false)
             loadLastFeedingRecord()
         }
     }
@@ -1180,8 +1272,8 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
     /**
      * 恢复进行中的喂养记录
      */
-    private fun restoreOngoingFeeding(babyId: Int) {
-        val session = OngoingRecordManager.getFeedingSession(babyId) ?: return
+    private fun restoreOngoingFeeding(session: OngoingRecordManager.OngoingSession) {
+        session.pendingFeeding?.let(::applyRecordToUi)
         val startTime = session.startAt
         
         isProgrammaticChange = true

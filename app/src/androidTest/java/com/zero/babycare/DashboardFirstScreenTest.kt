@@ -5,9 +5,12 @@ import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityNodeInfo
+import android.widget.Button
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
@@ -107,6 +110,44 @@ class DashboardFirstScreenTest {
         }
     }
 
+    @Test
+    fun recordHistoryEntryIsReachableAndOpensStatisticsWithDashboardReturn() = withDashboard { scenario ->
+        render(scenario, DashboardData(), System.currentTimeMillis())
+        scenario.onActivity { activity ->
+            val root = dashboard(activity).requireView()
+            val entry = root.findViewById<View>(R.id.cardRecords)
+            assertTrue("回看入口必须排在快速记录之后",
+                fullBounds(entry).top >= fullBounds(root.findViewById(R.id.cardQuickRecord)).bottom)
+            assertEquals(activity.getString(com.zero.common.R.string.daily_records),
+                root.findViewById<TextView>(R.id.tvRecordsTitle).text.toString())
+            assertEquals(activity.getString(com.zero.common.R.string.data_statistics),
+                root.findViewById<TextView>(R.id.tvRecordsSummary).text.toString())
+            entry.requestRectangleOnScreen(Rect(0, 0, entry.width, entry.height), true)
+        }
+        awaitLayout(scenario)
+        scenario.onActivity { activity ->
+            val root = dashboard(activity).requireView()
+            val entry = root.findViewById<View>(R.id.cardRecords)
+            assertAllCardTextFits(root, DashboardData())
+            assertTouchTarget(entry)
+            assertFullyVisible(activity, entry)
+            val node = entry.createAccessibilityNodeInfo()
+            try {
+                assertEquals("显式入口必须具有按钮语义", Button::class.java.name, node.className.toString())
+                assertTrue("标题和说明应聚合为一个读屏焦点",
+                    AccessibilityNodeInfoCompat.wrap(node).isScreenReaderFocusable)
+                assertTrue("读屏必须能够执行入口点击", node.isClickable)
+            } finally {
+                @Suppress("DEPRECATION")
+                node.recycle()
+            }
+            // 同步检查导航意图，不依赖用户库是否有宝宝，也不为测试创建业务数据。
+            assertTrue(entry.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null))
+            assertEquals(NavTarget.Statistics(returnTarget = NavTarget.Dashboard), mainVm(activity).navTarget.value)
+            mainVm(activity).navigateTo(NavTarget.Dashboard)
+        }
+    }
+
     private fun ordinaryData(now: Long) = DashboardData(
         lastFeedingEndTime = now - 135 * 60_000L, feedingCount = 5, displayFeedingMinutes = 80,
         lastSleepEndTime = now - 35 * 60_000L, sleepCount = 3, displaySleepMinutes = 270,
@@ -152,7 +193,8 @@ class DashboardFirstScreenTest {
     }
 
     private fun assertCardTextGeometry(root: View, data: DashboardData) {
-        listOf(R.id.cardStatus, R.id.cardFeeding, R.id.cardSleep, R.id.cardPrediction, R.id.cardQuickRecord)
+        listOf(R.id.cardStatus, R.id.cardFeeding, R.id.cardSleep, R.id.cardPrediction, R.id.cardQuickRecord,
+            R.id.cardRecords)
             .forEach { cardId ->
                 val card = root.findViewById<ViewGroup>(cardId)
                 val labels = visibleLabels(card).filter { it.text.isNotEmpty() }
@@ -256,7 +298,7 @@ class DashboardFirstScreenTest {
         append(" safe=${safeBounds(root.rootView)}\n")
         val ids = listOf(R.id.contentScroll, R.id.cardStatus, R.id.cardFeeding, R.id.cardSleep,
             R.id.cardPrediction, R.id.rowPredictFeeding, R.id.rowPredictSleep, R.id.cardQuickRecord,
-            R.id.rvQuickRecord)
+            R.id.rvQuickRecord, R.id.cardRecords)
         ids.forEach { id ->
             root.findViewById<View>(id)?.let { child ->
                 val visible = Rect()

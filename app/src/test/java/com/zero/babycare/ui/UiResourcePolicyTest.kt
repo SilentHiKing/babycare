@@ -1449,17 +1449,21 @@ class UiResourcePolicyTest {
             ) {
                 add("choice picker options should not add container padding on top of row padding")
             }
-            if (!choiceSource.contains("setPadding(dp(16), 0, dp(16), 0)")) {
-                add("choice picker rows should align labels and checks to the same 16dp header edge")
+            if (!choiceSource.contains("R.dimen.page_horizontal_padding") ||
+                !choiceLayout.contains("@dimen/page_horizontal_padding")) {
+                add("choice picker rows and header should share horizontal spacing tokens")
             }
-            if (!choiceLayout.contains("android:layout_height=\"48dp\"")) {
-                add("choice picker header should be compact enough for short option lists")
+            if (!choiceLayout.contains("android:minHeight=\"@dimen/min_touch_target\"") ||
+                !choiceLayout.contains("androidx.core.widget.NestedScrollView") ||
+                !choiceLayout.contains("android:overScrollMode=\"never\"")) {
+                add("choice picker should keep scalable actions outside its scrollable options")
             }
-            if (!choiceLayout.contains("android:paddingBottom=\"8dp\"")) {
+            if (!choiceLayout.contains("android:paddingBottom=\"@dimen/content_gap_medium\"")) {
                 add("choice picker should avoid excessive bottom whitespace for two-item lists")
             }
-            if (!choiceSource.contains("CHOICE_ITEM_TEXT_SIZE_SP = 15f")) {
-                add("choice picker item text should use the compact 15sp size")
+            if (choiceSource.contains("setTextSize(") || choiceLayout.contains("android:textSize") ||
+                !choiceSource.contains("TextAppearance_BabyCare_Body1")) {
+                add("choice picker item text should use the shared scalable typography")
             }
             if (!choiceSource.contains("setTextColor(context.resolveThemeColor(com.zero.common.R.attr.colorTextPrimary))") ||
                 choiceSource.contains("if (isSelected) com.zero.common.R.attr.colorBrand else")
