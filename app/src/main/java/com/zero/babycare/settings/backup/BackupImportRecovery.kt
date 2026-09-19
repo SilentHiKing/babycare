@@ -44,8 +44,9 @@ internal class ApplicationBackupImportSideEffects(private val app: Application) 
     }
 
     override suspend fun refreshRecords() {
-        ReminderScheduler.ensureScheduledAndAwait(app)
+        // 先撤旧提示再允许新计划执行，避免刚发布的新通知被导入失效事件撤回。
         BabyRecordChangeBus.notifyAllChanged()
+        ReminderScheduler.ensureScheduledAndAwait(app)
     }
 }
 

@@ -2,6 +2,7 @@ package com.zero.babycare.home
 
 import com.blankj.utilcode.util.Utils
 import com.zero.babycare.reminder.ReminderScheduler
+import com.zero.babycare.reminder.ReminderNotifier
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -23,10 +24,12 @@ object BabyRecordChangeBus {
 
     /** 导入后发一次全域失效信号，避免逐宝宝事件被容量为 1 的缓冲区丢弃。 */
     fun notifyAllChanged() {
+        ReminderNotifier.clearAll(Utils.getApp())
         _changes.tryEmit(ALL_BABIES_CHANGED)
     }
 
     fun notifyChanged(babyId: Int) {
+        ReminderNotifier.clearForBaby(Utils.getApp(), babyId)
         _changes.tryEmit(babyId)
         ReminderScheduler.ensureScheduled(Utils.getApp())
     }

@@ -457,11 +457,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         val type = sourceIntent?.getStringExtra(ReminderNotifier.EXTRA_REMINDER_TYPE)
             ?.let { runCatching { ReminderType.valueOf(it) }.getOrNull() }
         if (babyId <= 0 || type == null) return false
+        val stableId = sourceIntent.getStringExtra(ReminderNotifier.EXTRA_BABY_STABLE_ID)
 
         // 清掉已消费参数，Activity 旋转或重建时由 SavedStateHandle 恢复导航，不重复处理通知动作。
         sourceIntent.removeExtra(ReminderNotifier.EXTRA_BABY_ID)
         sourceIntent.removeExtra(ReminderNotifier.EXTRA_REMINDER_TYPE)
-        vm.openReminderTarget(babyId, type)
+        sourceIntent.removeExtra(ReminderNotifier.EXTRA_BABY_STABLE_ID)
+        vm.openReminderTarget(babyId, type, stableId)
         return true
     }
 

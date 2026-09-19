@@ -6,6 +6,7 @@ import com.blankj.utilcode.util.Utils
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babycare.reminder.ReminderScheduler
 import com.zero.babycare.reminder.ReminderType
+import com.zero.babycare.reminder.ReminderNotifier
 import com.zero.babycare.settings.backup.BackupImportRecovery
 import com.zero.babydata.entity.BabyInfo
 import com.zero.components.base.vm.BaseViewModel
@@ -29,11 +30,16 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 
 
-class MainViewModel(
-    private val savedStateHandle: SavedStateHandle
+class MainViewModel @JvmOverloads constructor(
+    private val savedStateHandle: SavedStateHandle,
+    babySnapshots: Flow<List<BabyInfo>> = repository.observeAllBabyInfo()
 ) : BaseViewModel() {
+    // 只在主线程变更；新通知、手动导航或切宝宝都会使等待首帧的旧点击失效。
+    private var reminderRequestVersion = 0L
     
     /** 导航目标状态 */
     private val _navTarget = MutableStateFlow(
@@ -79,7 +85,7 @@ class MainViewModel(
     init {
         // Room Flow 自动跟踪增删改；缓存只负责恢复选择，不再触发主线程数据库查询。
         viewModelScope.launch {
-            repository.observeAllBabyInfo().collectLatest { babies ->
+            babySnapshots.collectLatest { babies ->
                 reconcileBabies(babies)
                 _babyDataLoaded.value = true
             }
@@ -103,6 +109,7 @@ class MainViewModel(
      * 导航到指定目标
      */
     fun navigateTo(target: NavTarget) {
+        reminderRequestVersion++
         val current = _navTarget.value
         val resolvedTarget = when (target) {
             is NavTarget.Statistics -> target.copy(
@@ -174,6 +181,7 @@ class MainViewModel(
      * 设置当前选中的宝宝
      */
     fun setCurrentBaby(babyInfo: BabyInfo) {
+        reminderRequestVersion++
         MMKVStore.put(CURRENT_BABY_ID, babyInfo.babyId)
         MMKVStore.remove(LEGACY_BABY_INFO)
         _currentBaby.value = babyInfo
@@ -214,6 +222,8 @@ class MainViewModel(
         viewModelScope.launch {
             try {
                 repository.deleteBabyInfo(babyInfo)
+                ReminderNotifier.clearForBaby(Utils.getApp(), babyInfo.babyId)
+                ReminderScheduler.ensureScheduled(Utils.getApp())
                 if (_currentBaby.value?.babyId == babyInfo.babyId) {
                     MMKVStore.remove(CURRENT_BABY_ID)
                 }
@@ -236,10 +246,17 @@ class MainViewModel(
         }
     }
 
-    /** 通知点击按 babyId 重新查库并切换对象，避免只依赖可能过期的当前宝宝缓存。 */
-    fun openReminderTarget(babyId: Int, type: ReminderType) {
+    /** 等待 Room 首帧，用最新列表解析通知身份，不能把迟到查询的旧实体写回当前宝宝。 */
+    fun openReminderTarget(babyId: Int, type: ReminderType, stableId: String? = null) {
+        val requestVersion = ++reminderRequestVersion
         safeLaunch {
-            val baby = repository.getBabyInfo(babyId) ?: return@safeLaunch
+            babyDataLoaded.first { it }
+            if (requestVersion != reminderRequestVersion) return@safeLaunch
+            // 兼容升级前未携带 stableId 的通知；新通知必须同时匹配本地 ID 与稳定身份。
+            val baby = _allBabies.value.firstOrNull {
+                it.babyId == babyId && (stableId == null || it.stableId == stableId)
+            } ?: return@safeLaunch
+            if (isDeletingBaby(babyId)) return@safeLaunch
             setCurrentBaby(baby)
             val target = when (type) {
                 ReminderType.FEEDING -> NavTarget.FeedingRecord(returnTarget = NavTarget.Dashboard)

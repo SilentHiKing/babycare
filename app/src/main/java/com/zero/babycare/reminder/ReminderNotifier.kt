@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -19,44 +20,95 @@ import com.zero.babydata.entity.BabyInfo
 import com.zero.common.mmkv.MMKVKeys
 import com.zero.common.mmkv.MMKVStore
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 /** 到期任务执行时再次校验最新记录、权限、进行中状态与可信度，再决定是否通知。 */
 object ReminderNotifier {
 
     const val EXTRA_BABY_ID = "reminder_baby_id"
+    const val EXTRA_BABY_STABLE_ID = "reminder_baby_stable_id"
     const val EXTRA_REMINDER_TYPE = "reminder_type"
     private const val CHANNEL_ID = "record_reminder"
+    private const val TAG_PREFIX = "babycare_reminder:"
+    private val deliveryGate = ReminderDeliveryGate()
 
     internal suspend fun notifyIfDue(
         context: Context,
         babyId: Int,
         type: ReminderType,
-        expectedDue: Long
+        expectedDue: Long,
+        source: ReminderDataSource = RepositoryReminderDataSource
     ): ReminderDeliveryResult {
+        val ticket = deliveryGate.capture(babyId, type)
         if (!MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, false) ||
             !canPostNotifications(context)
         ) {
             return ReminderDeliveryResult.SUPPRESSED
         }
 
-        val baby = repository.getBabyInfo(babyId) ?: return ReminderDeliveryResult.SUPPRESSED
-        val candidate = ReminderPolicy.loadCandidates(baby)[type] ?: return ReminderDeliveryResult.SUPPRESSED
+        val baby = source.getBaby(babyId) ?: return ReminderDeliveryResult.SUPPRESSED
+        val candidate = source.getCandidate(baby, type) ?: return ReminderDeliveryResult.SUPPRESSED
+        val coroutineContext = currentCoroutineContext()
+        coroutineContext.ensureActive()
         val now = System.currentTimeMillis()
         // 任务可能因记录变化而过期；必须以当前候选时间为准，不能沿用旧任务的 due。
         if (candidate.dueTime != expectedDue || now < candidate.dueTime) {
             return ReminderDeliveryResult.RESCHEDULE
         }
 
-        val posted = when (type) {
-            ReminderType.FEEDING -> sendFeedingNotification(context, baby)
-            ReminderType.SLEEP -> sendSleepNotification(context, baby)
-        }
-        if (posted) {
-            MMKVStore.put(ReminderPolicy.lastReminderKey(type, babyId), now)
-            MMKVStore.put(ReminderPolicy.notifiedSourceKey(type, babyId), candidate.sourceRecordTime)
-        }
-        return if (posted) ReminderDeliveryResult.DELIVERED else ReminderDeliveryResult.RETRY
+        return deliveryGate.ifCurrent(ticket) {
+            coroutineContext.ensureActive()
+            // 查询会挂起；开关、渠道或计时状态可能已改变，必须在真正发布前复核。
+            if (!MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, false) ||
+                !canPostNotifications(context) || isOngoing(babyId, type) ||
+                MMKVStore.getLong(ReminderPolicy.notifiedSourceKey(type, babyId), 0L) == candidate.sourceRecordTime
+            ) return@ifCurrent ReminderDeliveryResult.SUPPRESSED
+
+            val posted = when (type) {
+                ReminderType.FEEDING -> sendFeedingNotification(context, baby)
+                ReminderType.SLEEP -> sendSleepNotification(context, baby)
+            }
+            if (posted) {
+                MMKVStore.put(ReminderPolicy.lastReminderKey(type, babyId), now)
+                MMKVStore.put(ReminderPolicy.notifiedSourceKey(type, babyId), candidate.sourceRecordTime)
+            }
+            if (posted) ReminderDeliveryResult.DELIVERED else ReminderDeliveryResult.RETRY
+        } ?: ReminderDeliveryResult.SUPPRESSED
     }
+
+    private fun isOngoing(babyId: Int, type: ReminderType): Boolean = when (type) {
+        ReminderType.FEEDING -> OngoingRecordManager.isFeeding(babyId)
+        ReminderType.SLEEP -> OngoingRecordManager.isSleeping(babyId)
+    }
+
+    /** 开关关闭或权限丢失时既撤后台任务，也撤掉已显示的提醒；不影响其他通知渠道。 */
+    internal fun clearAll(context: Context) = deliveryGate.invalidate {
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.activeNotifications.filter { notification ->
+            notification.tag?.startsWith(TAG_PREFIX) == true ||
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && notification.notification.channelId == CHANNEL_ID) ||
+                (notification.tag == null && notification.id in 21_000..40_999)
+        }.forEach { manager.cancel(it.tag, it.id) }
+    }
+
+    /** 记录变更、开始计时或宝宝删除后，旧提示及查询中的同对象候选同时失效。 */
+    internal fun clearForBaby(context: Context, babyId: Int, type: ReminderType? = null) =
+        deliveryGate.invalidate(babyId, type) {
+            val manager = NotificationManagerCompat.from(context)
+            (type?.let(::listOf) ?: ReminderType.entries).forEach { recordType ->
+                manager.cancel(notificationTag(babyId), recordType.ordinal)
+            }
+        }
+
+    /** 旧通知的截断 ID 无法可靠还原宝宝归属，升级后在重新规划前统一撤回。 */
+    internal fun clearLegacy(context: Context) {
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.activeNotifications.filter { it.tag == null && it.id in 21_000..40_999 }
+            .forEach { manager.cancel(it.id) }
+    }
+
+    private fun notificationTag(babyId: Int) = "$TAG_PREFIX$babyId"
 
     private fun sendFeedingNotification(context: Context, baby: BabyInfo): Boolean {
         return postNotification(
@@ -93,15 +145,18 @@ object ReminderNotifier {
         content: String
     ): Boolean {
         createChannelIfNeeded(context)
-        val notificationId = 21_000 + ((baby.babyId.coerceAtLeast(0) % 10_000) * 2) + type.ordinal
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            // Intent extras 不参与 PendingIntent 身份匹配；URI 保证不同宝宝、类型互不覆盖。
+            data = Uri.Builder().scheme("babycare").authority("reminder")
+                .appendPath(baby.stableId).appendPath(baby.babyId.toString()).appendPath(type.name).build()
             putExtra(EXTRA_BABY_ID, baby.babyId)
+            putExtra(EXTRA_BABY_STABLE_ID, baby.stableId)
             putExtra(EXTRA_REMINDER_TYPE, type.name)
         }
         val pendingIntent = PendingIntent.getActivity(
             context,
-            notificationId,
+            0,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -116,7 +171,7 @@ object ReminderNotifier {
 
         // 权限在调用前已经显式复核；这里仍捕获系统状态竞态，失败时不更新已提醒来源。
         return runCatching {
-            NotificationManagerCompat.from(context).notify(notificationId, notification)
+            NotificationManagerCompat.from(context).notify(notificationTag(baby.babyId), type.ordinal, notification)
             true
         }.getOrDefault(false)
     }

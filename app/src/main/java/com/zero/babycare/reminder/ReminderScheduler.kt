@@ -12,6 +12,8 @@ import com.zero.common.mmkv.MMKVStore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.Executor
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -54,9 +56,11 @@ object ReminderScheduler {
         val appContext = context.applicationContext
         if (!MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, false) ||
             !ReminderNotifier.canPostNotifications(appContext)) {
+            ReminderNotifier.clearAll(appContext)
             return WorkManager.getInstance(appContext).cancelAllWorkByTag(TAG_REMINDER)
         }
 
+        ReminderNotifier.clearLegacy(appContext)
         val request = OneTimeWorkRequest.Builder(ReminderPlanWorker::class.java)
             .addTag(TAG_REMINDER)
             .build()
@@ -68,6 +72,7 @@ object ReminderScheduler {
     }
 
     fun cancel(context: Context) {
+        ReminderNotifier.clearAll(context.applicationContext)
         WorkManager.getInstance(context.applicationContext).cancelAllWorkByTag(TAG_REMINDER)
     }
 
@@ -81,6 +86,12 @@ object ReminderScheduler {
         val workManager = WorkManager.getInstance(context.applicationContext)
         repository.getAllBabyInfo().forEach { baby ->
             val candidates = ReminderPolicy.loadCandidates(baby)
+            currentCoroutineContext().ensureActive()
+            if (!MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, false) ||
+                !ReminderNotifier.canPostNotifications(context)) {
+                cancel(context)
+                return
+            }
             ReminderType.entries.forEach { type ->
                 val workName = dueWorkName(baby.babyId, type)
                 val candidate = candidates[type]

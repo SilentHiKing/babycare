@@ -1,6 +1,9 @@
 package com.zero.babycare.home
 
 import com.zero.common.mmkv.MMKVStore
+import com.blankj.utilcode.util.Utils
+import com.zero.babycare.reminder.ReminderNotifier
+import com.zero.babycare.reminder.ReminderType
 
 /**
  * 进行中记录的持久化单一事实源。
@@ -70,6 +73,7 @@ object OngoingRecordManager {
     fun startSleep(babyId: Int, startTime: Long = System.currentTimeMillis()) {
         if (babyId <= 0 || startTime <= 0L) return
         saveSession(OngoingSession.running(babyId, RecordType.SLEEP, startTime))
+        ReminderNotifier.clearForBaby(Utils.getApp(), babyId, ReminderType.SLEEP)
     }
 
     fun pauseSleep(babyId: Int, endTime: Long, activeDurationMs: Long) {
@@ -110,6 +114,7 @@ object OngoingRecordManager {
                 feedingType = feedingType
             )
         )
+        ReminderNotifier.clearForBaby(Utils.getApp(), babyId, ReminderType.FEEDING)
     }
 
     fun pauseFeeding(babyId: Int, endTime: Long, activeDurationMs: Long) {
