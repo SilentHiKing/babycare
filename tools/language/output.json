@@ -86,11 +86,11 @@
       {
         "codeKey": "statistics_add_birthdate_hint",
         "language": {
-          "zh-Hans": "还没有填写宝宝生日，记得补上哦",
-          "en": "You haven’t filled in your baby’s birthday yet, please remember to fill it in.",
-          "zh-Hant": "還沒填寶寶生日，記得補上哦",
-          "ja": "赤ちゃんの誕生日をまだ記入していない場合は、忘れずに記入してください。",
-          "ko": "아직 아기의 생일을 입력하지 않으셨으니 꼭 입력해주세요."
+          "zh-Hans": "添加生日，查看宝宝月龄",
+          "en": "Add a birthday to see your baby’s age",
+          "zh-Hant": "新增生日，查看寶寶月齡",
+          "ja": "誕生日を追加して月齢を表示",
+          "ko": "생일을 추가하고 월령 확인하기"
         }
       },
       {
@@ -5531,6 +5531,26 @@
           "zh-Hant": "%1$s，有紀錄",
           "ja": "%1$s、記録あり",
           "ko": "%1$s, 기록 있음"
+        }
+      },
+      {
+        "codeKey": "record_draft_already_saved",
+        "language": {
+          "zh-Hans": "已保存过此草稿，请从时间轴编辑原记录",
+          "en": "Already saved. Edit the original entry in the timeline.",
+          "zh-Hant": "已儲存過此草稿，請從時間軸編輯原記錄",
+          "ja": "保存済みです。タイムラインから元の記録を編集してください",
+          "ko": "이미 저장된 기록이에요. 타임라인에서 원래 기록을 수정해 주세요"
+        }
+      },
+      {
+        "codeKey": "record_draft_record_deleted",
+        "language": {
+          "zh-Hans": "原记录已删除，请重新打开记录页创建记录",
+          "en": "Original entry deleted. Reopen this form to add a new entry.",
+          "zh-Hant": "原記錄已刪除，請重新開啟記錄頁建立記錄",
+          "ja": "元の記録は削除されています。記録画面を開き直して新しく作成してください",
+          "ko": "원래 기록이 삭제되었어요. 기록 화면을 다시 열어 새 기록을 만들어 주세요"
         }
       }
     ],

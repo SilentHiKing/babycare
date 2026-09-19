@@ -8,7 +8,7 @@
     <string name="list_separator_dot"> · </string>
     <string name="times_count_format">%1$d次</string>
     <string name="baby_not_born_yet_playful">時光機沒開張，我還沒出生喲！</string>
-    <string name="statistics_add_birthdate_hint">還沒填寶寶生日，記得補上哦</string>
+    <string name="statistics_add_birthdate_hint">新增生日，查看寶寶月齡</string>
     <string name="babyName">姓名</string>
     <string name="babyBirthday">生日</string>
     <string name="babyGender">性別</string>
@@ -553,4 +553,6 @@
     <string name="measurement_value_invalid">請輸入大於 0 的有效數值</string>
     <string name="calendar_today_date_format">%1$s，今天</string>
     <string name="calendar_recorded_date_format">%1$s，有紀錄</string>
+    <string name="record_draft_already_saved">已儲存過此草稿，請從時間軸編輯原記錄</string>
+    <string name="record_draft_record_deleted">原記錄已刪除，請重新開啟記錄頁建立記錄</string>
 </resources>

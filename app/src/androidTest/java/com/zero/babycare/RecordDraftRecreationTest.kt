@@ -1,5 +1,6 @@
 package com.zero.babycare
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Parcel
 import android.os.SystemClock
@@ -26,6 +27,8 @@ import com.zero.babycare.home.record.event.EventCategory
 import com.zero.babycare.home.record.event.EventRecordViewModel
 import com.zero.babycare.home.record.event.EventSubtype
 import com.zero.babycare.navigation.NavTarget
+import com.zero.babycare.reminder.ReminderNotifier
+import com.zero.babycare.reminder.ReminderType
 import com.zero.babydata.entity.EventType
 import com.zero.components.widget.RecordTimerPanelView
 import com.zero.components.widget.RecordView.RecordState
@@ -43,6 +46,29 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class RecordDraftRecreationTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
+
+    @Test
+    fun originalReminderIntentDoesNotReplaceRestoredEventDraft() = withScenario { scenario ->
+        val target = NavTarget.EventRecord(returnTarget = NavTarget.Dashboard)
+        navigate(scenario, target)
+        selectEvent(scenario, target, EventCategory.GROWTH, EventType.GROWTH_WEIGHT)
+        await(scenario) { currentFragment(it, target).view?.findViewById<View>(R.id.etValue) != null }
+        scenario.onActivity { activity ->
+            currentFragment(activity, target).requireView().findViewById<EditText>(R.id.etValue).setText("8.75")
+            val babyId = requireNotNull(mainVm(activity).getCurrentBabyInfo()).babyId
+            // 模拟系统回收后再次传入原始启动 Intent；进程内 removeExtra 不会改写系统持有的副本。
+            activity.intent = Intent(activity.intent)
+                .putExtra(ReminderNotifier.EXTRA_BABY_ID, babyId)
+                .putExtra(ReminderNotifier.EXTRA_REMINDER_TYPE, ReminderType.SLEEP.name)
+        }
+        scenario.recreate()
+        await(scenario) { visible(it, target) && currentFragment(it, target).view?.findViewById<View>(R.id.etValue) != null }
+        scenario.onActivity { activity ->
+            assertEquals(target, mainVm(activity).navTarget.value)
+            assertEquals("8.75", currentFragment(activity, target).requireView().findViewById<EditText>(R.id.etValue).text.toString())
+        }
+        assertUnsavedConfirmation(scenario, target)
+    }
 
     @Test
     fun pendingWriteSurvivesRecreationAndDeliversOneResult() = withScenario { scenario ->

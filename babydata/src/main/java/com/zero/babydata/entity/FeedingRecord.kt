@@ -13,7 +13,12 @@ import androidx.room.PrimaryKey
         childColumns = ["babyId"],
         onDelete = ForeignKey.CASCADE
     )],
-    indices = [Index(value = ["babyId"])]
+    // 开始索引同时携带结束时间，跨日查询先过滤过期项再回表；末条查询保留结束索引。
+    indices = [
+        Index(value = ["babyId"]),
+        Index(value = ["babyId", "feedingStart", "feedingEnd"]),
+        Index(value = ["babyId", "feedingEnd"])
+    ]
 )
 data class FeedingRecord(
     @PrimaryKey(autoGenerate = true)

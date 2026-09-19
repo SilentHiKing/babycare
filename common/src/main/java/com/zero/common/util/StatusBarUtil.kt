@@ -51,14 +51,16 @@ object StatusBarUtil {
         val initial = PaddingState(paddingLeft, paddingTop, paddingRight, paddingBottom)
 
         ViewCompat.setOnApplyWindowInsetsListener(this) { v, insets ->
-            val statusBars = insets.getInsets(WindowInsetsCompat.Type.statusBars())
-            val navigationBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            // 横屏三键导航和挖孔可能在左右两侧，四边都使用系统安全区。
+            val systemBars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
             val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
-            val bottom = ime.bottom.coerceAtLeast(navigationBars.bottom)
+            val bottom = ime.bottom.coerceAtLeast(systemBars.bottom)
             v.setPadding(
-                initial.left,
-                initial.top + statusBars.top,
-                initial.right,
+                initial.left + systemBars.left,
+                initial.top + systemBars.top,
+                initial.right + systemBars.right,
                 initial.bottom + bottom
             )
             insets

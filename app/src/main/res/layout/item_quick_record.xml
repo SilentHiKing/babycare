@@ -34,7 +34,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
         android:gravity="center"
-        android:maxLines="1"
         android:textColor="?attr/colorTextSecondary"
         tools:text="排泄" />
 

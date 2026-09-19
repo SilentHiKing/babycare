@@ -6,14 +6,17 @@ import androidx.lifecycle.viewModelScope
 import com.zero.babycare.home.BabyRecordChangeBus
 import com.zero.babydata.entity.SleepRecord
 import com.zero.components.base.vm.BaseViewModel
-import com.zero.babydata.domain.BabyDataHelper.repository
+import com.zero.babydata.domain.BabyDataHelper
+import com.zero.babydata.room.BabyRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.zero.babycare.home.OngoingRecordManager
 import com.zero.common.R
 
-class SleepRecordViewModel : BaseViewModel() {
+class SleepRecordViewModel(private val injectedRepository: BabyRepository? = null) : BaseViewModel() {
+    // 延迟获取默认数据源，让草稿状态恢复独立于数据库初始化，并支持隔离的数据层验证。
+    private val repository by lazy { injectedRepository ?: BabyDataHelper.repository }
     internal val mutation = RecordMutationController(viewModelScope)
 
     private val _lastSleepRecord = MutableLiveData<SleepRecord?>()
@@ -27,7 +30,7 @@ class SleepRecordViewModel : BaseViewModel() {
             else {
                 OngoingSessionSavePolicy.save(
                     submittedSession = submittedSession,
-                    persist = { repository.insertSleepRecord(sleepRecord) },
+                    persist = { repository.insertSleepRecordOnce(sleepRecord, target.draftId) },
                     currentSession = { OngoingRecordManager.getSleepSession(sleepRecord.babyId) },
                     finishSession = { OngoingRecordManager.endSleep(sleepRecord.babyId) }
                 )

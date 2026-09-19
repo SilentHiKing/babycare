@@ -11,7 +11,7 @@ import com.zero.babydata.entity.SleepRecord
 interface SleepRecordDao {
 
     @Insert
-    suspend fun insertSleepRecord(sleepRecord: SleepRecord)
+    suspend fun insertSleepRecord(sleepRecord: SleepRecord): Long
 
     @Update
     suspend fun updateSleepRecord(sleepRecord: SleepRecord)

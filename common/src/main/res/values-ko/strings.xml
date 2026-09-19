@@ -8,7 +8,7 @@
     <string name="list_separator_dot"> · </string>
     <string name="times_count_format">%1$d회</string>
     <string name="baby_not_born_yet_playful">타임머신은 열리지 않았고, 나는 아직 태어나지도 않았습니다!</string>
-    <string name="statistics_add_birthdate_hint">아직 아기의 생일을 입력하지 않으셨으니 꼭 입력해주세요.</string>
+    <string name="statistics_add_birthdate_hint">생일을 추가하고 월령 확인하기</string>
     <string name="babyName">이름</string>
     <string name="babyBirthday">생일</string>
     <string name="babyGender">성별</string>
@@ -553,4 +553,6 @@
     <string name="measurement_value_invalid">0보다 큰 올바른 숫자를 입력해 주세요</string>
     <string name="calendar_today_date_format">%1$s, 오늘</string>
     <string name="calendar_recorded_date_format">%1$s, 기록 있음</string>
+    <string name="record_draft_already_saved">이미 저장된 기록이에요. 타임라인에서 원래 기록을 수정해 주세요</string>
+    <string name="record_draft_record_deleted">원래 기록이 삭제되었어요. 기록 화면을 다시 열어 새 기록을 만들어 주세요</string>
 </resources>

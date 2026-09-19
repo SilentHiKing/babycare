@@ -11,7 +11,7 @@ import com.zero.babydata.entity.EventRecord
 interface EventRecordDao {
 
     @Insert
-    suspend fun insertEventRecord(record: EventRecord)
+    suspend fun insertEventRecord(record: EventRecord): Long
 
     @Update
     suspend fun updateEventRecord(record: EventRecord)

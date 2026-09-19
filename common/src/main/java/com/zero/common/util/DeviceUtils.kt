@@ -30,17 +30,6 @@ object DeviceUtils {
             else -> WindowWidthSizeClass.EXPANDED
         }
 
-    /**
-     * 紧凑窗口继续沿用 375dp 手机设计基线；中大窗口使用实际宽度，避免 AutoSize
-     * 把手机信息架构等比放大。内容宽度由各页面的 maxWidth 约束控制。
-     */
-    fun getDesignWidthInDp(context: Context): Int =
-        when (getWindowWidthSizeClass(context)) {
-            WindowWidthSizeClass.COMPACT -> 375
-            WindowWidthSizeClass.MEDIUM,
-            WindowWidthSizeClass.EXPANDED -> getWindowWidthInDp(context)
-        }
-    
     // ==================== 动态网格列数计算 ====================
     
     /**
@@ -66,15 +55,13 @@ object DeviceUtils {
     
     /**
      * 快速记录网格的列数
-     * 每个item至少需要60dp
+     * 按列表实际宽度和系统字号分配空间，避免窄窗标签被挤成无法辨认的省略号。
      */
-    fun getQuickRecordColumns(context: Context): Int {
-        return calculateGridColumns(
-            context = context,
-            itemMinWidthDp = 70f,
-            horizontalPaddingDp = 32f,
-            minColumns = 4,
-            maxColumns = 8
-        )
+    fun getQuickRecordColumns(context: Context, contentWidthPx: Int = 0): Int {
+        val resources = context.resources
+        val availableWidthDp = if (contentWidthPx > 0) contentWidthPx / resources.displayMetrics.density
+            else getWindowWidthInDp(context) - 32f
+        val minimumCellWidth = 70f * resources.configuration.fontScale.coerceAtLeast(1f)
+        return (availableWidthDp / minimumCellWidth).toInt().coerceIn(1, 4)
     }
 }

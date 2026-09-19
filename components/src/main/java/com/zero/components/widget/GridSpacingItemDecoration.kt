@@ -59,6 +59,15 @@ class GridSpacingItemDecoration(
                 outRect.top = spacing
             }
         }
+
+        // 纵向网格在 RTL 中把第 0 列放在右侧，左右间距也需镜像，才能保留列间热区间隔。
+        if (layoutManager is GridLayoutManager && layoutManager.orientation == RecyclerView.VERTICAL &&
+            parent.layoutDirection == View.LAYOUT_DIRECTION_RTL
+        ) {
+            val left = outRect.left
+            outRect.left = outRect.right
+            outRect.right = left
+        }
     }
 }
 

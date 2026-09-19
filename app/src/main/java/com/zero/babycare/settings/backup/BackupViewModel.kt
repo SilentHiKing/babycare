@@ -12,18 +12,12 @@ import com.zero.babydata.backup.BackupImportException
 import com.zero.babydata.backup.BackupImportReport
 import com.zero.babydata.backup.BabyBackupEnvelope
 import com.zero.babydata.backup.BabyBackupExporter
-import com.zero.babydata.backup.BabyBackupImporter
-import com.zero.babydata.backup.BabyBackupParser
-import com.zero.babydata.backup.BackupImportStrategy
-import com.zero.babydata.domain.BabyDataHelper
-import com.zero.babycare.home.BabyRecordChangeBus
-import com.zero.babycare.home.OngoingRecordManager
-import com.zero.babycare.reminder.ReminderScheduler
 import com.zero.components.base.vm.UiState
 import com.zero.common.mmkv.MMKVKeys
 import com.zero.common.mmkv.MMKVStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,26 +27,30 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 
 /**
  * 备份导出 ViewModel
  */
-class BackupViewModel(
+class BackupViewModel internal constructor(
     application: Application,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    private val importOperations: BackupImportOperations
 ) : AndroidViewModel(application) {
 
+    constructor(application: Application, savedStateHandle: SavedStateHandle) :
+        this(application, savedStateHandle, ApplicationBackupImportOperations(application))
+
     private val exporter by lazy { BabyBackupExporter(application) }
-    private val importer by lazy { BabyBackupImporter(application) }
     private val gson = Gson()
 
     private val _exportState = MutableStateFlow<UiState<BackupExportRequest>>(UiState.None)
     val exportState: StateFlow<UiState<BackupExportRequest>> = _exportState.asStateFlow()
 
-    private val _importPreviewState = MutableStateFlow<UiState<BackupImportPreview>>(UiState.None)
-    val importPreviewState: StateFlow<UiState<BackupImportPreview>> = _importPreviewState.asStateFlow()
+    private val _importPromptState = MutableStateFlow<UiState<BackupImportPrompt>>(UiState.None)
+    val importPromptState: StateFlow<UiState<BackupImportPrompt>> = _importPromptState.asStateFlow()
 
     private val _importState = MutableStateFlow<UiState<BackupImportReport>>(UiState.None)
     val importState: StateFlow<UiState<BackupImportReport>> = _importState.asStateFlow()
@@ -79,6 +77,7 @@ class BackupViewModel(
     val dedupMinutes: StateFlow<Int> = _dedupMinutes.asStateFlow()
 
     private var pendingImport: BabyBackupEnvelope? = null
+    private var pendingImportRelease: Job? = null
 
     // noBackupFilesDir 不会进入系统云备份，也不会像 cacheDir 一样被系统提前清理。
     private val exportStore by lazy {
@@ -95,6 +94,8 @@ class BackupViewModel(
         savedStateHandle.get<String>(EXPORT_URI_KEY)?.takeIf {
             _documentExportState.value is BackupDocumentExportState.Idle
         }?.let { writePendingExport(Uri.parse(it)) }
+        // 进程恢复只保留文件位置：重新解析后仍默认合并，必须重新选择并确认。
+        savedStateHandle.get<String>(PENDING_IMPORT_URI_KEY)?.let { prepareImport(Uri.parse(it)) }
     }
 
     /**
@@ -136,80 +137,84 @@ class BackupViewModel(
      * 解析导入文件
      */
     fun prepareImport(uri: Uri) {
-        if (_importPreviewState.value is UiState.Loading || _importState.value is UiState.Loading) return
+        if (_importPromptState.value is UiState.Loading || _importState.value is UiState.Loading) return
+        val previous = savedStateHandle.get<String>(PENDING_IMPORT_URI_KEY)
+        val previousRelease = pendingImportRelease
+        savedStateHandle[PENDING_IMPORT_URI_KEY] = uri.toString()
+        pendingImport = null
+        _importPromptState.value = UiState.Loading
         viewModelScope.launch {
-            pendingImport = null
-            _importPreviewState.value = UiState.Loading
             try {
                 val envelope = withContext(Dispatchers.IO) {
-                    // 使用 Application 级文件入口，读取期间不持有已销毁的 Fragment。
-                    getApplication<Application>().contentResolver.openInputStream(uri)?.use { stream ->
-                        stream.bufferedReader().use { reader -> BabyBackupParser.parse(reader) }
-                    } ?: throw BackupImportException(BackupImportError.INVALID_JSON)
+                    // 取消后快速重选同一 URI 时，必须先完成旧释放，才能获取新的持久授权。
+                    previousRelease?.join()
+                    if (previous != null && previous != uri.toString()) importOperations.release(Uri.parse(previous))
+                    importOperations.read(uri)
                 }
                 pendingImport = envelope
-                _importPreviewState.value = UiState.Success(buildImportPreview(envelope))
+                _importPromptState.value = UiState.Success(
+                    BackupImportPrompt(UUID.randomUUID().toString(), buildImportPreview(envelope))
+                )
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _importPreviewState.value = UiState.Error(e, resolveImportErrorMessage(e))
+                clearImportSource()
+                _importPromptState.value = UiState.Error(e, resolveImportErrorMessage(e))
             }
         }
     }
 
-    /**
-     * 执行覆盖导入
-     */
-    fun executeImportOverwrite() {
+    /** 每次步骤转换生成新标识，旧页面/旧弹窗不能确认另一份导入。 */
+    fun selectImportMode(promptId: String, mode: BackupImportMode) {
+        val prompt = currentImportPrompt(promptId) ?: return
+        if (prompt.step != BackupImportPrompt.Step.SELECT_MODE) return
+        _importPromptState.value = UiState.Success(
+            prompt.copy(id = UUID.randomUUID().toString(), mode = mode, step = BackupImportPrompt.Step.CONFIRM)
+        )
+    }
+
+    /** 写入只允许来自当前最终确认；在启动协程之前占用状态，双击不会重复导入。 */
+    fun confirmImport(promptId: String) {
         if (_importState.value is UiState.Loading) return
-        val envelope = pendingImport ?: run {
-            _importState.value = UiState.Error(
-                IllegalStateException("empty"),
-                getApplication<Application>().getString(com.zero.common.R.string.backup_import_invalid_file)
-            )
-            return
-        }
+        val prompt = currentImportPrompt(promptId) ?: return
+        if (prompt.step != BackupImportPrompt.Step.CONFIRM) return
+        val envelope = pendingImport ?: return
+        pendingImport = null
+        _importPromptState.value = UiState.None
+        _importState.value = UiState.Loading
+        // 即便系统恢复的是更早快照，也只会重新预览，绝不恢复“自动执行覆盖”状态。
+        clearImportSource()
         viewModelScope.launch {
-            _importState.value = UiState.Loading
             try {
                 val report = withContext(Dispatchers.IO) {
-                    importer.importOverwrite(envelope)
+                    importOperations.execute(envelope, prompt.mode, dedupMinutes.value)
                 }
-                rebuildDerivedState(report.strategy)
-                pendingImport = null
                 _importState.value = UiState.Success(report)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                pendingImport = null
                 _importState.value = UiState.Error(e, resolveImportErrorMessage(e))
             }
         }
     }
 
-    /**
-     * 执行合并导入
-     */
-    fun executeImportMerge() {
-        if (_importState.value is UiState.Loading) return
-        val envelope = pendingImport ?: run {
-            _importState.value = UiState.Error(
-                IllegalStateException("empty"),
-                getApplication<Application>().getString(com.zero.common.R.string.backup_import_invalid_file)
-            )
-            return
-        }
-        viewModelScope.launch {
-            _importState.value = UiState.Loading
-            try {
-                val report = withContext(Dispatchers.IO) {
-                    importer.importMerge(envelope, dedupMinutes.value)
-                }
-                rebuildDerivedState(report.strategy)
-                pendingImport = null
-                _importState.value = UiState.Success(report)
-            } catch (e: Exception) {
-                pendingImport = null
-                _importState.value = UiState.Error(e, resolveImportErrorMessage(e))
-            }
+    fun cancelImport(promptId: String) {
+        currentImportPrompt(promptId) ?: return
+        pendingImport = null
+        clearImportSource()
+        _importPromptState.value = UiState.None
+    }
+
+    private fun currentImportPrompt(id: String): BackupImportPrompt? =
+        (_importPromptState.value as? UiState.Success)?.data?.takeIf { it.id == id }
+
+    private fun clearImportSource() {
+        val source = savedStateHandle.remove<String>(PENDING_IMPORT_URI_KEY) ?: return
+        val previousRelease = pendingImportRelease
+        // 主线程入口先建立任务链；实际授权 IO 留在后台，后续读取会等待整条旧释放链。
+        pendingImportRelease = viewModelScope.launch(Dispatchers.IO) {
+            previousRelease?.join()
+            importOperations.release(Uri.parse(source))
         }
     }
 
@@ -223,8 +228,8 @@ class BackupViewModel(
     /**
      * 清理导入预览状态
      */
-    fun resetImportPreviewState() {
-        _importPreviewState.value = UiState.None
+    fun consumeImportPromptError() {
+        if (_importPromptState.value is UiState.Error) _importPromptState.value = UiState.None
     }
 
     /**
@@ -242,13 +247,6 @@ class BackupViewModel(
     }
 
     /**
-     * 清理待导入数据
-     */
-    fun clearPendingImport() {
-        pendingImport = null
-    }
-
-    /**
      * 更新去重分钟配置
      */
     fun setDedupMinutes(minutes: Int) {
@@ -263,27 +261,6 @@ class BackupViewModel(
     private suspend fun buildEnvelope(): BabyBackupEnvelope {
         val appVersion = AppUtils.getAppVersionName()
         return exporter.buildEnvelope(appVersion)
-    }
-
-    /**
-     * 数据导入提交后统一刷新所有派生状态，避免数据库、当前宝宝、计时和提醒各自停留在旧快照。
-     */
-    private suspend fun rebuildDerivedState(strategy: BackupImportStrategy) {
-        val app = getApplication<Application>()
-        if (strategy == BackupImportStrategy.OVERWRITE) {
-            MMKVStore.remove(MMKVKeys.CURRENT_BABY_ID)
-            OngoingRecordManager.clearAll()
-        }
-        MMKVStore.removeByPrefix(MMKVKeys.SETTINGS_FEEDING_REMINDER_LAST_PREFIX)
-        MMKVStore.removeByPrefix(MMKVKeys.SETTINGS_SLEEP_REMINDER_LAST_PREFIX)
-        MMKVStore.removeByPrefix(MMKVKeys.SETTINGS_FEEDING_REMINDER_SOURCE_PREFIX)
-        MMKVStore.removeByPrefix(MMKVKeys.SETTINGS_SLEEP_REMINDER_SOURCE_PREFIX)
-        ReminderScheduler.ensureScheduled(app)
-
-        // Room Flow 会重建当前宝宝；变更总线负责让已存在的 Dashboard/预测实例立即丢弃旧派生数据。
-        BabyDataHelper.repository.getAllBabyInfo().forEach { baby ->
-            BabyRecordChangeBus.notifyChanged(baby.babyId)
-        }
     }
 
     private fun isPreparingOrWritingExport(): Boolean =
@@ -646,5 +623,6 @@ class BackupViewModel(
         const val PENDING_EXPORT_KEY = "pending_backup_export"
         const val EXPORT_RESULT_KEY = "backup_export_result"
         const val EXPORT_URI_KEY = "backup_export_destination"
+        const val PENDING_IMPORT_URI_KEY = "pending_backup_import_uri"
     }
 }

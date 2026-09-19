@@ -59,7 +59,6 @@ dependencies {
     implementation(libs.androidx.compose.material3)
 
     implementation(libs.androidx.recyclerview)
-    implementation("me.jessyan:autosize:1.2.1")
 //    implementation(libs.baserecyclerviewadapterhelper)
     implementation(libs.material)
     implementation(libs.xpopup)
@@ -77,6 +76,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.room.runtime)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)

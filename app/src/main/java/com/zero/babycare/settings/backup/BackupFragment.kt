@@ -6,8 +6,11 @@ import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.blankj.utilcode.util.ToastUtils
+import com.lxj.xpopup.core.BasePopupView
+import com.lxj.xpopup.interfaces.SimpleCallback
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.R
 import com.zero.babycare.databinding.FragmentBackupBinding
@@ -31,6 +34,9 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
 
     private val vm by viewModels<BackupViewModel>()
     private val mainVm by activityViewModels<MainViewModel>()
+    private var importDialog: BasePopupView? = null
+    private var displayedImportPromptId: String? = null
+    private var importDialogEpoch = 0L
 
     private val exportRow get() = binding.rowBackupExport
     private val importRow get() = binding.rowBackupImport
@@ -165,42 +171,12 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             }
         }
 
-        launchInLifecycle {
-            vm.importPreviewState.collect { state ->
-                when (state) {
-                    is UiState.None -> Unit
-                    is UiState.Loading -> showLoading(getString(com.zero.common.R.string.backup_import_parsing))
-                    is UiState.Success -> {
-                        hideLoading()
-                        vm.resetImportPreviewState()
-                        showImportModePicker(state.data)
-                    }
-                    is UiState.Error -> {
-                        hideLoading()
-                        ToastUtils.showShort(state.message)
-                        vm.resetImportPreviewState()
-                    }
-                }
-            }
+        viewLifecycleOwner.launchInLifecycle(minActiveState = Lifecycle.State.RESUMED) {
+            vm.importPromptState.collect { renderImportPrompt() }
         }
 
-        launchInLifecycle {
-            vm.importState.collect { state ->
-                when (state) {
-                    is UiState.None -> Unit
-                    is UiState.Loading -> showLoading(getString(com.zero.common.R.string.backup_importing))
-                    is UiState.Success -> {
-                        hideLoading()
-                        vm.resetImportState()
-                        showImportReport(state.data)
-                    }
-                    is UiState.Error -> {
-                        hideLoading()
-                        ToastUtils.showShort(state.message)
-                        vm.resetImportState()
-                    }
-                }
-            }
+        viewLifecycleOwner.launchInLifecycle(minActiveState = Lifecycle.State.RESUMED) {
+            vm.importState.collect { renderImportResult() }
         }
 
         launchInLifecycle {
@@ -380,37 +356,99 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
         vm.prepareImport(uri)
     }
 
-    /**
-     * 选择导入方式
-     */
-    private fun showImportModePicker(preview: BackupImportPreview?) {
-        if (preview == null) {
-            ToastUtils.showShort(com.zero.common.R.string.backup_import_failed)
-            return
+    /** 弹窗只是 VM 状态的渲染；隐藏页面和非前台页面不得显示或消费确认。 */
+    private fun canShowImportUi(): Boolean = isAdded && view != null && isResumed && !isHidden &&
+        mainVm.navTarget.value is NavTarget.Backup
+
+    private fun renderImportPrompt() {
+        if (!canShowImportUi()) return
+        when (val state = vm.importPromptState.value) {
+            UiState.None -> dismissImportDialog()
+            UiState.Loading -> {
+                dismissImportDialog()
+                showLoading(getString(com.zero.common.R.string.backup_import_parsing))
+            }
+            is UiState.Error -> {
+                dismissImportDialog()
+                hideLoading()
+                ToastUtils.showShort(state.message)
+                vm.consumeImportPromptError()
+            }
+            is UiState.Success -> {
+                hideLoading()
+                val prompt = state.data ?: return
+                if (displayedImportPromptId == prompt.id) return
+                dismissImportDialog()
+                displayedImportPromptId = prompt.id
+                val epoch = importDialogEpoch
+                importDialog = when (prompt.step) {
+                    BackupImportPrompt.Step.SELECT_MODE -> showImportModePicker(prompt, epoch)
+                    BackupImportPrompt.Step.CONFIRM -> showImportConfirm(prompt, epoch)
+                }.also { popup ->
+                    popup.popupInfo.xPopupCallback = object : SimpleCallback() {
+                        override fun onDismiss(popupView: BasePopupView?) {
+                            // 生命周期清理先递增世代，旧窗口延迟回调不会取消重建后的同一提示。
+                            if (importDialogEpoch != epoch || displayedImportPromptId != prompt.id) return
+                            importDialog = null
+                            displayedImportPromptId = null
+                            if (canShowImportUi()) vm.cancelImport(prompt.id)
+                        }
+                    }
+                }
+            }
         }
-        val modes = BackupImportMode.values().toList()
+    }
+
+    private fun renderImportResult() {
+        if (!canShowImportUi()) return
+        when (val state = vm.importState.value) {
+            UiState.None -> Unit
+            UiState.Loading -> showLoading(getString(com.zero.common.R.string.backup_importing))
+            is UiState.Success -> {
+                hideLoading()
+                vm.resetImportState()
+                showImportReport(state.data)
+            }
+            is UiState.Error -> {
+                hideLoading()
+                ToastUtils.showShort(state.message)
+                vm.resetImportState()
+            }
+        }
+    }
+
+    private fun acceptsImportCallback(prompt: BackupImportPrompt, epoch: Long): Boolean =
+        importDialogEpoch == epoch && displayedImportPromptId == prompt.id && canShowImportUi()
+
+    /** 合并在首位并默认选中，覆盖必须经过明确选择和第二次确认。 */
+    private fun showImportModePicker(prompt: BackupImportPrompt, epoch: Long): BasePopupView =
         DialogHelper.showChoiceSheet(
             context = requireContext(),
             title = getString(com.zero.common.R.string.backup_import_confirm_title),
-            options = modes.map {
+            options = listOf(BackupImportMode.MERGE, BackupImportMode.OVERWRITE).map {
                 DialogHelper.PickerOption(
                     value = it,
                     label = getString(it.labelResId)
                 )
             },
-            selectedValue = BackupImportMode.OVERWRITE,
-            onSelected = { mode -> showImportConfirm(mode, preview) },
+            selectedValue = prompt.mode,
+            onSelected = { mode ->
+                if (acceptsImportCallback(prompt, epoch)) vm.selectImportMode(prompt.id, mode)
+            },
             onCancel = {
-                vm.clearPendingImport()
-                ToastUtils.showShort(com.zero.common.R.string.backup_import_cancelled)
+                if (acceptsImportCallback(prompt, epoch)) {
+                    vm.cancelImport(prompt.id)
+                    ToastUtils.showShort(com.zero.common.R.string.backup_import_cancelled)
+                }
             }
         )
-    }
 
     /**
      * 导入确认弹窗
      */
-    private fun showImportConfirm(mode: BackupImportMode, preview: BackupImportPreview) {
+    private fun showImportConfirm(prompt: BackupImportPrompt, epoch: Long): BasePopupView {
+        val mode = prompt.mode
+        val preview = prompt.preview
         val modeLabel = getString(mode.labelResId)
         val contentResId = when (mode) {
             BackupImportMode.OVERWRITE -> com.zero.common.R.string.backup_import_confirm_overwrite_format
@@ -425,19 +463,16 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             preview.eventCount,
             preview.childDailyCount
         )
-        DialogHelper.showConfirmDialog(
+        return DialogHelper.showConfirmDialog(
             context = requireContext(),
             title = getString(com.zero.common.R.string.backup_import_confirm_title),
             content = content,
             confirmText = getString(com.zero.common.R.string.confirm),
             cancelText = getString(com.zero.common.R.string.cancel),
             onConfirm = {
-                when (mode) {
-                    BackupImportMode.OVERWRITE -> vm.executeImportOverwrite()
-                    BackupImportMode.MERGE -> vm.executeImportMerge()
-                }
+                if (acceptsImportCallback(prompt, epoch)) vm.confirmImport(prompt.id)
             },
-            onCancel = { vm.clearPendingImport() }
+            onCancel = { if (acceptsImportCallback(prompt, epoch)) vm.cancelImport(prompt.id) }
         )
     }
 
@@ -595,8 +630,35 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     }
 
     override fun onDestroyView() {
+        dismissImportDialog()
         binding.rvBackupReports.adapter = null
         super.onDestroyView()
+    }
+
+    override fun onPause() {
+        // Activity 重建、系统选择器和离开前台都只撤下窗口，不取消用户正在确认的导入。
+        dismissImportDialog()
+        hideLoading()
+        super.onPause()
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (hidden) {
+            dismissImportDialog()
+            hideLoading()
+        } else {
+            renderImportPrompt()
+            renderImportResult()
+        }
+    }
+
+    private fun dismissImportDialog() {
+        importDialogEpoch++
+        displayedImportPromptId = null
+        val popup = importDialog
+        importDialog = null
+        popup?.dismiss()
     }
 
     private fun handleBack() {

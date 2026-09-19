@@ -11,7 +11,7 @@ import com.zero.babydata.entity.FeedingRecord
 interface FeedingRecordDao {
 
     @Insert
-    suspend fun insertFeedingRecord(feedingRecord: FeedingRecord)
+    suspend fun insertFeedingRecord(feedingRecord: FeedingRecord): Long
 
     @Update
     suspend fun updateFeedingRecord(feedingRecord: FeedingRecord)

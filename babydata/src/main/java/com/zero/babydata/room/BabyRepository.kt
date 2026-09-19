@@ -1,6 +1,7 @@
 package com.zero.babydata.room
 
 import android.content.Context
+import androidx.room.withTransaction
 import com.zero.babydata.entity.BabyInfo
 import com.zero.babydata.entity.ChildDailyRecord
 import com.zero.babydata.entity.EventRecord
@@ -9,6 +10,10 @@ import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.FeedingType
 import com.zero.babydata.entity.SleepRecord
 import com.zero.babydata.domain.RecordDurationCalculator
+import com.zero.babydata.domain.RecordWriteException
+import com.zero.babydata.domain.RecordWriteFailure
+import com.zero.babydata.domain.RecordWritePayload
+import com.zero.babydata.entity.RecordWriteReceipt
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
@@ -21,14 +26,15 @@ import kotlinx.coroutines.flow.Flow
  * 所有一次性 Room 操作都通过挂起函数暴露，让调用方获得真实的成功或失败结果；
  * 持续观察的数据使用 Flow，避免回调线程与生命周期脱节。
  */
-class BabyRepository(context: Context) {
+class BabyRepository(private val database: BabyDatabase) {
+    constructor(context: Context) : this(BabyDatabase.getInstance(context))
 
-    private val database = BabyDatabase.getInstance(context)
     private val babyInfoDao = database.babyInfoDao()
     private val feedingRecordDao = database.feedingRecordDao()
     private val sleepRecordDao = database.sleepRecordDao()
     private val childDailyRecordDao = database.childDailyRecordDao()
     private val eventRecordDao = database.eventRecordDao()
+    private val recordWriteReceiptDao = database.recordWriteReceiptDao()
 
     // ==================== BabyInfo ====================
 
@@ -49,8 +55,19 @@ class BabyRepository(context: Context) {
 
     // ==================== FeedingRecord ====================
 
-    suspend fun insertFeedingRecord(feedingRecord: FeedingRecord) =
+    suspend fun insertFeedingRecord(feedingRecord: FeedingRecord) {
         feedingRecordDao.insertFeedingRecord(feedingRecord)
+    }
+
+    /** 同一草稿的跨进程重试只提交一次；自增 ID 和创建时间不参与业务内容比较。 */
+    suspend fun insertFeedingRecordOnce(record: FeedingRecord, requestId: String): Int {
+        val snapshot = record.copy(feedingId = 0)
+        return insertRecordOnce(
+            requestId, snapshot.babyId, RecordWritePayload.FEEDING, RecordWritePayload.feeding(snapshot),
+            insert = { feedingRecordDao.insertFeedingRecord(snapshot) },
+            recordOwner = { feedingRecordDao.getFeedingRecordById(it)?.babyId }
+        )
+    }
 
     suspend fun updateFeedingRecord(feedingRecord: FeedingRecord) =
         feedingRecordDao.updateFeedingRecord(feedingRecord)
@@ -99,8 +116,18 @@ class BabyRepository(context: Context) {
 
     // ==================== SleepRecord ====================
 
-    suspend fun insertSleepRecord(sleepRecord: SleepRecord) =
+    suspend fun insertSleepRecord(sleepRecord: SleepRecord) {
         sleepRecordDao.insertSleepRecord(sleepRecord)
+    }
+
+    suspend fun insertSleepRecordOnce(record: SleepRecord, requestId: String): Int {
+        val snapshot = record.copy(sleepId = 0)
+        return insertRecordOnce(
+            requestId, snapshot.babyId, RecordWritePayload.SLEEP, RecordWritePayload.sleep(snapshot),
+            insert = { sleepRecordDao.insertSleepRecord(snapshot) },
+            recordOwner = { sleepRecordDao.getSleepRecordById(it)?.babyId }
+        )
+    }
 
     suspend fun updateSleepRecord(sleepRecord: SleepRecord) =
         sleepRecordDao.updateSleepRecord(sleepRecord)
@@ -187,7 +214,58 @@ class BabyRepository(context: Context) {
 
     // ==================== EventRecord ====================
 
-    suspend fun insertEventRecord(record: EventRecord) = eventRecordDao.insertEventRecord(record)
+    suspend fun insertEventRecord(record: EventRecord) {
+        eventRecordDao.insertEventRecord(record)
+    }
+
+    suspend fun insertEventRecordOnce(record: EventRecord, requestId: String): Int {
+        val snapshot = record.copy(eventId = 0)
+        return insertRecordOnce(
+            requestId, snapshot.babyId, RecordWritePayload.EVENT, RecordWritePayload.event(snapshot),
+            insert = { eventRecordDao.insertEventRecord(snapshot) },
+            recordOwner = { eventRecordDao.getEventRecordById(it)?.babyId }
+        )
+    }
+
+    /** 记录和回执一起提交或回滚；只保存摘要，避免重复保存敏感正文。 */
+    private suspend fun insertRecordOnce(
+        requestId: String,
+        babyId: Int,
+        recordType: Int,
+        payloadHash: String,
+        insert: suspend () -> Long,
+        recordOwner: suspend (Int) -> Int?
+    ): Int {
+        val normalizedRequestId = RecordWritePayload.requestId(requestId, babyId)
+        return database.withTransaction {
+            // 覆盖导入/删除宝宝会使旧草稿的本机 ID 失效，不按姓名或备份身份转移写入目标。
+            if (babyInfoDao.getBabyInfo(babyId) == null) {
+                throw RecordWriteException(RecordWriteFailure.BABY_NOT_FOUND)
+            }
+            val receipt = recordWriteReceiptDao.getReceipt(normalizedRequestId)
+            if (receipt != null) {
+                if (receipt.babyId != babyId || receipt.recordType != recordType) {
+                    throw RecordWriteException(RecordWriteFailure.CONTENT_CONFLICT)
+                }
+                val owner = recordOwner(receipt.recordId)
+                    ?: throw RecordWriteException(RecordWriteFailure.RECORD_DELETED)
+                if (owner != babyId || receipt.payloadHash != payloadHash) {
+                    throw RecordWriteException(RecordWriteFailure.CONTENT_CONFLICT)
+                }
+                // 原记录可能后来已被编辑；重放旧请求只能确认成功，不能覆盖更新后的内容。
+                return@withTransaction receipt.recordId
+            }
+            val recordId = insert().toInt()
+            recordWriteReceiptDao.insertReceipt(RecordWriteReceipt(
+                requestId = normalizedRequestId,
+                babyId = babyId,
+                recordType = recordType,
+                recordId = recordId,
+                payloadHash = payloadHash
+            ))
+            recordId
+        }
+    }
 
     suspend fun updateEventRecord(record: EventRecord) = eventRecordDao.updateEventRecord(record)
 

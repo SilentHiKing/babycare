@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:text="@string/stool_consistency" />
 
-        <RadioGroup
+        <com.zero.components.widget.WrappingRadioGroup
             android:id="@+id/rgStoolConsistency"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -44,7 +44,7 @@
                 style="@style/EventDetailRadioButton"
                 android:text="@string/stool_consistency_hard" />
 
-        </RadioGroup>
+        </com.zero.components.widget.WrappingRadioGroup>
 
         <!-- 大便颜色 -->
         <TextView
@@ -54,7 +54,7 @@
             android:layout_marginTop="@dimen/event_detail_field_gap"
             android:text="@string/stool_color" />
 
-        <RadioGroup
+        <com.zero.components.widget.WrappingRadioGroup
             android:id="@+id/rgStoolColor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -85,7 +85,7 @@
                 android:tag="black"
                 android:text="@string/stool_color_black" />
 
-        </RadioGroup>
+        </com.zero.components.widget.WrappingRadioGroup>
 
     </LinearLayout>
 
@@ -104,7 +104,7 @@
             android:layout_height="wrap_content"
             android:text="@string/urine_amount" />
 
-        <RadioGroup
+        <com.zero.components.widget.WrappingRadioGroup
             android:id="@+id/rgUrineAmount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -126,7 +126,7 @@
                 style="@style/EventDetailRadioButton"
                 android:text="@string/urine_amount_much" />
 
-        </RadioGroup>
+        </com.zero.components.widget.WrappingRadioGroup>
 
     </LinearLayout>
 

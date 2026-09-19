@@ -8,7 +8,7 @@
     <string name="list_separator_dot"> · </string>
     <string name="times_count_format">Count: %1$d</string>
     <string name="baby_not_born_yet_playful">The time machine is not open yet - I have not been born!</string>
-    <string name="statistics_add_birthdate_hint">You haven’t filled in your baby’s birthday yet, please remember to fill it in.</string>
+    <string name="statistics_add_birthdate_hint">Add a birthday to see your baby’s age</string>
     <string name="babyName">Name</string>
     <string name="babyBirthday">Birthday</string>
     <string name="babyGender">Gender</string>
@@ -553,4 +553,6 @@
     <string name="measurement_value_invalid">Enter a valid number greater than 0</string>
     <string name="calendar_today_date_format">%1$s, today</string>
     <string name="calendar_recorded_date_format">%1$s, has records</string>
+    <string name="record_draft_already_saved">Already saved. Edit the original entry in the timeline.</string>
+    <string name="record_draft_record_deleted">Original entry deleted. Reopen this form to add a new entry.</string>
 </resources>

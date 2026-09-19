@@ -98,8 +98,8 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- ==================== 距上次时间卡片 ==================== -->
-            <LinearLayout
+            <!-- 窄窗大字号使用纵排，保证标题和生活摘要可完整阅读。 -->
+            <com.zero.components.widget.AdaptiveRowLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -277,7 +277,7 @@
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
-            </LinearLayout>
+            </com.zero.components.widget.AdaptiveRowLayout>
 
             <!-- ==================== 下次预测区域 ==================== -->
             <androidx.constraintlayout.widget.ConstraintLayout

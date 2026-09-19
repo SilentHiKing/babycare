@@ -112,7 +112,7 @@
         android:layout_marginTop="@dimen/event_detail_field_gap"
         android:text="@string/temperature_location_label" />
 
-    <RadioGroup
+    <com.zero.components.widget.WrappingRadioGroup
         android:id="@+id/rgTemperatureLocation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -144,7 +144,7 @@
             style="@style/EventDetailRadioButton"
             android:text="@string/temperature_location_rectal" />
 
-    </RadioGroup>
+    </com.zero.components.widget.WrappingRadioGroup>
 
 </LinearLayout>
 

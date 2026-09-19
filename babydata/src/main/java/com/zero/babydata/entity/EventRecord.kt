@@ -25,7 +25,11 @@ import androidx.room.PrimaryKey
         childColumns = ["babyId"],
         onDelete = ForeignKey.CASCADE
     )],
-    indices = [Index(value = ["babyId"]), Index(value = ["type"])]
+    // 日历/时间轴和指定类型的最新测量分别使用复合索引，不改写记录内容或业务 SQL。
+    indices = [
+        Index(value = ["babyId"]), Index(value = ["type"]),
+        Index(value = ["babyId", "time"]), Index(value = ["babyId", "type", "time"])
+    ]
 )
 data class EventRecord(
     @PrimaryKey(autoGenerate = true)

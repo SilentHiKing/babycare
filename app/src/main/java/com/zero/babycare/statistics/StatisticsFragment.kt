@@ -118,7 +118,7 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
         growthAdapter = StatisticsGrowthAdapter()
         growthPercentileAdapter = StatisticsGrowthPercentileAdapter()
         healthAdapter = StatisticsHealthAdapter()
-        babyAgeAdapter = StatisticsBabyAgeAdapter()
+        babyAgeAdapter = StatisticsBabyAgeAdapter(::openBirthdateEditor)
         insightHeaderAdapter = StatisticsInsightHeaderAdapter()
         timelineAdapter = TimelineAdapter { item ->
             handleTimelineItemClick(item)
@@ -157,6 +157,13 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
         return (mainVm.navTarget.value as? NavTarget.Statistics)?.returnTarget ?: NavTarget.Dashboard
     }
 
+    /** 编辑后回到同一统计入口，选中日期继续由当前 StatisticsViewModel 保留。 */
+    private fun openBirthdateEditor() {
+        val statisticsTarget = mainVm.navTarget.value as? NavTarget.Statistics ?: return
+        val babyId = mainVm.getCurrentBabyInfo()?.babyId ?: return
+        mainVm.navigateTo(NavTarget.BabyInfo.edit(babyId, returnTarget = statisticsTarget))
+    }
+
     override fun onSystemBackPressed(): Boolean {
         mainVm.navigateTo(getReturnTarget())
         return true
@@ -165,7 +172,6 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     private fun ensureBabyOrNavigate(): Boolean {
         val currentBaby = mainVm.getCurrentBabyInfo()
         return if (currentBaby == null) {
-            babyAgeAdapter.updateBabyDaysText(null)
             mainVm.navigateTo(NavTarget.BabyInfo.create(returnTarget = NavTarget.Statistics(getReturnTarget())))
             false
         } else {

@@ -28,6 +28,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
@@ -288,9 +289,16 @@ class BabyCalendarView @JvmOverloads constructor(
         val contentLeft = paddingLeft.toFloat()
         val y = paddingTop + weekDayHeight / 2 -
             (weekDayPaint.fontMetrics.ascent + weekDayPaint.fontMetrics.descent) / 2
+        // 紧凑窗口仍保留系统字号；放不下缩写时用当地日历的窄星期名，完整日期由读屏节点提供。
+        val useNarrowLabels = weekDayLabels.any {
+            weekDayPaint.measureText(it) > cellWidth - 4 * resources.displayMetrics.density
+        }
         for (i in 0 until DAYS_IN_WEEK) {
             val x = contentLeft + cellWidth * i + cellWidth / 2
-            canvas.drawText(weekDayLabels[i], x, y, weekDayPaint)
+            val label = if (useNarrowLabels) firstDayOfWeek.plus(i.toLong()).getDisplayName(
+                TextStyle.NARROW, resources.configuration.locales[0]
+            ) else weekDayLabels[i]
+            canvas.drawText(label, x, y, weekDayPaint)
         }
     }
 

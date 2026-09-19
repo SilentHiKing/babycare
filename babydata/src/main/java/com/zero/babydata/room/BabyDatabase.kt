@@ -9,6 +9,7 @@ import com.zero.babydata.entity.ChildDailyRecord
 import com.zero.babydata.entity.EventRecord
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.SleepRecord
+import com.zero.babydata.entity.RecordWriteReceipt
 
 @Database(
     entities = [
@@ -16,9 +17,10 @@ import com.zero.babydata.entity.SleepRecord
         FeedingRecord::class,
         SleepRecord::class,
         ChildDailyRecord::class,
-        EventRecord::class
+        EventRecord::class,
+        RecordWriteReceipt::class
     ],
-    version = 5,
+    version = 8,
     exportSchema = true
 )
 abstract class BabyDatabase : RoomDatabase() {
@@ -28,6 +30,7 @@ abstract class BabyDatabase : RoomDatabase() {
     abstract fun sleepRecordDao(): SleepRecordDao
     abstract fun childDailyRecordDao(): ChildDailyRecordDao
     abstract fun eventRecordDao(): EventRecordDao
+    abstract fun recordWriteReceiptDao(): RecordWriteReceiptDao
 
     companion object {
         @Volatile

@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <LinearLayout
+        <com.zero.components.widget.AdaptiveRowLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -126,9 +126,9 @@
                         tools:text="4h30m" />
                 </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
+        </com.zero.components.widget.AdaptiveRowLayout>
 
-        <LinearLayout
+        <com.zero.components.widget.AdaptiveRowLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -235,7 +235,7 @@
                         tools:text="护理/活动/健康" />
                 </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
+        </com.zero.components.widget.AdaptiveRowLayout>
     </LinearLayout>
 
 </LinearLayout>

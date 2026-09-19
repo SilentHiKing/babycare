@@ -524,10 +524,13 @@
 
     <!-- 事件详情 RadioButton 样式 -->
     <style name="EventDetailRadioButton">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">48dp</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
         <item name="android:background">@drawable/selector_radio_bg</item>
         <item name="android:button">@null</item>
         <item name="android:gravity">center</item>
@@ -537,10 +540,13 @@
 
     <!-- 事件颜色选择 RadioButton 样式 -->
     <style name="EventColorRadioButton">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">48dp</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
         <item name="android:background">@drawable/selector_radio_bg</item>
         <item name="android:button">@null</item>
         <item name="android:gravity">center</item>

@@ -894,7 +894,8 @@ class UiResourcePolicyTest {
                 add("activity root should not consume window insets before shared IME handling")
             }
             if (!statusBarUtil.contains("WindowInsetsCompat.Type.ime()") ||
-                !statusBarUtil.contains("WindowInsetsCompat.Type.navigationBars()") ||
+                !(statusBarUtil.contains("WindowInsetsCompat.Type.navigationBars()") ||
+                    statusBarUtil.contains("WindowInsetsCompat.Type.systemBars()")) ||
                 !statusBarUtil.contains("coerceAtLeast") ||
                 !statusBarUtil.contains("SOFT_INPUT_ADJUST_RESIZE")
             ) {

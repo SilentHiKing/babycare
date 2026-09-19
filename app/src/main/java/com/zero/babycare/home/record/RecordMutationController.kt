@@ -1,6 +1,9 @@
 package com.zero.babycare.home.record
 
 import com.zero.babycare.navigation.NavTarget
+import com.zero.babydata.domain.RecordWriteException
+import com.zero.babydata.domain.RecordWriteFailure
+import com.zero.common.R
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,6 +51,14 @@ internal class RecordMutationController(private val scope: CoroutineScope) {
             } catch (cancelled: CancellationException) {
                 mutableState.compareAndSet(running, State.Idle)
                 throw cancelled
+            } catch (failure: RecordWriteException) {
+                // 冷进程恢复后的旧草稿不能覆盖已修改或已删除的记录，页面保留输入并解释原因。
+                val message = when (failure.reason) {
+                    RecordWriteFailure.CONTENT_CONFLICT -> R.string.record_draft_already_saved
+                    RecordWriteFailure.RECORD_DELETED -> R.string.record_draft_record_deleted
+                    else -> errorRes
+                }
+                mutableState.value = State.Finished(target, kind, operationId, message)
             } catch (_: Exception) {
                 mutableState.value = State.Finished(target, kind, operationId, errorRes)
             }

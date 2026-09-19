@@ -3,6 +3,7 @@ package com.zero.babycare.home.record.event
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.text.StaticLayout
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
@@ -14,6 +15,8 @@ import android.widget.TextView
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.core.widget.TextViewCompat
 import androidx.core.widget.doAfterTextChanged
 import com.google.gson.Gson
 import com.blankj.utilcode.util.SizeUtils
@@ -88,6 +91,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private var detailRendered = false
     private var renderedDetailType: Int? = null
     private var draftId = UUID.randomUUID().toString()
+    private var pendingCategoryScroll: Runnable? = null
 
     private val dateFormat by lazy {
         // 日期标题跟随应用内语言，避免英文环境下仍显示中文“月/日”格式。
@@ -360,7 +364,45 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             )
         )
         binding.rvSubtype.adapter = subtypeAdapter
+        binding.rvSubtype.addOnLayoutChangeListener(subtypeLayoutListener)
         applyCategoryLockState()
+    }
+
+    private val subtypeLayoutListener = View.OnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
+        // 页面预加载时可能已测过空列表；首批子类型只改变高度，也必须重新计算列数。
+        // 必须等本轮布局结束再改 spanCount，否则 RecyclerView 已测好的四列子项可能留到下一次交互。
+        view.removeCallbacks(subtypeGridUpdate)
+        view.post(subtypeGridUpdate)
+    }
+
+    private val subtypeGridUpdate = Runnable {
+        view?.findViewById<RecyclerView>(com.zero.babycare.R.id.rvSubtype)?.let(::updateSubtypeGridColumns)
+    }
+
+    private fun updateSubtypeGridColumns(recycler: RecyclerView) {
+        val manager = recycler.layoutManager as? GridLayoutManager ?: return
+        val items = (recycler.adapter as? EventSubtypeAdapter)?.items.orEmpty()
+        val available = recycler.width - recycler.paddingLeft - recycler.paddingRight
+        if (available <= 0 || items.isEmpty()) return
+        val label = TextView(recycler.context).apply {
+            TextViewCompat.setTextAppearance(this, R.style.TextAppearance_BabyCare_Body2)
+        }
+        val spacing = (8 * recycler.resources.displayMetrics.density).toInt()
+        val minimumWidth = (56 * recycler.resources.displayMetrics.density).toInt()
+        // 按当前语言和真实字号试排两行文字，避免固定四列将不同事件类型截成相同省略标签。
+        val columns = (SUBTYPE_SPAN_COUNT downTo 1).first { count ->
+            val itemWidth = (available - spacing * (count - 1)) / count
+            itemWidth >= minimumWidth && items.all { item ->
+                val text = recycler.context.getString(item.nameResId)
+                StaticLayout.Builder.obtain(text, 0, text.length, label.paint, (itemWidth - spacing).coerceAtLeast(1))
+                    .build().lineCount <= 2
+            } || count == 1
+        }
+        if (manager.spanCount != columns) {
+            manager.spanCount = columns
+            // 间距装饰器读取 LayoutManager 的实际列数，重新分配后同步刷新其偏移。
+            recycler.invalidateItemDecorations()
+        }
     }
 
     private fun setupNoteSection() {
@@ -389,6 +431,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                 if (category != null) {
                     val subtypes = EventSubtype.getSubtypes(category)
                     subtypeAdapter.submitList(subtypes)
+                    updateSubtypeGridColumns(binding.rvSubtype)
                     scrollCategoryIntoView(category)
                 } else {
                     subtypeAdapter.submitList(emptyList())
@@ -1021,9 +1064,20 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private fun scrollCategoryIntoView(category: EventCategory) {
         val position = EventCategory.entries.indexOf(category)
         if (position < 0) return
-        binding.rvCategory.post {
-            binding.rvCategory.smoothScrollToPosition(position)
+        val expectedView = binding.root
+        val recycler = binding.rvCategory
+        pendingCategoryScroll?.let(recycler::removeCallbacks)
+        val scroll = object : Runnable {
+            override fun run() {
+                // 连续配置重建时旧队列可能晚到；仅当前 View 的最新请求可以滚动。
+                if (pendingCategoryScroll !== this) return
+                pendingCategoryScroll = null
+                if (view !== expectedView || !recycler.isAttachedToWindow) return
+                recycler.smoothScrollToPosition(position)
+            }
         }
+        pendingCategoryScroll = scroll
+        recycler.post(scroll)
     }
 
     private fun saveRecord() {
@@ -1337,6 +1391,11 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     override fun onDestroyView() {
+        pendingCategoryScroll?.let(binding.rvCategory::removeCallbacks)
+        pendingCategoryScroll = null
+        binding.rvSubtype.removeOnLayoutChangeListener(subtypeLayoutListener)
+        binding.rvSubtype.removeCallbacks(subtypeGridUpdate)
+        binding.rvSubtype.adapter = null
         retainedDraft = if (!isHidden) captureDraft() else null
         detailRendered = false
         releaseActivityTimer()

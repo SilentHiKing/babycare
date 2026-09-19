@@ -3,7 +3,8 @@ package com.zero.babycare.home.record.event
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import com.zero.babycare.home.BabyRecordChangeBus
-import com.zero.babydata.domain.BabyDataHelper.repository
+import com.zero.babydata.domain.BabyDataHelper
+import com.zero.babydata.room.BabyRepository
 import com.zero.babydata.entity.EventExtraData
 import com.zero.babydata.entity.EventRecord
 import com.zero.babydata.entity.EventType
@@ -19,7 +20,9 @@ import com.zero.babycare.home.record.RecordMutationController
 /**
  * 事件记录 ViewModel
  */
-class EventRecordViewModel : BaseViewModel() {
+class EventRecordViewModel(private val injectedRepository: BabyRepository? = null) : BaseViewModel() {
+    // 延迟获取默认数据源，让草稿状态恢复独立于数据库初始化，并支持隔离的数据层验证。
+    private val repository by lazy { injectedRepository ?: BabyDataHelper.repository }
     internal val mutation = RecordMutationController(viewModelScope)
 
     /** 草稿只保存未提交的页面状态，详情原始输入由 View 层层级状态保留。 */
@@ -272,7 +275,7 @@ class EventRecordViewModel : BaseViewModel() {
 
         mutation.submit(target, RecordMutationController.Kind.SAVE, R.string.save_failed) {
             if (target.recordId != null) repository.updateEventRecord(record)
-            else repository.insertEventRecord(record)
+            else repository.insertEventRecordOnce(record, target.draftId)
             BabyRecordChangeBus.notifyChanged(record.babyId)
         }
     }

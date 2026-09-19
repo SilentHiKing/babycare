@@ -13,7 +13,12 @@ import androidx.room.PrimaryKey
         childColumns = ["babyId"],
         onDelete = ForeignKey.CASCADE
     )],
-    indices = [Index(value = ["babyId"])]
+    // 开始索引同时携带结束时间，减少跨日查询历史记录的回表；仍保持时间顺序。
+    indices = [
+        Index(value = ["babyId"]),
+        Index(value = ["babyId", "sleepStart", "sleepEnd"]),
+        Index(value = ["babyId", "sleepEnd"])
+    ]
 )
 data class SleepRecord(
     @PrimaryKey(autoGenerate = true)

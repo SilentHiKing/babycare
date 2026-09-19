@@ -1,11 +1,11 @@
 package com.zero.babycare.home
 
 import android.os.Bundle
-import android.content.res.Configuration
 import android.view.View
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.zero.babycare.MainActivity
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentDashboardBinding
@@ -29,6 +29,15 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
     }
 
     private val vm by viewModels<DashboardViewModel>()
+    private val quickRecordLayoutListener = View.OnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
+        // 布局中修改列数可能保留旧子项宽度，等本轮布局结束后再请求一次完整重排。
+        view.removeCallbacks(quickRecordGridUpdate)
+        view.post(quickRecordGridUpdate)
+    }
+    private val quickRecordGridUpdate = Runnable {
+        // 只查当前 View，不在异步回调中访问可能已销毁的 binding。
+        view?.findViewById<RecyclerView>(com.zero.babycare.R.id.rvQuickRecord)?.let(::updateQuickRecordColumns)
+    }
     private val mainVm: MainViewModel by lazy {
         activityViewModels<MainViewModel>().value
     }
@@ -410,15 +419,24 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         val columns = DeviceUtils.getQuickRecordColumns(requireContext())
         binding.rvQuickRecord.layoutManager = GridLayoutManager(requireContext(), columns)
         binding.rvQuickRecord.adapter = adapter
+        binding.rvQuickRecord.addOnLayoutChangeListener(quickRecordLayoutListener)
         adapter.submitList(QuickRecordItem.getQuickRecordItems())
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        if (view == null) return
-        // 分屏或窗口尺寸变化时只更新列数，保留列表和当前页面状态。
-        (binding.rvQuickRecord.layoutManager as? GridLayoutManager)?.spanCount =
-            DeviceUtils.getQuickRecordColumns(requireContext())
+    private fun updateQuickRecordColumns(list: RecyclerView) {
+        val manager = list.layoutManager as? GridLayoutManager ?: return
+        // 以卡片内列表宽度计算，平板的 maxWidth 和分屏变化都不能被整屏宽度覆盖。
+        val columns = DeviceUtils.getQuickRecordColumns(
+            list.context, list.width - list.paddingLeft - list.paddingRight
+        )
+        if (manager.spanCount != columns) manager.spanCount = columns
+    }
+
+    override fun onDestroyView() {
+        binding.rvQuickRecord.removeOnLayoutChangeListener(quickRecordLayoutListener)
+        binding.rvQuickRecord.removeCallbacks(quickRecordGridUpdate)
+        binding.rvQuickRecord.adapter = null
+        super.onDestroyView()
     }
 
     /**

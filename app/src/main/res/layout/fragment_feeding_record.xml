@@ -77,7 +77,7 @@
                     android:text="@string/feeding_type"
                     android:textColor="?attr/colorTextPrimary" />
 
-                <RadioGroup
+                <com.zero.components.widget.WrappingRadioGroup
                     android:id="@+id/rgFeedingType"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -86,9 +86,13 @@
 
                     <RadioButton
                         android:id="@+id/rbBreast"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
                         android:background="@drawable/selector_radio_bg"
                         android:button="@null"
                         android:gravity="center"
@@ -96,15 +100,15 @@
                         android:textAppearance="@style/TextAppearance.BabyCare.Body2"
                         android:textColor="@color/selector_radio_text_color" />
 
-                    <View
-                        android:layout_width="8dp"
-                        android:layout_height="1dp" />
-
                     <RadioButton
                         android:id="@+id/rbFormula"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
                         android:background="@drawable/selector_radio_bg"
                         android:button="@null"
                         android:gravity="center"
@@ -112,15 +116,15 @@
                         android:textAppearance="@style/TextAppearance.BabyCare.Body2"
                         android:textColor="@color/selector_radio_text_color" />
 
-                    <View
-                        android:layout_width="8dp"
-                        android:layout_height="1dp" />
-
                     <RadioButton
                         android:id="@+id/rbMixed"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
                         android:background="@drawable/selector_radio_bg"
                         android:button="@null"
                         android:gravity="center"
@@ -128,15 +132,15 @@
                         android:textAppearance="@style/TextAppearance.BabyCare.Body2"
                         android:textColor="@color/selector_radio_text_color" />
 
-                    <View
-                        android:layout_width="8dp"
-                        android:layout_height="1dp" />
-
                     <RadioButton
                         android:id="@+id/rbSolid"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
                         android:background="@drawable/selector_radio_bg"
                         android:button="@null"
                         android:gravity="center"
@@ -144,15 +148,15 @@
                         android:textAppearance="@style/TextAppearance.BabyCare.Body2"
                         android:textColor="@color/selector_radio_text_color" />
 
-                    <View
-                        android:layout_width="8dp"
-                        android:layout_height="1dp" />
-
                     <RadioButton
                         android:id="@+id/rbOther"
-                        android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_weight="1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
                         android:background="@drawable/selector_radio_bg"
                         android:button="@null"
                         android:gravity="center"
@@ -160,7 +164,7 @@
                         android:textAppearance="@style/TextAppearance.BabyCare.Body2"
                         android:textColor="@color/selector_radio_text_color" />
 
-                </RadioGroup>
+                </com.zero.components.widget.WrappingRadioGroup>
 
                 <LinearLayout
                     android:id="@+id/llBreastDuration"
@@ -502,7 +506,8 @@
                     <LinearLayout
                         android:id="@+id/rowFirstTime"
                         android:layout_width="match_parent"
-                        android:layout_height="52dp"
+                        android:layout_height="wrap_content"
+                        android:minHeight="52dp"
                         android:layout_marginTop="12dp"
                         android:background="@drawable/bg_record_time_field"
                         android:clickable="true"
@@ -510,7 +515,9 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:paddingStart="12dp"
-                        android:paddingEnd="12dp">
+                        android:paddingEnd="12dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp">
 
                         <TextView
                             style="@style/TextAppearance.BabyCare.Body2"
@@ -606,7 +613,10 @@
         android:id="@+id/tvSave"
         style="@style/TextAppearance.BabyCare.Body1"
         android:layout_width="0dp"
-        android:layout_height="48dp"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         android:layout_marginStart="@dimen/page_horizontal_padding"
         android:layout_marginEnd="@dimen/page_horizontal_padding"
         android:layout_marginBottom="20dp"

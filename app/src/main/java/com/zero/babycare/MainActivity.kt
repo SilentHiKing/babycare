@@ -1,7 +1,6 @@
 package com.zero.babycare
 
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
@@ -32,11 +31,9 @@ import com.zero.babycare.reminder.ReminderType
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.ext.launchInLifecycle
 import com.zero.common.theme.ThemeManager
-import com.zero.common.util.DeviceUtils
 import com.zero.components.base.BaseActivity
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import me.jessyan.autosize.AutoSizeConfig
 import java.util.concurrent.TimeUnit
 import kotlin.getValue
 import kotlin.math.abs
@@ -92,13 +89,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onResume() {
         super.onResume()
         vm.onAppForeground()
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        // 分屏、折叠或旋转改变窗口宽度时重新计算适配基线。
-        val designWidth = DeviceUtils.getDesignWidthInDp(this)
-        AutoSizeConfig.getInstance().setDesignWidthInDp(designWidth)
     }
 
     /**
@@ -417,8 +407,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     override fun initData(savedInstanceState: Bundle?) {
-        // 初始页面等待 Room 首次快照；通知目标优先于默认首页选择。
-        if (handleReminderIntent(intent)) {
+        // 系统恢复任务时可能重新传入仍带提醒参数的原始 Intent；此时保存的导航和草稿优先。
+        // 真正的新通知由 onNewIntent 处理，仅首次启动消费初始提醒。
+        if (savedInstanceState == null && handleReminderIntent(intent)) {
             shouldChooseInitialDestination = false
         }
     }

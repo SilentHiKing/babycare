@@ -8,7 +8,7 @@
     <string name="list_separator_dot"> · </string>
     <string name="times_count_format">%1$d 回</string>
     <string name="baby_not_born_yet_playful">タイムマシンは開かず、私はまだ生まれていませんでした。</string>
-    <string name="statistics_add_birthdate_hint">赤ちゃんの誕生日をまだ記入していない場合は、忘れずに記入してください。</string>
+    <string name="statistics_add_birthdate_hint">誕生日を追加して月齢を表示</string>
     <string name="babyName">名前</string>
     <string name="babyBirthday">誕生日</string>
     <string name="babyGender">性別</string>
@@ -553,4 +553,6 @@
     <string name="measurement_value_invalid">0 より大きい有効な数値を入力してください</string>
     <string name="calendar_today_date_format">%1$s、今日</string>
     <string name="calendar_recorded_date_format">%1$s、記録あり</string>
+    <string name="record_draft_already_saved">保存済みです。タイムラインから元の記録を編集してください</string>
+    <string name="record_draft_record_deleted">元の記録は削除されています。記録画面を開き直して新しく作成してください</string>
 </resources>

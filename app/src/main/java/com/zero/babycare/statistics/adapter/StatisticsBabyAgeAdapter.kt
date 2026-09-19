@@ -1,55 +1,41 @@
 package com.zero.babycare.statistics.adapter
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.chad.library.adapter4.BaseSingleItemAdapter
 import com.zero.babycare.databinding.ItemStatisticsBabyAgeBinding
 import com.zero.babycare.statistics.model.DayRecordSectionUiModel
 
-class StatisticsBabyAgeAdapter :
-    RecyclerView.Adapter<StatisticsBabyAgeAdapter.BabyAgeViewHolder>() {
+/** 年龄区只渲染统计状态并转发补充生日操作，导航由页面处理。 */
+class StatisticsBabyAgeAdapter(private val onAddBirthdate: () -> Unit) :
+    BaseSingleItemAdapter<DayRecordSectionUiModel, StatisticsBabyAgeAdapter.BabyAgeViewHolder>() {
 
-    private var babyDaysText: String? = null
-    private var recordCountText: String = ""
-    private var showBirthHint: Boolean = true
-    private var binding: ItemStatisticsBabyAgeBinding? = null
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BabyAgeViewHolder {
+    override fun onCreateViewHolder(context: Context, parent: ViewGroup, viewType: Int): BabyAgeViewHolder {
         val binding = ItemStatisticsBabyAgeBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false
         )
+        binding.btnAddBirthdate.setOnClickListener { onAddBirthdate() }
         return BabyAgeViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: BabyAgeViewHolder, position: Int) {
-        binding = holder.binding
-        applyState(holder.binding)
+    override fun onBindViewHolder(holder: BabyAgeViewHolder, item: DayRecordSectionUiModel?) {
+        with(holder.binding) {
+            val canAddBirthdate = item?.showBirthHint == true
+            btnAddBirthdate.visibility = if (canAddBirthdate) View.VISIBLE else View.GONE
+            btnAddBirthdate.isEnabled = canAddBirthdate
+            llBabyAge.visibility = if (item?.babyAgeText.isNullOrBlank()) View.GONE else View.VISIBLE
+            tvBabyDays.text = item?.babyAgeText.orEmpty()
+            tvRecordCount.text = item?.recordCountText.orEmpty()
+        }
     }
-
-    override fun getItemCount(): Int = 1
 
     fun bindDayRecord(dayRecord: DayRecordSectionUiModel) {
-        babyDaysText = dayRecord.babyAgeText
-        recordCountText = dayRecord.recordCountText
-        showBirthHint = dayRecord.showBirthHint
-        binding?.let { applyState(it) }
-    }
-
-    fun updateBabyDaysText(text: String?) {
-        babyDaysText = text
-        showBirthHint = text.isNullOrBlank()
-        binding?.let { applyState(it) }
-    }
-
-    private fun applyState(binding: ItemStatisticsBabyAgeBinding) {
-        binding.flBabyAge.visibility = View.VISIBLE
-        binding.llBirthHint.visibility = if (showBirthHint) View.VISIBLE else View.GONE
-        binding.llBabyAge.visibility = if (babyDaysText.isNullOrBlank()) View.GONE else View.VISIBLE
-        binding.tvBabyDays.text = babyDaysText.orEmpty()
-        binding.tvRecordCount.text = recordCountText
+        if (item != dayRecord) item = dayRecord
     }
 
     class BabyAgeViewHolder(val binding: ItemStatisticsBabyAgeBinding) :
