@@ -86,6 +86,62 @@ class BabyBackupParserTest {
         assertEquals("0123456789", BabyBackupParser.readLimited(StringReader("0123456789"), 10))
     }
 
+    @Test
+    fun deeplyNestedOuterAndEventJsonAreRejectedBeforeObjectConstruction() {
+        val nested = "[".repeat(5_000) + "0" + "]".repeat(5_000)
+        assertInvalid(gson.toJson(envelope()).dropLast(1) + ",\"unknown\":$nested}")
+        val event = withEvent(EventType.DIAPER_WET, "{\"unknown\":$nested}")
+        assertInvalid(gson.toJson(event))
+        // 直接调用 importer 的 DTO 校验入口也不能绕过扩展 JSON 深度限制。
+        assertThrows(BackupImportException::class.java) { BabyBackupParser.validateEnvelope(event) }
+        val wide = "{\"unknown\":[" + "0,".repeat(BackupJsonLimits.MAX_EXTRA_VALUES) + "0]}"
+        assertInvalid(gson.toJson(withEvent(EventType.DIAPER_WET, wide)))
+    }
+
+    @Test
+    fun recordCountIsLimitedBeforeGsonAllocatesMillionsOfEmptyObjects() {
+        val prefix = "{\"data\":{\"babies\":["
+        val records = "{},".repeat(BackupJsonLimits.MAX_RECORDS)
+        BackupJsonLimits.validate(prefix + records.dropLast(1) + "]}}", countRecords = true)
+        // 后面故意缺少结束符；必须在第 200001 条出现时受控拒绝，而不是继续分配或读到语法错误。
+        assertThrows(BackupImportException::class.java) {
+            BackupJsonLimits.validate(prefix + records + "{}", countRecords = true)
+        }
+    }
+
+    @Test
+    fun optionalEventFieldsMustMatchTheirActualDtoTypes() {
+        listOf(
+            EventType.HEALTH_MEDICINE to "{\"name\":\"测试\",\"dosage\":[]}",
+            EventType.HEALTH_MEDICINE to "{\"name\":\"测试\",\"unit\":{}}",
+            EventType.HEALTH_VACCINE to "{\"name\":\"测试\",\"dose\":2147483648}",
+            EventType.HEALTH_VACCINE to "{\"name\":\"测试\",\"dose\":1.5}",
+            EventType.HEALTH_VACCINE to "{\"name\":\"测试\",\"site\":[]}",
+            EventType.DIAPER_WET to "{\"color\":[],\"abnormal\":true}",
+            EventType.DIAPER_WET to "{\"abnormal\":\"true\"}",
+            EventType.HEALTH_SYMPTOM to "{\"description\":[]}",
+            EventType.MILESTONE_ROLL to "{\"isFirst\":{}}",
+            EventType.OTHER_CUSTOM to "{\"name\":[]}",
+            EventType.ACTIVITY_PLAY to "{\"data\":[]}"
+        ).forEach { (type, extra) -> assertInvalid(gson.toJson(withEvent(type, extra))) }
+    }
+
+    @Test
+    fun legalOptionalAndUnknownEventFieldsKeepTheirOriginalJson() {
+        listOf(
+            EventType.HEALTH_MEDICINE to "{\"name\":\"测试\",\"dosage\":null,\"unit\":\"未知旧单位\",\"future\":{\"x\":[1,2]}}",
+            EventType.HEALTH_VACCINE to "{\"name\":\"测试\",\"dose\":2,\"site\":null}",
+            EventType.DIAPER_WET to "{\"color\":null,\"abnormal\":true}",
+            EventType.HEALTH_SYMPTOM to "{\"description\":null}",
+            EventType.MILESTONE_ROLL to "{\"isFirst\":false,\"name\":null}",
+            EventType.OTHER_CUSTOM to "{\"name\":null,\"description\":\"旧描述\"}",
+            EventType.ACTIVITY_PLAY to "{\"data\":{\"future\":[1,{\"flag\":true}]}}"
+        ).forEach { (type, extra) ->
+            val parsed = BabyBackupParser.parse(gson.toJson(withEvent(type, extra)))
+            assertEquals(extra, parsed.data.eventRecords.single().extraData)
+        }
+    }
+
     private fun envelope() = BabyBackupEnvelope(
         version = BABY_BACKUP_VERSION,
         createdAt = 1000,

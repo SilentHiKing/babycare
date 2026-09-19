@@ -10,6 +10,9 @@ import com.zero.babydata.entity.FeedingRecord
 @Dao
 interface FeedingRecordDao {
 
+    @Query("SELECT COUNT(*) FROM Feeding_Records")
+    suspend fun countForBackup(): Long
+
     @Insert
     suspend fun insertFeedingRecord(feedingRecord: FeedingRecord): Long
 
@@ -43,11 +46,15 @@ interface FeedingRecordDao {
     @Query("SELECT * FROM Feeding_Records WHERE babyId = :babyId AND feedingStart BETWEEN :startTime AND :endTime ORDER BY feedingStart ASC")
     suspend fun getFeedingRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<FeedingRecord>
 
-    @Query("SELECT * FROM Feeding_Records WHERE babyId = :babyId ORDER BY feedingEnd DESC LIMIT 1")
+    @Query("SELECT * FROM Feeding_Records WHERE babyId = :babyId AND feedingStart > 0 AND feedingEnd > feedingStart ORDER BY feedingEnd DESC, feedingStart DESC, feedingId DESC LIMIT 1")
     suspend fun getLastFeedingRecord(babyId: Int): FeedingRecord?
 
     @Query("SELECT * FROM Feeding_Records WHERE babyId = :babyId ORDER BY feedingStart DESC LIMIT :limit")
     suspend fun getRecentFeedings(babyId: Int, limit: Int): List<FeedingRecord>
+
+    /** 先筛有效奶类再限量，辅食及重叠短记录不能挤掉最近完成的预测依据。 */
+    @Query("SELECT * FROM Feeding_Records WHERE babyId = :babyId AND feedingStart > 0 AND feedingEnd > feedingStart AND feedingType IN (:milkTypes) ORDER BY feedingEnd DESC, feedingStart DESC, feedingId DESC LIMIT :limit")
+    suspend fun getRecentCompletedMilkFeedings(babyId: Int, limit: Int, milkTypes: List<Int>): List<FeedingRecord>
 
     @Query("SELECT DISTINCT date(feedingStart / 1000, 'unixepoch', 'localtime') as recordDate FROM Feeding_Records WHERE babyId = :babyId AND feedingStart BETWEEN :startTime AND :endTime")
     suspend fun getDatesWithFeedings(babyId: Int, startTime: Long, endTime: Long): List<String>

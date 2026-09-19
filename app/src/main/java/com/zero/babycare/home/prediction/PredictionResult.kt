@@ -34,9 +34,9 @@ data class PredictionResult(
     /**
      * 检查预测时间是否已过期
      */
-    fun isExpired(): Boolean {
+    fun isExpired(now: Long = System.currentTimeMillis()): Boolean {
         // 以区间的最晚时间为准，避免中心点已过但预测区间仍有效
-        return latestTime.time < System.currentTimeMillis()
+        return latestTime.time < now
     }
     
     /**

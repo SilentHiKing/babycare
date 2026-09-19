@@ -11,6 +11,17 @@ import org.junit.Test
 
 class BackupRecordDeduplicatorTest {
     @Test
+    fun malformedLegacyDepthUsesOriginalTextWithoutRecursiveHashing() {
+        val raw = "{\"unknown\":" + "[".repeat(5_000) + "0" + "]".repeat(5_000) + "}"
+        val record = EventRecord(babyId = 1, type = EventType.DIAPER_WET, time = 1000, extraData = raw)
+        val index = BackupRecordDeduplicator(0)
+        index.remember(record)
+        assertFalse(index.add(record.copy()))
+        assertTrue(index.add(record.copy(extraData = "{}")))
+        org.junit.Assert.assertEquals(raw, record.extraData)
+    }
+
+    @Test
     fun medicineLanguageAliasesDeduplicateWithoutChangingUnknownUnitsOrStoredJson() {
         val index = BackupRecordDeduplicator(60_000)
         val record = EventRecord(babyId = 1, type = EventType.HEALTH_MEDICINE, time = 100_000,

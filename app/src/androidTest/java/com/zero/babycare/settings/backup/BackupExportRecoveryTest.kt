@@ -53,7 +53,7 @@ class BackupExportRecoveryTest {
 
     @Test
     fun pickerProcessRecoveryWritesOriginalContentAndRestoresUnconsumedResult() = runBlocking {
-        val content = "{\"synthetic\":\"${"x".repeat(64_000)}\"}"
+        val content = "{\"synthetic\":\"${"合成🍼x".repeat(16_000)}\"}"
         val original = createSession()
         val request = prepareReport(original, content)
         val saved = snapshot(original)

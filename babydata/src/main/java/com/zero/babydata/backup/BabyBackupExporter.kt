@@ -2,7 +2,6 @@ package com.zero.babydata.backup
 
 import android.content.Context
 import androidx.room.withTransaction
-import com.google.gson.Gson
 import com.zero.babydata.room.BabyDatabase
 
 /**
@@ -11,7 +10,6 @@ import com.zero.babydata.room.BabyDatabase
  */
 class BabyBackupExporter internal constructor(private val database: BabyDatabase) {
     constructor(context: Context) : this(BabyDatabase.getInstance(context))
-    private val gson = Gson()
 
     /**
      * 构建备份数据包
@@ -19,6 +17,13 @@ class BabyBackupExporter internal constructor(private val database: BabyDatabase
     suspend fun buildEnvelope(appVersion: String? = null): BabyBackupEnvelope {
         // 所有表在同一个读事务内采集，避免导出过程中新增记录造成跨表时间点不一致。
         return database.withTransaction {
+            // 必须与读快照在同一事务里先计数，超量库不能先把全部实体装进内存。
+            val recordCount = database.babyInfoDao().countForBackup() +
+                database.feedingRecordDao().countForBackup() + database.sleepRecordDao().countForBackup() +
+                database.eventRecordDao().countForBackup() + database.childDailyRecordDao().countForBackup()
+            if (recordCount > BackupJsonLimits.MAX_RECORDS) {
+                throw BackupExportException(BackupExportError.LIMIT_EXCEEDED)
+            }
             val babies = database.babyInfoDao().getAllBabyInfo()
             val feedingRecords = ArrayList<BackupFeedingRecord>()
             val sleepRecords = ArrayList<BackupSleepRecord>()
@@ -55,6 +60,6 @@ class BabyBackupExporter internal constructor(private val database: BabyDatabase
      * 备份包序列化
      */
     fun toJson(envelope: BabyBackupEnvelope): String {
-        return gson.toJson(envelope)
+        return BackupJsonEncoder.encode(envelope)
     }
 }

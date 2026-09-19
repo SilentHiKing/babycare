@@ -71,6 +71,8 @@ internal class BackupRecordDeduplicator(toleranceMillis: Long) {
 
     private fun jsonContent(raw: String, type: Int): Any = if (raw.isBlank()) "" else {
         runCatching {
+            // 老版本已经落库的深层/超长扩展也不能在合并哈希时递归溢出；异常原文按字符串比较。
+            BackupJsonLimits.validate(raw, maxValues = BackupJsonLimits.MAX_EXTRA_VALUES)
             JsonParser.parseString(raw).also { json ->
                 if (type == EventType.HEALTH_MEDICINE && json.isJsonObject) {
                     val unit = json.asJsonObject.get("unit")

@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ChildDailyRecordDao {
 
+    @Query("SELECT COUNT(*) FROM ChildDailyRecord")
+    suspend fun countForBackup(): Long
+
     @Insert
     suspend fun insertChildDailyRecord(record: ChildDailyRecord): Long
 

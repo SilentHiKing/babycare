@@ -2,6 +2,7 @@ package com.zero.babydata.backup
 
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import com.google.gson.JsonSyntaxException
 import com.zero.babydata.entity.EventType
@@ -34,6 +35,7 @@ object BabyBackupParser {
             throw BackupImportException(BackupImportError.INVALID_JSON)
         }
         return try {
+            BackupJsonLimits.validate(json, countRecords = true)
             val envelope = gson.fromJson(json, BabyBackupEnvelope::class.java)
                 ?: throw BackupImportException(BackupImportError.INVALID_JSON)
             validateEnvelope(envelope)
@@ -70,7 +72,7 @@ object BabyBackupParser {
         if (hasDuplicateTransportKeys(data)) {
             throw BackupImportException(BackupImportError.INVALID_JSON)
         }
-        if (data.totalRecordCount() == 0) {
+        if (data.totalRecordCount() == 0L) {
             throw BackupImportException(BackupImportError.EMPTY_DATA)
         }
     }
@@ -98,21 +100,19 @@ object BabyBackupParser {
                 record.feedingDurationBreastLeft >= 0L &&
                 record.feedingDurationBreastRight >= 0L &&
                 (record.feedingAmount == null || record.feedingAmount in 0..MAX_FEEDING_AMOUNT) &&
-                record.note.length <= MAX_TEXT_LENGTH &&
-                (record.foodName?.length ?: 0) <= MAX_NAME_LENGTH
+                record.note.isPresent()
         } && data.sleepRecords.all { record ->
             record.sourceId.isValidTransportId() &&
                 record.sleepStart > 0L &&
                 record.sleepEnd >= record.sleepStart &&
                 record.sleepDuration in 0L..(record.sleepEnd - record.sleepStart) &&
-                record.note.length <= MAX_TEXT_LENGTH
+                record.note.isPresent()
         } && data.eventRecords.all { record ->
             record.sourceId.isValidTransportId() &&
                 record.type in VALID_EVENT_TYPES &&
                 record.time > 0L &&
                 (record.endTime == 0L || record.endTime >= record.time) &&
-                record.extraData.length <= MAX_EXTRA_LENGTH &&
-                record.note.length <= MAX_TEXT_LENGTH &&
+                record.note.isPresent() &&
                 hasValidEventExtra(record)
         } && data.childDailyRecords.all { record ->
             record.sourceId.isValidTransportId() &&
@@ -120,8 +120,7 @@ object BabyBackupParser {
                 record.weight.isFinite() && record.weight >= 0f &&
                 record.height.isFinite() && record.height >= 0f &&
                 record.headCircumference.isFinite() && record.headCircumference >= 0f &&
-                record.pic.length <= MAX_TEXT_LENGTH &&
-                record.extra.length <= MAX_EXTRA_LENGTH
+                record.pic.isPresent() && record.extra.isPresent()
         }
     }
 
@@ -129,7 +128,10 @@ object BabyBackupParser {
     private fun hasValidEventExtra(record: BackupEventRecord): Boolean {
         // 老版本事件没有扩展字段，空内容必须仍能恢复。
         if (record.extraData.isBlank()) return true
-        val json = runCatching { JsonParser.parseString(record.extraData) }.getOrNull()
+        val json = try {
+            BackupJsonLimits.validate(record.extraData, maxValues = BackupJsonLimits.MAX_EXTRA_VALUES)
+            JsonParser.parseString(record.extraData)
+        } catch (_: Exception) { return false }
             ?.takeIf { it.isJsonObject }?.asJsonObject ?: return false
         return when {
             EventType.isGrowth(record.type) -> {
@@ -142,11 +144,37 @@ object BabyBackupParser {
             }
             record.type == EventType.HEALTH_TEMPERATURE ->
                 json.positiveNumber("value") && json.stringValue("location") != null
-            record.type == EventType.HEALTH_MEDICINE || record.type == EventType.HEALTH_VACCINE ->
-                json.stringValue("name") != null
-            else -> true
+            record.type == EventType.HEALTH_MEDICINE ->
+                json.stringValue("name") != null && json.optionalStrings("dosage", "unit")
+            record.type == EventType.HEALTH_VACCINE ->
+                json.stringValue("name") != null && json.optionalStrings("site", "batchNumber", "clinic") &&
+                    json.optional("dose") { value ->
+                        value.isJsonPrimitive && value.asJsonPrimitive.isNumber &&
+                            runCatching { value.asBigDecimal.intValueExact() }.isSuccess
+                    }
+            EventType.isDiaper(record.type) ->
+                json.optionalStrings("color", "consistency", "urineAmount", "abnormalDesc") &&
+                    json.optionalBoolean("abnormal")
+            record.type == EventType.HEALTH_SYMPTOM -> json.optionalStrings("description")
+            EventType.isMilestone(record.type) ->
+                json.optionalStrings("name", "description") && json.optionalBoolean("isFirst")
+            record.type == EventType.OTHER_CUSTOM -> json.optionalStrings("name", "description")
+            else -> json.optional("data") { it.isJsonObject }
         }
     }
+
+    /** 可选字段允许旧版缺失/null，但存在时必须与实际编辑/统计 DTO 的类型一致。 */
+    private fun JsonObject.optional(key: String, accepts: (JsonElement) -> Boolean): Boolean {
+        val value = get(key) ?: return true
+        return value.isJsonNull || accepts(value)
+    }
+
+    private fun JsonObject.optionalStrings(vararg keys: String): Boolean = keys.all { key ->
+        optional(key) { it.isJsonPrimitive && it.asJsonPrimitive.isString }
+    }
+
+    private fun JsonObject.optionalBoolean(key: String): Boolean =
+        optional(key) { it.isJsonPrimitive && it.asJsonPrimitive.isBoolean }
 
     private fun JsonObject.stringValue(key: String): String? = get(key)
         ?.takeIf { it.isJsonPrimitive && it.asJsonPrimitive.isString }?.asString
@@ -165,32 +193,28 @@ object BabyBackupParser {
 
     private fun BackupBaby.isValidForImport(): Boolean =
         stableId.isUuid() &&
-            name.isNotBlank() && name.length <= MAX_NAME_LENGTH &&
-            gender.length <= MAX_NAME_LENGTH &&
+            name.isNotBlank() &&
+            gender.isPresent() &&
             birthDate >= 0L &&
             birthWeight.isFinite() && birthWeight >= 0f &&
             birthHeight.isFinite() && birthHeight >= 0f &&
-            bloodType.length <= MAX_NAME_LENGTH &&
-            extra.length <= MAX_EXTRA_LENGTH
+            bloodType.isPresent() && extra.isPresent()
+
+    // 自由文本与本地编辑能力一致，只受整包字符上限约束；Gson 的 null 仍须拒绝。
+    private fun String?.isPresent(): Boolean = this != null
 
     private fun String.isUuid(): Boolean =
         runCatching { UUID.fromString(this) }.getOrNull()?.toString() == lowercase()
 
     private fun String.isValidTransportId(): Boolean = isNotBlank() && length <= MAX_TRANSPORT_ID_LENGTH
 
-    private fun BabyBackupData.totalRecordCount(): Int =
-        babies.size + feedingRecords.size + sleepRecords.size + eventRecords.size + childDailyRecords.size
-
     private inline fun <T, K> List<T>.hasDuplicateBy(keySelector: (T) -> K): Boolean {
         val keys = HashSet<K>(size)
         return any { !keys.add(keySelector(it)) }
     }
 
-    private const val MAX_BACKUP_JSON_CHARS = 20 * 1024 * 1024
-    private const val MAX_BACKUP_RECORDS = 200_000
-    private const val MAX_TEXT_LENGTH = 10_000
-    private const val MAX_EXTRA_LENGTH = 100_000
-    private const val MAX_NAME_LENGTH = 200
+    private const val MAX_BACKUP_JSON_CHARS = BackupJsonLimits.MAX_JSON_CHARS
+    private const val MAX_BACKUP_RECORDS = BackupJsonLimits.MAX_RECORDS
     private const val MAX_TRANSPORT_ID_LENGTH = 300
     private const val MAX_FEEDING_AMOUNT = 100_000
 

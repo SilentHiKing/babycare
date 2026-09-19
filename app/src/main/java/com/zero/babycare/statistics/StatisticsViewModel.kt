@@ -9,14 +9,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.zero.babycare.statistics.mapper.StatisticsDateRange
 import com.zero.babycare.statistics.mapper.StatisticsDurationCalculator
-import com.zero.babycare.statistics.mapper.StatisticsGrowthCutoff
+import com.zero.babycare.statistics.mapper.StatisticsGrowthHistory
 import com.zero.babycare.statistics.mapper.StatisticsTimelineMapper
 import com.zero.babycare.statistics.mapper.WhoSexParser
 import com.zero.babycare.statistics.model.DayRecordSectionUiModel
 import com.zero.babycare.statistics.model.CalendarBrowseState
 import com.zero.babycare.statistics.model.DaySummary
 import com.zero.babycare.statistics.model.GrowthPercentileOverview
-import com.zero.babycare.statistics.model.GrowthPercentilePoint
 import com.zero.babycare.statistics.model.GrowthPercentileSeries
 import com.zero.babycare.statistics.model.GrowthTrend
 import com.zero.babycare.statistics.model.GrowthTrendItem
@@ -46,9 +45,12 @@ import com.zero.common.util.UnitConfig
 import com.zero.common.util.UnitConverter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -179,12 +181,31 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
         contentLoadJob = viewModelScope.launch {
             try {
                 val content = coroutineScope {
-                    val dayRecord = async(Dispatchers.IO) { buildDayRecordSection(babyId, date) }
-                    val growth = async(Dispatchers.IO) { buildGrowthTrend(babyId, date) }
-                    val trend = async(Dispatchers.IO) { buildTrendOverview(babyId, date) }
-                    val structure = async(Dispatchers.IO) { buildStructureOverview(babyId, date) }
-                    val percentile = async(Dispatchers.IO) { buildGrowthPercentileOverview(babyId, date) }
-                    val health = async(Dispatchers.IO) { buildHealthStats(babyId, date) }
+                    // Deferred 仅属于本次请求；各区块共享输入，切换宝宝/日期时一并取消，不复用过期数据。
+                    val monthRange = StatisticsDateRange.month(date)
+                    val input = StatisticsLoadInputs(
+                        babyInfo = async(Dispatchers.IO) { repository.getBabyInfo(babyId) },
+                        growth = listOf(EventType.GROWTH_WEIGHT, EventType.GROWTH_HEIGHT, EventType.GROWTH_HEAD)
+                            .associateWith { type ->
+                                async(Dispatchers.IO) {
+                                    StatisticsGrowthHistory.create(repository.getEventRecordsByType(babyId, type), date)
+                                }
+                            },
+                        monthFeedings = async(Dispatchers.IO) {
+                            repository.getFeedingRecordsBetween(babyId, monthRange.startMillis, monthRange.endMillis)
+                        },
+                        monthEvents = async(Dispatchers.IO) {
+                            repository.getEventRecordsBetween(babyId, monthRange.startMillis, monthRange.endMillis)
+                        }
+                    )
+                    val dayRecord = async(Dispatchers.IO) { buildDayRecordSection(babyId, date, input.babyInfo.await()) }
+                    val growth = async(Dispatchers.IO) { buildGrowthTrend(input) }
+                    val trend = async(Dispatchers.IO) { buildTrendOverview(babyId, date, input) }
+                    val structure = async(Dispatchers.IO) {
+                        buildStructureOverview(input.monthFeedings.await(), input.monthEvents.await())
+                    }
+                    val percentile = async(Dispatchers.IO) { buildGrowthPercentileOverview(input) }
+                    val health = async(Dispatchers.IO) { buildHealthStats(date, input.monthEvents.await()) }
 
                     LoadedStatisticsContent(
                         dayRecord = dayRecord.await(),
@@ -281,7 +302,8 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
 
     private suspend fun buildDayRecordSection(
         babyId: Int,
-        date: LocalDate
+        date: LocalDate,
+        babyInfo: BabyInfo?
     ): DayRecordSectionUiModel {
         val summaryData = repository.getDaySummary(babyId, date)
         val timelineRecords = repository.getTimelineRecords(babyId, date)
@@ -299,7 +321,9 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
             otherEventCount = summaryData.otherEventCount
         )
         val mapper = buildTimelineMapper()
+        val context = currentCoroutineContext()
         val timelineItems = timelineRecords.map { record ->
+            context.ensureActive()
             when (record) {
                 is BabyRepository.TimelineRecord.Feeding -> mapper.mapFeeding(record.record)
                 is BabyRepository.TimelineRecord.Sleep -> mapper.mapSleep(record.record)
@@ -308,7 +332,7 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
         }
         return buildDayRecordSection(
             date = date,
-            babyInfo = repository.getBabyInfo(babyId),
+            babyInfo = babyInfo,
             summary = summary,
             timelineItems = timelineItems
         )
@@ -319,35 +343,36 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
         val insights: InsightSectionUiModel
     )
 
+    private data class StatisticsLoadInputs(
+        val babyInfo: Deferred<BabyInfo?>,
+        val growth: Map<Int, Deferred<StatisticsGrowthHistory>>,
+        val monthFeedings: Deferred<List<FeedingRecord>>,
+        val monthEvents: Deferred<List<EventRecord>>
+    )
+
     /**
      * 查询并计算生长趋势
      */
-    private suspend fun buildGrowthTrend(babyId: Int, selectedDate: LocalDate): GrowthTrend {
+    private suspend fun buildGrowthTrend(input: StatisticsLoadInputs): GrowthTrend {
         val weightUnit = UnitConfig.getWeightUnit()
         val heightUnit = UnitConfig.getHeightUnit()
 
         val weightItem = buildGrowthItem(
-            babyId = babyId,
-            type = EventType.GROWTH_WEIGHT,
-            selectedDate = selectedDate,
+            history = input.growth.getValue(EventType.GROWTH_WEIGHT).await(),
             unitLabelResId = UnitConfig.getWeightUnitLabelResId(),
             targetUnit = weightUnit,
             converter = UnitConverter::weightToDisplay
         )
 
         val heightItem = buildGrowthItem(
-            babyId = babyId,
-            type = EventType.GROWTH_HEIGHT,
-            selectedDate = selectedDate,
+            history = input.growth.getValue(EventType.GROWTH_HEIGHT).await(),
             unitLabelResId = UnitConfig.getHeightUnitLabelResId(),
             targetUnit = heightUnit,
             converter = UnitConverter::heightToDisplay
         )
 
         val headItem = buildGrowthItem(
-            babyId = babyId,
-            type = EventType.GROWTH_HEAD,
-            selectedDate = selectedDate,
+            history = input.growth.getValue(EventType.GROWTH_HEAD).await(),
             unitLabelResId = UnitConfig.getHeightUnitLabelResId(),
             targetUnit = heightUnit,
             converter = UnitConverter::heightToDisplay
@@ -363,14 +388,14 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
     /**
      * 生成周/月/年趋势数据
      */
-    private suspend fun buildTrendOverview(babyId: Int, date: LocalDate): TrendOverview {
+    private suspend fun buildTrendOverview(babyId: Int, date: LocalDate, input: StatisticsLoadInputs): TrendOverview {
         val weekRange = StatisticsDateRange.week(date)
         val monthRange = StatisticsDateRange.month(date)
         val yearRange = StatisticsDateRange.year(date)
 
         val summaries = listOf(
             buildPeriodSummary(babyId, TrendPeriod.WEEK, weekRange),
-            buildPeriodSummary(babyId, TrendPeriod.MONTH, monthRange),
+            buildPeriodSummary(babyId, TrendPeriod.MONTH, monthRange, input),
             buildPeriodSummary(babyId, TrendPeriod.YEAR, yearRange)
         )
         return TrendOverview(summaries)
@@ -382,33 +407,40 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
     private suspend fun buildPeriodSummary(
         babyId: Int,
         period: TrendPeriod,
-        range: StatisticsDateRange.Range
+        range: StatisticsDateRange.Range,
+        sharedMonth: StatisticsLoadInputs? = null
     ): TrendPeriodSummary {
-        val feedings = repository.getFeedingRecordsBetween(babyId, range.startMillis, range.endMillis)
+        val feedings = sharedMonth?.monthFeedings?.await()
+            ?: repository.getFeedingRecordsBetween(babyId, range.startMillis, range.endMillis)
         val sleeps = repository.getSleepRecordsBetween(babyId, range.startMillis, range.endMillis)
         val feedingOverlaps = repository.getFeedingRecordsIntersectingRange(babyId, range.startMillis, range.endMillis)
         val sleepOverlaps = repository.getSleepRecordsIntersectingRange(babyId, range.startMillis, range.endMillis)
-        val events = repository.getEventRecordsBetween(babyId, range.startMillis, range.endMillis)
+        val events = sharedMonth?.monthEvents?.await()
+            ?: repository.getEventRecordsBetween(babyId, range.startMillis, range.endMillis)
+        val context = currentCoroutineContext()
 
         // 次数仍按记录开始时间归属周期；时长按重叠部分归属周期，避免跨边界记录重复放大。
         val feedingTotalMinutes = StatisticsDurationCalculator.toWholeMinutes(
             StatisticsDurationCalculator.feedingDurationMillis(
                 records = feedingOverlaps,
                 rangeStart = range.startMillis,
-                rangeEnd = range.endMillis
+                rangeEnd = range.endMillis,
+                checkCancellation = { context.ensureActive() }
             )
         )
         val sleepTotalMinutes = StatisticsDurationCalculator.toWholeMinutes(
             StatisticsDurationCalculator.sleepDurationMillis(
                 records = sleepOverlaps,
                 rangeStart = range.startMillis,
-                rangeEnd = range.endMillis
+                rangeEnd = range.endMillis,
+                checkCancellation = { context.ensureActive() }
             )
         )
 
         var diaperCount = 0
         var otherEventCount = 0
         events.forEach { event ->
+            context.ensureActive()
             if (EventType.isDiaper(event.type)) {
                 diaperCount++
             } else {
@@ -432,11 +464,7 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
     /**
      * 构建结构图数据（默认按月）
      */
-    private suspend fun buildStructureOverview(babyId: Int, date: LocalDate): StructureOverview {
-        val range = StatisticsDateRange.month(date)
-        val feedings = repository.getFeedingRecordsBetween(babyId, range.startMillis, range.endMillis)
-        val events = repository.getEventRecordsBetween(babyId, range.startMillis, range.endMillis)
-
+    private suspend fun buildStructureOverview(feedings: List<FeedingRecord>, events: List<EventRecord>): StructureOverview {
         val feedingSection = StructureSection(
             titleResId = com.zero.common.R.string.statistics_structure_feeding_title,
             items = buildFeedingStructureItems(feedings)
@@ -458,9 +486,11 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
     /**
      * 喂养结构拆解
      */
-    private fun buildFeedingStructureItems(records: List<FeedingRecord>): List<StructureItem> {
+    private suspend fun buildFeedingStructureItems(records: List<FeedingRecord>): List<StructureItem> {
         val counts = mutableMapOf<FeedingType, Int>()
+        val context = currentCoroutineContext()
         records.forEach { record ->
+            context.ensureActive()
             val type = FeedingType.fromType(record.feedingType)
             counts[type] = (counts[type] ?: 0) + 1
         }
@@ -497,11 +527,12 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
     /**
      * 排泄结构拆解
      */
-    private fun buildDiaperStructureItems(records: List<EventRecord>): List<StructureItem> {
-        val wet = records.count { it.type == EventType.DIAPER_WET }
-        val dirty = records.count { it.type == EventType.DIAPER_DIRTY }
-        val mixed = records.count { it.type == EventType.DIAPER_MIXED }
-        val dry = records.count { it.type == EventType.DIAPER_DRY }
+    private suspend fun buildDiaperStructureItems(records: List<EventRecord>): List<StructureItem> {
+        val context = currentCoroutineContext()
+        val wet = records.count { context.ensureActive(); it.type == EventType.DIAPER_WET }
+        val dirty = records.count { context.ensureActive(); it.type == EventType.DIAPER_DIRTY }
+        val mixed = records.count { context.ensureActive(); it.type == EventType.DIAPER_MIXED }
+        val dry = records.count { context.ensureActive(); it.type == EventType.DIAPER_DRY }
 
         // 排泄结构保留可区分颜色，但仍从业务语义色中选取，保证图例含义稳定。
         return listOf(
@@ -531,12 +562,13 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
     /**
      * 健康结构拆解
      */
-    private fun buildHealthStructureItems(records: List<EventRecord>): List<StructureItem> {
-        val temperature = records.count { it.type == EventType.HEALTH_TEMPERATURE }
-        val medicine = records.count { it.type == EventType.HEALTH_MEDICINE }
-        val doctor = records.count { it.type == EventType.HEALTH_DOCTOR }
-        val symptom = records.count { it.type == EventType.HEALTH_SYMPTOM }
-        val vaccine = records.count { it.type == EventType.HEALTH_VACCINE }
+    private suspend fun buildHealthStructureItems(records: List<EventRecord>): List<StructureItem> {
+        val context = currentCoroutineContext()
+        val temperature = records.count { context.ensureActive(); it.type == EventType.HEALTH_TEMPERATURE }
+        val medicine = records.count { context.ensureActive(); it.type == EventType.HEALTH_MEDICINE }
+        val doctor = records.count { context.ensureActive(); it.type == EventType.HEALTH_DOCTOR }
+        val symptom = records.count { context.ensureActive(); it.type == EventType.HEALTH_SYMPTOM }
+        val vaccine = records.count { context.ensureActive(); it.type == EventType.HEALTH_VACCINE }
 
         // 健康结构使用健康、照护、成长等语义色，便于与其他统计卡片形成一致认知。
         return listOf(
@@ -571,11 +603,8 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
     /**
      * 构建生长百分位数据（基于 WHO 标准）
      */
-    private suspend fun buildGrowthPercentileOverview(
-        babyId: Int,
-        selectedDate: LocalDate
-    ): GrowthPercentileOverview {
-        val baby = repository.getBabyInfo(babyId)
+    private suspend fun buildGrowthPercentileOverview(input: StatisticsLoadInputs): GrowthPercentileOverview {
+        val baby = input.babyInfo.await()
         val birthDate = baby?.birthDate ?: 0L
         val sex = WhoSexParser.parse(baby?.gender)
 
@@ -588,37 +617,31 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
         val weightUnit = UnitConfig.getWeightUnit()
         val heightUnit = UnitConfig.getHeightUnit()
         val weight = buildPercentileSeries(
-            babyId = babyId,
-            type = EventType.GROWTH_WEIGHT,
+            history = input.growth.getValue(EventType.GROWTH_WEIGHT).await(),
             labelResId = com.zero.common.R.string.statistics_growth_weight,
             unitLabelResId = UnitConfig.getWeightUnitLabelResId(),
             targetUnit = weightUnit,
             indicator = WhoIndicator.WEIGHT,
             sex = sex,
-            birthDate = birthDate,
-            selectedDate = selectedDate
+            birthDate = birthDate
         )
         val height = buildPercentileSeries(
-            babyId = babyId,
-            type = EventType.GROWTH_HEIGHT,
+            history = input.growth.getValue(EventType.GROWTH_HEIGHT).await(),
             labelResId = com.zero.common.R.string.statistics_growth_height,
             unitLabelResId = UnitConfig.getHeightUnitLabelResId(),
             targetUnit = heightUnit,
             indicator = WhoIndicator.LENGTH_HEIGHT,
             sex = sex,
-            birthDate = birthDate,
-            selectedDate = selectedDate
+            birthDate = birthDate
         )
         val head = buildPercentileSeries(
-            babyId = babyId,
-            type = EventType.GROWTH_HEAD,
+            history = input.growth.getValue(EventType.GROWTH_HEAD).await(),
             labelResId = com.zero.common.R.string.statistics_growth_head,
             unitLabelResId = UnitConfig.getHeightUnitLabelResId(),
             targetUnit = heightUnit,
             indicator = WhoIndicator.HEAD,
             sex = sex,
-            birthDate = birthDate,
-            selectedDate = selectedDate
+            birthDate = birthDate
         )
 
         return GrowthPercentileOverview(
@@ -633,79 +656,52 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
      * 生成单项百分位序列
      */
     private suspend fun buildPercentileSeries(
-        babyId: Int,
-        type: Int,
+        history: StatisticsGrowthHistory,
         labelResId: Int,
         unitLabelResId: Int,
         targetUnit: String,
         indicator: WhoIndicator,
         sex: WhoSex,
-        birthDate: Long,
-        selectedDate: LocalDate
+        birthDate: Long
     ): GrowthPercentileSeries {
-        val records = StatisticsGrowthCutoff
-            .validGrowthDataUntil(repository.getEventRecordsByType(babyId, type), selectedDate)
-            .sortedBy { it.record.time }
-        if (records.isEmpty()) {
-            return GrowthPercentileSeries(
-                labelResId = labelResId,
-                unitLabelResId = unitLabelResId,
-                latestValue = null,
-                latestPercentile = null,
-                points = emptyList()
-            )
-        }
-
-        val points = mutableListOf<GrowthPercentilePoint>()
-        var latestValue: Double? = null
-        var latestPercentile: Int? = null
-
-        records.forEach { item ->
-            val record = item.record
-            val data = item.data
-            val ageDays = buildAgeDays(birthDate, record.time) ?: return@forEach
-            // 以平均月天数换算，便于对接 WHO 月龄表
-            val ageMonths = ageDays / 30.4375
-            val standardValue = when (indicator) {
-                WhoIndicator.WEIGHT -> UnitConverter.weightToDisplay(
-                    data.value, data.unit, UnitConfig.WEIGHT_UNIT_KG
+        val recent = history.recentPercentiles(
+            birthDateMillis = birthDate,
+            standardValue = { data ->
+                when (indicator) {
+                    WhoIndicator.WEIGHT -> UnitConverter.weightToDisplay(
+                        data.value, data.unit, UnitConfig.WEIGHT_UNIT_KG
+                    )
+                    WhoIndicator.LENGTH_HEIGHT, WhoIndicator.HEAD -> UnitConverter.heightToDisplay(
+                        data.value, data.unit, UnitConfig.HEIGHT_UNIT_CM
+                    )
+                }
+            },
+            percentile = { ageDays, value ->
+                whoStandardProvider.computePercentile(
+                    indicator = indicator,
+                    sex = sex,
+                    ageDays = ageDays,
+                    ageMonths = ageDays / 30.4375,
+                    value = value
                 )
-                WhoIndicator.LENGTH_HEIGHT, WhoIndicator.HEAD -> UnitConverter.heightToDisplay(
-                    data.value, data.unit, UnitConfig.HEIGHT_UNIT_CM
-                )
-            }
-            val percentile = whoStandardProvider.computePercentile(
-                indicator = indicator,
-                sex = sex,
-                ageDays = ageDays,
-                ageMonths = ageMonths,
-                value = standardValue
-            )
-            val recordDate = java.time.Instant.ofEpochMilli(record.time)
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate()
-            if (percentile != null) {
-                points.add(GrowthPercentilePoint(recordDate, percentile))
-            }
-            latestValue = toDisplayValue(standardValue, indicator, targetUnit)
-            latestPercentile = percentile
-        }
+            },
+            displayValue = { toDisplayValue(it, indicator, targetUnit) }
+        )
 
         return GrowthPercentileSeries(
             labelResId = labelResId,
             unitLabelResId = unitLabelResId,
-            latestValue = latestValue,
-            latestPercentile = latestPercentile,
-            points = points.takeLast(12)
+            latestValue = recent.latestValue,
+            latestPercentile = recent.latestPercentile,
+            points = recent.points
         )
     }
 
     /**
      * 构建健康/疫苗统计（按选中月份）
      */
-    private suspend fun buildHealthStats(babyId: Int, date: LocalDate): HealthStats {
+    private suspend fun buildHealthStats(date: LocalDate, events: List<EventRecord>): HealthStats {
         val range = StatisticsDateRange.month(date)
-        val events = repository.getEventRecordsBetween(babyId, range.startMillis, range.endMillis)
 
         var temperatureCount = 0
         var medicineCount = 0
@@ -713,8 +709,10 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
         var symptomCount = 0
         var vaccineCount = 0
         var lastVaccineTime: Long? = null
+        val context = currentCoroutineContext()
 
         events.forEach { event ->
+            context.ensureActive()
             when (event.type) {
                 EventType.HEALTH_TEMPERATURE -> temperatureCount++
                 EventType.HEALTH_MEDICINE -> medicineCount++
@@ -770,21 +768,6 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
             ),
             noteResId = noteResId
         )
-    }
-
-    /**
-     * 计算出生到记录的天数
-     */
-    private fun buildAgeDays(birthDateMillis: Long, recordTimeMillis: Long): Int? {
-        if (birthDateMillis <= 0L) return null
-        val birthDate = java.time.Instant.ofEpochMilli(birthDateMillis)
-            .atZone(ZoneId.systemDefault())
-            .toLocalDate()
-        val recordDate = java.time.Instant.ofEpochMilli(recordTimeMillis)
-            .atZone(ZoneId.systemDefault())
-            .toLocalDate()
-        val days = java.time.temporal.ChronoUnit.DAYS.between(birthDate, recordDate)
-        return if (days < 0) null else days.toInt()
     }
 
     /**
@@ -943,18 +926,12 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
      * 读取最近两条记录，换算成当前单位后计算差值
      */
     private suspend fun buildGrowthItem(
-        babyId: Int,
-        type: Int,
-        selectedDate: LocalDate,
+        history: StatisticsGrowthHistory,
         unitLabelResId: Int,
         targetUnit: String,
         converter: (Double, String, String) -> Double
     ): GrowthTrendItem {
-        val dataList = StatisticsGrowthCutoff.latestValidGrowthDataUntil(
-            records = repository.getEventRecordsByType(babyId, type),
-            selectedDate = selectedDate,
-            limit = 2
-        ).map { it.data }
+        val dataList = history.latestValid().map { it.data }
         val latest = dataList.getOrNull(0)
         if (latest == null) {
             return GrowthTrendItem(latestValue = null, diffValue = null, unitLabelResId = unitLabelResId)

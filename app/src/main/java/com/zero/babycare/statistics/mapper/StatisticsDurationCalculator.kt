@@ -26,9 +26,12 @@ object StatisticsDurationCalculator {
     fun feedingDurationMillis(
         records: List<FeedingRecord>,
         rangeStart: Long,
-        rangeEnd: Long
+        rangeEnd: Long,
+        checkCancellation: () -> Unit = {}
     ): Long {
         return records.sumOf { record ->
+            // 统计页切换日期时可中止长列表聚合，纯计算调用方仍不依赖协程。
+            checkCancellation()
             overlappedDuration(
                 start = record.feedingStart,
                 end = record.feedingEnd,
@@ -42,9 +45,11 @@ object StatisticsDurationCalculator {
     fun sleepDurationMillis(
         records: List<SleepRecord>,
         rangeStart: Long,
-        rangeEnd: Long
+        rangeEnd: Long,
+        checkCancellation: () -> Unit = {}
     ): Long {
         return records.sumOf { record ->
+            checkCancellation()
             overlappedDuration(
                 start = record.sleepStart,
                 end = record.sleepEnd,

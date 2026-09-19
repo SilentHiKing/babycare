@@ -355,6 +355,58 @@ class LocalRulePredictorTest {
         }
     }
 
+    @Test
+    fun `sparse overlapping records anchor defaults to latest completion`() {
+        val start = LocalDate.now().atTime(8, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val feeding = listOf(createFeedingRecord(start, start + 5 * HOUR),
+            createFeedingRecord(start + 2 * HOUR, start + 2 * HOUR + 15 * MINUTE))
+        val sleep = feeding.map { createSleepRecord(it.feedingStart, it.feedingEnd) }
+        assertEquals(start + 5 * HOUR + (3.5 * HOUR).toLong(), predictor.predictNextFeeding(4, feeding, null)!!.predictedTime.time)
+        assertEquals(start + 7 * HOUR, predictor.predictNextSleep(4, sleep, null)!!.predictedTime.time)
+    }
+
+    @Test
+    fun `nested records cannot create intervals inside covered care time`() {
+        val start = LocalDate.now().atTime(8, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val feeding = listOf(
+            createFeedingRecord(start, start + 4 * HOUR).apply { feedingDuration = 15 * MINUTE },
+            createFeedingRecord(start + HOUR, start + HOUR + 15 * MINUTE),
+            createFeedingRecord(start + 3 * HOUR, start + 3 * HOUR + 15 * MINUTE),
+            createFeedingRecord(start + 5 * HOUR, start + 5 * HOUR + 15 * MINUTE)
+        )
+        val sleep = feeding.map { createSleepRecord(it.feedingStart, it.feedingEnd) }
+        val milkResult = predictor.predictNextFeeding(null, feeding, null)!!
+        val sleepResult = predictor.predictNextSleep(null, sleep, null)!!
+        assertEquals("只有12点至13点是真正未被记录覆盖的间隔", 1, milkResult.evidenceCount)
+        assertEquals(1, sleepResult.evidenceCount)
+        assertEquals(feeding.last().feedingEnd + HOUR, milkResult.predictedTime.time)
+        assertEquals(sleep.last().sleepEnd + (HOUR * 0.88).toLong(), sleepResult.predictedTime.time)
+    }
+
+    @Test
+    fun `latest overlapping completion anchors history based feeding and sleep predictions`() {
+        val start = LocalDate.now().minusDays(1).atTime(6, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val feeding = (0..8).map { createFeedingRecord(start + it * 2 * HOUR, start + it * 2 * HOUR + 15 * MINUTE) } +
+            listOf(createFeedingRecord(start + 26 * HOUR, start + 31 * HOUR).apply { feedingDuration = 15 * MINUTE },
+                createFeedingRecord(start + 28 * HOUR, start + 28 * HOUR + 15 * MINUTE))
+        val sleep = feeding.map { createSleepRecord(it.feedingStart, it.feedingEnd) }
+        assertTrue(predictor.predictNextFeeding(4, feeding, null)!!.earliestTime.time >= start + 31 * HOUR)
+        assertTrue(predictor.predictNextSleep(4, sleep, null)!!.earliestTime.time >= start + 31 * HOUR)
+    }
+
+    @Test
+    fun `feeding duration factor uses active duration and retains legacy zero fallback`() {
+        val start = LocalDate.now().minusDays(1).atTime(6, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val records = (0..7).map { createFeedingRecord(start + it * 3 * HOUR, start + it * 3 * HOUR + 15 * MINUTE) }
+        val regular = predictor.predictNextFeeding(4, records, null)!!
+        val anchor = records.last().feedingEnd
+        assertEquals(anchor + 165 * MINUTE, regular.predictedTime.time)
+        records.last().feedingDuration = MINUTE
+        assertEquals(anchor + (165 * MINUTE * 0.92).toLong(), predictor.predictNextFeeding(4, records, null)!!.predictedTime.time)
+        records.last().feedingDuration = 0L
+        assertEquals(regular.predictedTime, predictor.predictNextFeeding(4, records, null)!!.predictedTime)
+    }
+
     private fun createFeedingRecord(
         start: Long,
         end: Long,

@@ -5,6 +5,8 @@ import android.app.Application
 import android.app.Instrumentation
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
@@ -12,7 +14,9 @@ import android.os.SystemClock
 import android.view.View
 import android.widget.TextView
 import androidx.core.widget.NestedScrollView
+import androidx.core.os.LocaleListCompat
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.SavedStateHandle
@@ -20,6 +24,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.room.Room
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
@@ -42,7 +47,11 @@ import com.zero.babycare.navigation.NavTarget
 import com.zero.babydata.backup.BackupImportReport
 import com.zero.babydata.backup.BackupImportStrategy
 import com.zero.babydata.backup.BabyBackupEnvelope
+import com.zero.babydata.backup.BabyBackupExporter
 import com.zero.babydata.backup.CommittedBackupImport
+import com.zero.babydata.entity.BabyInfo
+import com.zero.babydata.entity.SleepRecord
+import com.zero.babydata.room.BabyDatabase
 import com.zero.components.base.vm.UiState
 import com.google.gson.Gson
 import kotlinx.coroutines.CompletableDeferred
@@ -68,6 +77,111 @@ class BackupReportLifecycleTest {
     private val app = ApplicationProvider.getApplicationContext<Application>()
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private var pickerMonitor: Instrumentation.ActivityMonitor? = null
+
+    @Test
+    fun invalidExportKeepsItsExplanationAcrossRecreationAndHiddenPage() {
+        val directory = File(app.cacheDir, "backup-export-error-${UUID.randomUUID()}")
+        check(directory.mkdirs())
+        val isolatedApp = ReportApplication(app, directory)
+        val database = Room.inMemoryDatabaseBuilder(app, BabyDatabase::class.java).build()
+        // 只在独立内存库模拟历史异常记录，验证真实导出器拒绝生成无法恢复的成功备份。
+        runBlocking {
+            database.babyInfoDao().insertBabyInfo(BabyInfo(babyId = 1, name = "合成备份"))
+            database.sleepRecordDao().insertSleepRecord(SleepRecord(babyId = 1,
+                sleepStart = 1_800_000_000_000L, sleepEnd = 1_800_000_060_000L, sleepDuration = 120_000L))
+        }
+        val exporter = BabyBackupExporter::class.java.getDeclaredConstructor(BabyDatabase::class.java)
+            .apply { isAccessible = true }.newInstance(database)
+        val operations = ReportOperations(hasReport = false)
+        val originalLocales = AppCompatDelegate.getApplicationLocales()
+        val injectedVm = AtomicReference<BackupViewModel>()
+        val callbacks = ReportInjection(isolatedApp, operations, injectedVm)
+        val pickerFilter = IntentFilter(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            addDataType("application/json")
+        }
+        val monitor = instrumentation.addMonitor(pickerFilter,
+            Instrumentation.ActivityResult(Activity.RESULT_CANCELED, null), true)
+        app.registerActivityLifecycleCallbacks(callbacks)
+        var scenario: ActivityScenario<MainActivity>? = null
+        try {
+            val current = ActivityScenario.launch(MainActivity::class.java)
+            scenario = current
+            awaitActivity(current) { injectedVm.get() != null && ViewModelProvider(it)[MainViewModel::class.java].babyDataLoaded.value }
+            navigate(current, NavTarget.Backup())
+            current.onActivity { it.delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_NO }
+            awaitActivity(current) { it.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_NO }
+            current.onActivity { activity ->
+                val model = backupVm(activity)
+                BackupViewModel::class.java.getDeclaredField("exporter\$delegate").apply { isAccessible = true }
+                    .set(model, lazyOf(exporter))
+                model.prepareExport()
+            }
+            awaitActivity(current) { backupVm(it).exportState.value is UiState.Error }
+            current.onActivity { assertEquals(com.zero.common.R.string.backup_export_invalid_data,
+                (backupVm(it).exportState.value as UiState.Error).messageRes) }
+            awaitReportVisibility(true, com.zero.common.R.string.backup_export_failed)
+            assertReportBodyAndActionsReachable(hasCancel = false)
+            saveExportErrorScreenshot("light")
+            // 错误弹窗必须随真实夜间资源重建，不能继续持有已销毁页面的窗口。
+            current.onActivity { it.delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_YES }
+            awaitActivity(current) { it.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES }
+            awaitReportVisibility(true, com.zero.common.R.string.backup_export_failed)
+            assertReportBodyAndActionsReachable(hasCancel = false)
+            saveExportErrorScreenshot("night")
+            // 失败状态保留资源 ID，语言切换后应使用新页面文案，并保持可关闭。
+            instrumentation.runOnMainSync { AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en")) }
+            awaitActivity(current) { it.resources.configuration.locales[0].language == "en" }
+            awaitReportVisibility(true, com.zero.common.R.string.backup_export_failed)
+            assertReportBodyAndActionsReachable(hasCancel = false)
+            saveExportErrorScreenshot("night-en")
+            current.onActivity { it.delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_NO }
+            awaitActivity(current) { it.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_NO }
+            awaitReportVisibility(true, com.zero.common.R.string.backup_export_failed)
+            assertReportBodyAndActionsReachable(hasCancel = false)
+            saveExportErrorScreenshot("light-en")
+            current.recreate()
+            awaitReportVisibility(true, com.zero.common.R.string.backup_export_failed)
+            navigate(current, NavTarget.Settings())
+            awaitReportVisibility(false, com.zero.common.R.string.backup_export_failed)
+            current.onActivity { assertTrue(backupVm(it).exportState.value is UiState.Error) }
+            navigate(current, NavTarget.Backup())
+            awaitReportVisibility(true, com.zero.common.R.string.backup_export_failed)
+            onView(withText(com.zero.common.R.string.backup_export_invalid_data)).check(matches(isDisplayed()))
+            assertReportBodyAndActionsReachable(hasCancel = false)
+            onView(withId(com.zero.components.R.id.tv_confirm)).perform(click())
+            awaitActivity(current) { backupVm(it).exportState.value == UiState.None }
+            assertEquals("不可恢复的备份不能打开保存文件选择器", 0, monitor.hits)
+        } finally {
+            try {
+                instrumentation.runOnMainSync { AppCompatDelegate.setApplicationLocales(originalLocales) }
+                scenario?.close()
+            } finally {
+                app.unregisterActivityLifecycleCallbacks(callbacks)
+                instrumentation.removeMonitor(monitor)
+                var jobs = emptyList<Job>()
+                instrumentation.runOnMainSync { jobs = callbacks.clearStores() }
+                runBlocking { withTimeout(10_000) { jobs.forEach { it.join() } } }
+                database.close()
+                check(directory.canonicalFile.parentFile == app.cacheDir.canonicalFile)
+                directory.deleteRecursively()
+            }
+        }
+    }
+
+    private fun saveExportErrorScreenshot(mode: String) {
+        // 只有显式视觉验收才保存本地截图，不把含设备背景的图片带入常规回归产物。
+        if (InstrumentationRegistry.getArguments().getString("captureScreenshots") != "true") return
+        instrumentation.waitForIdleSync()
+        val bitmap = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
+        try {
+            val directory = File(app.filesDir, "audit-screens")
+            check(directory.isDirectory || directory.mkdirs())
+            File(directory, "backup-export-error-$mode.png").outputStream().use {
+                check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it))
+            }
+        } finally { bitmap.recycle() }
+    }
 
     @Test
     fun delayedHistoryAndExportWaitForVisiblePageAndDetailSurvivesRecreation() {

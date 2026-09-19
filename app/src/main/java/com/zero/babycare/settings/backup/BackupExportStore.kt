@@ -3,6 +3,7 @@ package com.zero.babycare.settings.backup
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
+import java.io.OutputStreamWriter
 import java.io.Serializable
 import java.util.UUID
 
@@ -40,8 +41,19 @@ internal class BackupExportStore(private val directory: File) {
         val target = fileFor(request)
         try {
             FileOutputStream(target).use { stream ->
-                stream.write(payload.json.toByteArray(Charsets.UTF_8))
-                stream.fd.sync()
+                // 固定缓冲区避免整包 UTF-8/UTF-16 临时数组；同一编码器保留跨块代理对。
+                OutputStreamWriter(stream, Charsets.UTF_8).use { writer ->
+                    val buffer = CharArray(8 * 1024)
+                    var offset = 0
+                    while (offset < payload.json.length) {
+                        val count = minOf(buffer.size, payload.json.length - offset)
+                        payload.json.toCharArray(buffer, 0, offset, offset + count)
+                        writer.write(buffer, 0, count)
+                        offset += count
+                    }
+                    writer.flush()
+                    stream.fd.sync()
+                }
             }
         } catch (error: Exception) {
             target.delete()

@@ -95,12 +95,14 @@ object ReminderScheduler {
             ReminderType.entries.forEach { type ->
                 val workName = dueWorkName(baby.babyId, type)
                 val candidate = candidates[type]
-                if (candidate == null) {
+                val now = System.currentTimeMillis()
+                // 规划包含多次异步查询，前面计算出的候选到入队时也可能已经过期。
+                if (candidate == null || candidate.isExpired(now)) {
                     workManager.cancelUniqueWork(workName)
                     return@forEach
                 }
 
-                val delay = (candidate.dueTime - System.currentTimeMillis()).coerceAtLeast(0L)
+                val delay = (candidate.dueTime - now).coerceAtLeast(0L)
                 val input = Data.Builder()
                     .putInt(KEY_BABY_ID, baby.babyId)
                     .putString(KEY_REMINDER_TYPE, type.name)

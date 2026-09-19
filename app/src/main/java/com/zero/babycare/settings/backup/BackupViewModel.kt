@@ -14,6 +14,8 @@ import com.zero.babydata.backup.BackupImportException
 import com.zero.babydata.backup.CommittedBackupImport
 import com.zero.babydata.backup.BabyBackupEnvelope
 import com.zero.babydata.backup.BabyBackupExporter
+import com.zero.babydata.backup.BackupExportError
+import com.zero.babydata.backup.BackupExportException
 import com.zero.components.base.vm.UiState
 import com.zero.common.mmkv.MMKVKeys
 import com.zero.common.mmkv.MMKVStore
@@ -159,7 +161,7 @@ class BackupViewModel internal constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _exportState.value = UiState.Error(e, messageRes = com.zero.common.R.string.backup_export_failed)
+                _exportState.value = UiState.Error(e, messageRes = resolveExportErrorResource(e))
             }
         }
     }
@@ -642,9 +644,14 @@ class BackupViewModel internal constructor(
         return if (value in getAllowedDedupMinutes()) value else 1
     }
 
-    /**
-     * 将导入异常映射为提示文案
-     */
+    /** 只有可恢复的完整备份才能进入文件选择；说明失败原因，避免误以为已保存。 */
+    private fun resolveExportErrorResource(error: Exception): Int = when ((error as? BackupExportException)?.error) {
+        BackupExportError.LIMIT_EXCEEDED -> com.zero.common.R.string.backup_export_limit_exceeded
+        BackupExportError.INVALID_DATA -> com.zero.common.R.string.backup_export_invalid_data
+        else -> com.zero.common.R.string.backup_export_failed
+    }
+
+    /** 将导入异常映射为提示文案。 */
     private fun resolveImportErrorResource(error: Exception): Int {
         val resId = when ((error as? BackupImportException)?.error) {
             BackupImportError.INVALID_JSON -> com.zero.common.R.string.backup_import_invalid_file

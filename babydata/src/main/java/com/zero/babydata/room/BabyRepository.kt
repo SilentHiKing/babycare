@@ -162,6 +162,12 @@ class BabyRepository(private val database: BabyDatabase) {
     suspend fun getRecentFeedings(babyId: Int, limit: Int): List<FeedingRecord> =
         feedingRecordDao.getRecentFeedings(babyId, limit)
 
+    /** 预测只使用最近已完成的奶类记录，限制在数据库筛选之后生效。 */
+    suspend fun getRecentCompletedMilkFeedings(babyId: Int, limit: Int): List<FeedingRecord> =
+        feedingRecordDao.getRecentCompletedMilkFeedings(
+            babyId, limit, listOf(FeedingType.BREAST.type, FeedingType.FORMULA.type, FeedingType.MIXED.type)
+        )
+
     suspend fun getFeedingRecordById(feedingId: Int): FeedingRecord? =
         feedingRecordDao.getFeedingRecordById(feedingId)
 
@@ -228,6 +234,9 @@ class BabyRepository(private val database: BabyDatabase) {
 
     suspend fun getRecentSleeps(babyId: Int, limit: Int): List<SleepRecord> =
         sleepRecordDao.getRecentSleeps(babyId, limit)
+
+    suspend fun getRecentCompletedSleeps(babyId: Int, limit: Int): List<SleepRecord> =
+        sleepRecordDao.getRecentCompletedSleeps(babyId, limit)
 
     suspend fun getSleepRecordById(sleepId: Int): SleepRecord? =
         sleepRecordDao.getSleepRecordById(sleepId)

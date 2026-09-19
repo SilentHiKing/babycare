@@ -44,6 +44,9 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     private var reportActionDialog: BasePopupView? = null
     private var displayedReportActionId: String? = null
     private var reportActionEpoch = 0L
+    private var exportErrorDialog: BasePopupView? = null
+    private var displayedExportError: UiState.Error? = null
+    private var exportErrorEpoch = 0L
 
     private val exportRow get() = binding.rowBackupExport
     private val importRow get() = binding.rowBackupImport
@@ -175,6 +178,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     /** 文件准备可以后台完成；系统选择器和结果反馈只由当前可见页面执行。 */
     private fun renderPendingExports() {
         if (!canShowImportUi()) return
+        if (vm.exportState.value !== displayedExportError) dismissExportErrorDialog()
         when (val state = vm.exportState.value) {
             UiState.None -> Unit
             UiState.Loading -> showLoading(getString(com.zero.common.R.string.backup_exporting))
@@ -184,8 +188,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             }
             is UiState.Error -> {
                 hideLoading()
-                ToastUtils.showShort(getString(com.zero.common.R.string.backup_export_failed))
-                vm.resetExportState()
+                showExportError(state)
             }
         }
         when (val state = vm.reportExportState.value) {
@@ -210,6 +213,35 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
                 vm.consumeDocumentExportResult()
             }
         }
+    }
+
+    /** 导出失败涉及备份是否可恢复，完整说明保持到用户关闭，不能被短 Toast 截断。 */
+    private fun showExportError(error: UiState.Error) {
+        if (displayedExportError === error) return
+        dismissExportErrorDialog()
+        displayedExportError = error
+        val epoch = exportErrorEpoch
+        exportErrorDialog = DialogHelper.showAlertDialog(
+            requireContext(), getString(com.zero.common.R.string.backup_export_failed),
+            error.messageFor(requireContext()) ?: getString(com.zero.common.R.string.backup_export_failed)
+        ).also { popup ->
+            popup.popupInfo.xPopupCallback = object : SimpleCallback() {
+                override fun onDismiss(popupView: BasePopupView?) {
+                    // 重建和离页只撤窗；旧窗口也不能消费稍后另一次导出的失败。
+                    if (exportErrorEpoch != epoch || displayedExportError !== error || !canShowImportUi()) return
+                    displayedExportError = null
+                    exportErrorDialog = null
+                    if (vm.exportState.value === error) vm.resetExportState()
+                }
+            }
+        }
+    }
+
+    private fun dismissExportErrorDialog() {
+        exportErrorEpoch++
+        displayedExportError = null
+        exportErrorDialog?.dismiss()
+        exportErrorDialog = null
     }
 
     private fun renderReportFeedback() {
@@ -603,6 +635,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     }
 
     override fun onDestroyView() {
+        dismissExportErrorDialog()
         dismissReportActionDialog()
         dismissImportDialog()
         dismissImportReportDialog()
@@ -611,6 +644,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     }
 
     override fun onPause() {
+        dismissExportErrorDialog()
         dismissReportActionDialog()
         // Activity 重建、系统选择器和离开前台都只撤下窗口，不取消用户正在确认的导入。
         dismissImportDialog()
@@ -622,6 +656,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (hidden) {
+            dismissExportErrorDialog()
             dismissReportActionDialog()
             dismissImportDialog()
             dismissImportReportDialog()

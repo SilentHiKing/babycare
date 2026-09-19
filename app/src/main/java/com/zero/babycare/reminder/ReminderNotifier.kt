@@ -16,11 +16,11 @@ import com.zero.babycare.MainActivity
 import com.zero.babycare.home.OngoingRecordManager
 import com.zero.babycare.home.prediction.PredictionManager
 import com.zero.babycare.home.prediction.PredictionRecordSelector
+import com.zero.babycare.home.prediction.PredictionResult
 import com.zero.babydata.domain.BabyDataHelper.repository
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.mmkv.MMKVKeys
 import com.zero.common.mmkv.MMKVStore
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 
@@ -39,7 +39,8 @@ object ReminderNotifier {
         babyId: Int,
         type: ReminderType,
         expectedDue: Long,
-        source: ReminderDataSource = RepositoryReminderDataSource
+        source: ReminderDataSource = RepositoryReminderDataSource,
+        clock: () -> Long = System::currentTimeMillis
     ): ReminderDeliveryResult {
         val ticket = deliveryGate.capture(babyId, type)
         if (!MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, false) ||
@@ -52,7 +53,9 @@ object ReminderNotifier {
         val candidate = source.getCandidate(baby, type) ?: return ReminderDeliveryResult.SUPPRESSED
         val coroutineContext = currentCoroutineContext()
         coroutineContext.ensureActive()
-        val now = System.currentTimeMillis()
+        val now = clock()
+        // 候选查询可能跨过预测区间；过期属于终止，不能重新创建零延迟任务。
+        if (candidate.isExpired(now)) return ReminderDeliveryResult.SUPPRESSED
         // 任务可能因记录变化而过期；必须以当前候选时间为准，不能沿用旧任务的 due。
         if (candidate.dueTime != expectedDue || now < candidate.dueTime) {
             return ReminderDeliveryResult.RESCHEDULE
@@ -66,12 +69,17 @@ object ReminderNotifier {
                 MMKVStore.getLong(ReminderPolicy.notifiedSourceKey(type, babyId), 0L) == candidate.sourceRecordTime
             ) return@ifCurrent ReminderDeliveryResult.SUPPRESSED
 
+            // 系统权限查询和会话读取也可能耗时；最终时间校验放在这些检查之后。
+            val postingTime = clock()
+            if (candidate.isExpired(postingTime)) return@ifCurrent ReminderDeliveryResult.SUPPRESSED
+            if (postingTime < candidate.dueTime) return@ifCurrent ReminderDeliveryResult.RESCHEDULE
+
             val posted = when (type) {
                 ReminderType.FEEDING -> sendFeedingNotification(context, baby)
                 ReminderType.SLEEP -> sendSleepNotification(context, baby)
             }
             if (posted) {
-                MMKVStore.put(ReminderPolicy.lastReminderKey(type, babyId), now)
+                MMKVStore.put(ReminderPolicy.lastReminderKey(type, babyId), postingTime)
                 MMKVStore.put(ReminderPolicy.notifiedSourceKey(type, babyId), candidate.sourceRecordTime)
             }
             if (posted) ReminderDeliveryResult.DELIVERED else ReminderDeliveryResult.RETRY
@@ -216,17 +224,14 @@ internal object ReminderPolicy {
 
     private const val PREDICTION_RECORD_COUNT = 15
     private const val MIN_RELEVANT_RECORDS = 3
-    private const val MIN_CONFIDENCE = 0.6f
-    private val cooldownMillis = TimeUnit.HOURS.toMillis(2)
-    private val maxPredictionHorizonMillis = TimeUnit.HOURS.toMillis(24)
 
     suspend fun loadCandidates(baby: BabyInfo): Map<ReminderType, ReminderCandidate> {
         // 候选数量和去重来源必须与预测采用同一组记录，辅食不能重置喂奶提醒来源。
         val feedings = PredictionRecordSelector.completedMilkFeedings(
-            repository.getRecentFeedings(baby.babyId, PREDICTION_RECORD_COUNT)
+            repository.getRecentCompletedMilkFeedings(baby.babyId, PREDICTION_RECORD_COUNT)
         )
         val sleeps = PredictionRecordSelector.completedSleeps(
-            repository.getRecentSleeps(baby.babyId, PREDICTION_RECORD_COUNT)
+            repository.getRecentCompletedSleeps(baby.babyId, PREDICTION_RECORD_COUNT)
         )
         val ageMonths = com.zero.babycare.home.prediction.PredictionAgePolicy.ageMonths(baby.birthDate)
         val result = mutableMapOf<ReminderType, ReminderCandidate>()
@@ -234,14 +239,14 @@ internal object ReminderPolicy {
         if (!OngoingRecordManager.isFeeding(baby.babyId) && feedings.size >= MIN_RELEVANT_RECORDS) {
             val lastEnd = feedings.maxOfOrNull { it.feedingEnd } ?: 0L
             val prediction = PredictionManager.predictNextFeeding(ageMonths, feedings, sleeps)
-            buildCandidate(baby.babyId, ReminderType.FEEDING, lastEnd, prediction?.latestTime?.time, prediction?.confidence)
+            buildCandidate(baby.babyId, ReminderType.FEEDING, lastEnd, prediction)
                 ?.let { result[ReminderType.FEEDING] = it }
         }
 
         if (!OngoingRecordManager.isSleeping(baby.babyId) && sleeps.size >= MIN_RELEVANT_RECORDS) {
             val lastEnd = sleeps.maxOfOrNull { it.sleepEnd } ?: 0L
             val prediction = PredictionManager.predictNextSleep(ageMonths, sleeps, feedings)
-            buildCandidate(baby.babyId, ReminderType.SLEEP, lastEnd, prediction?.latestTime?.time, prediction?.confidence)
+            buildCandidate(baby.babyId, ReminderType.SLEEP, lastEnd, prediction)
                 ?.let { result[ReminderType.SLEEP] = it }
         }
         return result
@@ -267,24 +272,15 @@ internal object ReminderPolicy {
         babyId: Int,
         type: ReminderType,
         lastRecordEnd: Long,
-        predictedLatest: Long?,
-        confidence: Float?
+        prediction: PredictionResult?
     ): ReminderCandidate? {
-        if (lastRecordEnd <= 0L || confidence == null || confidence < MIN_CONFIDENCE) return null
-        if (MMKVStore.getLong(notifiedSourceKey(type, babyId), 0L) == lastRecordEnd) return null
-        val prediction = predictedLatest?.takeIf {
-            it > lastRecordEnd && it - lastRecordEnd <= maxPredictionHorizonMillis
-        } ?: return null
-        val cooldownEnd = MMKVStore.getLong(lastReminderKey(type, babyId), 0L) + cooldownMillis
-        return ReminderCandidate(
-            dueTime = maxOf(prediction, cooldownEnd),
-            sourceRecordTime = lastRecordEnd
+        return ReminderCandidatePolicy.build(
+            lastRecordEnd = lastRecordEnd,
+            prediction = prediction,
+            lastRemindedAt = MMKVStore.getLong(lastReminderKey(type, babyId), 0L),
+            notifiedSourceRecordTime = MMKVStore.getLong(notifiedSourceKey(type, babyId), 0L),
+            now = System.currentTimeMillis()
         )
     }
 
 }
-
-internal data class ReminderCandidate(
-    val dueTime: Long,
-    val sourceRecordTime: Long
-)

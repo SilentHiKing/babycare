@@ -10,6 +10,9 @@ import com.zero.babydata.entity.EventRecord
 @Dao
 interface EventRecordDao {
 
+    @Query("SELECT COUNT(*) FROM Event_Records")
+    suspend fun countForBackup(): Long
+
     @Insert
     suspend fun insertEventRecord(record: EventRecord): Long
 

@@ -565,4 +565,6 @@
     <string name="picker_hour_accessibility_format">Hour %1$d</string>
     <string name="picker_minute_accessibility_format">Minute %1$d</string>
     <string name="picker_second_accessibility_format">Second %1$d</string>
+    <string name="backup_export_limit_exceeded">This backup exceeds the supported size or record limit and was not exported. Your records are still saved on this device.</string>
+    <string name="backup_export_invalid_data">Some records cannot be included in a restorable backup, so nothing was exported. Your records are still saved on this device.</string>
 </resources>

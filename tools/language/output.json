@@ -5652,6 +5652,26 @@
           "ja": "%1$d秒",
           "ko": "%1$d초"
         }
+      },
+      {
+        "codeKey": "backup_export_limit_exceeded",
+        "language": {
+          "zh-Hans": "备份内容超出当前支持范围，未导出。现有记录仍保存在此设备上。",
+          "en": "This backup exceeds the supported size or record limit and was not exported. Your records are still saved on this device.",
+          "zh-Hant": "備份內容超出目前支援範圍，未匯出。現有記錄仍儲存在此裝置上。",
+          "ja": "バックアップのサイズまたは記録数が上限を超えたため、書き出せませんでした。記録はこの端末に保存されています。",
+          "ko": "백업 크기 또는 기록 수가 지원 한도를 초과하여 내보내지 못했습니다. 기록은 이 기기에 보관되어 있습니다."
+        }
+      },
+      {
+        "codeKey": "backup_export_invalid_data",
+        "language": {
+          "zh-Hans": "部分记录无法生成可恢复的备份，未导出。现有记录仍保存在此设备上。",
+          "en": "Some records cannot be included in a restorable backup, so nothing was exported. Your records are still saved on this device.",
+          "zh-Hant": "部分記錄無法產生可還原的備份，未匯出。現有記錄仍儲存在此裝置上。",
+          "ja": "一部の記録から復元可能なバックアップを作成できないため、書き出せませんでした。記録はこの端末に保存されています。",
+          "ko": "일부 기록을 복원 가능한 백업에 포함할 수 없어 내보내지 못했습니다. 기록은 이 기기에 보관되어 있습니다."
+        }
       }
     ],
     "app": [

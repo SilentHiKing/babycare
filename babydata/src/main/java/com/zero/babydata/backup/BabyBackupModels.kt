@@ -44,6 +44,10 @@ data class BabyBackupData(
     val childDailyRecords: List<BackupChildDailyRecord>
 )
 
+/** 导入与导出使用同一总量定义；Long 避免列表大小求和发生 Int 溢出。 */
+internal fun BabyBackupData.totalRecordCount(): Long =
+    babies.size.toLong() + feedingRecords.size + sleepRecords.size + eventRecords.size + childDailyRecords.size
+
 data class BackupBaby(
     val stableId: String,
     val name: String,

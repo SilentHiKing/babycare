@@ -10,6 +10,9 @@ import com.zero.babydata.entity.SleepRecord
 @Dao
 interface SleepRecordDao {
 
+    @Query("SELECT COUNT(*) FROM Sleep_Records")
+    suspend fun countForBackup(): Long
+
     @Insert
     suspend fun insertSleepRecord(sleepRecord: SleepRecord): Long
 
@@ -43,11 +46,15 @@ interface SleepRecordDao {
     @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId AND sleepStart BETWEEN :startTime AND :endTime ORDER BY sleepStart ASC")
     suspend fun getSleepRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<SleepRecord>
 
-    @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId ORDER BY sleepEnd DESC LIMIT 1")
+    @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId AND sleepStart > 0 AND sleepEnd > sleepStart ORDER BY sleepEnd DESC, sleepStart DESC, sleepId DESC LIMIT 1")
     suspend fun getLastSleepRecord(babyId: Int): SleepRecord?
 
     @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId ORDER BY sleepStart DESC LIMIT :limit")
     suspend fun getRecentSleeps(babyId: Int, limit: Int): List<SleepRecord>
+
+    /** 按完成时间选取样本，较早开始但较晚结束的长睡眠仍是最新依据。 */
+    @Query("SELECT * FROM Sleep_Records WHERE babyId = :babyId AND sleepStart > 0 AND sleepEnd > sleepStart ORDER BY sleepEnd DESC, sleepStart DESC, sleepId DESC LIMIT :limit")
+    suspend fun getRecentCompletedSleeps(babyId: Int, limit: Int): List<SleepRecord>
 
     @Query("SELECT DISTINCT date(sleepStart / 1000, 'unixepoch', 'localtime') as recordDate FROM Sleep_Records WHERE babyId = :babyId AND sleepStart BETWEEN :startTime AND :endTime")
     suspend fun getDatesWithSleeps(babyId: Int, startTime: Long, endTime: Long): List<String>

@@ -3,6 +3,7 @@ package com.zero.babycare.home.prediction
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.FeedingType
 import com.zero.babydata.entity.SleepRecord
+import com.zero.babydata.domain.RecordDurationCalculator
 import java.util.Calendar
 import java.util.Date
 import kotlin.math.sqrt
@@ -74,10 +75,11 @@ class LocalRulePredictor : Predictor {
         
         // 数据不足时使用默认值
         if (completedRecords.size < MIN_RECORDS_FOR_PREDICTION) {
-            return predictWithDefault(babyAgeMonths, completedRecords.lastOrNull()?.feedingEnd, isFeeding = true)
+            return predictWithDefault(babyAgeMonths, completedRecords.maxOfOrNull { it.feedingEnd }, isFeeding = true)
         }
 
-        val lastRecord = completedRecords.last()
+        // 补记可产生重叠：开始最晚的短记录不一定是最后结束的那次照护。
+        val lastRecord = completedRecords.maxBy { it.feedingEnd }
         
         // 按时段分析间隔
         val intervals = calculateIntervals(
@@ -102,7 +104,7 @@ class LocalRulePredictor : Predictor {
             if (allIntervals.size >= MIN_PERIOD_RECORDS) {
                 relevantIntervals = allIntervals
             } else if (allIntervals.isEmpty()) {
-                return predictWithDefault(babyAgeMonths, completedRecords.last().feedingEnd, isFeeding = true)
+                return predictWithDefault(babyAgeMonths, lastRecord.feedingEnd, isFeeding = true)
             }
             // allIntervals 不为空但少于 MIN_PERIOD_RECORDS，仍使用这些数据但置信度会较低
             if (relevantIntervals.isEmpty()) {
@@ -158,22 +160,17 @@ class LocalRulePredictor : Predictor {
         
         // 数据不足时使用默认清醒窗口
         if (completedRecords.size < MIN_RECORDS_FOR_PREDICTION) {
-            return predictWithDefault(babyAgeMonths, completedRecords.lastOrNull()?.sleepEnd, isFeeding = false)
+            return predictWithDefault(babyAgeMonths, completedRecords.maxOfOrNull { it.sleepEnd }, isFeeding = false)
         }
 
-        val lastRecord = completedRecords.last()
+        val lastRecord = completedRecords.maxBy { it.sleepEnd }
         
         // 按时段分析间隔（上次睡醒到下次入睡的时间）
-        val awakeIntervals = mutableListOf<Pair<Long, Boolean>>()  // (interval, isDay)
-        for (i in 0 until completedRecords.size - 1) {
-            val curr = completedRecords[i]
-            val next = completedRecords[i + 1]
-            val interval = next.sleepStart - curr.sleepEnd
-            if (interval in MIN_AWAKE_WINDOW_MS..MAX_AWAKE_WINDOW_MS) {
-                val isDay = isTimeInDay(curr.sleepEnd)
-                awakeIntervals.add(interval to isDay)
-            }
-        }
+        val awakeIntervals = calculateIntervals(
+            completedRecords.map { it.sleepStart to it.sleepEnd },
+            MIN_AWAKE_WINDOW_MS,
+            MAX_AWAKE_WINDOW_MS
+        )
         
         val dayIntervals = awakeIntervals.filter { it.second }.map { it.first }
         val nightIntervals = awakeIntervals.filter { !it.second }.map { it.first }
@@ -191,7 +188,7 @@ class LocalRulePredictor : Predictor {
             if (allIntervals.size >= MIN_PERIOD_RECORDS) {
                 relevantIntervals = allIntervals
             } else if (allIntervals.isEmpty()) {
-                return predictWithDefault(babyAgeMonths, completedRecords.last().sleepEnd, isFeeding = false)
+                return predictWithDefault(babyAgeMonths, lastRecord.sleepEnd, isFeeding = false)
             }
             if (relevantIntervals.isEmpty()) {
                 relevantIntervals = allIntervals
@@ -271,14 +268,16 @@ class LocalRulePredictor : Predictor {
         maxIntervalMs: Long
     ): List<Pair<Long, Boolean>> {
         val result = mutableListOf<Pair<Long, Boolean>>()
-        for (i in 0 until records.size - 1) {
-            val currEnd = records[i].second
-            val nextStart = records[i + 1].first
-            val interval = nextStart - currEnd
+        var coveredEnd = records.firstOrNull()?.second ?: return result
+        for (i in 1 until records.size) {
+            val (nextStart, nextEnd) = records[i]
+            // 维护已覆盖区间的最远结束点，嵌套短记录之间的空隙仍在真实照护区间内。
+            val interval = nextStart - coveredEnd
             if (interval in minIntervalMs..maxIntervalMs) {
-                val isDay = isTimeInDay(currEnd)
+                val isDay = isTimeInDay(coveredEnd)
                 result.add(interval to isDay)
             }
+            coveredEnd = maxOf(coveredEnd, nextEnd)
         }
         return result
     }
@@ -394,11 +393,11 @@ class LocalRulePredictor : Predictor {
     ): Double {
         if (allRecords.size < 3) return 1.0
         
-        // 确保时长为非负值，避免异常数据影响计算
+        // 喂养只使用有效计时；旧记录的零值仍沿用首页和统计已有的完整跨度回退规则。
         val avgDuration = allRecords.takeLast(10)
-            .map { (it.feedingEnd - it.feedingStart).coerceAtLeast(0L) }
+            .map(::effectiveFeedingDuration)
             .average()
-        val lastDuration = (lastRecord.feedingEnd - lastRecord.feedingStart).coerceAtLeast(0L)
+        val lastDuration = effectiveFeedingDuration(lastRecord)
         
         return when {
             lastDuration > avgDuration * 1.3 -> 1.08   // 喂得久，间隔延长
@@ -406,6 +405,12 @@ class LocalRulePredictor : Predictor {
             else -> 1.0
         }
     }
+
+    private fun effectiveFeedingDuration(record: FeedingRecord): Long =
+        RecordDurationCalculator.overlappedDuration(
+            record.feedingStart, record.feedingEnd, record.feedingDuration,
+            record.feedingStart, record.feedingEnd
+        )
 
     /**
      * 根据上次瓶喂奶量调整间隔。
@@ -421,10 +426,11 @@ class LocalRulePredictor : Predictor {
         val recentBottleRecords = allRecords.takeLast(10)
             .filter {
                 val type = it.getFeedingTypeEnum()
-                type == FeedingType.FORMULA || type == FeedingType.MIXED
+                it !== lastRecord && (type == FeedingType.FORMULA || type == FeedingType.MIXED)
             }
         val lastAmount = lastRecord.feedingAmount?.takeIf { it > 0 } ?: return 1.0
-        val baselineAmounts = recentBottleRecords.dropLast(1)
+        // 最后结束的记录可能不是开始排序末项，不能用 dropLast 排除错误的历史样本。
+        val baselineAmounts = recentBottleRecords
             .mapNotNull { it.feedingAmount?.takeIf { amount -> amount > 0 } }
 
         if (baselineAmounts.size < 2) return 1.0

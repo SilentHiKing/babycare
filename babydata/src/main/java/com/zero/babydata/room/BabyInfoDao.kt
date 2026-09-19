@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface BabyInfoDao {
 
+    @Query("SELECT COUNT(*) FROM Baby_Info")
+    suspend fun countForBackup(): Long
+
     @Insert
     suspend fun insertBabyInfo(babyInfo: BabyInfo): Long
 

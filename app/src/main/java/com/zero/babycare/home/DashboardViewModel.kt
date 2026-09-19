@@ -126,26 +126,18 @@ class DashboardViewModel : BaseViewModel() {
             val feedingOverlaps = repository.getFeedingRecordsIntersectingDay(babyId, startOfDay, endOfDay)
             val sleepOverlaps = repository.getSleepRecordsIntersectingDay(babyId, startOfDay, endOfDay)
 
-            // 获取最近的记录（用于预测）
-            val recentFeedings = repository.getRecentFeedings(babyId, PREDICTION_RECORD_COUNT)
-            val recentSleeps = repository.getRecentSleeps(babyId, PREDICTION_RECORD_COUNT)
+            // 预测在数据库先筛选完成记录，再按完成时间限量，避免辅食占用奶类样本额度。
+            val recentFeedings = repository.getRecentCompletedMilkFeedings(babyId, PREDICTION_RECORD_COUNT)
+            val recentSleeps = repository.getRecentCompletedSleeps(babyId, PREDICTION_RECORD_COUNT)
 
             // 计算当前状态（使用 OngoingRecordManager）
             val currentStatus = determineCurrentStatus(babyId)
             val sleepSession = OngoingRecordManager.getSleepSession(babyId)
             val feedingSession = OngoingRecordManager.getFeedingSession(babyId)
 
-            // 上次结束时间（用于"距上次"显示）
-            // 1. 过滤进行中记录（feedingEnd <= feedingStart 表示未完成）
-            // 2. 按结束时间排序，取最新的
-            val lastFeedingEndTime = recentFeedings
-                .filter { it.feedingEnd > it.feedingStart }
-                .maxByOrNull { it.feedingEnd }
-                ?.feedingEnd
-            val lastSleepEndTime = recentSleeps
-                .filter { it.sleepEnd > it.sleepStart }
-                .maxByOrNull { it.sleepEnd }
-                ?.sleepEnd
+            // “距上次喂养”继续包含辅食；它与只预测下一次吃奶的样本范围不同。
+            val lastFeedingEndTime = repository.getLastFeedingRecord(babyId)?.feedingEnd
+            val lastSleepEndTime = repository.getLastSleepRecord(babyId)?.sleepEnd
 
             // 已完成记录与会话增量分别保留，分钟跳动只更新会话派生值。
             val feedingCount = feedings.size
