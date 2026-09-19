@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.zero.babycare.home.OngoingRecordManager
 import com.zero.common.R
+import com.zero.common.util.TimerClockSnapshot
 
 class SleepRecordViewModel(private val injectedRepository: BabyRepository? = null) : BaseViewModel() {
     // 延迟获取默认数据源，让草稿状态恢复独立于数据库初始化，并支持隔离的数据层验证。
@@ -37,6 +38,13 @@ class SleepRecordViewModel(private val injectedRepository: BabyRepository? = nul
             }
             BabyRecordChangeBus.notifyChanged(sleepRecord.babyId)
         }
+    }
+
+    /** 时钟同步只更新同一自动计时会话，旧表单不能覆盖后来开启的睡眠。 */
+    internal fun synchronizeAutomaticStart(babyId: Int, sessionId: String, startTime: Long, clock: TimerClockSnapshot) {
+        OngoingRecordManager.synchronizeAutomaticStart(
+            babyId, OngoingRecordManager.RecordType.SLEEP, sessionId, startTime, clock
+        )
     }
 
     /** 删除结果由重建后的页面消费，后台写入不再反向持有旧 View。 */

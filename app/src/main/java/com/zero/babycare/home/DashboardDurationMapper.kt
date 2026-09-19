@@ -5,6 +5,7 @@ import com.zero.babycare.home.OngoingRecordManager.RecordType
 import com.zero.babycare.home.OngoingRecordManager.SessionStatus
 import com.zero.babycare.home.bean.DashboardData
 import com.zero.babydata.domain.RecordDurationCalculator
+import com.zero.common.util.TimerClockSnapshot
 import java.time.Instant
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
@@ -17,20 +18,21 @@ internal object DashboardDurationMapper {
         feeding: OngoingSession?,
         sleep: OngoingSession?,
         now: Long,
-        zone: ZoneId = ZoneId.systemDefault()
+        zone: ZoneId = ZoneId.systemDefault(),
+        clock: TimerClockSnapshot = TimerClockSnapshot(now)
     ): DashboardData {
-        val day = Instant.ofEpochMilli(now).atZone(zone).toLocalDate()
+        val currentFeeding = feeding?.reconcileClock(clock)
+        val currentSleep = sleep?.reconcileClock(clock)
+        val day = Instant.ofEpochMilli(clock.wallTimeMs).atZone(zone).toLocalDate()
         val dayStart = day.atStartOfDay(zone).toInstant().toEpochMilli()
         val dayEnd = day.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli() - 1L
 
         fun OngoingSession.duration(): Long {
-            val end = if (status == SessionStatus.PAUSED) endAt ?: startAt else now
-            val span = (end - startAt).coerceAtLeast(0L)
-            return if (type == RecordType.FEEDING) elapsedDuration(now).coerceIn(0L, span) else span
+            return elapsedDuration(clock)
         }
 
         fun OngoingSession.todayMinutes(): Long {
-            val end = if (status == SessionStatus.PAUSED) endAt ?: startAt else now
+            val end = if (status == SessionStatus.PAUSED) endAt ?: startAt else clock.wallTimeMs
             val activeDuration = duration()
             if (activeDuration <= 0L) return 0L
             return TimeUnit.MILLISECONDS.toMinutes(
@@ -39,10 +41,10 @@ internal object DashboardDurationMapper {
         }
 
         return data.copy(
-            ongoingFeedingDurationMillis = feeding?.duration(),
-            ongoingSleepDurationMillis = sleep?.duration(),
-            displayFeedingMinutes = data.totalFeedingMinutes + (feeding?.todayMinutes() ?: 0L),
-            displaySleepMinutes = data.totalSleepMinutes + (sleep?.todayMinutes() ?: 0L)
+            ongoingFeedingDurationMillis = currentFeeding?.duration(),
+            ongoingSleepDurationMillis = currentSleep?.duration(),
+            displayFeedingMinutes = data.totalFeedingMinutes + (currentFeeding?.todayMinutes() ?: 0L),
+            displaySleepMinutes = data.totalSleepMinutes + (currentSleep?.todayMinutes() ?: 0L)
         )
     }
 }

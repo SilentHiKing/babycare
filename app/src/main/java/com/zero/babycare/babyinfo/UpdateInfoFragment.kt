@@ -179,11 +179,11 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         if (state is BabyInfoSaveState.Finished) {
             val belongs = !isHidden && state.belongsTo(vm.getDraft(state.target.key()), mainVm.navTarget.value)
             if (vm.consumeSaveResult(state) && belongs) {
-                if (state.errorRes != null) ToastUtils.showShort(state.errorRes)
+                if (state.errorRes != null) ToastUtils.showShort(getString(state.errorRes))
                 else {
                     // Room 自动刷新当前宝宝和侧栏；完成回执可能晚于后续编辑，不能回写提交快照。
                     activeTargetKey = null
-                    ToastUtils.showLong(com.zero.common.R.string.updateSuccess)
+                    ToastUtils.showLong(getString(com.zero.common.R.string.updateSuccess))
                     mainVm.navigateTo(state.target.returnTarget)
                     return
                 }
@@ -205,7 +205,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
             target.babyId?.let(mainVm::getBabyById) == null
         ) {
             // 编辑对象已被删除时不能转成新建，否则同一份表单可能误创建另一个宝宝。
-            ToastUtils.showShort(com.zero.common.R.string.data_load_failed)
+            ToastUtils.showShort(getString(com.zero.common.R.string.data_load_failed))
             goBack()
             return
         }
@@ -360,7 +360,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         if (isHidden || activeTargetKey != target.key() || vm.isSavePending || mainVm.isDeletingBaby(editingBaby?.babyId)) return
         val name = binding.etName.text.toString().trim()
         if (name.isEmpty()) {
-            ToastUtils.showLong(com.zero.common.R.string.nameIsNullTip)
+            ToastUtils.showLong(getString(com.zero.common.R.string.nameIsNullTip))
             return
         }
 

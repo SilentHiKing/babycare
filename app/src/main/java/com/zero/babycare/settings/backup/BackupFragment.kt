@@ -184,7 +184,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             }
             is UiState.Error -> {
                 hideLoading()
-                ToastUtils.showShort(com.zero.common.R.string.backup_export_failed)
+                ToastUtils.showShort(getString(com.zero.common.R.string.backup_export_failed))
                 vm.resetExportState()
             }
         }
@@ -197,7 +197,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             }
             is UiState.Error -> {
                 hideLoading()
-                ToastUtils.showShort(state.message)
+                ToastUtils.showShort(state.messageFor(requireContext()))
                 vm.resetReportExportState()
             }
         }
@@ -219,7 +219,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
                 ToastUtils.showShort(getString(com.zero.common.R.string.backup_import_report_saved, state.data))
                 vm.resetReportSaveState()
             }
-            is UiState.Error -> { ToastUtils.showShort(state.message); vm.resetReportSaveState() }
+            is UiState.Error -> { ToastUtils.showShort(state.messageFor(requireContext())); vm.resetReportSaveState() }
             else -> Unit
         }
         when (val state = vm.reportDeleteState.value) {
@@ -227,7 +227,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
                 ToastUtils.showShort(getString(com.zero.common.R.string.backup_report_deleted_format, state.data))
                 vm.resetReportDeleteState()
             }
-            is UiState.Error -> { ToastUtils.showShort(state.message); vm.resetReportDeleteState() }
+            is UiState.Error -> { ToastUtils.showShort(state.messageFor(requireContext())); vm.resetReportDeleteState() }
             else -> Unit
         }
         when (val state = vm.reportClearState.value) {
@@ -235,11 +235,11 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
                 ToastUtils.showShort(getString(com.zero.common.R.string.backup_report_cleared_format, state.data ?: 0))
                 vm.resetReportClearState()
             }
-            is UiState.Error -> { ToastUtils.showShort(state.message); vm.resetReportClearState() }
+            is UiState.Error -> { ToastUtils.showShort(state.messageFor(requireContext())); vm.resetReportClearState() }
             else -> Unit
         }
         (vm.reportListState.value as? UiState.Error)?.let {
-            ToastUtils.showShort(it.message)
+            ToastUtils.showShort(it.messageFor(requireContext()))
             vm.resetReportListState()
         }
     }
@@ -261,15 +261,15 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     /** 文件读写结果由 VM 保留，页面恢复后只负责反馈，不持有正在进行的 IO。 */
     private fun showDocumentExportResult(result: BackupDocumentExportResult) {
         when (result.outcome) {
-            BackupExportOutcome.CANCELLED -> ToastUtils.showShort(com.zero.common.R.string.backup_export_cancelled)
+            BackupExportOutcome.CANCELLED -> ToastUtils.showShort(getString(com.zero.common.R.string.backup_export_cancelled))
             BackupExportOutcome.FAILED -> ToastUtils.showShort(
-                if (result.isReport) com.zero.common.R.string.backup_import_report_export_failed
-                else com.zero.common.R.string.backup_export_failed
+                getString(if (result.isReport) com.zero.common.R.string.backup_import_report_export_failed
+                else com.zero.common.R.string.backup_export_failed)
             )
             BackupExportOutcome.SUCCEEDED -> {
                 ToastUtils.showShort(
-                    if (result.isReport) com.zero.common.R.string.backup_import_report_exported
-                    else com.zero.common.R.string.backup_export_success
+                    getString(if (result.isReport) com.zero.common.R.string.backup_import_report_exported
+                    else com.zero.common.R.string.backup_export_success)
                 )
                 showExportHint(
                     result.fileName,
@@ -285,7 +285,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
      */
     private fun handleOpenDocumentResult(uri: Uri?) {
         if (uri == null) {
-            ToastUtils.showShort(com.zero.common.R.string.backup_import_cancelled)
+            ToastUtils.showShort(getString(com.zero.common.R.string.backup_import_cancelled))
             return
         }
         vm.prepareImport(uri)
@@ -306,7 +306,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             is UiState.Error -> {
                 dismissImportDialog()
                 hideLoading()
-                ToastUtils.showShort(state.message)
+                ToastUtils.showShort(state.messageFor(requireContext()))
                 vm.consumeImportPromptError()
             }
             is UiState.Success -> {
@@ -349,7 +349,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             is UiState.Error -> {
                 dismissImportReportDialog()
                 hideLoading()
-                ToastUtils.showShort(state.message)
+                ToastUtils.showShort(state.messageFor(requireContext()))
                 vm.resetImportState()
             }
         }
@@ -376,7 +376,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             onCancel = {
                 if (acceptsImportCallback(prompt, epoch)) {
                     vm.cancelImport(prompt.id)
-                    ToastUtils.showShort(com.zero.common.R.string.backup_import_cancelled)
+                    ToastUtils.showShort(getString(com.zero.common.R.string.backup_import_cancelled))
                 }
             }
         )
@@ -477,7 +477,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             BackupReportPrompt.Action.DETAIL -> when (val state = vm.reportLoadState.value) {
                 is UiState.Success -> state.data?.takeIf { it.filePath == prompt.filePath } ?: return
                 is UiState.Error -> {
-                    ToastUtils.showShort(state.message)
+                    ToastUtils.showShort(state.messageFor(requireContext()))
                     vm.dismissReportPrompt(prompt.id)
                     return
                 }

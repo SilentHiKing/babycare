@@ -5592,6 +5592,66 @@
           "ja": "出生前",
           "ko": "아직 태어나지 않았어요"
         }
+      },
+      {
+        "codeKey": "picker_year_accessibility_format",
+        "language": {
+          "zh-Hans": "%1$d年",
+          "en": "Year %1$d",
+          "zh-Hant": "%1$d年",
+          "ja": "%1$d年",
+          "ko": "%1$d년"
+        }
+      },
+      {
+        "codeKey": "picker_month_accessibility_format",
+        "language": {
+          "zh-Hans": "%1$d月",
+          "en": "Month %1$d",
+          "zh-Hant": "%1$d月",
+          "ja": "%1$d月",
+          "ko": "%1$d월"
+        }
+      },
+      {
+        "codeKey": "picker_day_accessibility_format",
+        "language": {
+          "zh-Hans": "%1$d日",
+          "en": "Day %1$d",
+          "zh-Hant": "%1$d日",
+          "ja": "%1$d日",
+          "ko": "%1$d일"
+        }
+      },
+      {
+        "codeKey": "picker_hour_accessibility_format",
+        "language": {
+          "zh-Hans": "%1$d时",
+          "en": "Hour %1$d",
+          "zh-Hant": "%1$d時",
+          "ja": "%1$d時",
+          "ko": "%1$d시"
+        }
+      },
+      {
+        "codeKey": "picker_minute_accessibility_format",
+        "language": {
+          "zh-Hans": "%1$d分",
+          "en": "Minute %1$d",
+          "zh-Hant": "%1$d分",
+          "ja": "%1$d分",
+          "ko": "%1$d분"
+        }
+      },
+      {
+        "codeKey": "picker_second_accessibility_format",
+        "language": {
+          "zh-Hans": "%1$d秒",
+          "en": "Second %1$d",
+          "zh-Hant": "%1$d秒",
+          "ja": "%1$d秒",
+          "ko": "%1$d초"
+        }
       }
     ],
     "app": [

@@ -2,12 +2,13 @@ package com.zero.components.base.util
 
 import android.content.Context
 import android.graphics.Typeface
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.TextView
+import android.widget.LinearLayout
 import androidx.core.view.doOnLayout
 import androidx.core.view.ViewCompat
 import androidx.core.widget.TextViewCompat
@@ -18,7 +19,8 @@ import com.chad.library.adapter4.BaseQuickAdapter
 import com.zero.components.R
 import java.util.Calendar
 import kotlin.math.abs
-import kotlin.math.roundToInt
+import kotlin.math.ceil
+import kotlin.math.max
 
 /**
  * BabyCare 统一日期/时间 Sheet。
@@ -91,6 +93,11 @@ internal class BabyCareDateTimePopup(
         secondColumn = createColumn(findViewById(R.id.list_second))
         applyModeVisibility()
         bindAllColumns()
+        applyColumnGroupLayout()
+        // 以实际弹层内容宽度决定分组方向，分屏窗口不能使用整个显示屏宽度。
+        contentTouchArea.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
+            if (right - left != oldRight - oldLeft) applyColumnGroupLayout()
+        }
     }
 
     private fun createColumn(recyclerView: RecyclerView): PickerColumn {
@@ -104,6 +111,17 @@ internal class BabyCareDateTimePopup(
             snapHelper = snapHelper
         )
 
+        adapter.setOnItemClickListener { _, _, position ->
+            // 点击与读屏 ACTION_CLICK 走同一选择路径，不要求用户用拖动猜测中心值。
+            column.isSelecting = true
+            try {
+                recyclerView.stopScroll()
+                selectColumnValue(column, position)
+                scrollColumnToSelected(column)
+            } finally {
+                column.isSelecting = false
+            }
+        }
         recyclerView.layoutManager = layoutManager
         recyclerView.adapter = adapter
         recyclerView.itemAnimator = null
@@ -117,12 +135,13 @@ internal class BabyCareDateTimePopup(
             syncColumnPadding(column)
             scrollColumnToSelected(column)
         }
-        recyclerView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+        recyclerView.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
             syncColumnPadding(column)
+            if (bottom - top != oldBottom - oldTop) scrollColumnToSelected(column)
         }
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                if (newState == RecyclerView.SCROLL_STATE_IDLE && !column.isSelecting) {
                     selectSnappedValue(column)
                 }
             }
@@ -179,55 +198,68 @@ internal class BabyCareDateTimePopup(
             mode == DialogHelper.DateTimeMode.MONTH_DAY_TIME_SECOND
     }
 
+    /** 完整文字和至少 48dp 热区优先；放不下整行时将日期与时钟上下分组。 */
     private fun applyColumnGroupLayout() {
-        // 参考常见平面时间选择器：组内列保持紧凑，组间留出更明确的空隙。
-        // 年月日和时分秒不能继续按整行均分，否则用户很难看出两组信息关系。
-        val dateColumns = listOf(
-            yearColumn to if (showYearColumn()) YEAR_COLUMN_WIDTH_DP else 0,
-            monthColumn to if (showMonthDayColumns()) COMPACT_COLUMN_WIDTH_DP else 0,
-            dayColumn to if (showMonthDayColumns()) COMPACT_COLUMN_WIDTH_DP else 0
-        )
-        val timeColumns = listOf(
-            hourColumn to if (showTimeColumns()) COMPACT_COLUMN_WIDTH_DP else 0,
-            minuteColumn to if (showTimeColumns()) COMPACT_COLUMN_WIDTH_DP else 0,
-            secondColumn to if (showSecondColumn()) COMPACT_COLUMN_WIDTH_DP else 0
-        )
-
-        val dateWidthDp = dateColumns.sumOf { it.second }
-        val timeWidthDp = timeColumns.sumOf { it.second }
-        val hasBothGroups = dateWidthDp > 0 && timeWidthDp > 0
-        val desiredGapDp = if (hasBothGroups) {
-            if (showYearColumn()) FULL_DATE_TIME_GROUP_GAP_DP else MONTH_DAY_TIME_GROUP_GAP_DP
-        } else {
-            0
+        val dateColumns = listOf(yearColumn, monthColumn, dayColumn)
+            .filter { it.recyclerView.visibility == View.VISIBLE }
+        val timeColumns = listOf(hourColumn, minuteColumn, secondColumn)
+            .filter { it.recyclerView.visibility == View.VISIBLE }
+        val gap = resources.getDimensionPixelSize(com.zero.common.R.dimen.content_gap_medium)
+        val availableWidth = contentTouchArea.width - contentTouchArea.paddingLeft - contentTouchArea.paddingRight
+        val visibleColumns = dateColumns + timeColumns
+        // 单列也按可用宽度测量多行文字；极大字号不能再把年份裁成不可识别的残片。
+        val widths = visibleColumns.associateWith { column ->
+            column.adapter.preferredWidthPx().let { if (availableWidth > 0) minOf(it, availableWidth) else it }
         }
-        val desiredTotalPx = dp(dateWidthDp + timeWidthDp + desiredGapDp)
-        val availableWidth = (resources.displayMetrics.widthPixels - dp(PICKER_HORIZONTAL_PADDING_DP * 2))
-            .coerceAtLeast(dp(MIN_PICKER_AVAILABLE_WIDTH_DP))
-        val scale = (availableWidth.toFloat() / desiredTotalPx.toFloat()).coerceAtMost(1f)
-
-        applyColumnWidths(dateColumns, scale)
-        applyColumnWidths(timeColumns, scale)
-        val gapWidthPx = if (hasBothGroups) (dp(desiredGapDp) * scale).roundToInt() else 0
-
-        setViewWidth(groupGap, gapWidthPx)
+        val itemHeight = visibleColumns.maxOfOrNull { it.adapter.requiredHeightPx(widths.getValue(it)) }
+            ?: resources.getDimensionPixelSize(com.zero.common.R.dimen.min_touch_target)
+        visibleColumns.forEach { column ->
+            column.adapter.updateItemHeight(itemHeight)
+            setViewSize(column.recyclerView, widths.getValue(column), itemHeight * VISIBLE_ITEM_COUNT)
+        }
+        fun configureGroup(group: View, columns: List<PickerColumn>, selectionId: Int, fadeTopId: Int, fadeBottomId: Int): Int {
+            val totalWidth = columns.sumOf { widths.getValue(it) }
+            val wrapColumns = availableWidth > 0 && totalWidth > availableWidth
+            val row = (group as ViewGroup).getChildAt(0) as LinearLayout
+            row.orientation = if (wrapColumns) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
+            row.gravity = Gravity.CENTER
+            columns.forEachIndexed { index, column ->
+                val params = column.recyclerView.layoutParams as LinearLayout.LayoutParams
+                val margin = if (wrapColumns && index < columns.lastIndex) gap else 0
+                if (params.bottomMargin != margin) {
+                    params.bottomMargin = margin
+                    column.recyclerView.layoutParams = params
+                }
+            }
+            val width = if (wrapColumns) columns.maxOfOrNull { widths.getValue(it) } ?: 0 else totalWidth
+            val height = itemHeight * VISIBLE_ITEM_COUNT * (if (wrapColumns) columns.size else 1) +
+                if (wrapColumns) gap * (columns.size - 1).coerceAtLeast(0) else 0
+            setViewSize(group, width, height)
+            // 逐列纵排时中心位置各自独立，不能用一条跨组选择线误指中间那列。
+            listOf(selectionId, fadeTopId, fadeBottomId).forEach { id ->
+                findViewById<View>(id).apply {
+                    visibility = if (wrapColumns) View.GONE else View.VISIBLE
+                    setViewSize(this, ViewGroup.LayoutParams.MATCH_PARENT, itemHeight)
+                }
+            }
+            return width
+        }
+        val dateWidth = configureGroup(dateGroup, dateColumns, R.id.picker_date_selection,
+            R.id.picker_date_fade_top, R.id.picker_date_fade_bottom)
+        val timeWidth = configureGroup(timeGroup, timeColumns, R.id.picker_time_selection,
+            R.id.picker_time_fade_top, R.id.picker_time_fade_bottom)
+        val hasBothGroups = dateColumns.isNotEmpty() && timeColumns.isNotEmpty()
+        val stacked = hasBothGroups && (availableWidth <= 0 || dateWidth + timeWidth + gap > availableWidth)
+        findViewById<LinearLayout>(R.id.picker_column_container).orientation =
+            if (stacked) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
+        setViewSize(groupGap, if (stacked) 0 else gap, if (stacked) gap else 0)
     }
 
-    private fun applyColumnWidths(columns: List<Pair<PickerColumn, Int>>, scale: Float): Int {
-        var totalWidth = 0
-        columns.forEach { (column, widthDp) ->
-            if (widthDp == 0) return@forEach
-            val widthPx = (dp(widthDp) * scale).roundToInt()
-            setViewWidth(column.recyclerView, widthPx)
-            totalWidth += widthPx
-        }
-        return totalWidth
-    }
-
-    private fun setViewWidth(view: View, width: Int) {
+    private fun setViewSize(view: View, width: Int, height: Int) {
         val params = view.layoutParams
-        if (params.width != width) {
+        if (params.width != width || params.height != height) {
             params.width = width
+            params.height = height
             view.layoutParams = params
         }
     }
@@ -359,29 +391,46 @@ internal class BabyCareDateTimePopup(
         column.values = values
         column.selectedIndex = selectedIndex
         column.onSelected = onSelected
-        column.adapter.submitValues(values.map(label), selectedIndex)
+        val accessibilityFormat = when (column.recyclerView.id) {
+            R.id.list_year -> com.zero.common.R.string.picker_year_accessibility_format
+            R.id.list_month -> com.zero.common.R.string.picker_month_accessibility_format
+            R.id.list_day -> com.zero.common.R.string.picker_day_accessibility_format
+            R.id.list_hour -> com.zero.common.R.string.picker_hour_accessibility_format
+            R.id.list_minute -> com.zero.common.R.string.picker_minute_accessibility_format
+            else -> com.zero.common.R.string.picker_second_accessibility_format
+        }
+        column.adapter.submitValues(values.map { value ->
+            PickerColumnItem(label(value), context.getString(accessibilityFormat, value))
+        }, selectedIndex)
         scrollColumnToSelected(column)
     }
 
     private fun syncColumnPadding(column: PickerColumn) {
-        val verticalPadding = ((column.recyclerView.height - dp(PICKER_ITEM_HEIGHT_DP)) / 2).coerceAtLeast(0)
+        val verticalPadding = ((column.recyclerView.height - column.adapter.itemHeightPx) / 2).coerceAtLeast(0)
         if (column.recyclerView.paddingTop != verticalPadding) {
             column.recyclerView.setPadding(0, verticalPadding, 0, verticalPadding)
         }
     }
 
     private fun scrollColumnToSelected(column: PickerColumn) {
-        column.recyclerView.post {
+        column.scrollRequest?.let(column.recyclerView::removeCallbacks)
+        val request = Runnable {
+            if (!column.recyclerView.isAttachedToWindow) return@Runnable
             syncColumnPadding(column)
             column.layoutManager.scrollToPositionWithOffset(column.selectedIndex, 0)
         }
+        column.scrollRequest = request
+        column.recyclerView.post(request)
     }
 
     private fun selectSnappedValue(column: PickerColumn) {
         val snapView = column.snapHelper.findSnapView(column.layoutManager) ?: return
         val position = column.layoutManager.getPosition(snapView)
-        if (position == RecyclerView.NO_POSITION || position == column.selectedIndex) return
+        selectColumnValue(column, position)
+    }
 
+    private fun selectColumnValue(column: PickerColumn, position: Int) {
+        if (position !in column.values.indices || position == column.selectedIndex) return
         column.selectedIndex = position
         column.adapter.setSelectedIndex(position)
         if (isBindingColumns) return
@@ -389,6 +438,7 @@ internal class BabyCareDateTimePopup(
         // 只有用户滚动产生的新值才回写状态；联动刷新列时只更新展示，避免递归触发。
         val callback = column.onSelected ?: return
         column.values.getOrNull(position)?.let(callback)
+        applyColumnGroupLayout()
     }
 
     private fun normalizeDateTime() {
@@ -526,8 +576,14 @@ internal class BabyCareDateTimePopup(
         }
     }
 
-    private fun dp(value: Int): Int {
-        return (value * resources.displayMetrics.density).toInt()
+    override fun onDetachedFromWindow() {
+        if (::yearColumn.isInitialized) {
+            listOf(yearColumn, monthColumn, dayColumn, hourColumn, minuteColumn, secondColumn).forEach { column ->
+                column.scrollRequest?.let(column.recyclerView::removeCallbacks)
+                column.scrollRequest = null
+            }
+        }
+        super.onDetachedFromWindow()
     }
 
     private data class PickerColumn(
@@ -537,23 +593,55 @@ internal class BabyCareDateTimePopup(
         val snapHelper: LinearSnapHelper,
         var values: List<Int> = emptyList(),
         var selectedIndex: Int = 0,
+        var isSelecting: Boolean = false,
+        var scrollRequest: Runnable? = null,
         var onSelected: ((Int) -> Unit)? = null
     )
 
-    private data class PickerColumnItem(val label: String)
+    private data class PickerColumnItem(val label: String, val accessibilityLabel: String)
 
     private class PickerColumnAdapter(
         viewContext: Context
     ) : BaseQuickAdapter<PickerColumnItem, PickerColumnAdapter.ViewHolder>() {
 
         private var selectedIndex: Int = 0
+        private val measurementLabel = TextView(viewContext).apply {
+            // 离屏测量也要提供布局参数；首次 measure 后再次 setText 会由 TextView 读取宽高策略。
+            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            TextViewCompat.setTextAppearance(this, com.zero.common.R.style.TextAppearance_BabyCare_Body1)
+            includeFontPadding = false
+            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+        }
+        private val minimumTouch = viewContext.resources.getDimensionPixelSize(com.zero.common.R.dimen.min_touch_target)
+        private val textPadding = viewContext.resources.getDimensionPixelSize(com.zero.common.R.dimen.content_gap_small)
+        var itemHeightPx = max(minimumTouch, measurementLabel.lineHeight + textPadding * 2)
+            private set
+        private var labels: List<String> = emptyList()
+
+        fun preferredWidthPx(): Int = max(minimumTouch,
+            ceil(labels.maxOfOrNull { measurementLabel.paint.measureText(it) } ?: 0f).toInt() + textPadding * 2)
+
+        fun requiredHeightPx(width: Int): Int {
+            measurementLabel.text = labels.maxByOrNull { measurementLabel.paint.measureText(it) }.orEmpty()
+            measurementLabel.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+            return max(minimumTouch, measurementLabel.measuredHeight + textPadding * 2)
+        }
+
+        fun updateItemHeight(height: Int) {
+            if (itemHeightPx == height) return
+            itemHeightPx = height
+            if (itemCount > 0) notifyItemRangeChanged(0, itemCount)
+        }
+
         private val primaryColor = viewContext.resolveThemeColor(com.zero.common.R.attr.colorTextPrimary)
         private val secondaryColor = viewContext.resolveThemeColor(com.zero.common.R.attr.colorTextSecondary)
         private val hintColor = viewContext.resolveThemeColor(com.zero.common.R.attr.colorTextHint)
 
-        fun submitValues(labels: List<String>, selectedIndex: Int) {
+        fun submitValues(values: List<PickerColumnItem>, selectedIndex: Int) {
             this.selectedIndex = selectedIndex
-            submitList(labels.map(::PickerColumnItem))
+            this.labels = values.map { it.label }
+            submitList(values)
         }
 
         fun setSelectedIndex(index: Int) {
@@ -564,14 +652,22 @@ internal class BabyCareDateTimePopup(
         }
 
         override fun onCreateViewHolder(context: Context, parent: ViewGroup, viewType: Int): ViewHolder {
-            val textView = TextView(context).apply {
+            val textView = object : TextView(context) {
+                override fun onInitializeAccessibilityNodeInfo(info: AccessibilityNodeInfo) {
+                    super.onInitializeAccessibilityNodeInfo(info)
+                    // RecyclerView 有待处理更新时会跳过原 delegate；数值自身必须始终保留单选语义。
+                    info.className = android.widget.RadioButton::class.java.name
+                    info.isCheckable = true
+                    info.isChecked = isSelected
+                }
+            }.apply {
                 gravity = Gravity.CENTER
                 includeFontPadding = false
                 TextViewCompat.setTextAppearance(this, com.zero.common.R.style.TextAppearance_BabyCare_Body1)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, DATE_TIME_ITEM_TEXT_SIZE_SP)
+                isFocusable = true
                 layoutParams = RecyclerView.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
-                    (PICKER_ITEM_HEIGHT_DP * resources.displayMetrics.density).toInt()
+                    itemHeightPx
                 )
             }
             return ViewHolder(textView)
@@ -580,7 +676,12 @@ internal class BabyCareDateTimePopup(
         override fun onBindViewHolder(holder: ViewHolder, position: Int, item: PickerColumnItem?) {
             val distance = abs(position - selectedIndex)
             val isSelected = distance == 0
+            if (holder.textView.layoutParams.height != itemHeightPx) {
+                holder.textView.layoutParams = holder.textView.layoutParams.apply { height = itemHeightPx }
+            }
+            holder.textView.isSelected = isSelected
             holder.textView.text = item?.label.orEmpty()
+            holder.textView.contentDescription = item?.accessibilityLabel
             holder.textView.setTextColor(
                 when {
                     isSelected -> primaryColor
@@ -599,13 +700,6 @@ internal class BabyCareDateTimePopup(
 
     private companion object {
         const val DEFAULT_YEAR_LOOKBACK = 20
-        const val PICKER_ITEM_HEIGHT_DP = 54
-        const val DATE_TIME_ITEM_TEXT_SIZE_SP = 16f
-        const val PICKER_HORIZONTAL_PADDING_DP = 16
-        const val MIN_PICKER_AVAILABLE_WIDTH_DP = 320
-        const val YEAR_COLUMN_WIDTH_DP = 64
-        const val COMPACT_COLUMN_WIDTH_DP = 58
-        const val MONTH_DAY_TIME_GROUP_GAP_DP = 56
-        const val FULL_DATE_TIME_GROUP_GAP_DP = 32
+        const val VISIBLE_ITEM_COUNT = 3
     }
 }

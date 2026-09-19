@@ -34,6 +34,7 @@ class TimeEditText @JvmOverloads constructor(
     private var isEditing = false
     private var onTimeEnteredListener: ((hour: Int, minute: Int) -> Unit)? = null
     private var onTimestampChangedListener: ((timestamp: Long) -> Unit)? = null
+    private var onRawInputChangedListener: (() -> Unit)? = null
 
     // 存储当前时间的时间戳
     var currentTimestamp: Long = 0L
@@ -51,46 +52,35 @@ class TimeEditText @JvmOverloads constructor(
 
             override fun afterTextChanged(s: Editable?) {
                 if (isEditing) return
+                // 原始输入与已提交时间必须一致：哪怕只删掉一个字符，也不能沿用旧时间戳。
                 isEditing = true
-
-                if (s.isNullOrEmpty()) {
-                    currentTimestamp = 0L
-                    isEditing = false
-                    return
-                }
-
-                val digits = s.toString().trim()
-                if (digits.length == 4 && digits.all { it.isDigit() }) {
-                    val hour = digits.substring(0, 2).toIntOrNull() ?: 0
-                    val minute = digits.substring(2, 4).toIntOrNull() ?: 0
-
-                    if (hour !in 0..23 || minute !in 0..59) {
-                        ToastUtils.showShort(com.zero.common.R.string.invalid_time)
-                        setText("")
-                        currentTimestamp = 0L
-                    } else {
-                        isCursorVisible = false
-                        val resultTimestamp = calculateSmartTimestamp(hour, minute)
-                        currentTimestamp = resultTimestamp
-                        setText(buildDisplayText(resultTimestamp))
-
-                        // 延迟执行，确保 setText 完成后再操作光标
-                        post {
-                            // 显示光标并移动到末尾
-                            isCursorVisible = true
+                currentTimestamp = 0L
+                var enteredTime: Pair<Int, Int>? = null
+                try {
+                    val digits = s?.toString()?.trim().orEmpty()
+                    if (digits.length == 4 && digits.all { it.isDigit() }) {
+                        val hour = digits.substring(0, 2).toInt()
+                        val minute = digits.substring(2, 4).toInt()
+                        if (hour !in 0..23 || minute !in 0..59) {
+                            // 保留错误输入供用户修正，不能先清空再让草稿无法还原。
+                            ToastUtils.showShort(context.getString(com.zero.common.R.string.invalid_time))
+                        } else {
+                            currentTimestamp = calculateSmartTimestamp(hour, minute)
+                            setText(buildDisplayText(currentTimestamp))
                             moveCursorToEnd()
-
-                            // 自动关闭键盘
-                            hideKeyboard()
-
-                            // 回调监听
-                            onTimeEnteredListener?.invoke(hour, minute)
-                            onTimestampChangedListener?.invoke(currentTimestamp)
+                            enteredTime = hour to minute
                         }
                     }
+                } finally {
+                    isEditing = false
                 }
-
-                isEditing = false
+                onRawInputChangedListener?.invoke()
+                // 同步提交本次编辑；排队回调可能在后续输入或 View 销毁后读到别的时间。
+                enteredTime?.let { (hour, minute) ->
+                    hideKeyboard()
+                    onTimeEnteredListener?.invoke(hour, minute)
+                }
+                onTimestampChangedListener?.invoke(currentTimestamp)
             }
         })
     }
@@ -179,8 +169,7 @@ class TimeEditText @JvmOverloads constructor(
         val minute = calendar.get(Calendar.MINUTE)
         setText(buildDisplayText(timestamp))
         
-        // 延迟将光标移动到末尾
-        post { moveCursorToEnd() }
+        moveCursorToEnd()
         
         isEditing = false
 
@@ -201,6 +190,22 @@ class TimeEditText @JvmOverloads constructor(
         setText("")
         currentTimestamp = 0L
         isEditing = false
+    }
+
+    /** 恢复原始草稿时不触发用户事件；未完成文本不能重新解释为之前已提交的时间。 */
+    fun restoreInputState(timestamp: Long, rawText: String) {
+        if (timestamp > 0L) {
+            setTimestamp(timestamp)
+            return
+        }
+        isEditing = true
+        try {
+            currentTimestamp = 0L
+            // 层级恢复已包含光标位置，相同文本不再 setText，避免重置选择范围。
+            if (text?.toString() != rawText) setText(rawText)
+        } finally {
+            isEditing = false
+        }
     }
 
     /** 获取时间戳，如果未设置返回0 */
@@ -235,6 +240,15 @@ class TimeEditText @JvmOverloads constructor(
     /** 设置时间戳变化回调 */
     fun setOnTimestampChangedListener(listener: (timestamp: Long) -> Unit) {
         onTimestampChangedListener = listener
+    }
+
+    /** 通知页面保护尚未完成的输入；程序赋值和草稿恢复不属于用户修改。 */
+    fun setOnRawInputChangedListener(listener: () -> Unit) {
+        onRawInputChangedListener = listener
+    }
+
+    fun clearOnRawInputChangedListener() {
+        onRawInputChangedListener = null
     }
 
     /** 清除回调 */

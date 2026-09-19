@@ -6,11 +6,14 @@ import android.view.LayoutInflater
 import android.widget.FrameLayout
 import com.zero.common.util.DateUtils.timestampToMMddHHmmss
 import com.zero.components.databinding.RecordViewBinding
+import com.zero.common.util.TimerClock
+import com.zero.common.util.TimerClockSnapshot
 
 class RecordView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
+    clock: () -> TimerClockSnapshot = TimerClock::snapshot
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
     private var viewBinding: RecordViewBinding = RecordViewBinding.inflate(
@@ -23,7 +26,7 @@ class RecordView @JvmOverloads constructor(
 
     var statusChange: ((current: RecordState, next: RecordState) -> Unit)? = null
 
-    val timerCounter = TimerCounter()
+    val timerCounter = TimerCounter(clock)
 
     fun getDuration(): Long {
         return timerCounter.getDuration()

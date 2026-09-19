@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.zero.babycare.home.OngoingRecordManager
 import com.zero.common.R
+import com.zero.common.util.TimerClockSnapshot
 
 class FeedingRecordViewModel(private val injectedRepository: BabyRepository? = null) : BaseViewModel() {
     // 延迟获取默认数据源，让草稿状态恢复独立于数据库初始化，并支持隔离的数据层验证。
@@ -22,6 +23,13 @@ class FeedingRecordViewModel(private val injectedRepository: BabyRepository? = n
     private val _lastFeedingRecord = MutableLiveData<FeedingRecord?>()
     val lastFeedingRecord: LiveData<FeedingRecord?> = _lastFeedingRecord
     private var lastRequestedBabyId: Int? = null
+
+    /** 页面只报告已校正的显示起点；持久会话按稳定身份同步，不能影响后来启动的记录。 */
+    internal fun synchronizeTimerStart(babyId: Int, sessionId: String, start: Long, clock: TimerClockSnapshot) {
+        OngoingRecordManager.synchronizeAutomaticStart(
+            babyId, OngoingRecordManager.RecordType.FEEDING, sessionId, start, clock
+        )
+    }
 
     internal fun save(feedingRecord: FeedingRecord, target: RecordMutationController.Target) {
         val submittedSession = OngoingRecordManager.getFeedingSession(feedingRecord.babyId)

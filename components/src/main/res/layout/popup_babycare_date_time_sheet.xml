@@ -1,192 +1,220 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_picker_sheet"
     android:orientation="vertical"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp">
+    android:paddingTop="@dimen/content_gap_medium"
+    android:paddingBottom="@dimen/content_gap_medium">
 
     <View
         android:layout_width="36dp"
-        android:layout_height="4dp"
+        android:layout_height="@dimen/content_gap_small"
         android:layout_gravity="center_horizontal"
-        android:background="@drawable/bg_picker_drag_handle" />
+        android:background="@drawable/bg_picker_drag_handle"
+        android:importantForAccessibility="no" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="wrap_content"
+        android:minHeight="@dimen/min_touch_target"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp">
+        android:paddingStart="@dimen/page_horizontal_padding"
+        android:paddingEnd="@dimen/page_horizontal_padding">
 
         <TextView
             android:id="@+id/tv_cancel"
             style="@style/TextAppearance.BabyCare.Action"
-            android:layout_width="72dp"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/min_touch_target"
+            android:minHeight="@dimen/min_touch_target"
+            android:gravity="center"
+            android:padding="@dimen/content_gap_medium"
             android:text="@string/cancel"
             android:textColor="?attr/colorTextSecondary" />
 
         <Space
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1" />
 
         <TextView
             android:id="@+id/tv_confirm"
             style="@style/TextAppearance.BabyCare.Action"
-            android:layout_width="72dp"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical|end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/min_touch_target"
+            android:minHeight="@dimen/min_touch_target"
+            android:gravity="center"
+            android:padding="@dimen/content_gap_medium"
             android:text="@string/confirm"
             android:textColor="?attr/colorBrandForeground" />
-
     </LinearLayout>
 
-    <FrameLayout
+    <!-- 高字号或矮窗口允许分组内容滚动，确认入口始终留在外部。 -->
+    <androidx.core.widget.NestedScrollView
         android:id="@+id/picker_frame"
         android:layout_width="match_parent"
-        android:layout_height="232dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp">
+        android:layout_height="wrap_content"
+        android:overScrollMode="never"
+        android:paddingStart="@dimen/page_horizontal_padding"
+        android:paddingEnd="@dimen/page_horizontal_padding">
 
         <LinearLayout
             android:id="@+id/picker_column_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:gravity="center"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:id="@+id/picker_date_group"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/list_year"
-                    android:layout_width="64dp"
-                    android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    android:overScrollMode="never"
-                    android:scrollbars="none"
-                    tools:listitem="@android:layout/simple_list_item_1" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/list_month"
-                    android:layout_width="58dp"
-                    android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    android:overScrollMode="never"
-                    android:scrollbars="none"
-                    tools:listitem="@android:layout/simple_list_item_1" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/list_day"
-                    android:layout_width="58dp"
-                    android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    android:overScrollMode="never"
-                    android:scrollbars="none"
-                    tools:listitem="@android:layout/simple_list_item_1" />
-
-            </LinearLayout>
-
-            <View
-                android:id="@+id/picker_date_time_group_gap"
-                android:layout_width="56dp"
-                android:layout_height="match_parent"
-                android:importantForAccessibility="no" />
-
-            <LinearLayout
-                android:id="@+id/picker_time_group"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/list_hour"
-                    android:layout_width="58dp"
-                    android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    android:overScrollMode="never"
-                    android:scrollbars="none"
-                    tools:listitem="@android:layout/simple_list_item_1" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/list_minute"
-                    android:layout_width="58dp"
-                    android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    android:overScrollMode="never"
-                    android:scrollbars="none"
-                    tools:listitem="@android:layout/simple_list_item_1" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/list_second"
-                    android:layout_width="58dp"
-                    android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    android:overScrollMode="never"
-                    android:scrollbars="none"
-                    tools:listitem="@android:layout/simple_list_item_1" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:importantForAccessibility="no"
             android:orientation="vertical">
 
+            <FrameLayout
+                android:id="@+id/picker_date_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/list_year"
+                        android:layout_width="@dimen/min_touch_target"
+                        android:layout_height="wrap_content"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:scrollbars="none" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/list_month"
+                        android:layout_width="@dimen/min_touch_target"
+                        android:layout_height="wrap_content"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:scrollbars="none" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/list_day"
+                        android:layout_width="@dimen/min_touch_target"
+                        android:layout_height="wrap_content"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:scrollbars="none" />
+                </LinearLayout>
+
+                <FrameLayout
+                    android:id="@+id/picker_date_selection"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/min_touch_target"
+                    android:layout_gravity="center_vertical"
+                    android:importantForAccessibility="noHideDescendants">
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/surface_stroke_width"
+                        android:layout_gravity="top"
+                        android:background="@color/control_border_default" />
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/surface_stroke_width"
+                        android:layout_gravity="bottom"
+                        android:background="@color/control_border_default" />
+                </FrameLayout>
+
+                <View
+                    android:id="@+id/picker_date_fade_top"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/min_touch_target"
+                    android:layout_gravity="top"
+                    android:background="@drawable/bg_picker_fade_top"
+                    android:importantForAccessibility="no" />
+
+                <View
+                    android:id="@+id/picker_date_fade_bottom"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/min_touch_target"
+                    android:layout_gravity="bottom"
+                    android:background="@drawable/bg_picker_fade_bottom"
+                    android:importantForAccessibility="no" />
+            </FrameLayout>
+
             <Space
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+                android:id="@+id/picker_date_time_group_gap"
+                android:layout_width="@dimen/content_gap_medium"
+                android:layout_height="@dimen/content_gap_medium"
+                android:importantForAccessibility="no" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/control_border_default" />
+            <FrameLayout
+                android:id="@+id/picker_time_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="54dp" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/control_border_default" />
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/list_hour"
+                        android:layout_width="@dimen/min_touch_target"
+                        android:layout_height="wrap_content"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:scrollbars="none" />
 
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/list_minute"
+                        android:layout_width="@dimen/min_touch_target"
+                        android:layout_height="wrap_content"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:scrollbars="none" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/list_second"
+                        android:layout_width="@dimen/min_touch_target"
+                        android:layout_height="wrap_content"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:scrollbars="none" />
+                </LinearLayout>
+
+                <FrameLayout
+                    android:id="@+id/picker_time_selection"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/min_touch_target"
+                    android:layout_gravity="center_vertical"
+                    android:importantForAccessibility="noHideDescendants">
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/surface_stroke_width"
+                        android:layout_gravity="top"
+                        android:background="@color/control_border_default" />
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/surface_stroke_width"
+                        android:layout_gravity="bottom"
+                        android:background="@color/control_border_default" />
+                </FrameLayout>
+
+                <View
+                    android:id="@+id/picker_time_fade_top"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/min_touch_target"
+                    android:layout_gravity="top"
+                    android:background="@drawable/bg_picker_fade_top"
+                    android:importantForAccessibility="no" />
+
+                <View
+                    android:id="@+id/picker_time_fade_bottom"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/min_touch_target"
+                    android:layout_gravity="bottom"
+                    android:background="@drawable/bg_picker_fade_bottom"
+                    android:importantForAccessibility="no" />
+            </FrameLayout>
 
         </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="88dp"
-            android:layout_gravity="top"
-            android:background="@drawable/bg_picker_fade_top"
-            android:importantForAccessibility="no" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="88dp"
-            android:layout_gravity="bottom"
-            android:background="@drawable/bg_picker_fade_bottom"
-            android:importantForAccessibility="no" />
-
-    </FrameLayout>
-
+    </androidx.core.widget.NestedScrollView>
 </LinearLayout>

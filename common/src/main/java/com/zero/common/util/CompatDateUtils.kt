@@ -1,6 +1,5 @@
 package com.zero.common.util
 
-import android.annotation.SuppressLint
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -30,20 +29,23 @@ object CompatDateUtils {
     )
 
     // 线程安全的 SimpleDateFormat 缓存
-    private val formatCache = ConcurrentHashMap<String, ThreadLocal<SimpleDateFormat>>()
+    private data class FormatKey(val pattern: String, val locale: Locale)
+    private val formatCache = ConcurrentHashMap<FormatKey, ThreadLocal<SimpleDateFormat>>()
 
     /**
      * 获取 SimpleDateFormat 实例（线程安全）
      */
     private fun getDateFormat(pattern: String): SimpleDateFormat {
-        var threadLocal = formatCache[pattern]
-        if (threadLocal == null) {
-            threadLocal = ThreadLocal.withInitial {
-                SimpleDateFormat(pattern, Locale.getDefault())
+        val key = FormatKey(pattern, Locale.getDefault())
+        val threadLocal = formatCache.computeIfAbsent(key) {
+            ThreadLocal.withInitial {
+                SimpleDateFormat(key.pattern, key.locale)
             }
-            formatCache[pattern] = threadLocal
         }
-        return threadLocal.get()!!
+        return threadLocal.get()!!.apply {
+            // 应用可能在进程存活期间切换时区；旧解析器不能错解新时区下的生日输入。
+            timeZone = TimeZone.getDefault()
+        }
     }
 
     /**

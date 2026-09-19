@@ -35,11 +35,14 @@ import com.zero.babycare.databinding.LayoutEventDetailSymptomBinding
 import com.zero.babycare.databinding.LayoutEventDetailVaccineBinding
 import com.zero.babycare.home.record.RecordTimerController
 import com.zero.babycare.home.record.RecordDraftState
+import com.zero.babycare.home.record.RecordNumberInput
 import com.zero.babycare.home.record.TimerMode
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babydata.entity.CustomEventData
+import com.zero.babydata.domain.MedicineUnit
 import com.zero.babydata.entity.DiaperData
+import com.zero.babydata.entity.EventExtraData
 import com.zero.babydata.entity.EventType
 import com.zero.babydata.entity.GrowthData
 import com.zero.babydata.entity.MedicineData
@@ -92,6 +95,16 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private var renderedDetailType: Int? = null
     private var draftId = UUID.randomUUID().toString()
     private var pendingCategoryScroll: Runnable? = null
+    private var weightInputUnit = UnitConfig.WEIGHT_UNIT_KG
+    private var heightInputUnit = UnitConfig.HEIGHT_UNIT_CM
+    private var numericInput: RecordNumberInput? = null
+    private var numericInputType: Int? = null
+    private var hasMedicineDraftUnit = false
+    private var medicineDraftUnit: String? = null
+
+    private data class MedicineUnitOption(val value: String?, val label: String) {
+        override fun toString() = label
+    }
 
     private val dateFormat by lazy {
         // 日期标题跟随应用内语言，避免英文环境下仍显示中文“月/日”格式。
@@ -109,6 +122,12 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         draftBabyId = draftForView?.getInt("baby_id")?.takeIf { it > 0 }
             ?: mainVm.getCurrentBabyInfo()?.babyId
         draftId = draftForView?.getString("draft_id") ?: UUID.randomUUID().toString()
+        weightInputUnit = draftForView?.getString("weight_input_unit") ?: UnitConfig.getWeightUnit()
+        heightInputUnit = draftForView?.getString("height_input_unit") ?: UnitConfig.getHeightUnit()
+        numericInput = draftForView?.getString("numeric_input")?.let { Gson().fromJson(it, RecordNumberInput::class.java) }
+        numericInputType = draftForView?.getInt("numeric_input_type")?.takeIf { it != 0 }
+        hasMedicineDraftUnit = draftForView?.containsKey("medicine_input_unit") == true
+        medicineDraftUnit = draftForView?.getString("medicine_input_unit")
 
         setupToolbar()
         setupTimeCard()
@@ -178,6 +197,14 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         putBoolean("dirty", hasUnsavedChanges || RecordDraftState.inputValues(binding.root) != cleanInputs)
         putBoolean("note_expanded", noteExpanded)
         putStringArrayList("clean_inputs", cleanInputs)
+        putString("weight_input_unit", weightInputUnit)
+        putString("height_input_unit", heightInputUnit)
+        putString("numeric_input", numericInput?.let { Gson().toJson(it) })
+        putInt("numeric_input_type", numericInputType ?: 0)
+        if (vm.selectedSubtype.value?.type == EventType.HEALTH_MEDICINE) {
+            val unit = binding.containerDetail.findViewById<Spinner>(com.zero.babycare.R.id.spinnerUnit)
+            putString("medicine_input_unit", (unit?.selectedItem as? MedicineUnitOption)?.value)
+        }
         putString("event_state", Gson().toJson(vm.captureDraft()))
         editingRecord?.let { putString("editing_record", Gson().toJson(it)) }
         activityTimerPanel()?.let { putBundle("timer", RecordDraftState.saveTimer(it, activityTimerController)) }
@@ -214,6 +241,12 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
     private fun prepareCreateModeState() {
         isProgrammaticChange = true
+        weightInputUnit = UnitConfig.getWeightUnit()
+        heightInputUnit = UnitConfig.getHeightUnit()
+        numericInput = null
+        numericInputType = null
+        hasMedicineDraftUnit = false
+        medicineDraftUnit = null
         releaseActivityTimer()
         detailRendered = false
         vm.reset()
@@ -273,6 +306,8 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             updateToolbarAction()
             if (hasUnsavedChanges) return@loadEventRecordById
             isProgrammaticChange = true
+            numericInput = null
+            numericInputType = null
             pendingExtraData = com.zero.babydata.entity.EventExtraData.parse(record.type, record.extraData)
 
             val category = EventCategory.fromId(com.zero.babydata.entity.EventType.getCategory(record.type))
@@ -510,6 +545,12 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
     private fun updateDetailView(subtype: EventSubtype?) {
         if (detailRendered && renderedDetailType == subtype?.type) return
+        if (numericInputType != subtype?.type) {
+            numericInputType = subtype?.type
+            numericInput = subtype?.let {
+                RecordNumberInput(if (EventType.isGrowth(it.type)) getGrowthUnitValue(it.type) else "")
+            }
+        }
         detailRendered = true
         renderedDetailType = subtype?.type
         releaseActivityTimer()
@@ -608,12 +649,14 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                         else -> data.value
                     }
                     valueView?.setText(UnitConverter.formatDecimal(displayValue))
+                    numericInput = RecordNumberInput(targetUnit).withOriginal(valueView?.text.toString(), data.value, data.unit)
                 }
             }
             subtype.type == EventType.HEALTH_TEMPERATURE -> {
                 val tempView = root.findViewById<EditText>(com.zero.babycare.R.id.etTemperature)
                 if (data is TemperatureData) {
                     tempView?.setText(UnitConverter.formatDecimal(data.value))
+                    numericInput = RecordNumberInput("").withOriginal(tempView?.text.toString(), data.value)
                     val detailBinding = LayoutEventDetailTemperatureBinding.bind(root.getChildAt(0))
                     selectTemperatureLocation(detailBinding, data.location)
                     updateTemperatureStatus(detailBinding, data.value)
@@ -629,7 +672,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                     val adapter = unitView?.adapter
                     if (adapter != null) {
                         for (index in 0 until adapter.count) {
-                            if (adapter.getItem(index).toString() == data.unit) {
+                            if (MedicineUnit.canonicalValue((adapter.getItem(index) as? MedicineUnitOption)?.value) == MedicineUnit.canonicalValue(data.unit)) {
                                 unitView.setSelection(index)
                                 break
                             }
@@ -768,16 +811,12 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
         // 设置单位
         val unitResId = getGrowthUnitLabelResId(type)
-        val unitValue = getGrowthUnitValue(type)
         detailBinding.tvUnit.text = getString(unitResId)
 
         // 监听输入变化
         detailBinding.etValue.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
-                val value = detailBinding.etValue.text.toString().toDoubleOrNull()
-                if (value != null) {
-                    vm.setExtraData(GrowthData(value, unitValue))
-                }
+                vm.setExtraData(numericInput?.growth(detailBinding.etValue.text.toString()))
             }
         }
     }
@@ -811,7 +850,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     private fun updateTemperatureData(detailBinding: LayoutEventDetailTemperatureBinding) {
-        val value = detailBinding.etTemperature.text.toString().toDoubleOrNull()
+        val value = numericInput?.number(detailBinding.etTemperature.text.toString())
         if (value != null) {
             val location = getTemperatureLocation(detailBinding)
             vm.setExtraData(TemperatureData(value, location))
@@ -867,13 +906,19 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
     private fun inflateMedicineDetail(inflater: LayoutInflater) {
         val detailBinding = LayoutEventDetailMedicineBinding.inflate(inflater, binding.containerDetail, true)
-        val medicineUnits = listOf(
-            getString(R.string.unit_ml_abbr),
-            getString(R.string.unit_mg_abbr),
-            getString(R.string.unit_drop),
-            getString(R.string.unit_tablet)
-        )
-        val defaultUnit = medicineUnits.first()
+        val original = editingRecord?.takeIf { it.type == EventType.HEALTH_MEDICINE }
+            ?.let { EventExtraData.parse(it.type, it.extraData) as? MedicineData }
+            ?: if (hasMedicineDraftUnit) MedicineData("", unit = medicineDraftUnit) else null
+            ?: (vm.extraData.value as? MedicineData) ?: (pendingExtraData as? MedicineData)
+        val medicineUnits = MedicineUnit.entries.map { unit ->
+            // 旧单位未改变时保留原始值，避免仅改备注或重试旧草稿改变持久回执的业务摘要。
+            val value = if (original != null && MedicineUnit.fromStored(original.unit) == unit) original.unit else unit.code
+            MedicineUnitOption(value, requireNotNull(MedicineUnitText.label(unit.code, ::getString)))
+        }.toMutableList()
+        if (original != null && MedicineUnit.fromStored(original.unit) == null) {
+            // 未识别或未填写的旧单位单独保留，不能在仅改备注时静默替换为默认 ml。
+            medicineUnits += MedicineUnitOption(original.unit, original.unit?.takeIf { it.isNotBlank() } ?: getString(R.string.please_select))
+        }
         detailBinding.spinnerUnit.adapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_item,
@@ -886,7 +931,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             if (!hasFocus) {
                 val name = detailBinding.etMedicineName.text.toString()
                 val dosage = detailBinding.etDosage.text.toString()
-                val unit = detailBinding.spinnerUnit.selectedItem?.toString()?.ifBlank { defaultUnit } ?: defaultUnit
+                val unit = (detailBinding.spinnerUnit.selectedItem as? MedicineUnitOption)?.value
                 if (name.isNotBlank()) {
                     vm.setExtraData(MedicineData(name, dosage, unit))
                 }
@@ -1085,10 +1130,27 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
         val babyId = mainVm.getCurrentBabyInfo()?.babyId
         if (babyId == null || (draftBabyId != null && draftBabyId != babyId)) {
-            ToastUtils.showShort(R.string.no_baby_selected)
+            ToastUtils.showShort(getString(R.string.no_baby_selected))
             return
         }
         if (isEditMode && editingRecord?.babyId != babyId) return
+
+        activityTimerPanel()?.let { panel ->
+            // 原始未完成输入优先于旧 VM 时间，避免自动暂停覆盖用户正在修改的结束时间。
+            panel.startInput.error = null
+            panel.endInput.error = null
+            if (!panel.startInput.hasValidTime()) {
+                panel.startInput.error = getString(if (panel.startInput.text.isNullOrBlank()) R.string.start_time_required else R.string.invalid_time)
+                panel.startInput.requestFocus()
+                return
+            }
+            if (!panel.endInput.hasValidTime() &&
+                (panel.timerView.currentShowState != RecordState.RECORDING || !panel.endInput.text.isNullOrBlank())) {
+                panel.endInput.error = getString(if (panel.endInput.text.isNullOrBlank()) R.string.end_time_required else R.string.invalid_time)
+                panel.endInput.requestFocus()
+                return
+            }
+        }
 
         syncRunningActivityTimerBeforeSave()
         syncDetailInputs()
@@ -1126,7 +1188,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                     if (belongs && !isHidden) {
                         val message = state.errorRes ?: if (state.kind == RecordMutationController.Kind.DELETE)
                             R.string.record_delete_success else R.string.save_success
-                        ToastUtils.showShort(message)
+                        ToastUtils.showShort(getString(message))
                         if (state.errorRes == null) mainVm.navigateTo(state.target.destination)
                     }
                 }
@@ -1165,6 +1227,9 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             // 保存活动类事件前先触发统一暂停流程，让结束时间同步写入 ViewModel。
             detailBinding.timerPanel.timerView.forcePause(triggerCallback = true)
         }
+        // VM 只接收本次表单已提交的时间，清空旧字段后不能继续保存 VM 中残留的旧时间。
+        vm.setDurationStartTime(detailBinding.timerPanel.startInput.getTimestamp().takeIf { it > 0L })
+        vm.setEndTime(detailBinding.timerPanel.endInput.getTimestamp().takeIf { it > 0L })
     }
 
     private fun syncDetailInputs() {
@@ -1210,18 +1275,12 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             }
             EventType.isGrowth(subtype.type) -> {
                 val valueView = root.findViewById<EditText>(com.zero.babycare.R.id.etValue)
-                val value = valueView?.text?.toString()?.toDoubleOrNull()
-                val unit = getGrowthUnitValue(subtype.type)
-                if (value != null) {
-                    vm.setExtraData(GrowthData(value, unit))
-                } else {
-                    vm.setExtraData(null)
-                }
+                vm.setExtraData(numericInput?.growth(valueView?.text?.toString().orEmpty()))
             }
             subtype.type == EventType.HEALTH_TEMPERATURE -> {
                 val tempView = root.findViewById<EditText>(com.zero.babycare.R.id.etTemperature)
                 val locationGroup = root.findViewById<RadioGroup>(com.zero.babycare.R.id.rgTemperatureLocation)
-                val value = tempView?.text?.toString()?.toDoubleOrNull()
+                val value = numericInput?.number(tempView?.text?.toString().orEmpty())
                 if (value != null) {
                     val location = when (locationGroup?.checkedRadioButtonId) {
                         com.zero.babycare.R.id.rbTempForehead -> TemperatureData.LOCATION_FOREHEAD
@@ -1241,8 +1300,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                 val unitView = root.findViewById<Spinner>(com.zero.babycare.R.id.spinnerUnit)
                 val name = nameView?.text?.toString()?.trim().orEmpty()
                 val dosage = dosageView?.text?.toString()?.trim().orEmpty()
-                val defaultUnit = getString(R.string.unit_ml_abbr)
-                val unit = unitView?.selectedItem?.toString()?.ifBlank { defaultUnit } ?: defaultUnit
+                val unit = (unitView?.selectedItem as? MedicineUnitOption)?.value
                 if (name.isNotBlank()) {
                     vm.setExtraData(MedicineData(name, dosage, unit))
                 } else {
@@ -1323,10 +1381,11 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
      * 生长类单位资源
      */
     private fun getGrowthUnitLabelResId(type: Int): Int {
-        return when (type) {
-            EventType.GROWTH_WEIGHT -> UnitConfig.getWeightUnitLabelResId()
-            EventType.GROWTH_HEIGHT, EventType.GROWTH_HEAD -> UnitConfig.getHeightUnitLabelResId()
-            else -> UnitConfig.getHeightUnitLabelResId()
+        return when (getGrowthUnitValue(type)) {
+            UnitConfig.WEIGHT_UNIT_LB -> R.string.unit_lb_abbr
+            UnitConfig.HEIGHT_UNIT_IN -> R.string.unit_in_abbr
+            UnitConfig.WEIGHT_UNIT_KG -> R.string.weight_unit
+            else -> R.string.height_unit
         }
     }
 
@@ -1335,9 +1394,8 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
      */
     private fun getGrowthUnitValue(type: Int): String {
         return when (type) {
-            EventType.GROWTH_WEIGHT -> UnitConfig.getWeightUnit()
-            EventType.GROWTH_HEIGHT, EventType.GROWTH_HEAD -> UnitConfig.getHeightUnit()
-            else -> UnitConfig.getHeightUnit()
+            EventType.GROWTH_WEIGHT -> weightInputUnit
+            else -> heightInputUnit
         }
     }
 

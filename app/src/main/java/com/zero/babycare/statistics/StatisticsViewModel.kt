@@ -1,6 +1,9 @@
 package com.zero.babycare.statistics
 
 import android.app.Application
+import android.content.Context
+import com.zero.common.util.LanguageManager
+import com.zero.common.ext.getAppString
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -803,7 +806,7 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
     }
 
     private fun getLoadFailedText(): String {
-        return getApplication<Application>().getString(com.zero.common.R.string.data_load_failed)
+        return getApplication<Application>().getAppString(com.zero.common.R.string.data_load_failed)
     }
 
     private fun buildDayRecordSection(
@@ -817,7 +820,7 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
             date = date,
             babyAgeText = babyAgeText,
             showBirthHint = babyAgeText.isNullOrBlank(),
-            recordCountText = getApplication<Application>().getString(
+            recordCountText = getApplication<Application>().getAppString(
                 com.zero.common.R.string.statistics_day_record_count_format,
                 timelineItems.size
             ),
@@ -836,14 +839,14 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
             .toLocalDate()
         val days = ChronoUnit.DAYS.between(birthDate, selectedDate)
         return if (days < 0) {
-            getApplication<Application>().getString(com.zero.common.R.string.baby_not_born_yet_playful)
+            getApplication<Application>().getAppString(com.zero.common.R.string.baby_not_born_yet_playful)
         } else {
-            getApplication<Application>().getString(com.zero.common.R.string.days_born, days.toInt())
+            getApplication<Application>().getAppString(com.zero.common.R.string.days_born, days.toInt())
         }
     }
 
     private fun buildSummaryMetrics(summary: DaySummary): List<SummaryMetricUiModel> {
-        val app = getApplication<Application>()
+        val app = LanguageManager.localizedContext(getApplication<Application>())
         return listOf(
             SummaryMetricUiModel(
                 type = SummaryMetricType.FEEDING,
@@ -889,7 +892,7 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
     /**
      * 统计摘要属于 UI 文案，放在 ViewModel 统一组装，避免数据模型直接拼接中文。
      */
-    private fun formatSummaryDuration(app: Application, totalMinutes: Int): String {
+    private fun formatSummaryDuration(app: Context, totalMinutes: Int): String {
         val hours = totalMinutes / 60
         val minutes = totalMinutes % 60
         return when {
@@ -907,7 +910,7 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
     /**
      * 尿布详情按存在的分类组合，分类名称来自资源，连接符只承担结构表达。
      */
-    private fun formatDiaperDetail(app: Application, summary: DaySummary): String {
+    private fun formatDiaperDetail(app: Context, summary: DaySummary): String {
         val parts = mutableListOf<String>()
         if (summary.diaperWetCount > 0) {
             parts.add(app.getString(com.zero.common.R.string.summary_diaper_wet_count_short, summary.diaperWetCount))
@@ -922,7 +925,7 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
     }
 
     private fun buildTimelineMapper(): StatisticsTimelineMapper {
-        val app = getApplication<Application>()
+        val app = LanguageManager.localizedContext(getApplication<Application>())
         return StatisticsTimelineMapper(
             strings = object : StatisticsTimelineMapper.Strings {
                 override fun get(resId: Int): String {

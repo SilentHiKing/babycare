@@ -9,6 +9,7 @@ import com.zero.babydata.entity.BabyInfo
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.SleepRecord
 import com.zero.common.util.DateUtils
+import com.zero.common.util.TimerClock
 import com.zero.components.base.vm.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -96,7 +97,8 @@ class DashboardViewModel : BaseViewModel() {
                     babyId = baby.babyId,
                     babyName = baby.name,
                     data = DashboardDurationMapper.update(
-                        snapshot.data, snapshot.feedingSession, snapshot.sleepSession, snapshot.sampledAt
+                        snapshot.data, snapshot.feedingSession, snapshot.sleepSession, snapshot.sampledAt,
+                        clock = TimerClock.snapshot()
                     ),
                     nowMillis = snapshot.sampledAt,
                     timeZoneId = snapshot.timeZoneId
@@ -231,7 +233,8 @@ class DashboardViewModel : BaseViewModel() {
             _dashboardUiState.value = state.copy(
                 nowMillis = now,
                 data = DashboardDurationMapper.update(
-                    state.data, snapshot.feedingSession, snapshot.sleepSession, now
+                    state.data, snapshot.feedingSession, snapshot.sleepSession, now,
+                    clock = TimerClock.snapshot()
                 )
             )
         }

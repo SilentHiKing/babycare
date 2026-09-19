@@ -5,8 +5,10 @@ import android.os.Looper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.zero.common.util.DurationFormatUtils
+import com.zero.common.util.TimerClock
+import com.zero.common.util.TimerClockSnapshot
 
-class TimerCounter {
+class TimerCounter(private val clock: () -> TimerClockSnapshot = TimerClock::snapshot) {
 
     var startTime = 0L
         private set
@@ -19,6 +21,7 @@ class TimerCounter {
     private var isManualDuration = false
 
     private var isRunning = false
+    private var runningAnchor: TimerClockSnapshot? = null
 
     private val handler = Handler(Looper.getMainLooper())
 
@@ -28,7 +31,7 @@ class TimerCounter {
     private val updateRunnable = object : Runnable {
         override fun run() {
             if (isRunning) {
-                val current = System.currentTimeMillis() - startTime + accumulatedDuration
+                val current = getDuration()
                 _elapsedTime.value = current
                 handler.postDelayed(this, 1000L) // 每 1 秒更新一次
             }
@@ -46,7 +49,7 @@ class TimerCounter {
      */
     fun getDuration(): Long {
         return when {
-            isRunning -> System.currentTimeMillis() - startTime + accumulatedDuration
+            isRunning -> accumulatedDuration + (runningAnchor?.let { clock().elapsedSince(it) } ?: 0L)
             isManualDuration -> accumulatedDuration
             accumulatedDuration > 0 -> accumulatedDuration
             else -> 0L
@@ -55,10 +58,10 @@ class TimerCounter {
 
     /** 设置显示的时长（毫秒），用于手动设置时长显示 */
     fun setDisplayDuration(duration: Long) {
-        accumulatedDuration = duration
+        accumulatedDuration = duration.coerceAtLeast(0L)
         isManualDuration = true
         pauseOffset = 0L
-        _elapsedTime.value = duration
+        _elapsedTime.value = accumulatedDuration
     }
 
     /** 获取累计时长 */
@@ -82,7 +85,11 @@ class TimerCounter {
             accumulatedDuration = 0L
         }
         
-        startTime = System.currentTimeMillis() - pauseOffset
+        val now = clock()
+        startTime = now.wallTimeMs - pauseOffset.coerceAtLeast(0L)
+        // 日期起点仍供输入框使用；运行累计只使用单调时钟，系统校时不会增减已计时内容。
+        accumulatedDuration += pauseOffset.coerceAtLeast(0L)
+        runningAnchor = now
         pauseOffset = 0L
         isRunning = true
         handler.post(updateRunnable)
@@ -92,8 +99,8 @@ class TimerCounter {
         if (!isRunning) return
 
         // 将本次运行的时长加入累计时长
-        val currentSessionDuration = System.currentTimeMillis() - startTime
-        accumulatedDuration += currentSessionDuration
+        accumulatedDuration = getDuration()
+        runningAnchor = null
         pauseOffset = 0L
         isRunning = false
         isManualDuration = false
@@ -109,6 +116,7 @@ class TimerCounter {
         pauseOffset = 0L
         accumulatedDuration = 0L
         startTime = 0L
+        runningAnchor = null
     }
 
     fun release() {

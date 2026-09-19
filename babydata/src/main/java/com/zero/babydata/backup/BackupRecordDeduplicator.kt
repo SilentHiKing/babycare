@@ -2,6 +2,8 @@ package com.zero.babydata.backup
 
 import com.google.gson.JsonParser
 import com.zero.babydata.entity.EventRecord
+import com.zero.babydata.entity.EventType
+import com.zero.babydata.domain.MedicineUnit
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.SleepRecord
 import java.util.TreeMap
@@ -40,7 +42,7 @@ internal class BackupRecordDeduplicator(toleranceMillis: Long) {
 
     private fun registerEvent(record: EventRecord, checkDuplicate: Boolean): Boolean = register(
         // JsonElement 按对象内容比较，键顺序不应制造重复事件；列表键也避免文案含 # 时碰撞。
-        key = listOf("event", record.babyId, record.type, jsonContent(record.extraData), record.note),
+        key = listOf("event", record.babyId, record.type, jsonContent(record.extraData, record.type), record.note),
         times = listOf(record.time, record.endTime),
         checkDuplicate = checkDuplicate
     )
@@ -67,7 +69,17 @@ internal class BackupRecordDeduplicator(toleranceMillis: Long) {
         return if (first >= second) first - second <= tolerance else second - first <= tolerance
     }
 
-    private fun jsonContent(raw: String): Any = if (raw.isBlank()) "" else {
-        runCatching { JsonParser.parseString(raw) }.getOrElse { raw.trim() }
+    private fun jsonContent(raw: String, type: Int): Any = if (raw.isBlank()) "" else {
+        runCatching {
+            JsonParser.parseString(raw).also { json ->
+                if (type == EventType.HEALTH_MEDICINE && json.isJsonObject) {
+                    val unit = json.asJsonObject.get("unit")
+                    if (unit?.isJsonPrimitive == true && unit.asJsonPrimitive.isString) {
+                        // 只规范比较副本；升级后的稳定代码与旧备份语言标签代表同一单位。
+                        MedicineUnit.fromStored(unit.asString)?.let { json.asJsonObject.addProperty("unit", it.code) }
+                    }
+                }
+            }
+        }.getOrElse { raw.trim() }
     }
 }

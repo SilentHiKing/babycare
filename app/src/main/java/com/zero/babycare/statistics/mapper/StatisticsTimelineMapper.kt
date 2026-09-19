@@ -1,6 +1,7 @@
 package com.zero.babycare.statistics.mapper
 
 import com.zero.babycare.statistics.model.TimelineEditTarget
+import com.zero.babycare.home.record.event.MedicineUnitText
 import com.zero.babycare.statistics.model.TimelineUiItem
 import com.zero.babydata.entity.CustomEventData
 import com.zero.babydata.entity.DiaperData
@@ -546,11 +547,11 @@ class StatisticsTimelineMapper(
         if (dosage.isBlank()) {
             return null
         }
-        val unit = extraData.unit?.trim().orEmpty()
+        val unit = MedicineUnitText.label(extraData.unit, strings::get)?.trim().orEmpty()
         return if (unit.isBlank()) {
             dosage
         } else {
-            dosage + unit
+            strings.format(CommonR.string.statistics_value_with_unit_format, dosage, unit)
         }
     }
 

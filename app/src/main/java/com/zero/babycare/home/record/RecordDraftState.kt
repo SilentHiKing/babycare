@@ -10,6 +10,8 @@ import android.widget.RadioGroup
 import android.widget.Spinner
 import com.zero.components.widget.RecordTimerPanelView
 import com.zero.components.widget.RecordView.RecordState
+import com.zero.common.util.TimerClock
+import com.zero.common.util.TimerClockSnapshot
 
 /** 保存尚未提交的表单 View 状态；动态选项和业务类型由各页面单独补充。 */
 internal object RecordDraftState {
@@ -45,28 +47,64 @@ internal object RecordDraftState {
     }
 
     fun saveTimer(panel: RecordTimerPanelView, controller: RecordTimerController?): Bundle = Bundle().apply {
+        val now = controller?.synchronizeClock() ?: TimerClock.snapshot()
         putLong("start", panel.startInput.getTimestamp())
         putLong("end", panel.endInput.getTimestamp())
+        putString("start_raw", panel.startInput.text.toString())
+        putString("end_raw", panel.endInput.text.toString())
         putLong("duration", panel.timerView.getDuration())
-        putLong("captured_at", System.currentTimeMillis())
+        putLong("captured_at", now.wallTimeMs)
+        putBundle("captured_clock", now.toBundle())
+        controller?.timelineClock?.let { putBundle("timeline_clock", it.toBundle()) }
+        putBoolean("automatic_start", controller?.isStartTimeAutomatic == true)
+        putString("ongoing_session_id", controller?.ongoingSessionId)
         putString("timer_state", panel.timerView.currentShowState.name)
         putLong("pause_end", controller?.originalPauseTimestamp ?: 0L)
     }
 
     /** Android 只恢复输入框文字，时间戳与计时状态必须显式恢复且不能触发新会话。 */
     fun restoreTimer(panel: RecordTimerPanelView, controller: RecordTimerController?, state: Bundle) {
-        val start = state.getLong("start")
-        val end = state.getLong("end")
+        val now = TimerClock.snapshot()
+        val captured = state.getBundle("captured_clock")?.toClock()
+            ?: TimerClockSnapshot(state.getLong("captured_at"))
+        val timeline = state.getBundle("timeline_clock")?.toClock() ?: captured
+        val automatic = state.getBoolean("automatic_start")
+        val recording = state.getString("timer_state") == RecordState.RECORDING.name
+        val shift = if (automatic && recording) now.automaticWallShiftSince(timeline) else 0L
+        val start = state.getLong("start").let { if (it > 0L) it + shift else 0L }
+        val end = state.getLong("end").let { if (it > 0L) it + shift else 0L }
+        val startRaw = state.getString("start_raw") ?: panel.startInput.text.toString()
+        val endRaw = state.getString("end_raw") ?: panel.endInput.text.toString()
         if (start > 0L) controller?.setStartTime(start, notify = false)
         if (end > 0L) controller?.setEndTime(end, notify = false)
+        controller?.restoreAutomaticStart(automatic, timeline.copy(wallTimeMs = timeline.wallTimeMs + shift),
+            state.getString("ongoing_session_id"))
         val duration = state.getLong("duration").coerceAtLeast(0L)
         when (state.getString("timer_state")) {
             RecordState.RECORDING.name -> {
-                val elapsed = (System.currentTimeMillis() - state.getLong("captured_at")).coerceAtLeast(0L)
+                val elapsed = now.elapsedSince(captured)
                 panel.timerView.startFromOffset(duration + elapsed)
             }
-            RecordState.PAUSE.name -> controller?.restorePausedSession(end, duration, state.getLong("pause_end"))
+            RecordState.PAUSE.name -> controller?.restorePausedSession(end, duration,
+                state.getLong("pause_end").let { if (it > 0L) it + shift else 0L })
             else -> if (duration > 0L) panel.timerView.showDurationWithoutTimer(duration)
         }
+        // 暂停恢复会写结束字段；最后恢复原始未完成输入，不能用旧时间覆盖用户输入的一半。
+        panel.startInput.restoreInputState(start, startRaw)
+        panel.endInput.restoreInputState(end, endRaw)
     }
+
+    private fun TimerClockSnapshot.toBundle() = Bundle().apply {
+        putLong("wall", wallTimeMs)
+        elapsedRealtimeMs?.let { putLong("elapsed", it) }
+        bootCount?.let { putInt("boot", it) }
+        putString("process", processId)
+    }
+
+    private fun Bundle.toClock() = TimerClockSnapshot(
+        wallTimeMs = getLong("wall"),
+        elapsedRealtimeMs = if (containsKey("elapsed")) getLong("elapsed") else null,
+        bootCount = if (containsKey("boot")) getInt("boot") else null,
+        processId = getString("process")
+    )
 }

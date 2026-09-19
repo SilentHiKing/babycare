@@ -175,6 +175,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
         if (view == null) return
         
         if (hidden) {
+            timerController?.dismissPendingUi()
             retainedDraft = null
             // 隐藏时不重置计时器（保留进行中状态）
         } else {
@@ -215,6 +216,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
             resetTimer = false,
             notify = false
         )
+        timerController?.restoreAutomaticStart(session.automaticStart, session.clockAnchor, session.sessionId)
         if (session.status == OngoingRecordManager.SessionStatus.PAUSED && session.endAt != null) {
             timerController?.restorePausedSession(session.endAt, session.activeDurationMs)
         } else {
@@ -242,28 +244,46 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
                 onStartTimeChanged = { startTime ->
                     markAsUnsaved()
                     val babyId = currentDraftBabyId()
-                    if (!isEditMode && babyId != null && OngoingRecordManager.isSleeping(babyId)) {
+                    val sessionId = timerController?.ongoingSessionId
+                    if (!isEditMode && babyId != null && sessionId != null && OngoingRecordManager.isSleeping(babyId)) {
                         // 同步进行中的开始时间，避免恢复与状态卡不一致
-                        OngoingRecordManager.updateSleepStart(babyId, startTime)
+                        OngoingRecordManager.updateSleepStart(babyId, startTime, sessionId)
                     }
                 },
                 onEndTimeChanged = { markAsUnsaved() },
                 onTimerStart = { startTime ->
-                    currentDraftBabyId()?.let { babyId ->
-                        OngoingRecordManager.startSleep(babyId, startTime)
+                    if (!isEditMode) currentDraftBabyId()?.let { babyId ->
+                        OngoingRecordManager.startSleep(
+                            babyId, startTime,
+                            automaticStart = timerController?.isStartTimeAutomatic == true
+                        )
+                        OngoingRecordManager.getSleepSession(babyId)?.let { session ->
+                            timerController?.restoreAutomaticStart(session.automaticStart, session.clockAnchor, session.sessionId)
+                        }
                     }
                 },
                 onTimerResume = {
                     markAsUnsaved()
-                    currentDraftBabyId()?.let(OngoingRecordManager::resumeSleep)
+                    val sessionId = timerController?.ongoingSessionId
+                    if (!isEditMode && sessionId != null) currentDraftBabyId()?.let { babyId ->
+                        OngoingRecordManager.resumeSleep(babyId, sessionId)
+                    }
                 },
                 onTimerPause = { endTime ->
-                    currentDraftBabyId()?.let { babyId ->
+                    val sessionId = timerController?.ongoingSessionId
+                    if (!isEditMode && sessionId != null) currentDraftBabyId()?.let { babyId ->
                         OngoingRecordManager.pauseSleep(
                             babyId = babyId,
                             endTime = endTime,
-                            activeDurationMs = binding.timerPanel.timerView.getDuration()
+                            activeDurationMs = binding.timerPanel.timerView.getDuration(),
+                            expectedSessionId = sessionId
                         )
+                    }
+                },
+                onClockSynchronized = { sessionId, startTime, clock ->
+                    // View 只转发当前表单事件，由 ViewModel 按会话身份更新持久状态。
+                    if (!isEditMode) currentDraftBabyId()?.let { babyId ->
+                        vm.synchronizeAutomaticStart(babyId, sessionId, startTime, clock)
                     }
                 },
                 onDirty = { markAsUnsaved() }
@@ -364,11 +384,24 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
         if (vm.mutation.isPending || (isEditMode && editingRecord == null)) return
         val babyId = currentDraftBabyId()
         if (babyId == null) {
-            ToastUtils.showShort(R.string.no_baby_selected)
+            ToastUtils.showShort(getString(R.string.no_baby_selected))
             return
         }
         if (isEditMode && editingRecord?.babyId != babyId) return
         clearValidationErrors()
+
+        // 未完成的手动时间必须先纠正，不能让自动暂停填入“现在”覆盖用户输入。
+        val startInput = binding.timerPanel.startInput
+        if (!startInput.hasValidTime()) {
+            showFieldValidationError(startInput,
+                if (startInput.text.isNullOrBlank()) R.string.sleep_start_required else R.string.invalid_time)
+            return
+        }
+        val endInput = binding.timerPanel.endInput
+        if (!endInput.text.isNullOrBlank() && !endInput.hasValidTime()) {
+            showFieldValidationError(endInput, R.string.invalid_time)
+            return
+        }
 
         // 如果正在计时，先暂停
         if (binding.timerPanel.timerView.currentShowState == RecordState.RECORDING) {
@@ -460,7 +493,7 @@ class SleepRecordFragment : BaseFragment<FragmentSleepRecordBinding>(), BackPres
                     if (belongs && !isHidden) {
                         val message = state.errorRes ?: if (state.kind == RecordMutationController.Kind.DELETE)
                             R.string.record_delete_success else R.string.sleep_save_success
-                        ToastUtils.showShort(message)
+                        ToastUtils.showShort(getString(message))
                         if (state.errorRes == null) mainVm.navigateTo(state.target.destination)
                     }
                 }

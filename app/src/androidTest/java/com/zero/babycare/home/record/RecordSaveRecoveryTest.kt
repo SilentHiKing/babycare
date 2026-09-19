@@ -12,12 +12,14 @@ import com.zero.babycare.home.OngoingRecordManager
 import com.zero.babycare.home.record.event.EventCategory
 import com.zero.babycare.home.record.event.EventRecordViewModel
 import com.zero.babycare.home.record.event.EventSubtype
+import com.zero.babycare.home.record.event.MedicineUnitText
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babydata.entity.BabyInfo
 import com.zero.babydata.entity.EventType
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.FeedingType
 import com.zero.babydata.entity.GrowthData
+import com.zero.babydata.entity.MedicineData
 import com.zero.babydata.entity.SleepRecord
 import com.zero.babydata.room.BabyDatabase
 import com.zero.babydata.room.BabyRepository
@@ -60,6 +62,40 @@ class RecordSaveRecoveryTest {
     fun tearDown() {
         onMain { stores.forEach(ViewModelStore::clear) }
         if (::database.isInitialized) database.close()
+    }
+
+    @Test
+    fun restoredMedicineDraftKeepsRawUnitForCommittedReceiptAcrossLanguageChange() = runBlocking {
+        val target = request(NavTarget.EventRecord(returnTarget = NavTarget.Dashboard))
+        val original = MedicineData("合成用药", "1", "片")
+        val first = newModel { EventRecordViewModel(repository) }
+        onMain {
+            first.selectCategory(EventCategory.HEALTH)
+            first.selectSubtype(requireNotNull(EventSubtype.fromType(EventType.HEALTH_MEDICINE)))
+            first.setEventTime(START)
+            first.setExtraData(original)
+        }
+        val saved = roundTrip(Bundle().apply {
+            putString("draft", gson.toJson(first.captureDraft()))
+            putString("medicine_input_unit", original.unit)
+        })
+        onMain { first.saveRecord(target, createdAt = END) }
+        assertNull(awaitResult(first.mutation).errorRes)
+        val persisted = repository.getAllEventRecords(BABY_ID).single()
+        clearModels()
+        val restored = newModel { EventRecordViewModel(repository) }
+        val rawUnit = saved.getString("medicine_input_unit")
+        // 新语言只影响显示，不能把回执原内容“片”变成 tablet 后再次提交。
+        assertEquals("tablet", MedicineUnitText.label(rawUnit) { res ->
+            if (res == R.string.unit_tablet) "tablet" else error("非预期单位")
+        })
+        onMain {
+            restored.restoreDraft(gson.fromJson(saved.getString("draft"), EventRecordViewModel.Draft::class.java))
+            restored.setExtraData(original.copy(unit = rawUnit))
+            restored.saveRecord(target, createdAt = END + 1)
+        }
+        assertNull(awaitResult(restored.mutation).errorRes)
+        assertEquals(listOf(persisted), repository.getAllEventRecords(BABY_ID))
     }
 
     @Test

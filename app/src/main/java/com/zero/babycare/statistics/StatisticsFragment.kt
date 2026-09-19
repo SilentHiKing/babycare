@@ -79,9 +79,9 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     override fun initData(view: View, savedInstanceState: Bundle?) {
         super.initData(view, savedInstanceState)
 
-        // 观察数据变化
+        // 语言切换会保留 ViewModel；重新建立页面时也重建其中已经格式化的摘要文案。
+        syncCurrentBaby(refresh = true)
         observeData()
-        syncCurrentBaby(refresh = false)
     }
 
     override fun onHiddenChanged(hidden: Boolean) {

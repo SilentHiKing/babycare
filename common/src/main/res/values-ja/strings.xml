@@ -559,4 +559,10 @@
     <string name="baby_profile_deleted">この赤ちゃんのプロフィールは削除されています。戻って新しく作成してください</string>
     <string name="baby_age_birthdate_missing">誕生日未設定</string>
     <string name="baby_age_not_born_yet">出生前</string>
+    <string name="picker_year_accessibility_format">%1$d年</string>
+    <string name="picker_month_accessibility_format">%1$d月</string>
+    <string name="picker_day_accessibility_format">%1$d日</string>
+    <string name="picker_hour_accessibility_format">%1$d時</string>
+    <string name="picker_minute_accessibility_format">%1$d分</string>
+    <string name="picker_second_accessibility_format">%1$d秒</string>
 </resources>

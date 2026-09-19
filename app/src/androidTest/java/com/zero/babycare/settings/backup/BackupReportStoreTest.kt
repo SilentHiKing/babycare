@@ -94,7 +94,9 @@ class BackupReportStoreTest {
         try {
             awaitSuccess(session.vm)
             withContext(Dispatchers.Main) { session.vm.consumeImportResult(operations.commit.commitId) }
-            withTimeout(10_000) { session.vm.reportSaveState.filterIsInstance<UiState.Error>().first() }
+            val failure = withTimeout(10_000) { session.vm.reportSaveState.filterIsInstance<UiState.Error>().first() }
+            assertEquals(com.zero.common.R.string.backup_import_report_save_failed, failure.messageRes)
+            assertNull("可延迟展示的错误不缓存生成时语言", failure.message)
             assertEquals(0, operations.consumeCalls.get())
             assertTrue(disk.list().isEmpty())
             assertTrue(session.vm.importState.value is UiState.Success)

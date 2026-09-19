@@ -23,6 +23,18 @@ import java.time.ZoneId
 
 class StatisticsTimelineMapperTest {
 
+    @Test
+    fun `medicine stable codes and legacy units share localized timeline labels`() {
+        listOf("tablet", "片", "錠", "정").forEach { unit ->
+            val item = mapper.mapEvent(EventRecord(babyId = 1, type = EventType.HEALTH_MEDICINE, time = 1_000,
+                extraData = MedicineData("合成药品", "1", unit).toJson()))
+            assertTrue(item.detailText.contains("1片"))
+        }
+        val unknown = mapper.mapEvent(EventRecord(babyId = 1, type = EventType.HEALTH_MEDICINE, time = 1_000,
+            extraData = MedicineData("合成药品", "1", "spray").toJson()))
+        assertTrue(unknown.detailText.contains("1spray"))
+    }
+
     private val mapper = StatisticsTimelineMapper(
         strings = FakeStrings(),
         zone = ZoneId.of("Asia/Shanghai"),
@@ -284,6 +296,9 @@ class StatisticsTimelineMapperTest {
                 CommonR.string.weight_unit -> "kg"
                 CommonR.string.height_unit -> "cm"
                 CommonR.string.unit_ml_abbr -> "ml"
+                CommonR.string.unit_mg_abbr -> "mg"
+                CommonR.string.unit_drop -> "滴"
+                CommonR.string.unit_tablet -> "片"
                 else -> "res-$resId"
             }
         }
@@ -294,6 +309,7 @@ class StatisticsTimelineMapperTest {
                 CommonR.string.feeding_total_minutes_format -> "共%1\$d分钟".format(*args)
                 CommonR.string.feeding_breast_side_minutes_format -> "%1\$s%2\$d分钟".format(*args)
                 CommonR.string.feeding_amount_unit_format -> "%1\$s%2\$s".format(*args)
+                CommonR.string.statistics_value_with_unit_format -> "%1\$s%2\$s".format(*args)
                 CommonR.string.min_format -> "%1\$d分钟".format(*args)
                 CommonR.string.sleep_duration_format -> "%1\$d小时%2\$d分钟".format(*args)
                 CommonR.string.sleep_duration_hours -> "%1\$d小时".format(*args)

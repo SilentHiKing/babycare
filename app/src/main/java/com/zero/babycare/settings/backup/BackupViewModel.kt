@@ -1,6 +1,7 @@
 package com.zero.babycare.settings.backup
 
 import android.app.Application
+import com.zero.common.ext.getAppString
 import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
@@ -125,7 +126,7 @@ class BackupViewModel internal constructor(
                 throw cancelled
             } catch (error: Exception) {
                 restoringImportResult = false
-                _importState.value = UiState.Error(error, getApplication<Application>().getString(com.zero.common.R.string.backup_import_report_load_failed))
+                _importState.value = UiState.Error(error, messageRes = com.zero.common.R.string.backup_import_report_load_failed)
             }
         }
     }
@@ -158,9 +159,7 @@ class BackupViewModel internal constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                val message = getApplication<Application>()
-                    .getString(com.zero.common.R.string.backup_export_failed)
-                _exportState.value = UiState.Error(e, message)
+                _exportState.value = UiState.Error(e, messageRes = com.zero.common.R.string.backup_export_failed)
             }
         }
     }
@@ -197,7 +196,7 @@ class BackupViewModel internal constructor(
                 throw e
             } catch (e: Exception) {
                 clearImportSource()
-                _importPromptState.value = UiState.Error(e, resolveImportErrorMessage(e))
+                _importPromptState.value = UiState.Error(e, messageRes = resolveImportErrorResource(e))
             }
         }
     }
@@ -232,7 +231,7 @@ class BackupViewModel internal constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _importState.value = UiState.Error(e, resolveImportErrorMessage(e))
+                _importState.value = UiState.Error(e, messageRes = resolveImportErrorResource(e))
             }
         }
     }
@@ -383,8 +382,7 @@ class BackupViewModel internal constructor(
                 throw cancelled
             } catch (error: Exception) {
                 LogUtils.w("导入报告归档或确认待重试：${error.javaClass.simpleName}")
-                if (!archived) _reportSaveState.value = UiState.Error(error,
-                    getApplication<Application>().getString(com.zero.common.R.string.backup_import_report_save_failed))
+                if (!archived) _reportSaveState.value = UiState.Error(error, messageRes = com.zero.common.R.string.backup_import_report_save_failed)
             } finally {
                 consumingImportResult = false
             }
@@ -431,7 +429,7 @@ class BackupViewModel internal constructor(
     private fun buildFileName(): String {
         val formatter = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault())
         val datePart = formatter.format(Date())
-        return getApplication<Application>().getString(
+        return getApplication<Application>().getAppString(
             com.zero.common.R.string.backup_file_name_format,
             datePart
         )
@@ -451,7 +449,7 @@ class BackupViewModel internal constructor(
                 throw cancelled
             } catch (error: Exception) {
                 if (generation == reportListGeneration) _reportListState.value = UiState.Error(error,
-                    getApplication<Application>().getString(com.zero.common.R.string.backup_import_report_list_failed)
+                    messageRes = com.zero.common.R.string.backup_import_report_list_failed
                 )
             }
         }
@@ -480,7 +478,7 @@ class BackupViewModel internal constructor(
                 throw cancelled
             } catch (error: Exception) {
                 if (generation == reportLoadGeneration && reportPrompt.value?.id == prompt.id) _reportLoadState.value = UiState.Error(error,
-                    getApplication<Application>().getString(com.zero.common.R.string.backup_import_report_load_failed)
+                    messageRes = com.zero.common.R.string.backup_import_report_load_failed
                 )
             }
         }
@@ -530,7 +528,7 @@ class BackupViewModel internal constructor(
             } catch (_: Exception) {
                 _reportExportState.value = UiState.Error(
                     IllegalStateException("export failed"),
-                    getApplication<Application>().getString(com.zero.common.R.string.backup_import_report_export_failed)
+                    messageRes = com.zero.common.R.string.backup_import_report_export_failed
                 )
             }
         }
@@ -571,7 +569,7 @@ class BackupViewModel internal constructor(
                 throw cancelled
             } catch (error: Exception) {
                 _reportDeleteState.value = UiState.Error(error,
-                    getApplication<Application>().getString(com.zero.common.R.string.backup_report_delete_failed)
+                    messageRes = com.zero.common.R.string.backup_report_delete_failed
                 )
             } finally {
                 loadReportList()
@@ -592,7 +590,7 @@ class BackupViewModel internal constructor(
                 throw cancelled
             } catch (error: Exception) {
                 _reportClearState.value = UiState.Error(error,
-                    getApplication<Application>().getString(com.zero.common.R.string.backup_report_clear_failed)
+                    messageRes = com.zero.common.R.string.backup_report_clear_failed
                 )
             } finally {
                 loadReportList()
@@ -630,7 +628,7 @@ class BackupViewModel internal constructor(
             ?: return file.name
         val formatter = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
         val datePart = formatter.format(Date(file.lastModified()))
-        return getApplication<Application>().getString(
+        return getApplication<Application>().getAppString(
             com.zero.common.R.string.backup_import_report_file_name_format,
             "${datePart}_${id.take(8)}"
         )
@@ -647,14 +645,14 @@ class BackupViewModel internal constructor(
     /**
      * 将导入异常映射为提示文案
      */
-    private fun resolveImportErrorMessage(error: Exception): String {
+    private fun resolveImportErrorResource(error: Exception): Int {
         val resId = when ((error as? BackupImportException)?.error) {
             BackupImportError.INVALID_JSON -> com.zero.common.R.string.backup_import_invalid_file
             BackupImportError.UNSUPPORTED_VERSION -> com.zero.common.R.string.backup_import_unsupported_version
             BackupImportError.EMPTY_DATA -> com.zero.common.R.string.backup_import_empty
             else -> com.zero.common.R.string.backup_import_failed
         }
-        return getApplication<Application>().getString(resId)
+        return resId
     }
 
     internal companion object {

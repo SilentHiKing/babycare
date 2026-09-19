@@ -1383,14 +1383,21 @@ class UiResourcePolicyTest {
             if (dateTimeLayout.contains("android:id=\"@+id/tv_title\"")) {
                 add("date/time picker should hide the center title to match the quiet sheet header")
             }
-            if (!dateTimeLayout.contains("android:layout_height=\"48dp\"")) {
-                add("date/time picker header should use the same compact 48dp height as choice picker")
+            if (!dateTimeLayout.contains("android:minHeight=\"@dimen/min_touch_target\"") ||
+                !dateTimeLayout.contains("androidx.core.widget.NestedScrollView")) {
+                add("date/time picker should preserve touch targets and scroll content without hiding confirmation")
             }
-            if (!dateTimeLayout.contains("android:paddingBottom=\"8dp\"")) {
-                add("date/time picker should avoid excessive bottom whitespace")
+            if (!dateTimeLayout.contains("android:paddingBottom=\"@dimen/content_gap_medium\"")) {
+                add("date/time picker should use shared compact spacing")
             }
-            if (!dateTimeSource.contains("DATE_TIME_ITEM_TEXT_SIZE_SP = 16f")) {
-                add("date/time picker column text should use the compact 16sp size")
+            if (dateTimeSource.contains("setTextSize(") ||
+                !dateTimeSource.contains("TextAppearance_BabyCare_Body1")) {
+                add("date/time picker should respect the shared scalable text appearance")
+            }
+            if (!dateTimeSource.contains("info.isCheckable = true") ||
+                !dateTimeSource.contains("holder.textView.isSelected = isSelected") ||
+                !dateTimeSource.contains("setOnItemClickListener")) {
+                add("date/time picker values should expose selection state and an accessible click action")
             }
             if (!dialogHelperSource.contains("MONTH_DAY_TIME") ||
                 !dialogHelperSource.contains("MONTH_DAY_TIME_SECOND") ||
@@ -1410,29 +1417,26 @@ class UiResourcePolicyTest {
             ) {
                 add("date/time picker should lay out date columns and time columns as two explicit groups")
             }
-            if (dateTimeLayout.contains("picker_selection_top_line") ||
-                dateTimeLayout.contains("picker_date_top_line") ||
-                dateTimeLayout.contains("picker_time_top_line")
-            ) {
-                add("date/time picker selection lines should stay continuous; grouping should come from spacing")
+            if (dateTimeLayout.contains("android:textSize") ||
+                !dateTimeLayout.contains("@dimen/surface_stroke_width")) {
+                add("date/time picker should retain shared typography and subtle selection guides")
             }
             if (!dateTimeSource.contains("groupGap.visibility = if (showDateGroup && showTimeGroup)")) {
                 add("date/time picker group gap should appear only when date and time columns are both visible")
             }
-            if (!dateTimeSource.contains("MONTH_DAY_TIME_GROUP_GAP_DP = 56") ||
-                !dateTimeSource.contains("FULL_DATE_TIME_GROUP_GAP_DP = 32") ||
-                !dateTimeSource.contains("if (showYearColumn()) FULL_DATE_TIME_GROUP_GAP_DP else MONTH_DAY_TIME_GROUP_GAP_DP")
-            ) {
-                add("date/time picker should use a larger gap for month-day/time grouping and a compact gap for full date-time")
+            if (dateTimeSource.contains("displayMetrics.widthPixels") ||
+                !dateTimeSource.contains("LinearLayout.VERTICAL") ||
+                !dateTimeSource.contains("min_touch_target")) {
+                add("date/time groups should adapt to the actual window without shrinking touch targets")
             }
             if (!dateTimeSource.contains("picker_second_format")) {
                 add("date/time picker should render the optional seconds column from localized resources")
             }
-            if (!timerControllerSource.contains("DialogHelper.showMonthDayTimeSecondSheet") ||
+            if (!timerControllerSource.contains("DialogHelper.showDateTimeSecondSheet") ||
                 timerControllerSource.contains("calculateSmartTimestampForStartTime") ||
                 timerControllerSource.contains("calculateSmartTimestampForEndTime")
             ) {
-                add("record timer picker should use the selected month/day/hour/minute/second timestamp directly")
+                add("record timer picker should preserve the selected year/date/time including seconds")
             }
             if (choiceSource.contains("bg_picker_option_selected")) {
                 add("choice picker should use list rows and a right check mark, not a bordered selected block")

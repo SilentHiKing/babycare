@@ -4,6 +4,7 @@ import com.zero.babycare.home.OngoingRecordManager.OngoingSession
 import com.zero.babycare.home.OngoingRecordManager.RecordType
 import com.zero.babycare.home.OngoingRecordManager.SessionStatus
 import com.zero.babycare.home.bean.DashboardData
+import com.zero.common.util.TimerClockSnapshot
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.LocalDate
@@ -13,6 +14,19 @@ class DashboardDurationMapperTest {
     private val zone = ZoneId.of("Asia/Shanghai")
     private val midnight = LocalDate.of(2026, 9, 20).atStartOfDay(zone).toInstant().toEpochMilli()
     private val minute = 60_000L
+
+    @Test
+    fun `wall rollback does not erase current automatic feeding duration`() {
+        val start = TimerClockSnapshot(midnight + 120 * minute, 60_000L, 3, "first")
+        val session = OngoingSession.running(1, RecordType.FEEDING, start.wallTimeMs,
+            automaticStart = true, now = start)
+        val now = start.copy(wallTimeMs = start.wallTimeMs - 45 * minute,
+            elapsedRealtimeMs = 60_000L + 15 * minute, processId = "restored")
+        val result = DashboardDurationMapper.update(DashboardData(), session, null,
+            now.wallTimeMs, zone, now)
+        assertEquals(15 * minute, result.ongoingFeedingDurationMillis)
+        assertEquals(15L, result.displayFeedingMinutes)
+    }
 
     @Test
     fun `paused feeding stays frozen and excludes pause time from today`() {

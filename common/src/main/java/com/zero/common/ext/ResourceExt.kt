@@ -19,6 +19,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import com.blankj.utilcode.util.ActivityUtils
 import com.blankj.utilcode.util.Utils
+import com.zero.common.util.LanguageManager
 
 
 fun stringOf(@StringRes id: Int, vararg formatArgs: Any): String = getString(id, *formatArgs)
@@ -26,7 +27,13 @@ fun stringOf(@StringRes id: Int, vararg formatArgs: Any): String = getString(id,
 fun stringOf(@StringRes id: Int): String = getString(id)
 
 fun getString(@StringRes id: Int, vararg formatArgs: Any?): String {
-    return Utils.getApp().resources.getString(id, *formatArgs)
+    return Utils.getApp().getAppString(id, *formatArgs)
+}
+
+/** 非 Activity 路径同样跟随应用语言；不修改全局 Resources，避免影响并行页面。 */
+fun Context.getAppString(@StringRes id: Int, vararg formatArgs: Any?): String {
+    val localized = LanguageManager.localizedContext(this)
+    return if (formatArgs.isEmpty()) localized.getString(id) else localized.getString(id, *formatArgs)
 }
 
 fun color(@ColorRes id: Int) = ContextCompat.getColor(Utils.getApp(), id)

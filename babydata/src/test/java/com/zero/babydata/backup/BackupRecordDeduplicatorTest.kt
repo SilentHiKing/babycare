@@ -4,11 +4,29 @@ import com.zero.babydata.entity.EventRecord
 import com.zero.babydata.entity.EventType
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.SleepRecord
+import com.zero.babydata.entity.MedicineData
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BackupRecordDeduplicatorTest {
+    @Test
+    fun medicineLanguageAliasesDeduplicateWithoutChangingUnknownUnitsOrStoredJson() {
+        val index = BackupRecordDeduplicator(60_000)
+        val record = EventRecord(babyId = 1, type = EventType.HEALTH_MEDICINE, time = 100_000,
+            extraData = MedicineData("合成药品", "1", "tablet").toJson())
+        index.remember(record)
+        listOf("片", "錠", "정").forEach { unit ->
+            val legacy = record.copy(time = 100_001, extraData = MedicineData("合成药品", "1", unit).toJson())
+            val before = legacy.extraData
+            assertFalse(index.add(legacy))
+            org.junit.Assert.assertEquals(before, legacy.extraData)
+        }
+        assertTrue(index.add(record.copy(extraData = MedicineData("合成药品", "1", "spray").toJson())))
+        assertTrue(index.add(record.copy(extraData = MedicineData("合成药品", "1", "drop").toJson())))
+        assertFalse(index.add(record.copy(extraData = MedicineData("合成药品", "1", "방울").toJson())))
+    }
+
     @Test
     fun recordsOneSecondApartDeduplicateAcrossMinuteBoundaryAndCreationTimes() {
         val index = BackupRecordDeduplicator(60_000)

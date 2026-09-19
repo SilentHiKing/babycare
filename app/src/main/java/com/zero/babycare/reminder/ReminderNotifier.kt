@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
+import com.zero.common.ext.getAppString
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -115,10 +116,10 @@ object ReminderNotifier {
             context = context,
             baby = baby,
             type = ReminderType.FEEDING,
-            title = context.getString(com.zero.common.R.string.reminder_notification_title),
-            content = context.getString(
+            title = context.getAppString(com.zero.common.R.string.reminder_notification_title),
+            content = context.getAppString(
                 com.zero.common.R.string.reminder_feeding_content,
-                baby.name.ifBlank { context.getString(com.zero.babycare.R.string.app_name) }
+                baby.name.ifBlank { context.getAppString(com.zero.babycare.R.string.app_name) }
             )
         )
     }
@@ -128,10 +129,10 @@ object ReminderNotifier {
             context = context,
             baby = baby,
             type = ReminderType.SLEEP,
-            title = context.getString(com.zero.common.R.string.reminder_notification_title),
-            content = context.getString(
+            title = context.getAppString(com.zero.common.R.string.reminder_notification_title),
+            content = context.getAppString(
                 com.zero.common.R.string.reminder_sleep_content,
-                baby.name.ifBlank { context.getString(com.zero.babycare.R.string.app_name) }
+                baby.name.ifBlank { context.getAppString(com.zero.babycare.R.string.app_name) }
             )
         )
     }
@@ -181,10 +182,10 @@ object ReminderNotifier {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
         val channel = NotificationChannel(
             CHANNEL_ID,
-            context.getString(com.zero.common.R.string.reminder_channel_name),
+            context.getAppString(com.zero.common.R.string.reminder_channel_name),
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = context.getString(com.zero.common.R.string.reminder_channel_description)
+            description = context.getAppString(com.zero.common.R.string.reminder_channel_description)
         }
         manager.createNotificationChannel(channel)
     }

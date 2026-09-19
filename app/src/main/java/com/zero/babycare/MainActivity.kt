@@ -298,7 +298,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     MainViewModel.BabyDeletionResult.SUCCESS -> com.zero.common.R.string.delete_success
                     MainViewModel.BabyDeletionResult.FAILED -> com.zero.common.R.string.record_delete_failed
                 }
-                ToastUtils.showShort(message)
+                ToastUtils.showShort(getString(message))
             }
         }
     }

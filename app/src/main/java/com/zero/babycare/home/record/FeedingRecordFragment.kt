@@ -103,6 +103,9 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
     private var draftForView: Bundle? = null
     private var draftBabyId: Int? = null
     private var draftId = UUID.randomUUID().toString()
+    private var amountInput = RecordNumberInput(UnitConfig.FEEDING_UNIT_ML)
+    private var leftDurationInput = RecordNumberInput("min")
+    private var rightDurationInput = RecordNumberInput("min")
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
@@ -113,7 +116,6 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         setupToolbar()
         setupSaveButton()
         setupFirstTimeCheckbox()
-        updateFeedingUnitDisplay()
         listOf(binding.etNote, binding.etFeedingAmount, binding.etLeftBreastDuration,
             binding.etRightBreastDuration, binding.etSolidFoodName, binding.etSolidAmount,
             binding.etOtherFoodName).forEach { input -> input.doAfterTextChanged { markAsUnsaved() } }
@@ -126,6 +128,10 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         draftBabyId = draftForView?.getInt("baby_id")?.takeIf { it > 0 }
             ?: mainVm.getCurrentBabyInfo()?.babyId
         draftId = draftForView?.getString("draft_id") ?: UUID.randomUUID().toString()
+        amountInput = restoreNumberInput(draftForView, "amount_input", UnitConfig.getFeedingUnit())
+        leftDurationInput = restoreNumberInput(draftForView, "left_duration_input", "min")
+        rightDurationInput = restoreNumberInput(draftForView, "right_duration_input", "min")
+        updateFeedingUnitDisplay()
         if (draftForView == null) resetPage()
         if (isEditMode && draftForView?.getString("editing_record") == null) {
             loadEditRecord()
@@ -186,10 +192,17 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         putInt("feeding_type", selectedFeedingType.type)
         putInt("solid_category", selectedSolidCategory ?: 0)
         putInt("solid_subtype", selectedSolidSubtype ?: 0)
+        putString("amount_input", Gson().toJson(amountInput))
+        putString("left_duration_input", Gson().toJson(leftDurationInput))
+        putString("right_duration_input", Gson().toJson(rightDurationInput))
         editingRecord?.let { putString("editing_record", Gson().toJson(it)) }
         putBundle("timer", RecordDraftState.saveTimer(binding.timerPanel, timerController))
         RecordDraftState.saveHierarchy(binding.root, this)
     }
+
+    private fun restoreNumberInput(draft: Bundle?, key: String, fallbackUnit: String): RecordNumberInput =
+        draft?.getString(key)?.let { Gson().fromJson(it, RecordNumberInput::class.java) }
+            ?: RecordNumberInput(fallbackUnit)
 
     override fun onDestroyView() {
         retainedDraft = if (!isHidden) captureDraft() else null
@@ -220,9 +233,10 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             markAsUnsaved()
 
             val babyId = currentDraftBabyId()
-            if (!isEditMode && babyId != null && OngoingRecordManager.isFeeding(babyId)) {
+            val sessionId = timerController?.ongoingSessionId
+            if (!isEditMode && babyId != null && sessionId != null) {
                 // 同步进行中的喂养类型，避免恢复与状态卡不一致
-                OngoingRecordManager.updateFeedingType(babyId, selectedFeedingType.type)
+                OngoingRecordManager.updateFeedingType(babyId, selectedFeedingType.type, expectedSessionId = sessionId)
             }
         }
         
@@ -361,8 +375,8 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 更新喂养单位展示
      */
     private fun updateFeedingUnitDisplay() {
-        val unit = UnitConfig.getFeedingUnit()
-        binding.tvFeedingAmountUnit.text = getString(UnitConfig.getFeedingUnitLabelResId())
+        val unit = amountInput.unit
+        binding.tvFeedingAmountUnit.setText(if (unit == UnitConfig.FEEDING_UNIT_OZ) R.string.unit_oz_abbr else R.string.unit_ml_abbr)
         updateFeedingAmountInput(unit)
     }
 
@@ -477,28 +491,45 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
                 onStartTimeChanged = { startTime ->
                     markAsUnsaved()
                     val babyId = currentDraftBabyId()
-                    if (!isEditMode && babyId != null && OngoingRecordManager.isFeeding(babyId)) {
+                    val sessionId = timerController?.ongoingSessionId
+                    if (!isEditMode && babyId != null && sessionId != null) {
                         // 同步进行中的开始时间，避免恢复与状态卡不一致
-                        OngoingRecordManager.updateFeedingStart(babyId, startTime)
+                        OngoingRecordManager.updateFeedingStart(babyId, startTime, expectedSessionId = sessionId)
                     }
                 },
                 onEndTimeChanged = { markAsUnsaved() },
                 onTimerStart = { startTime ->
-                    currentDraftBabyId()?.let { babyId ->
-                        OngoingRecordManager.startFeeding(babyId, selectedFeedingType.type, startTime)
+                    if (!isEditMode) currentDraftBabyId()?.let { babyId ->
+                        OngoingRecordManager.startFeeding(
+                            babyId, selectedFeedingType.type, startTime,
+                            automaticStart = timerController?.isStartTimeAutomatic == true
+                        )
+                        OngoingRecordManager.getFeedingSession(babyId)?.let { session ->
+                            timerController?.restoreAutomaticStart(session.automaticStart, session.clockAnchor, session.sessionId)
+                        }
                     }
                 },
                 onTimerResume = {
                     markAsUnsaved()
-                    currentDraftBabyId()?.let(OngoingRecordManager::resumeFeeding)
+                    val sessionId = timerController?.ongoingSessionId
+                    if (!isEditMode && sessionId != null) currentDraftBabyId()?.let {
+                        OngoingRecordManager.resumeFeeding(it, expectedSessionId = sessionId)
+                    }
                 },
                 onTimerPause = { endTime ->
-                    currentDraftBabyId()?.let { babyId ->
+                    val sessionId = timerController?.ongoingSessionId
+                    if (!isEditMode && sessionId != null) currentDraftBabyId()?.let { babyId ->
                         OngoingRecordManager.pauseFeeding(
                             babyId = babyId,
                             endTime = endTime,
-                            activeDurationMs = binding.timerPanel.timerView.getDuration()
+                            activeDurationMs = binding.timerPanel.timerView.getDuration(),
+                            expectedSessionId = sessionId
                         )
+                    }
+                },
+                onClockSynchronized = { sessionId, start, clock ->
+                    if (!isEditMode) currentDraftBabyId()?.let {
+                        vm.synchronizeTimerStart(it, sessionId, start, clock)
                     }
                 },
                 onDirty = { markAsUnsaved() }
@@ -618,11 +649,9 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             return true
         }
 
-        val leftDuration = binding.etLeftBreastDuration.text.toString().toLongOrNull() ?: 0L
-        val rightDuration = binding.etRightBreastDuration.text.toString().toLongOrNull() ?: 0L
-        
-        // 转换为毫秒
-        val totalBreastDuration = DateUtils.minutesToMilliseconds(leftDuration + rightDuration)
+        val leftDuration = leftDurationInput.durationMillis(binding.etLeftBreastDuration.text.toString())
+        val rightDuration = rightDurationInput.durationMillis(binding.etRightBreastDuration.text.toString())
+        val totalBreastDuration = leftDuration + rightDuration
         
         if (totalBreastDuration > totalDuration) {
             val target = if (rightDuration > 0) {
@@ -690,26 +719,32 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
 
         timerController?.setStartTime(record.feedingStart, notify = false)
         if (record.feedingEnd > 0L) {
-            timerController?.setEndTime(record.feedingEnd, notify = false, updateDuration = true)
+            timerController?.setEndTime(record.feedingEnd, notify = false)
+            // 编辑备注不能把暂停间隔重新算作喂养；用户主动修改时间时 Controller 才重新算区间。
+            binding.timerPanel.timerView.showDurationWithoutTimer(record.feedingDuration)
         } else {
             timerController?.clearEndTime(notify = false)
         }
 
         val leftMinutes = DateUtils.millisecondsToMinutes(record.feedingDurationBreastLeft)
         val rightMinutes = DateUtils.millisecondsToMinutes(record.feedingDurationBreastRight)
-        binding.etLeftBreastDuration.setText(if (leftMinutes > 0) leftMinutes.toString() else "")
-        binding.etRightBreastDuration.setText(if (rightMinutes > 0) rightMinutes.toString() else "")
+        // 历史不足一分钟也显示 0，明确清空后才清除原值，避免“原本空白”与清空操作无法区分。
+        binding.etLeftBreastDuration.setText(if (record.feedingDurationBreastLeft > 0) leftMinutes.toString() else "")
+        binding.etRightBreastDuration.setText(if (record.feedingDurationBreastRight > 0) rightMinutes.toString() else "")
+        leftDurationInput = leftDurationInput.withOriginal(binding.etLeftBreastDuration.text.toString(), record.feedingDurationBreastLeft)
+        rightDurationInput = rightDurationInput.withOriginal(binding.etRightBreastDuration.text.toString(), record.feedingDurationBreastRight)
 
         when (selectedFeedingType) {
             FeedingType.FORMULA, FeedingType.MIXED -> {
                 val amount = record.feedingAmount
                 if (amount != null) {
-                    val unit = UnitConfig.getFeedingUnit()
+                    val unit = amountInput.unit
                     val displayValue = UnitConverter.feedingToDisplay(amount, unit)
                     binding.etFeedingAmount.setText(UnitConverter.formatFeedingAmount(displayValue, unit))
                 } else {
                     binding.etFeedingAmount.setText("")
                 }
+                amountInput = amountInput.withOriginal(binding.etFeedingAmount.text.toString(), amount)
             }
             FeedingType.SOLID_FOOD -> {
                 val solidType = record.solidFoodType
@@ -771,11 +806,22 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         if (vm.mutation.isPending || (isEditMode && editingRecord == null)) return
         val babyId = currentDraftBabyId()
         if (babyId == null || babyId < 0) {
-            ToastUtils.showShort(R.string.no_baby_selected)
+            ToastUtils.showShort(getString(R.string.no_baby_selected))
             return
         }
         if (isEditMode && editingRecord?.babyId != babyId) return
         clearValidationErrors()
+        if (!binding.timerPanel.startInput.hasValidTime()) {
+            showFieldValidationError(binding.timerPanel.startInput,
+                if (binding.timerPanel.startInput.text.isNullOrBlank()) R.string.start_time_required else R.string.invalid_time)
+            return
+        }
+
+        // 尚未输入完整的时间不能被“保存时自动暂停”覆盖成当前时间。
+        if (!binding.timerPanel.endInput.text.isNullOrBlank() && !binding.timerPanel.endInput.hasValidTime()) {
+            showFieldValidationError(binding.timerPanel.endInput, R.string.invalid_time)
+            return
+        }
 
         // 如果正在计时，先暂停
         if (binding.timerPanel.timerView.currentShowState == RecordState.RECORDING) {
@@ -893,23 +939,17 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
 
         // 获取左右乳房时长（仅母乳喂养时）
         val leftBreastDuration = if (selectedFeedingType == FeedingType.BREAST) {
-            binding.etLeftBreastDuration.text.toString().toLongOrNull()?.let {
-                DateUtils.minutesToMilliseconds(it)
-            } ?: 0L
+            leftDurationInput.durationMillis(binding.etLeftBreastDuration.text.toString())
         } else 0L
 
         val rightBreastDuration = if (selectedFeedingType == FeedingType.BREAST) {
-            binding.etRightBreastDuration.text.toString().toLongOrNull()?.let {
-                DateUtils.minutesToMilliseconds(it)
-            } ?: 0L
+            rightDurationInput.durationMillis(binding.etRightBreastDuration.text.toString())
         } else 0L
         
         // 获取喂奶量（配方奶/混合喂养时）
         val feedingAmount = when (selectedFeedingType) {
             FeedingType.FORMULA, FeedingType.MIXED -> {
-                binding.etFeedingAmount.text.toString().toDoubleOrNull()?.let { value ->
-                    UnitConverter.feedingToStorage(value, UnitConfig.getFeedingUnit())
-                }
+                amountInput.feedingAmount(binding.etFeedingAmount.text.toString())
             }
             else -> null
         }
@@ -998,7 +1038,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
                     if (belongs && !isHidden) {
                         val message = state.errorRes ?: if (state.kind == RecordMutationController.Kind.DELETE)
                             R.string.record_delete_success else R.string.save_success
-                        ToastUtils.showShort(message)
+                        ToastUtils.showShort(getString(message))
                         if (state.errorRes == null) mainVm.navigateTo(state.target.destination)
                     }
                 }
@@ -1061,6 +1101,10 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      */
     private fun resetPage() {
         isProgrammaticChange = true
+        amountInput = RecordNumberInput(UnitConfig.getFeedingUnit())
+        leftDurationInput = RecordNumberInput("min")
+        rightDurationInput = RecordNumberInput("min")
+        updateFeedingUnitDisplay()
         
         // 重置喂养类型
         selectedFeedingType = FeedingType.BREAST
@@ -1108,6 +1152,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         
         if (hidden) {
             retainedDraft = null
+            timerController?.dismissPendingUi()
             // 隐藏时不重置计时器（保留进行中状态）
         } else {
             openCurrentTarget()
@@ -1159,6 +1204,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             resetTimer = false,
             notify = false
         )
+        timerController?.restoreAutomaticStart(session.automaticStart, session.clockAnchor, session.sessionId)
         if (session.status == OngoingRecordManager.SessionStatus.PAUSED && session.endAt != null) {
             timerController?.restorePausedSession(session.endAt, session.activeDurationMs)
         } else {
