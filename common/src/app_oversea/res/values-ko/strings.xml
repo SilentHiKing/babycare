@@ -567,4 +567,5 @@
     <string name="picker_second_accessibility_format">%1$d초</string>
     <string name="backup_export_limit_exceeded">백업 크기 또는 기록 수가 지원 한도를 초과하여 내보내지 못했습니다. 기록은 이 기기에 보관되어 있습니다.</string>
     <string name="backup_export_invalid_data">일부 기록을 복원 가능한 백업에 포함할 수 없어 내보내지 못했습니다. 기록은 이 기기에 보관되어 있습니다.</string>
+    <string name="backup_import_ambiguous_baby">일부 아기의 일치 여부를 명확히 확인할 수 없어 백업을 병합하지 않았습니다. 기존 기록은 변경되지 않았습니다.</string>
 </resources>

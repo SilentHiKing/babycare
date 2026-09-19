@@ -46,6 +46,10 @@ import com.zero.babycare.MainViewModel
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babydata.backup.BackupImportReport
 import com.zero.babydata.backup.BackupImportStrategy
+import com.zero.babydata.backup.BABY_BACKUP_VERSION
+import com.zero.babydata.backup.BackupBaby
+import com.zero.babydata.backup.BackupSleepRecord
+import com.zero.babydata.backup.BabyBackupData
 import com.zero.babydata.backup.BabyBackupEnvelope
 import com.zero.babydata.backup.BabyBackupExporter
 import com.zero.babydata.backup.CommittedBackupImport
@@ -67,6 +71,7 @@ import org.hamcrest.Matcher
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
@@ -169,7 +174,153 @@ class BackupReportLifecycleTest {
         }
     }
 
-    private fun saveExportErrorScreenshot(mode: String) {
+    @Test
+    fun ambiguousImportKeepsItsExplanationUntilUserConfirmsWithoutChangingDataOrMode() {
+        val directory = File(app.cacheDir, "backup-import-identity-${UUID.randomUUID()}")
+        check(directory.mkdirs())
+        val isolatedApp = ReportApplication(app, directory)
+        val database = Room.inMemoryDatabaseBuilder(app, BabyDatabase::class.java).build()
+        val lower = "8668a9e3-406d-478c-af23-6b4ad5327458"
+        val mixed = "8668A9e3-406d-478c-af23-6b4ad5327458"
+        val envelope = BabyBackupEnvelope(BABY_BACKUP_VERSION, 1000, data = BabyBackupData(
+            babies = listOf(BackupBaby(mixed, "合成备份资料", "boy", 0, 0f, 0f, "", "")),
+            feedingRecords = emptyList(),
+            sleepRecords = listOf(BackupSleepRecord("synthetic:1", mixed, 3000, 4000, 1000, "合成导入记录", 1000)),
+            eventRecords = emptyList(), childDailyRecords = emptyList()
+        ))
+        val effectCount = AtomicInteger()
+        // 使用真实导入/提交恢复路径，但依赖只指向本次内存库，禁止触发真实计时或提醒善后。
+        val realOperations = ApplicationBackupImportOperations(isolatedApp, database, object : BackupImportSideEffects {
+            override suspend fun clearReplacedBabyState(babyIds: List<Int>) { effectCount.incrementAndGet() }
+            override suspend fun refreshRecords() { effectCount.incrementAndGet() }
+        })
+        val attemptedModes = CopyOnWriteArrayList<BackupImportMode>()
+        val readCount = AtomicInteger()
+        val operations = object : BackupImportOperations by realOperations {
+            override suspend fun read(uri: Uri): BabyBackupEnvelope {
+                readCount.incrementAndGet()
+                return envelope
+            }
+            override fun release(uri: Uri) = Unit
+            override suspend fun execute(envelope: BabyBackupEnvelope, mode: BackupImportMode, dedupMinutes: Int): CommittedBackupImport {
+                attemptedModes += mode
+                return realOperations.execute(envelope, mode, dedupMinutes)
+            }
+        }
+        val exporter = BabyBackupExporter::class.java.getDeclaredConstructor(BabyDatabase::class.java)
+            .apply { isAccessible = true }.newInstance(database)
+        val injectedVm = AtomicReference<BackupViewModel>()
+        val callbacks = ReportInjection(isolatedApp, operations, injectedVm)
+        val initialError = AtomicReference<UiState.Error>()
+        val originalLocales = AppCompatDelegate.getApplicationLocales()
+        var scenario: ActivityScenario<MainActivity>? = null
+        app.registerActivityLifecycleCallbacks(callbacks)
+        try {
+            val before = runBlocking {
+                listOf(lower, lower.uppercase()).forEachIndexed { index, identity ->
+                    val id = database.babyInfoDao().insertBabyInfo(
+                        BabyInfo(stableId = identity, name = "合成本地资料$index", gender = "boy")
+                    ).toInt()
+                    database.sleepRecordDao().insertSleepRecord(SleepRecord(babyId = id,
+                        sleepStart = 1000, sleepEnd = 2000, sleepDuration = 1000, note = "原有合成历史$index"))
+                }
+                exporter.buildEnvelope().data
+            }
+            val current = ActivityScenario.launch(MainActivity::class.java)
+            scenario = current
+            awaitActivity(current) { injectedVm.get() != null && ViewModelProvider(it)[MainViewModel::class.java].babyDataLoaded.value }
+            navigate(current, NavTarget.Backup())
+            // 临时切换 AppCompat 语言，确保覆盖中文到英文重建；finally 恢复，不写 MMKV 偏好。
+            instrumentation.runOnMainSync { AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("zh-Hans")) }
+            awaitActivity(current) { it.resources.configuration.locales[0].language == "zh" }
+            current.onActivity { backupVm(it).prepareImport(Uri.parse("content://synthetic/identity-backup")) }
+            awaitActivity(current) { backupVm(it).importPromptState.value is UiState.Success }
+            current.onActivity { activity ->
+                val model = backupVm(activity)
+                val selection = (model.importPromptState.value as UiState.Success).data!!
+                assertEquals(BackupImportMode.MERGE, selection.mode)
+                model.selectImportMode(selection.id, BackupImportMode.MERGE)
+                val confirmation = (model.importPromptState.value as UiState.Success).data!!
+                assertEquals(BackupImportPrompt.Step.CONFIRM, confirmation.step)
+                model.confirmImport(confirmation.id)
+            }
+            awaitActivity(current) { backupVm(it).importState.value is UiState.Error }
+            current.onActivity {
+                val error = backupVm(it).importState.value as UiState.Error
+                assertEquals(com.zero.common.R.string.backup_import_ambiguous_baby, error.messageRes)
+                initialError.set(error)
+            }
+
+            fun assertExplanation() {
+                awaitReportVisibility(true, com.zero.common.R.string.backup_import_failed)
+                assertReportBodyAndActionsReachable(hasCancel = false)
+                onView(withId(com.zero.components.R.id.tv_content))
+                    .check(matches(withText(com.zero.common.R.string.backup_import_ambiguous_baby)))
+                    .check { view, error ->
+                        if (error != null) throw error
+                        val text = view as TextView
+                        val layout = requireNotNull(text.layout)
+                        assertTrue("身份歧义原因必须完整排版", layout.lineCount > 0 &&
+                            layout.getLineEnd(layout.lineCount - 1) == text.text.length)
+                        repeat(layout.lineCount) { line ->
+                            assertEquals("失败原因不能省略", 0, layout.getEllipsisCount(line))
+                        }
+                    }
+            }
+            assertExplanation()
+            saveExportErrorScreenshot("visible", "import-identity")
+            instrumentation.runOnMainSync { AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en")) }
+            awaitActivity(current) {
+                it.resources.configuration.locales[0].language == "en" &&
+                    backupVm(it).importState.value === initialError.get()
+            }
+            assertExplanation()
+            saveExportErrorScreenshot("en", "import-identity")
+            current.recreate()
+            awaitActivity(current) { backupVm(it).importState.value === initialError.get() }
+            assertExplanation()
+            navigate(current, NavTarget.Settings())
+            awaitReportVisibility(false, com.zero.common.R.string.backup_import_failed)
+            current.onActivity { assertSame("隐藏不能消费失败原因", initialError.get(), backupVm(it).importState.value) }
+            navigate(current, NavTarget.Backup())
+            assertExplanation()
+            saveExportErrorScreenshot("restored", "import-identity")
+            assertEquals(listOf(BackupImportMode.MERGE), attemptedModes.toList())
+            onView(withId(com.zero.components.R.id.tv_confirm)).perform(click())
+            awaitActivity(current) { backupVm(it).importState.value == UiState.None }
+            awaitReportVisibility(false, com.zero.common.R.string.backup_import_failed)
+            navigate(current, NavTarget.Settings())
+            navigate(current, NavTarget.Backup())
+            awaitReportVisibility(false, com.zero.common.R.string.backup_import_failed)
+            current.onActivity { assertEquals(UiState.None, backupVm(it).importState.value) }
+
+            assertEquals("失败或生命周期变化不能自动换用覆盖，也不能重放导入", listOf(BackupImportMode.MERGE), attemptedModes.toList())
+            assertEquals(1, readCount.get())
+            assertEquals("拒绝导入不能触发提交后善后", 0, effectCount.get())
+            runBlocking {
+                assertEquals(before, exporter.buildEnvelope().data)
+                database.openHelper.readableDatabase.query("SELECT COUNT(*) FROM Backup_Import_Commits").use { cursor ->
+                    assertTrue(cursor.moveToFirst())
+                    assertEquals("拒绝导入不能产生成功提交记录", 0L, cursor.getLong(0))
+                }
+            }
+        } finally {
+            try {
+                instrumentation.runOnMainSync { AppCompatDelegate.setApplicationLocales(originalLocales) }
+                scenario?.close()
+            } finally {
+                app.unregisterActivityLifecycleCallbacks(callbacks)
+                var jobs = emptyList<Job>()
+                instrumentation.runOnMainSync { jobs = callbacks.clearStores() }
+                runBlocking { withTimeout(10_000) { jobs.forEach { it.join() } } }
+                database.close()
+                check(directory.canonicalFile.parentFile == app.cacheDir.canonicalFile)
+                directory.deleteRecursively()
+            }
+        }
+    }
+
+    private fun saveExportErrorScreenshot(mode: String, name: String = "export-error") {
         // 只有显式视觉验收才保存本地截图，不把含设备背景的图片带入常规回归产物。
         if (InstrumentationRegistry.getArguments().getString("captureScreenshots") != "true") return
         instrumentation.waitForIdleSync()
@@ -177,7 +328,7 @@ class BackupReportLifecycleTest {
         try {
             val directory = File(app.filesDir, "audit-screens")
             check(directory.isDirectory || directory.mkdirs())
-            File(directory, "backup-export-error-$mode.png").outputStream().use {
+            File(directory, "backup-$name-$mode.png").outputStream().use {
                 check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it))
             }
         } finally { bitmap.recycle() }

@@ -8,6 +8,7 @@ import com.zero.babydata.room.BabyRepository
 import com.zero.babydata.entity.EventExtraData
 import com.zero.babydata.entity.EventRecord
 import com.zero.babydata.entity.EventType
+import com.zero.babydata.entity.GenericData
 import com.zero.components.base.vm.BaseViewModel
 import com.zero.common.R
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +33,15 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
         val eventTime: Long,
         val durationStartTime: Long?,
         val endTime: Long?
+    )
+
+    /** 只比较页面可编辑字段的原始输入，不对旧 JSON 对象图执行深层 equals/hash。 */
+    internal data class ExtraDataInputs(val type: Int, val values: List<String>)
+
+    internal data class ExtraDataEdit(
+        val originalRecord: EventRecord,
+        val originalInputs: ExtraDataInputs?,
+        val currentInputs: ExtraDataInputs?
     )
 
     fun captureDraft(): Draft = Draft(
@@ -133,8 +143,18 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
      * 设置扩展数据
      */
     fun setExtraData(data: EventExtraData?) {
-        _extraData.value = data
+        // 通用扩展没有编辑表单；旧嵌套对象只能沿用原文，不能进入 StateFlow 的深层相等比较。
+        _extraData.value = data.takeUnless { it is GenericData }
     }
+
+    /** 没有详情表单的事件从加载开始就保留原文，避免把旧深层 JSON 解析成通用对象图。 */
+    internal fun editableExtraData(record: EventRecord): EventExtraData? =
+        if (hasEditableExtraData(record.type)) EventExtraData.parse(record.type, record.extraData) else null
+
+    private fun hasEditableExtraData(type: Int): Boolean =
+        EventType.isDiaper(type) || EventType.isGrowth(type) || EventType.isMilestone(type) ||
+            type == EventType.HEALTH_TEMPERATURE || type == EventType.HEALTH_MEDICINE ||
+            type == EventType.HEALTH_VACCINE || type == EventType.HEALTH_SYMPTOM || type == EventType.OTHER_CUSTOM
 
     /**
      * 设置备注
@@ -246,6 +266,7 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
     internal fun saveRecord(
         target: RecordMutationController.Target,
         createdAt: Long? = null,
+        extraDataEdit: ExtraDataEdit? = null,
     ) {
         if (mutation.isPending) return
         val validation = validateData()
@@ -261,21 +282,42 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
             _eventTime.value
         }
 
-        // 提交时冻结表单，后续导航或类型切换不会改变正在写入的数据。
+        // 原文只属于同一宝宝、记录和类型；恢复后的输入仍须与首次回填基线一致。
+        val original = extraDataEdit?.originalRecord?.copy()
+        val originalInputs = extraDataEdit?.originalInputs
+        val currentInputs = extraDataEdit?.currentInputs
+        val hasOriginalExtra = original != null && original.eventId == target.recordId &&
+            original.babyId == target.babyId && original.type == subtype.type
+        val inputsUnchanged = originalInputs != null && currentInputs != null &&
+            originalInputs.type == subtype.type && currentInputs.type == subtype.type &&
+            originalInputs.values == currentInputs.values
+
+        // 冻结所有输入，再在受控保存协程内序列化；失败不写空值，也不绕过错误状态通道。
+        val extraSnapshot = _extraData.value
         val record = EventRecord(
                 eventId = target.recordId ?: 0,
                 babyId = target.babyId,
                 type = subtype.type,
                 time = recordTime,
                 endTime = _endTime.value ?: 0L,
-                extraData = _extraData.value?.toJson() ?: "",
                 note = _note.value,
                 createdAt = createdAt ?: System.currentTimeMillis()
             )
 
         mutation.submit(target, RecordMutationController.Kind.SAVE, R.string.save_failed) {
-            if (target.recordId != null) repository.updateEventRecord(record)
-            else repository.insertEventRecordOnce(record, target.draftId)
+            withContext(Dispatchers.IO) {
+                // 旧草稿没有输入基线：无详情表单可直接保真；有表单只接受扁平已知值严格相等。
+                // GenericData 从不解析或比较，类型切换也不能把旧通用扩展带入新事件。
+                val keepOriginalExtra = hasOriginalExtra && (
+                    !hasEditableExtraData(subtype.type) || inputsUnchanged ||
+                        (originalInputs == null && extraSnapshot != null &&
+                            extraSnapshot == editableExtraData(requireNotNull(original)))
+                    )
+                record.extraData = if (keepOriginalExtra) requireNotNull(original).extraData
+                    else extraSnapshot?.toJson() ?: ""
+                if (target.recordId != null) repository.updateEventRecord(record)
+                else repository.insertEventRecordOnce(record, target.draftId)
+            }
             BabyRecordChangeBus.notifyChanged(record.babyId)
         }
     }

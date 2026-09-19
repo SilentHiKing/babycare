@@ -55,6 +55,7 @@ class BabyRepository(private val database: BabyDatabase) {
             !snapshot.birthWeight.isFinite() || !snapshot.birthHeight.isFinite()) {
             throw BabyWriteException(BabyWriteFailure.INVALID_REQUEST)
         }
+        // 业务摘要刻意不含身份；历史 UUID 的大小写兼容不能改变既有回执摘要协议。
         val payloadHash = RecordWritePayload.baby(snapshot)
         return database.withTransaction {
             val receipts = database.babyCreationReceiptDao()
@@ -62,11 +63,19 @@ class BabyRepository(private val database: BabyDatabase) {
             if (receipt != null) {
                 if (receipt.payloadHash != payloadHash) throw BabyWriteException(BabyWriteFailure.CONTENT_CONFLICT)
                 val saved = babyInfoDao.getBabyInfo(receipt.babyId)
-                if (saved?.stableId != snapshot.stableId) throw BabyWriteException(BabyWriteFailure.BABY_DELETED)
+                // 只承认回执原本地 ID 下的完整 UUID；删除或覆盖后的同 UUID 新行不能重绑。
+                if (saved == null || !saved.stableId.equals(normalizedId, ignoreCase = true)) {
+                    throw BabyWriteException(BabyWriteFailure.BABY_DELETED)
+                }
                 return@withTransaction receipt.babyId
             }
             // 已通过备份恢复的相同身份也不能重复创建；首次绑定时只接受完全相同的业务内容。
-            val existing = babyInfoDao.findBabyByStableId(snapshot.stableId)
+            val existing = babyInfoDao.findBabyByStableId(normalizedId) ?: run {
+                // 历史备份允许大写 UUID；没有精确目标时只绑定唯一候选，不改写其原始身份。
+                val candidates = babyInfoDao.findBabiesByStableIdIgnoringCase(normalizedId)
+                if (candidates.size > 1) throw BabyWriteException(BabyWriteFailure.CONTENT_CONFLICT)
+                candidates.singleOrNull()
+            }
             if (existing != null && RecordWritePayload.baby(existing) != payloadHash) {
                 throw BabyWriteException(BabyWriteFailure.CONTENT_CONFLICT)
             }

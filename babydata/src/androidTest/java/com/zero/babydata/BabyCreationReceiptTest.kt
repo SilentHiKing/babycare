@@ -69,6 +69,82 @@ class BabyCreationReceiptTest {
     }
 
     @Test
+    fun lowercaseDraftBindsUppercaseHistoryAndRetryPreservesLaterEdits() = database { db ->
+        val repository = BabyRepository(db)
+        val draft = BabyInfo(stableId = CASE_ID, name = "合成历史资料", birthHeight = 50f)
+        val legacy = draft.copy(stableId = CASE_ID.uppercase())
+        val originalId = repository.insertBabyInfo(legacy)
+
+        // 新草稿仍使用规范小写；兼容只发生在查找历史宝宝时，不能改写原始身份。
+        assertEquals(originalId, repository.insertBabyInfoOnce(draft))
+        assertEquals(listOf(legacy), repository.getAllBabyInfo())
+        assertEquals(originalId, db.babyCreationReceiptDao().getReceipt(CASE_ID)?.babyId)
+        val edited = legacy.copy(name = "后来修改", birthHeight = 52f)
+        assertTrue(repository.updateBabyInfoIfPresent(edited))
+        assertEquals(originalId, BabyRepository(db).insertBabyInfoOnce(draft.copy()))
+        assertEquals(edited, repository.getBabyInfo(originalId))
+        failure(BabyWriteFailure.INVALID_REQUEST) {
+            repository.insertBabyInfoOnce(draft.copy(stableId = CASE_ID.uppercase()))
+        }
+    }
+
+    @Test
+    fun uppercaseHistoryReceiptStillPreventsResurrectionAfterDeleteAndOverwrite() = database { db ->
+        val repository = BabyRepository(db)
+        val draft = BabyInfo(stableId = CASE_ID, name = "合成历史资料")
+        val legacy = draft.copy(stableId = CASE_ID.uppercase())
+        val originalId = repository.insertBabyInfo(legacy)
+        assertEquals(originalId, repository.insertBabyInfoOnce(draft))
+        val envelope = BabyBackupExporter(db).buildEnvelope()
+
+        repository.deleteBabyInfo(legacy)
+        failure(BabyWriteFailure.BABY_DELETED) { repository.insertBabyInfoOnce(draft) }
+        assertTrue(repository.getAllBabyInfo().isEmpty())
+        BabyBackupImporter(db).importOverwrite(envelope)
+        val restored = repository.getAllBabyInfo().single()
+        assertNotEquals(originalId, restored.babyId)
+        assertEquals(legacy.stableId, restored.stableId)
+        // 同 UUID 被备份恢复为新本地 ID，也不能重绑已经提交过的创建请求。
+        failure(BabyWriteFailure.BABY_DELETED) { repository.insertBabyInfoOnce(draft) }
+        assertEquals(listOf(restored), repository.getAllBabyInfo())
+        assertEquals(originalId, db.babyCreationReceiptDao().getReceipt(CASE_ID)?.babyId)
+    }
+
+    @Test
+    fun conflictingOrAmbiguousCaseHistoryWritesNeitherBabyNorReceipt() = database { db ->
+        val repository = BabyRepository(db)
+        val draft = BabyInfo(stableId = CASE_ID, name = "合成草稿")
+        val conflicting = draft.copy(stableId = CASE_ID.uppercase(), name = "另一份资料")
+        repository.insertBabyInfo(conflicting)
+        failure(BabyWriteFailure.CONTENT_CONFLICT) { repository.insertBabyInfoOnce(draft) }
+        assertEquals(listOf(conflicting), repository.getAllBabyInfo())
+        assertNull(db.babyCreationReceiptDao().getReceipt(CASE_ID))
+
+        repository.updateBabyInfo(conflicting.copy(name = draft.name))
+        repository.insertBabyInfo(draft.copy(stableId = CASE_ID.replace('a', 'A')))
+        val before = repository.getAllBabyInfo()
+        // 两条都不是精确小写且业务内容相同，也不能凭顺序选中其中一条。
+        failure(BabyWriteFailure.CONTENT_CONFLICT) { repository.insertBabyInfoOnce(draft) }
+        assertEquals(before, repository.getAllBabyInfo())
+        assertNull(db.babyCreationReceiptDao().getReceipt(CASE_ID))
+    }
+
+    @Test
+    fun exactLowercaseHistoryTakesPriorityOverCaseVariant() = database { db ->
+        val repository = BabyRepository(db)
+        val draft = BabyInfo(stableId = CASE_ID, name = "合成精确身份")
+        val exact = draft.copy()
+        val exactId = repository.insertBabyInfo(exact)
+        val other = draft.copy(stableId = CASE_ID.uppercase(), name = "另一历史宝宝")
+        repository.insertBabyInfo(other)
+        val before = repository.getAllBabyInfo()
+
+        assertEquals(exactId, repository.insertBabyInfoOnce(draft))
+        assertEquals(before, repository.getAllBabyInfo())
+        assertEquals(exactId, db.babyCreationReceiptDao().getReceipt(CASE_ID)?.babyId)
+    }
+
+    @Test
     fun missingOrReusedLocalIdCannotBeUpdatedByAnotherIdentity() = database { db ->
         val repository = BabyRepository(db)
         val draft = BabyInfo(name = "合成资料")
@@ -105,5 +181,9 @@ class BabyCreationReceiptTest {
     private fun database(block: suspend (BabyDatabase) -> Unit) = runBlocking {
         val db = Room.inMemoryDatabaseBuilder(context, BabyDatabase::class.java).build()
         try { block(db) } finally { db.close() }
+    }
+
+    private companion object {
+        const val CASE_ID = "abcdef01-2345-4678-9abc-def012345678"
     }
 }

@@ -44,9 +44,10 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     private var reportActionDialog: BasePopupView? = null
     private var displayedReportActionId: String? = null
     private var reportActionEpoch = 0L
-    private var exportErrorDialog: BasePopupView? = null
-    private var displayedExportError: UiState.Error? = null
-    private var exportErrorEpoch = 0L
+    private var failureDialog: BasePopupView? = null
+    private var displayedFailure: UiState.Error? = null
+    private var displayedFailureIsImport = false
+    private var failureDialogEpoch = 0L
 
     private val exportRow get() = binding.rowBackupExport
     private val importRow get() = binding.rowBackupImport
@@ -178,7 +179,6 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     /** 文件准备可以后台完成；系统选择器和结果反馈只由当前可见页面执行。 */
     private fun renderPendingExports() {
         if (!canShowImportUi()) return
-        if (vm.exportState.value !== displayedExportError) dismissExportErrorDialog()
         when (val state = vm.exportState.value) {
             UiState.None -> Unit
             UiState.Loading -> showLoading(getString(com.zero.common.R.string.backup_exporting))
@@ -188,7 +188,6 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             }
             is UiState.Error -> {
                 hideLoading()
-                showExportError(state)
             }
         }
         when (val state = vm.reportExportState.value) {
@@ -213,35 +212,47 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
                 vm.consumeDocumentExportResult()
             }
         }
+        renderBackupFailure()
     }
 
-    /** 导出失败涉及备份是否可恢复，完整说明保持到用户关闭，不能被短 Toast 截断。 */
-    private fun showExportError(error: UiState.Error) {
-        if (displayedExportError === error) return
-        dismissExportErrorDialog()
-        displayedExportError = error
-        val epoch = exportErrorEpoch
-        exportErrorDialog = DialogHelper.showAlertDialog(
-            requireContext(), getString(com.zero.common.R.string.backup_export_failed),
-            error.messageFor(requireContext()) ?: getString(com.zero.common.R.string.backup_export_failed)
+    /** 导入/导出失败都保留完整解释；统一渲染避免两个状态流各自重复弹窗或误消费。 */
+    private fun renderBackupFailure() {
+        if (!canShowImportUi()) return
+        val importError = vm.importState.value as? UiState.Error
+        val isImport = importError != null
+        val error = importError ?: (vm.exportState.value as? UiState.Error)
+        if (error == null) {
+            dismissFailureDialog()
+            return
+        }
+        if (displayedFailure === error && displayedFailureIsImport == isImport) return
+        dismissFailureDialog()
+        displayedFailure = error
+        displayedFailureIsImport = isImport
+        val epoch = failureDialogEpoch
+        val title = getString(if (isImport) com.zero.common.R.string.backup_import_failed
+            else com.zero.common.R.string.backup_export_failed)
+        failureDialog = DialogHelper.showAlertDialog(
+            requireContext(), title, error.messageFor(requireContext()) ?: title
         ).also { popup ->
             popup.popupInfo.xPopupCallback = object : SimpleCallback() {
                 override fun onDismiss(popupView: BasePopupView?) {
-                    // 重建和离页只撤窗；旧窗口也不能消费稍后另一次导出的失败。
-                    if (exportErrorEpoch != epoch || displayedExportError !== error || !canShowImportUi()) return
-                    displayedExportError = null
-                    exportErrorDialog = null
-                    if (vm.exportState.value === error) vm.resetExportState()
+                    // 重建和离页只撤窗；旧窗口也不能消费后续操作的失败。
+                    if (failureDialogEpoch != epoch || displayedFailure !== error || !canShowImportUi()) return
+                    displayedFailure = null
+                    failureDialog = null
+                    if (isImport && vm.importState.value === error) vm.resetImportState()
+                    if (!isImport && vm.exportState.value === error) vm.resetExportState()
                 }
             }
         }
     }
 
-    private fun dismissExportErrorDialog() {
-        exportErrorEpoch++
-        displayedExportError = null
-        exportErrorDialog?.dismiss()
-        exportErrorDialog = null
+    private fun dismissFailureDialog() {
+        failureDialogEpoch++
+        displayedFailure = null
+        failureDialog?.dismiss()
+        failureDialog = null
     }
 
     private fun renderReportFeedback() {
@@ -381,10 +392,9 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             is UiState.Error -> {
                 dismissImportReportDialog()
                 hideLoading()
-                ToastUtils.showShort(state.messageFor(requireContext()))
-                vm.resetImportState()
             }
         }
+        renderBackupFailure()
     }
 
     private fun acceptsImportCallback(prompt: BackupImportPrompt, epoch: Long): Boolean =
@@ -635,7 +645,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     }
 
     override fun onDestroyView() {
-        dismissExportErrorDialog()
+        dismissFailureDialog()
         dismissReportActionDialog()
         dismissImportDialog()
         dismissImportReportDialog()
@@ -644,7 +654,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     }
 
     override fun onPause() {
-        dismissExportErrorDialog()
+        dismissFailureDialog()
         dismissReportActionDialog()
         // Activity 重建、系统选择器和离开前台都只撤下窗口，不取消用户正在确认的导入。
         dismissImportDialog()
@@ -656,7 +666,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (hidden) {
-            dismissExportErrorDialog()
+            dismissFailureDialog()
             dismissReportActionDialog()
             dismissImportDialog()
             dismissImportReportDialog()

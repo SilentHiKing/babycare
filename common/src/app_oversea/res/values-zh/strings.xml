@@ -567,4 +567,5 @@
     <string name="picker_second_accessibility_format">%1$d秒</string>
     <string name="backup_export_limit_exceeded">备份内容超出当前支持范围，未导出。现有记录仍保存在此设备上。</string>
     <string name="backup_export_invalid_data">部分记录无法生成可恢复的备份，未导出。现有记录仍保存在此设备上。</string>
+    <string name="backup_import_ambiguous_baby">部分宝宝的对应关系不明确，未合并。现有记录未改变。</string>
 </resources>

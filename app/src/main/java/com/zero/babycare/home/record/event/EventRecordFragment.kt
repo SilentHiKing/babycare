@@ -88,6 +88,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private var hasUnsavedChanges = false
     private var isProgrammaticChange = false
     private var cleanInputs = arrayListOf<String>()
+    private var originalExtraInputs: EventRecordViewModel.ExtraDataInputs? = null
     private var retainedDraft: Bundle? = null
     private var draftForView: Bundle? = null
     private var draftBabyId: Int? = null
@@ -128,6 +129,11 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         numericInputType = draftForView?.getInt("numeric_input_type")?.takeIf { it != 0 }
         hasMedicineDraftUnit = draftForView?.containsKey("medicine_input_unit") == true
         medicineDraftUnit = draftForView?.getString("medicine_input_unit")
+        originalExtraInputs = draftForView?.getBundle("original_extra_inputs")?.let { baseline ->
+            baseline.getStringArrayList("values")?.let {
+                EventRecordViewModel.ExtraDataInputs(baseline.getInt("type"), it)
+            }
+        }
 
         setupToolbar()
         setupTimeCard()
@@ -197,6 +203,12 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         putBoolean("dirty", hasUnsavedChanges || RecordDraftState.inputValues(binding.root) != cleanInputs)
         putBoolean("note_expanded", noteExpanded)
         putStringArrayList("clean_inputs", cleanInputs)
+        originalExtraInputs?.let { baseline ->
+            putBundle("original_extra_inputs", Bundle().apply {
+                putInt("type", baseline.type)
+                putStringArrayList("values", ArrayList(baseline.values))
+            })
+        }
         putString("weight_input_unit", weightInputUnit)
         putString("height_input_unit", heightInputUnit)
         putString("numeric_input", numericInput?.let { Gson().toJson(it) })
@@ -245,6 +257,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         heightInputUnit = UnitConfig.getHeightUnit()
         numericInput = null
         numericInputType = null
+        originalExtraInputs = null
         hasMedicineDraftUnit = false
         medicineDraftUnit = null
         releaseActivityTimer()
@@ -308,7 +321,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             isProgrammaticChange = true
             numericInput = null
             numericInputType = null
-            pendingExtraData = com.zero.babydata.entity.EventExtraData.parse(record.type, record.extraData)
+            pendingExtraData = vm.editableExtraData(record)
 
             val category = EventCategory.fromId(com.zero.babydata.entity.EventType.getCategory(record.type))
             val subtype = EventSubtype.fromType(record.type)
@@ -333,6 +346,8 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             detailRendered = false
             updateDetailView(subtype)
             updateUIVisibility(subtype != null)
+            // 仅首次真实记录回填后建立基线；View/进程重建恢复旧基线，不能把用户改动洗成原值。
+            originalExtraInputs = captureExtraInputs()
             cleanInputs = RecordDraftState.inputValues(binding.root)
             hasUnsavedChanges = false
             isProgrammaticChange = false
@@ -1160,8 +1175,19 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
         vm.saveRecord(
             target = mutationTarget(babyId),
-            createdAt = editingRecord?.createdAt
+            createdAt = editingRecord?.createdAt,
+            extraDataEdit = editingRecord?.let {
+                EventRecordViewModel.ExtraDataEdit(it, originalExtraInputs, captureExtraInputs())
+            }
         )
+    }
+
+    /** 时间与备注不属于扩展详情；这里只采集当前详情表单实际可编辑的 View 输入。 */
+    private fun captureExtraInputs(): EventRecordViewModel.ExtraDataInputs? {
+        val type = vm.selectedSubtype.value?.type ?: return null
+        val values = if (activityTimerPanel() != null) emptyList()
+            else RecordDraftState.inputValues(binding.containerDetail)
+        return EventRecordViewModel.ExtraDataInputs(type, values)
     }
 
     private fun setSaveInProgress(inProgress: Boolean) {

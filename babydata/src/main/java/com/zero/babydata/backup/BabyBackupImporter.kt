@@ -80,11 +80,14 @@ class BabyBackupImporter(private val db: BabyDatabase) {
             val dailyDao = db.childDailyRecordDao()
             val babyIdMap = mutableMapOf<String, Int>()
 
+            // 在同一事务、任何插入之前确定整包目标；歧义不能靠列表顺序或猜测身份解决。
+            val identityTargets = BackupBabyIdentityMapper.plan(data.babies, babyDao.getAllBabyInfo())
+
             data.babies.forEach { baby ->
-                val existing = babyDao.findBabyByStableId(baby.stableId)
-                val targetId = if (existing != null) {
+                val existingId = identityTargets.getValue(baby.stableId)
+                val targetId = if (existingId != null) {
                     babyMatched++
-                    existing.babyId
+                    existingId
                 } else {
                     babyInserted++
                     babyDao.insertBabyInfo(baby.toEntity()).toInt()
@@ -191,5 +194,6 @@ class BackupImportException(val error: BackupImportError) : RuntimeException()
 enum class BackupImportError {
     INVALID_JSON,
     UNSUPPORTED_VERSION,
-    EMPTY_DATA
+    EMPTY_DATA,
+    AMBIGUOUS_BABY_IDENTITY
 }

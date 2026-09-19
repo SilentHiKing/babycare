@@ -657,6 +657,7 @@ class BackupViewModel internal constructor(
             BackupImportError.INVALID_JSON -> com.zero.common.R.string.backup_import_invalid_file
             BackupImportError.UNSUPPORTED_VERSION -> com.zero.common.R.string.backup_import_unsupported_version
             BackupImportError.EMPTY_DATA -> com.zero.common.R.string.backup_import_empty
+            BackupImportError.AMBIGUOUS_BABY_IDENTITY -> com.zero.common.R.string.backup_import_ambiguous_baby
             else -> com.zero.common.R.string.backup_import_failed
         }
         return resId

@@ -28,6 +28,8 @@ import com.zero.babycare.MainViewModel
 import com.zero.babycare.R
 import com.zero.babycare.home.record.event.EventRecordFragment
 import com.zero.babycare.home.record.event.EventRecordViewModel
+import com.zero.babycare.home.record.event.EventCategory
+import com.zero.babycare.home.record.event.EventSubtype
 import com.zero.babycare.home.record.event.MedicineUnitText
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babydata.entity.BabyInfo
@@ -178,6 +180,97 @@ class RecordEditValueRecoveryTest {
         }
     }
 
+    @Test
+    fun deepLegacyActivityExtraSurvivesNoteOnlySaveAndRecreation() = withScreen { scenario, repository, babyId ->
+        // 模拟旧版本已落库内容；当前导入深度限制不应使旧记录仅改备注时崩溃或丢失详情。
+        val raw = "{\"data\":{\"x\":" + "[".repeat(5_000) + "0" + "]".repeat(5_000) + "}}"
+        val record = EventRecord(eventId = RECORD_ID, babyId = babyId, type = EventType.ACTIVITY_OUTDOOR,
+            time = START, endTime = START + 600_000L, extraData = raw, note = "原活动记录")
+        runBlocking { repository.insertEventRecord(record) }
+        val target = NavTarget.EventRecord(editRecordId = record.eventId, returnTarget = NavTarget.Dashboard)
+        listOf(false, true).forEach { recreate ->
+            navigate(scenario, target)
+            await(scenario) { currentView(it, target)?.findViewById<RecordTimerPanelView>(R.id.timerPanel)?.startInput?.getTimestamp() == START }
+            val changedNote = if (recreate) "重建后仅改备注" else "首次仅改备注"
+            scenario.onActivity { activity ->
+                requireNotNull(currentView(activity, target)).findViewById<EditText>(R.id.etNote).setText(changedNote)
+                if (recreate) {
+                    removeExtraInputBaseline(currentFragment(activity, target))
+                }
+            }
+            if (recreate) {
+                scenario.recreate()
+                await(scenario) { currentView(it, target)?.findViewById<EditText>(R.id.etNote)?.text?.toString() == changedNote }
+            }
+            scenario.onActivity { activity ->
+                assertTrue(requireNotNull(currentView(activity, target)).findViewById<View>(R.id.btnSave).performClick())
+            }
+            await(scenario) { mainVm(it).navTarget.value == NavTarget.Dashboard }
+            val saved = runBlocking { requireNotNull(repository.getEventRecordById(record.eventId)) }
+            assertEquals(raw, saved.extraData)
+            assertEquals(changedNote, saved.note)
+            assertEquals(record.time, saved.time)
+            assertEquals(record.endTime, saved.endTime)
+        }
+
+        // 改为另一种记录时，旧活动扩展不能跟随详情为空的新类型保存。
+        navigate(scenario, target)
+        await(scenario) { currentView(it, target)?.findViewById<RecordTimerPanelView>(R.id.timerPanel)?.startInput?.getTimestamp() == START }
+        scenario.onActivity { activity ->
+            val model = ViewModelProvider(currentFragment(activity, target))[EventRecordViewModel::class.java]
+            model.selectCategory(EventCategory.OTHER)
+            model.selectSubtype(requireNotNull(EventSubtype.fromType(EventType.OTHER_BURP)))
+        }
+        await(scenario) { currentView(it, target)?.findViewById<RecordTimerPanelView>(R.id.timerPanel) == null }
+        scenario.onActivity { activity ->
+            assertTrue(requireNotNull(currentView(activity, target)).findViewById<View>(R.id.btnSave).performClick())
+        }
+        await(scenario) { mainVm(it).navTarget.value == NavTarget.Dashboard }
+        val changedType = runBlocking { requireNotNull(repository.getEventRecordById(record.eventId)) }
+        assertEquals(EventType.OTHER_BURP, changedType.type)
+        assertEquals("", changedType.extraData)
+    }
+
+    @Test
+    fun unchangedGrowthExtraKeepsUnknownFieldsAndExactNumbersButEditedDetailIsSavedAfterRecreation() = withScreen { scenario, repository, babyId ->
+        MMKVStore.put(MMKVKeys.SETTINGS_WEIGHT_UNIT, UnitConfig.WEIGHT_UNIT_KG)
+        val raw = " { \"value\" : 7.2534567890123456789012345, \"unit\":\"kg\", \"vendor\":{\"revision\":123456789012345678901234567890} } "
+        val record = EventRecord(eventId = RECORD_ID, babyId = babyId, type = EventType.GROWTH_WEIGHT,
+            time = START, extraData = raw)
+        runBlocking { repository.insertEventRecord(record) }
+        val target = NavTarget.EventRecord(editRecordId = record.eventId, returnTarget = NavTarget.Dashboard)
+        navigate(scenario, target)
+        await(scenario) { !currentView(it, target)?.findViewById<EditText>(R.id.etValue)?.text.isNullOrBlank() }
+        scenario.onActivity { activity ->
+            requireNotNull(currentView(activity, target)).findViewById<EditText>(R.id.etNote).setText("仅改成长备注")
+            removeExtraInputBaseline(currentFragment(activity, target))
+        }
+        scenario.recreate()
+        await(scenario) { currentView(it, target)?.findViewById<EditText>(R.id.etNote)?.text?.toString() == "仅改成长备注" }
+        scenario.onActivity { activity ->
+            assertTrue(requireNotNull(currentView(activity, target)).findViewById<View>(R.id.btnSave).performClick())
+        }
+        await(scenario) { mainVm(it).navTarget.value == NavTarget.Dashboard }
+        val unchanged = runBlocking { requireNotNull(repository.getEventRecordById(record.eventId)) }
+        assertEquals(raw, unchanged.extraData)
+        assertEquals("仅改成长备注", unchanged.note)
+
+        // 用户改过详情再重建，不能把改后的 UI 误作原始基线并写回旧数值。
+        navigate(scenario, target)
+        await(scenario) { !currentView(it, target)?.findViewById<EditText>(R.id.etValue)?.text.isNullOrBlank() }
+        scenario.onActivity { activity ->
+            requireNotNull(currentView(activity, target)).findViewById<EditText>(R.id.etValue).setText("8.5")
+        }
+        scenario.recreate()
+        await(scenario) { currentView(it, target)?.findViewById<EditText>(R.id.etValue)?.text?.toString() == "8.5" }
+        scenario.onActivity { activity ->
+            assertTrue(requireNotNull(currentView(activity, target)).findViewById<View>(R.id.btnSave).performClick())
+        }
+        await(scenario) { mainVm(it).navTarget.value == NavTarget.Dashboard }
+        val changed = runBlocking { requireNotNull(repository.getEventRecordById(record.eventId)) }
+        assertEquals(GrowthData(8.5, "kg"), EventExtraData.parse(changed.type, changed.extraData))
+    }
+
     private fun withScreen(block: (ActivityScenario<MainActivity>, BabyRepository, Int) -> Unit) {
         assumeTrue("隔离数据库测试仅在 AVD 运行，避免影响真机提醒与单位配置", Build.FINGERPRINT.contains("generic") || Build.MODEL.contains("sdk"))
         val units = mapOf(MMKVKeys.SETTINGS_FEEDING_UNIT to UnitConfig.getFeedingUnit(),
@@ -233,6 +326,14 @@ class RecordEditValueRecoveryTest {
         override fun onActivityStopped(activity: Activity) = Unit
         override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
         override fun onActivityDestroyed(activity: Activity) = Unit
+    }
+
+    /** 模拟升级前 Bundle：保留原记录和输入，但没有本次新增的详情基线。 */
+    private fun removeExtraInputBaseline(fragment: Fragment) {
+        EventRecordFragment::class.java.getDeclaredField("originalExtraInputs").apply {
+            isAccessible = true
+        }.set(fragment, null)
+        assertTrue(!parcelDraft(fragment).containsKey("original_extra_inputs"))
     }
 
     private fun parcelDraft(fragment: Fragment): Bundle {

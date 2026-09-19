@@ -567,4 +567,5 @@
     <string name="picker_second_accessibility_format">%1$d秒</string>
     <string name="backup_export_limit_exceeded">バックアップのサイズまたは記録数が上限を超えたため、書き出せませんでした。記録はこの端末に保存されています。</string>
     <string name="backup_export_invalid_data">一部の記録から復元可能なバックアップを作成できないため、書き出せませんでした。記録はこの端末に保存されています。</string>
+    <string name="backup_import_ambiguous_baby">一部のお子さまの対応関係を特定できないため、バックアップを統合しませんでした。既存の記録は変更されていません。</string>
 </resources>

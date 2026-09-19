@@ -29,6 +29,10 @@ interface BabyInfoDao {
     @Query("SELECT * FROM Baby_Info WHERE stableId = :stableId LIMIT 1")
     suspend fun findBabyByStableId(stableId: String): BabyInfo?
 
+    // 仅供合法 UUID 的精确匹配失败后回退；最多两行即可识别歧义，禁止猜测合并历史双行。
+    @Query("SELECT * FROM Baby_Info WHERE stableId = :stableId COLLATE NOCASE LIMIT 2")
+    suspend fun findBabiesByStableIdIgnoringCase(stableId: String): List<BabyInfo>
+
     @Query("SELECT * FROM Baby_Info ORDER BY babyId DESC")
     suspend fun getAllBabyInfo(): List<BabyInfo>
 
