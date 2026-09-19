@@ -5552,6 +5552,46 @@
           "ja": "元の記録は削除されています。記録画面を開き直して新しく作成してください",
           "ko": "원래 기록이 삭제되었어요. 기록 화면을 다시 열어 새 기록을 만들어 주세요"
         }
+      },
+      {
+        "codeKey": "baby_profile_save_conflict",
+        "language": {
+          "zh-Hans": "这份资料已保存，请重新打开宝宝资料进行修改",
+          "en": "This profile is already saved. Reopen your baby’s profile to edit it.",
+          "zh-Hant": "這份資料已儲存，請重新開啟寶寶資料進行修改",
+          "ja": "このプロフィールは保存済みです。編集するには赤ちゃんのプロフィールを開き直してください",
+          "ko": "이미 저장된 프로필이에요. 수정하려면 아기 프로필을 다시 열어 주세요"
+        }
+      },
+      {
+        "codeKey": "baby_profile_deleted",
+        "language": {
+          "zh-Hans": "该宝宝已删除，请返回后重新创建",
+          "en": "This baby’s profile was deleted. Go back to create a new one.",
+          "zh-Hant": "該寶寶已刪除，請返回後重新建立",
+          "ja": "この赤ちゃんのプロフィールは削除されています。戻って新しく作成してください",
+          "ko": "이 아기의 프로필이 삭제되었어요. 돌아가서 새로 만들어 주세요"
+        }
+      },
+      {
+        "codeKey": "baby_age_birthdate_missing",
+        "language": {
+          "zh-Hans": "生日未设置",
+          "en": "Birthday not set",
+          "zh-Hant": "生日未設定",
+          "ja": "誕生日未設定",
+          "ko": "생일 미설정"
+        }
+      },
+      {
+        "codeKey": "baby_age_not_born_yet",
+        "language": {
+          "zh-Hans": "尚未出生",
+          "en": "Not born yet",
+          "zh-Hant": "尚未出生",
+          "ja": "出生前",
+          "ko": "아직 태어나지 않았어요"
+        }
       }
     ],
     "app": [

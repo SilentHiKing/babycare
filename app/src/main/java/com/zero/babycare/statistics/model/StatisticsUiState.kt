@@ -5,6 +5,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import java.time.LocalDate
 import java.time.YearMonth
+import com.zero.babycare.statistics.mapper.StatisticsDateRange
 
 /**
  * 统计页整页状态。selectedDate 是唯一主上下文，日记录区和洞察区都从它派生。
@@ -12,6 +13,7 @@ import java.time.YearMonth
 data class StatisticsUiState(
     val babyId: Int = 0,
     val selectedDate: LocalDate = LocalDate.now(),
+    val calendarBrowse: CalendarBrowseState = CalendarBrowseState.forDate(LocalDate.now()),
     val datesWithRecords: Set<LocalDate> = emptySet(),
     val dayRecord: DayRecordSectionUiModel = DayRecordSectionUiModel.empty(LocalDate.now()),
     val insights: InsightSectionUiModel = InsightSectionUiModel.empty(LocalDate.now()),
@@ -66,6 +68,16 @@ data class SummaryMetricUiModel(
     @param:ColorRes val colorResId: Int,
     @param:ColorRes val surfaceColorResId: Int
 )
+
+/** 浏览日期与已选统计日期独立，翻页不应悄悄改写当天摘要的归属。 */
+data class CalendarBrowseState(val monthMode: Boolean, val anchorDate: LocalDate) {
+    companion object {
+        fun forDate(date: LocalDate, monthMode: Boolean = false) = CalendarBrowseState(
+            monthMode = monthMode,
+            anchorDate = if (monthMode) date.withDayOfMonth(1) else StatisticsDateRange.week(date).startDate
+        )
+    }
+}
 
 enum class SummaryMetricType {
     FEEDING,

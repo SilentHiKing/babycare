@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import com.zero.babydata.entity.EventRecord
+import com.zero.babydata.entity.BabyInfo
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.SleepRecord
 import java.security.MessageDigest
@@ -30,6 +31,11 @@ internal object RecordWritePayload {
         record.feedingDurationBreastLeft, record.feedingDurationBreastRight, record.note,
         record.feedingAmount, record.babyMood, record.feedingLocation, record.solidFoodType,
         record.foodName, record.isFirstTime
+    ))
+
+    fun baby(record: BabyInfo): String = fingerprint(listOf(
+        record.name, record.gender, record.birthDate, record.birthWeight, record.birthHeight,
+        record.bloodType, record.extra
     ))
 
     fun sleep(record: SleepRecord): String = fingerprint(listOf(

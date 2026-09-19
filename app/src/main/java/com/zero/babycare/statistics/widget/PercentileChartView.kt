@@ -1,90 +1,106 @@
 package com.zero.babycare.statistics.widget
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Path
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.View
 import androidx.core.content.ContextCompat
+import com.zero.common.R as CommonR
 
-/**
- * 简易百分位曲线视图
- * 用于展示生长记录的百分位走向（0~100）。
- */
+/** 百分位走向视图；完整数据留在状态层，渲染按实际宽度保留可辨认的趋势和极值。 */
 class PercentileChartView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = resources.displayMetrics.density * 2f
-        color = ContextCompat.getColor(context, com.zero.common.R.color.colorBlue)
-    }
+    private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+    private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val guidePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+    private val curvePath = Path()
+    private val guidePath = Path()
+    private var points = intArrayOf()
+    private var markerCoordinates = floatArrayOf()
+    private var markerRadius = 0f
+    private var geometryDirty = true
 
-    private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-        color = ContextCompat.getColor(context, com.zero.common.R.color.colorBlue)
-    }
-
-    private val guidePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = resources.displayMetrics.density
-        color = ContextCompat.getColor(context, com.zero.common.R.color.colorE3)
-    }
-
-    private var points: List<Int> = emptyList()
-
-    /**
-     * 设置百分位数据，范围 0~100
-     */
+    /** 保留完整快照；同值重绑不重建 Path，调用方后续修改列表也不会改变已缓存曲线。 */
     fun setPercentiles(values: List<Int>) {
-        points = values.map { it.coerceIn(0, 100) }
+        val snapshot = IntArray(values.size) { values[it].coerceIn(0, 100) }
+        if (points.contentEquals(snapshot)) return
+        points = snapshot
+        geometryDirty = true
+        invalidate()
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        geometryDirty = true
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        geometryDirty = true
         invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (width == 0 || height == 0) return
-
-        val padding = resources.displayMetrics.density * 6f
-        val usableWidth = width - padding * 2
-        val usableHeight = height - padding * 2
-
-        drawGuides(canvas, padding, usableWidth, usableHeight)
-        if (points.isEmpty()) return
-
-        val stepX = if (points.size == 1) 0f else usableWidth / (points.size - 1)
-        var lastX = padding
-        var lastY = toY(points.first(), padding, usableHeight)
-
-        points.forEachIndexed { index, percentile ->
-            val x = padding + stepX * index
-            val y = toY(percentile, padding, usableHeight)
-            if (index > 0) {
-                canvas.drawLine(lastX, lastY, x, y, linePaint)
-            }
-            canvas.drawCircle(x, y, resources.displayMetrics.density * 2f, dotPaint)
-            lastX = x
-            lastY = y
+        if (geometryDirty) rebuildGeometry()
+        canvas.drawPath(guidePath, guidePaint)
+        canvas.drawPath(curvePath, linePaint)
+        for (index in markerCoordinates.indices step 2) {
+            canvas.drawCircle(markerCoordinates[index], markerCoordinates[index + 1], markerRadius, dotPaint)
         }
     }
 
-    /**
-     * 绘制参考线，帮助理解百分位高低
-     */
-    private fun drawGuides(canvas: Canvas, padding: Float, usableWidth: Float, usableHeight: Float) {
-        val midY = toY(50, padding, usableHeight)
-        val topY = toY(90, padding, usableHeight)
-        val bottomY = toY(10, padding, usableHeight)
-        canvas.drawLine(padding, topY, padding + usableWidth, topY, guidePaint)
-        canvas.drawLine(padding, midY, padding + usableWidth, midY, guidePaint)
-        canvas.drawLine(padding, bottomY, padding + usableWidth, bottomY, guidePaint)
+    /** 只在数据、尺寸或配置变化时构造图形，滚动重绘不重复分配或遍历原始数千个点。 */
+    private fun rebuildGeometry() {
+        geometryDirty = false
+        curvePath.rewind()
+        guidePath.rewind()
+        markerCoordinates = floatArrayOf()
+        val metrics = resources.displayMetrics
+        val inset = metrics.density * 6f
+        val plotWidth = width - inset * 2
+        val plotHeight = height - inset * 2
+        if (plotWidth <= 0f || plotHeight <= 0f) return
+
+        markerRadius = metrics.density * 2f
+        linePaint.strokeWidth = metrics.density * 2f
+        linePaint.color = ContextCompat.getColor(context, CommonR.color.event_growth)
+        dotPaint.color = linePaint.color
+        guidePaint.strokeWidth = resources.getDimension(CommonR.dimen.surface_stroke_width)
+        guidePaint.color = ContextCompat.getColor(context, CommonR.color.control_border_default)
+        for (percentile in intArrayOf(10, 50, 90)) {
+            val y = toY(percentile, inset, plotHeight)
+            guidePath.moveTo(inset, y)
+            guidePath.lineTo(inset + plotWidth, y)
+        }
+        if (points.isEmpty()) return
+
+        // 每个约 4dp 的可视桶最多留下两个极值；大字号时适度降低密度，不按物理像素堆顶点。
+        val bucketWidth = maxOf(markerRadius * 2f,
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 4f, metrics))
+        val indices = PercentileChartSampler.sampleIndices(points, plotWidth, bucketWidth)
+        val stepX = if (points.size == 1) 0f else plotWidth / points.lastIndex
+        val showMarkers = points.size == 1 || stepX >= bucketWidth
+        if (showMarkers) markerCoordinates = FloatArray(indices.size * 2)
+        indices.forEachIndexed { position, originalIndex ->
+            val x = inset + stepX * originalIndex
+            val y = toY(points[originalIndex], inset, plotHeight)
+            if (position == 0) curvePath.moveTo(x, y) else curvePath.lineTo(x, y)
+            if (showMarkers) {
+                markerCoordinates[position * 2] = x
+                markerCoordinates[position * 2 + 1] = y
+            }
+        }
     }
 
-    private fun toY(percentile: Int, padding: Float, usableHeight: Float): Float {
-        val ratio = percentile / 100f
-        return padding + usableHeight * (1f - ratio)
-    }
+    private fun toY(percentile: Int, inset: Float, plotHeight: Float) =
+        inset + plotHeight * (1f - percentile / 100f)
 }

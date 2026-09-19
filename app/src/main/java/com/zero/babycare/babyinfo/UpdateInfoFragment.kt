@@ -9,7 +9,6 @@ import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import com.blankj.utilcode.util.ToastUtils
-import com.zero.babycare.MainActivity
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentUpdateInfoBinding
 import com.zero.babycare.navigation.NavTarget
@@ -20,7 +19,7 @@ import com.zero.common.util.BabyGender
 import com.zero.common.util.CompatDateUtils
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
-import com.zero.components.base.vm.UiState
+import com.lxj.xpopup.core.BasePopupView
 import com.zero.components.widget.ToolbarAction
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -67,6 +66,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
     private var initialSnapshot = BabyInfoFormSnapshot()
     private var activeTargetKey: String? = null
     private var isRestoringForm = false
+    private var formDialog: BasePopupView? = null
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
@@ -106,38 +106,14 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
     override fun initData(view: View, savedInstanceState: Bundle?) {
         super.initData(view, savedInstanceState)
 
-        // 监听 UI 状态
         launchInLifecycle {
-            vm.uiState.collect {
-                when (it) {
-                    is UiState.Loading -> showLoading()
-                    is UiState.Success -> hideLoading()
-                    is UiState.Error -> {
-                        hideLoading()
-                        ToastUtils.showShort(com.zero.common.R.string.save_failed)
-                    }
-                    else -> {}
-                }
-                refreshPrimaryActionState()
+            // 先恢复当前表单，再消费保存结果；冷启动的宝宝加载不能让旧结果抢先导航。
+            combine(mainVm.navTarget, mainVm.babyDataLoaded, vm.saveState) { target, loaded, state ->
+                Triple(target, loaded, state)
+            }.collect { (_, loaded, state) ->
+                if (loaded && !isHidden) refreshPageMode()
+                if (loaded) renderSaveState(state)
             }
-        }
-
-        launchInLifecycle {
-            vm.saveEffects.collect { result ->
-                if (result.selectAsCurrent) mainVm.setCurrentBaby(result.baby)
-                else if (!result.created) mainVm.updateCurrentBabyIfNeeded(result.baby)
-                (activity as? MainActivity)?.refreshDrawerBabyInfo()
-                hideLoading()
-                ToastUtils.showLong(com.zero.common.R.string.updateSuccess)
-                goBack()
-            }
-        }
-
-        launchInLifecycle {
-            mainVm.navTarget.combine(mainVm.babyDataLoaded) { target, loaded -> target to loaded }
-                .collect { (_, loaded) ->
-                    if (loaded && !isHidden) refreshPageMode()
-                }
         }
 
         launchInLifecycle {
@@ -155,6 +131,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
+        if (view == null) return
         if (!hidden) {
             // 页面显示时，刷新模式和数据
             refreshPageMode()
@@ -162,6 +139,11 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
             // 明确离开表单才结束本次草稿；切后台不会触发这一分支。
             activeTargetKey = null
             vm.clearDraft()
+        }
+        if (hidden) {
+            formDialog?.dismiss()
+            formDialog = null
+            hideLoading()
         }
     }
 
@@ -176,7 +158,38 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         // Fragment 实例可在销毁 View 后继续存在，新 View 必须重新渲染，草稿仍由 ViewModel 保留。
         activeTargetKey = null
         primaryActionText = ""
+        formDialog?.dismiss()
+        formDialog = null
         super.onDestroyView()
+    }
+
+    override fun onPause() {
+        formDialog?.dismiss()
+        formDialog = null
+        hideLoading()
+        super.onPause()
+    }
+
+    private fun renderSaveState(state: BabyInfoSaveState) {
+        if (state is BabyInfoSaveState.Saving) {
+            if (!isHidden && mainVm.navTarget.value == state.target) showLoading()
+        } else {
+            hideLoading()
+        }
+        if (state is BabyInfoSaveState.Finished) {
+            val belongs = !isHidden && state.belongsTo(vm.getDraft(state.target.key()), mainVm.navTarget.value)
+            if (vm.consumeSaveResult(state) && belongs) {
+                if (state.errorRes != null) ToastUtils.showShort(state.errorRes)
+                else {
+                    // Room 自动刷新当前宝宝和侧栏；完成回执可能晚于后续编辑，不能回写提交快照。
+                    activeTargetKey = null
+                    ToastUtils.showLong(com.zero.common.R.string.updateSuccess)
+                    mainVm.navigateTo(state.target.returnTarget)
+                    return
+                }
+            }
+        }
+        refreshPrimaryActionState()
     }
 
     /**
@@ -196,12 +209,14 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
             goBack()
             return
         }
-        val targetKey = "${target.mode}:${target.babyId}"
+        val targetKey = target.key()
         if (activeTargetKey == targetKey) return
-        val draft = vm.getDraft(targetKey)
+        formDialog?.dismiss()
+        formDialog = null
+        val draft = vm.getDraft(targetKey, target.babyId?.let(mainVm::getBabyById)?.stableId)
         activeTargetKey = targetKey
         isRestoringForm = true
-        vm.refreshUnitState()
+        vm.refreshUnitState(draft)
         when (target.mode) {
             NavTarget.BabyInfo.Mode.CREATE -> {
                 editingBaby = null
@@ -341,7 +356,8 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
      * 保存宝宝信息
      */
     private fun saveBabyInfo() {
-        if (mainVm.isDeletingBaby(editingBaby?.babyId)) return
+        val target = mainVm.navTarget.value as? NavTarget.BabyInfo ?: return
+        if (isHidden || activeTargetKey != target.key() || vm.isSavePending || mainVm.isDeletingBaby(editingBaby?.babyId)) return
         val name = binding.etName.text.toString().trim()
         if (name.isEmpty()) {
             ToastUtils.showLong(com.zero.common.R.string.nameIsNullTip)
@@ -390,13 +406,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
 
         baby.bloodType = binding.etBloodType.text.toString()
 
-        if (isEditMode) {
-            // 更新
-            vm.update(baby)
-        } else {
-            // 新增
-            vm.insert(baby, selectAsCurrent = isFirstCreate)
-        }
+        vm.save(baby, target)
     }
 
     /**
@@ -404,15 +414,16 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
      */
     private fun showDeleteConfirm() {
         val baby = editingBaby ?: return
-        if (mainVm.isDeletingBaby(baby.babyId) || vm.uiState.value is UiState.Loading) return
+        if (mainVm.isDeletingBaby(baby.babyId) || vm.isSavePending) return
+        val acceptsCallback = currentFormGuard()
 
-        DialogHelper.showConfirmDialog(
+        formDialog = DialogHelper.showConfirmDialog(
             context = requireContext(),
             title = getString(com.zero.common.R.string.delete_baby),
             content = getString(com.zero.common.R.string.delete_baby_confirm, baby.name),
             confirmText = getString(com.zero.common.R.string.confirm),
             cancelText = getString(com.zero.common.R.string.cancel),
-            onConfirm = { mainVm.deleteBaby(baby) }
+            onConfirm = { if (acceptsCallback()) mainVm.deleteBaby(baby) }
         )
     }
 
@@ -426,19 +437,41 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
     }
 
     private fun goBack() {
-        vm.clearDraft()
-        activeTargetKey = null
-        val navTarget = mainVm.navTarget.value
-        val returnTarget = if (navTarget is NavTarget.BabyInfo) {
-            navTarget.returnTarget
-        } else {
-            NavTarget.Dashboard
+        val target = mainVm.navTarget.value as? NavTarget.BabyInfo ?: return
+        val acceptsCallback = currentFormGuard()
+        val leave = {
+            if (acceptsCallback()) {
+                vm.clearDraft()
+                activeTargetKey = null
+                mainVm.navigateTo(target.returnTarget)
+            }
         }
-        mainVm.navigateTo(returnTarget)
+        if (currentSnapshot() == initialSnapshot) leave()
+        else formDialog = DialogHelper.showConfirmDialog(
+            context = requireContext(),
+            title = getString(com.zero.common.R.string.tip),
+            content = getString(com.zero.common.R.string.unsaved_record_tip),
+            confirmText = getString(com.zero.common.R.string.confirm),
+            cancelText = getString(com.zero.common.R.string.cancel),
+            onConfirm = leave
+        )
+    }
+
+    /** 弹窗可能晚于重建或切换目标返回，不能访问旧 View 或修改另一份资料。 */
+    private fun currentFormGuard(): () -> Boolean {
+        val expectedView = view
+        val expectedTarget = mainVm.navTarget.value as? NavTarget.BabyInfo
+        val expectedDraftId = expectedTarget?.let { vm.getDraft(it.key())?.draftId }
+        return {
+            expectedView != null && view === expectedView && !isHidden &&
+                expectedTarget == mainVm.navTarget.value &&
+                expectedTarget?.let { vm.getDraft(it.key())?.draftId } == expectedDraftId
+        }
     }
 
     private fun showGenderDialog() {
-        DialogHelper.showChoiceSheet(
+        val acceptsCallback = currentFormGuard()
+        formDialog = DialogHelper.showChoiceSheet(
             context = requireContext(),
             title = getString(com.zero.common.R.string.babyGender),
             options = listOf(
@@ -447,9 +480,11 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
             ),
             selectedValue = selectedGenderCode.takeIf { it.isNotBlank() },
             onSelected = { code ->
-                selectedGenderCode = code
-                binding.etGender.setText(getGenderLabel(code))
-                refreshPrimaryActionState()
+                if (acceptsCallback()) {
+                    selectedGenderCode = code
+                    binding.etGender.setText(getGenderLabel(code))
+                    refreshPrimaryActionState()
+                }
             }
         )
     }
@@ -459,6 +494,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
     }
 
     private fun showBloodTypeDialog() {
+        val acceptsCallback = currentFormGuard()
         val labels = listOf(
             getString(com.zero.common.R.string.blood_type_a),
             getString(com.zero.common.R.string.blood_type_b),
@@ -466,14 +502,16 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
             getString(com.zero.common.R.string.blood_type_o),
             getString(com.zero.common.R.string.blood_type_unknown)
         )
-        DialogHelper.showChoiceSheet(
+        formDialog = DialogHelper.showChoiceSheet(
             context = requireContext(),
             title = getString(com.zero.common.R.string.babyBloodType),
             options = labels.map { DialogHelper.PickerOption(it, it) },
             selectedValue = binding.etBloodType.text?.toString()?.takeIf { it.isNotBlank() },
             onSelected = {
-                binding.etBloodType.setText(it)
-                refreshPrimaryActionState()
+                if (acceptsCallback()) {
+                    binding.etBloodType.setText(it)
+                    refreshPrimaryActionState()
+                }
             }
         )
     }
@@ -487,22 +525,25 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
     }
 
     private fun showBirthdayPickerSheet() {
+        val acceptsCallback = currentFormGuard()
         val initialTime = binding.etBirthday.text?.toString()
             ?.takeIf { it.isNotBlank() }
             ?.let { CompatDateUtils.stringToTimestamp(it) }
             ?: editingBaby?.birthDate?.takeIf { it > 0L }
             ?: System.currentTimeMillis()
 
-        DialogHelper.showDateTimeSheet(
+        formDialog = DialogHelper.showDateTimeSheet(
             context = requireContext(),
             title = getString(com.zero.common.R.string.babyBirthday),
             initialTime = initialTime,
             mode = DialogHelper.DateTimeMode.DATE_TIME,
             maxTime = System.currentTimeMillis(),
             onConfirm = { timestamp ->
-                val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-                binding.etBirthday.setText(dateFormat.format(Date(timestamp)))
-                refreshPrimaryActionState()
+                if (acceptsCallback()) {
+                    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+                    binding.etBirthday.setText(dateFormat.format(Date(timestamp)))
+                    refreshPrimaryActionState()
+                }
             }
         )
     }
@@ -572,12 +613,12 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         if (primaryActionText.isBlank()) return
         val hasName = binding.etName.text?.toString()?.trim()?.isNotEmpty() == true
         val hasChanges = currentSnapshot() != initialSnapshot
-        val mutationInProgress = vm.uiState.value is UiState.Loading || mainVm.isDeletingBaby(editingBaby?.babyId)
+        val mutationInProgress = vm.isSavePending || mainVm.isDeletingBaby(editingBaby?.babyId)
         val enabled = hasName && (!isEditMode || hasChanges) && !mutationInProgress
         binding.tvDelete.isEnabled = !mutationInProgress
         setPrimaryAction(primaryActionText, enabled)
         if (!isRestoringForm) {
-            activeTargetKey?.let { vm.saveDraft(BabyInfoDraft(it, currentSnapshot(), initialSnapshot)) }
+            activeTargetKey?.let { vm.saveDraft(it, currentSnapshot(), initialSnapshot, editingBaby?.stableId) }
         }
     }
 }

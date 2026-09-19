@@ -7,9 +7,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.blankj.utilcode.util.AppUtils
+import com.blankj.utilcode.util.LogUtils
 import com.zero.babydata.backup.BackupImportError
 import com.zero.babydata.backup.BackupImportException
 import com.zero.babydata.backup.BackupImportReport
+import com.zero.babydata.backup.CommittedBackupImport
 import com.zero.babydata.backup.BabyBackupEnvelope
 import com.zero.babydata.backup.BabyBackupExporter
 import com.zero.components.base.vm.UiState
@@ -52,8 +54,8 @@ class BackupViewModel internal constructor(
     private val _importPromptState = MutableStateFlow<UiState<BackupImportPrompt>>(UiState.None)
     val importPromptState: StateFlow<UiState<BackupImportPrompt>> = _importPromptState.asStateFlow()
 
-    private val _importState = MutableStateFlow<UiState<BackupImportReport>>(UiState.None)
-    val importState: StateFlow<UiState<BackupImportReport>> = _importState.asStateFlow()
+    private val _importState = MutableStateFlow<UiState<CommittedBackupImport>>(UiState.None)
+    val importState: StateFlow<UiState<CommittedBackupImport>> = _importState.asStateFlow()
 
     private val _reportSaveState = MutableStateFlow<UiState<String>>(UiState.None)
     val reportSaveState: StateFlow<UiState<String>> = _reportSaveState.asStateFlow()
@@ -78,6 +80,9 @@ class BackupViewModel internal constructor(
 
     private var pendingImport: BabyBackupEnvelope? = null
     private var pendingImportRelease: Job? = null
+    private var restoringImportResult = true
+    private var activeImportCommitId: String? = null
+    private var consumingImportResult = false
 
     // noBackupFilesDir 不会进入系统云备份，也不会像 cacheDir 一样被系统提前清理。
     private val exportStore by lazy {
@@ -94,8 +99,25 @@ class BackupViewModel internal constructor(
         savedStateHandle.get<String>(EXPORT_URI_KEY)?.takeIf {
             _documentExportState.value is BackupDocumentExportState.Idle
         }?.let { writePendingExport(Uri.parse(it)) }
-        // 进程恢复只保留文件位置：重新解析后仍默认合并，必须重新选择并确认。
-        savedStateHandle.get<String>(PENDING_IMPORT_URI_KEY)?.let { prepareImport(Uri.parse(it)) }
+        viewModelScope.launch {
+            try {
+                val committed = withContext(Dispatchers.IO) { importOperations.recoverReport() }
+                restoringImportResult = false
+                if (committed != null) {
+                    // 已提交收据优先于系统保存的旧 URI：恢复结果，不重放写入也不重复要求确认。
+                    clearImportSource()
+                    activeImportCommitId = committed.commitId
+                    _importState.value = UiState.Success(committed)
+                } else {
+                    savedStateHandle.get<String>(PENDING_IMPORT_URI_KEY)?.let { prepareImport(Uri.parse(it)) }
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                restoringImportResult = false
+                _importState.value = UiState.Error(error, getApplication<Application>().getString(com.zero.common.R.string.backup_import_report_load_failed))
+            }
+        }
     }
 
     /**
@@ -137,6 +159,12 @@ class BackupViewModel internal constructor(
      * 解析导入文件
      */
     fun prepareImport(uri: Uri) {
+        if (restoringImportResult) {
+            // 初次查询提交记录期间到达的选择器结果排队；查清是否已提交后再决定预览。
+            savedStateHandle[PENDING_IMPORT_URI_KEY] = uri.toString()
+            return
+        }
+        if (_importState.value is UiState.Success || consumingImportResult) return
         if (_importPromptState.value is UiState.Loading || _importState.value is UiState.Loading) return
         val previous = savedStateHandle.get<String>(PENDING_IMPORT_URI_KEY)
         val previousRelease = pendingImportRelease
@@ -186,10 +214,11 @@ class BackupViewModel internal constructor(
         clearImportSource()
         viewModelScope.launch {
             try {
-                val report = withContext(Dispatchers.IO) {
+                val committed = withContext(Dispatchers.IO) {
                     importOperations.execute(envelope, prompt.mode, dedupMinutes.value)
                 }
-                _importState.value = UiState.Success(report)
+                activeImportCommitId = committed.commitId
+                _importState.value = UiState.Success(committed)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -236,7 +265,30 @@ class BackupViewModel internal constructor(
      * 清理导入执行状态
      */
     fun resetImportState() {
-        _importState.value = UiState.None
+        val commitId = activeImportCommitId
+        if (_importState.value !is UiState.Success || commitId == null) {
+            _importState.value = UiState.None
+            return
+        }
+        if (consumingImportResult) return
+        consumingImportResult = true
+        viewModelScope.launch {
+            try {
+                val next = withContext(Dispatchers.IO) {
+                    importOperations.consumeReport(commitId)
+                    importOperations.recoverReport()
+                }
+                activeImportCommitId = next?.commitId
+                _importState.value = next?.let { UiState.Success(it) } ?: UiState.None
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                // 消费失败保留成功结果，可在下次显示后重试；不能将已提交导入改成失败。
+                LogUtils.w("导入报告消费待重试：${error.javaClass.simpleName}")
+            } finally {
+                consumingImportResult = false
+            }
+        }
     }
 
     /**
@@ -315,6 +367,10 @@ class BackupViewModel internal constructor(
                 finishDocumentExport(request, BackupExportOutcome.FAILED)
             }
         }
+    }
+
+    fun consumeImportResult(commitId: String) {
+        if (activeImportCommitId == commitId) resetImportState()
     }
 
     fun onExportPickerUnavailable() {

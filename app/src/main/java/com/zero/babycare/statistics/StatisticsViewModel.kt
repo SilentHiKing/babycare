@@ -2,6 +2,7 @@ package com.zero.babycare.statistics
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.zero.babycare.statistics.mapper.StatisticsDateRange
 import com.zero.babycare.statistics.mapper.StatisticsDurationCalculator
@@ -9,6 +10,7 @@ import com.zero.babycare.statistics.mapper.StatisticsGrowthCutoff
 import com.zero.babycare.statistics.mapper.StatisticsTimelineMapper
 import com.zero.babycare.statistics.mapper.WhoSexParser
 import com.zero.babycare.statistics.model.DayRecordSectionUiModel
+import com.zero.babycare.statistics.model.CalendarBrowseState
 import com.zero.babycare.statistics.model.DaySummary
 import com.zero.babycare.statistics.model.GrowthPercentileOverview
 import com.zero.babycare.statistics.model.GrowthPercentilePoint
@@ -57,7 +59,7 @@ import java.time.temporal.ChronoUnit
 /**
  * 统计页面 ViewModel
  */
-class StatisticsViewModel(application: Application) : AndroidViewModel(application) {
+class StatisticsViewModel(application: Application, private val savedStateHandle: SavedStateHandle) : AndroidViewModel(application) {
 
     private val repository = BabyRepository(application)
     private val whoStandardProvider by lazy { WhoGrowthStandardProvider(getApplication()) }
@@ -69,13 +71,20 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
     val currentBabyId: StateFlow<Int> = _currentBabyId.asStateFlow()
 
     /** 选中的日期只作为 ViewModel 内部驱动源，对外统一通过 uiState 暴露。 */
-    private val _selectedDate = MutableStateFlow(LocalDate.now())
+    private val _selectedDate = MutableStateFlow(readSavedDate("statistics_selected_date") ?: LocalDate.now())
 
     /** 统计页统一状态，后续 Fragment 只按它渲染整页。 */
-    private val _uiState = MutableStateFlow(StatisticsUiState())
+    private val _uiState = MutableStateFlow(StatisticsUiState(
+        selectedDate = _selectedDate.value,
+        calendarBrowse = CalendarBrowseState.forDate(
+            readSavedDate("statistics_calendar_anchor") ?: _selectedDate.value,
+            savedStateHandle["statistics_calendar_month"] ?: false
+        ),
+        dayRecord = DayRecordSectionUiModel.empty(_selectedDate.value),
+        insights = InsightSectionUiModel.empty(_selectedDate.value)
+    ))
     val uiState: StateFlow<StatisticsUiState> = _uiState.asStateFlow()
 
-    private var displayedMonth = YearMonth.from(_selectedDate.value)
     private var contentLoadJob: Job? = null
     private var calendarLoadJob: Job? = null
 
@@ -109,15 +118,17 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
      * 选择日期
      */
     fun selectDate(date: LocalDate) {
-        val targetMonth = YearMonth.from(date)
-        if (_selectedDate.value != date || displayedMonth != targetMonth) {
+        val browse = CalendarBrowseState.forDate(date, _uiState.value.calendarBrowse.monthMode)
+        if (_selectedDate.value != date || _uiState.value.calendarBrowse != browse) {
             _selectedDate.value = date
+            savedStateHandle["statistics_selected_date"] = date.toString()
+            saveCalendarBrowse(browse)
             _uiState.value = _uiState.value.copy(
                 selectedDate = date,
+                calendarBrowse = browse,
                 dayRecord = _uiState.value.dayRecord.copy(date = date),
                 insights = _uiState.value.insights.copy(selectedDate = date)
             )
-            displayedMonth = targetMonth
             loadData()
         }
     }
@@ -206,13 +217,13 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
                 }
             }
         }
-        loadDatesWithRecords(displayedMonth)
+        loadDatesWithRecords(_uiState.value.calendarBrowse)
     }
 
     /**
      * 月份标记独立于选中日内容；同样只允许最新月份请求写回。
      */
-    private fun loadDatesWithRecords(yearMonth: YearMonth) {
+    private fun loadDatesWithRecords(browse: CalendarBrowseState) {
         val babyId = _currentBabyId.value
         calendarLoadJob?.cancel()
 
@@ -223,14 +234,18 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
 
         calendarLoadJob = viewModelScope.launch {
             try {
-                val dates = repository.getDatesWithRecords(babyId, yearMonth)
-                if (_currentBabyId.value == babyId && displayedMonth == yearMonth) {
+                // 周视图可能跨月，两个可见月份都查询，翻周后不能继续沿用旧月的记录点。
+                val firstMonth = YearMonth.from(browse.anchorDate)
+                val lastMonth = if (browse.monthMode) firstMonth else YearMonth.from(browse.anchorDate.plusDays(6))
+                val dates = repository.getDatesWithRecords(babyId, firstMonth) +
+                    if (lastMonth == firstMonth) emptySet() else repository.getDatesWithRecords(babyId, lastMonth)
+                if (_currentBabyId.value == babyId && _uiState.value.calendarBrowse == browse) {
                     _uiState.value = _uiState.value.copy(datesWithRecords = dates)
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                if (_currentBabyId.value == babyId && displayedMonth == yearMonth) {
+                if (_currentBabyId.value == babyId && _uiState.value.calendarBrowse == browse) {
                     _uiState.value = _uiState.value.copy(datesWithRecords = emptySet())
                 }
             }
@@ -241,8 +256,24 @@ class StatisticsViewModel(application: Application) : AndroidViewModel(applicati
      * 当月份变化时加载新月份的记录日期
      */
     fun onMonthChanged(yearMonth: YearMonth) {
-        displayedMonth = yearMonth
-        loadDatesWithRecords(yearMonth)
+        onCalendarBrowsed(CalendarBrowseState(monthMode = true, anchorDate = yearMonth.atDay(1)))
+    }
+
+    /** 浏览状态只改变日历，统计内容继续归属 selectedDate；进程恢复也保留两者的区别。 */
+    fun onCalendarBrowsed(browse: CalendarBrowseState) {
+        if (_uiState.value.calendarBrowse == browse) return
+        saveCalendarBrowse(browse)
+        _uiState.value = _uiState.value.copy(calendarBrowse = browse, datesWithRecords = emptySet())
+        loadDatesWithRecords(browse)
+    }
+
+    private fun saveCalendarBrowse(browse: CalendarBrowseState) {
+        savedStateHandle["statistics_calendar_anchor"] = browse.anchorDate.toString()
+        savedStateHandle["statistics_calendar_month"] = browse.monthMode
+    }
+
+    private fun readSavedDate(key: String): LocalDate? = savedStateHandle.get<String>(key)?.let {
+        runCatching { LocalDate.parse(it) }.getOrNull()
     }
 
     private suspend fun buildDayRecordSection(

@@ -8,6 +8,18 @@ import java.io.File
 class UiResourcePolicyTest {
 
     @Test
+    fun `growth percentile chart uses shared semantic colors and guide stroke`() {
+        val chart = File(repoRoot(),
+            "app/src/main/java/com/zero/babycare/statistics/widget/PercentileChartView.kt").readText()
+        // 曲线跟随成长语义，参考线与其他统计区块共享浅深色边框，不能恢复旧固定蓝灰。
+        assertTrue(chart.contains("CommonR.color.event_growth"))
+        assertTrue(chart.contains("CommonR.color.control_border_default"))
+        assertTrue(chart.contains("CommonR.dimen.surface_stroke_width"))
+        assertFalse(chart.contains("colorBlue"))
+        assertFalse(chart.contains("colorE3"))
+    }
+
+    @Test
     fun `app module does not keep template colors file`() {
         val appColors = File(repoRoot(), "app/src/main/res/values/colors.xml")
 

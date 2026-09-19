@@ -555,4 +555,8 @@
     <string name="calendar_recorded_date_format">%1$s，有紀錄</string>
     <string name="record_draft_already_saved">已儲存過此草稿，請從時間軸編輯原記錄</string>
     <string name="record_draft_record_deleted">原記錄已刪除，請重新開啟記錄頁建立記錄</string>
+    <string name="baby_profile_save_conflict">這份資料已儲存，請重新開啟寶寶資料進行修改</string>
+    <string name="baby_profile_deleted">該寶寶已刪除，請返回後重新建立</string>
+    <string name="baby_age_birthdate_missing">生日未設定</string>
+    <string name="baby_age_not_born_yet">尚未出生</string>
 </resources>

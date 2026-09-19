@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.StringRes
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.RecyclerView
 import com.chad.library.adapter4.BaseQuickAdapter
@@ -21,11 +22,6 @@ import com.zero.common.ext.launchInLifecycle
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
 import com.zero.components.widget.ToolbarAction
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.concurrent.TimeUnit
-import kotlinx.coroutines.flow.combine
 
 /**
  * 所有宝宝列表页面
@@ -74,7 +70,7 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
         // 点击切换宝宝
         adapter.setOnItemClickListener { _, _, position ->
             val baby = adapter.getItem(position) ?: return@setOnItemClickListener
-            switchToBaby(baby)
+            switchToBaby(baby.baby)
         }
     }
 
@@ -82,8 +78,7 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
         super.initData(view, savedInstanceState)
         // 新建/编辑提交后 Room 通知可能晚于页面显示，持续收集避免停留在旧宝宝列表。
         launchInLifecycle {
-            mainVm.allBabies.combine(mainVm.currentBaby) { babies, current -> babies to current }
-                .collect { (babies, current) -> renderBabies(babies, current) }
+            mainVm.babyCards.collect { renderBabies(it) }
         }
     }
 
@@ -98,17 +93,17 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
      * 加载宝宝列表
      */
     private fun loadBabies() {
-        renderBabies(mainVm.getAllBabies(), mainVm.getCurrentBabyInfo())
+        mainVm.refreshBabyAges()
+        renderBabies(mainVm.babyCards.value)
     }
 
-    private fun renderBabies(babies: List<BabyInfo>, currentBaby: BabyInfo?) {
+    private fun renderBabies(babies: List<BabyCardUiModel>) {
         if (babies.isEmpty()) {
             binding.rvBabies.visibility = View.GONE
             binding.llEmpty.visibility = View.VISIBLE
         } else {
             binding.rvBabies.visibility = View.VISIBLE
             binding.llEmpty.visibility = View.GONE
-            adapter.setCurrentBabyId(currentBaby?.babyId ?: -1)
             adapter.submitList(babies)
         }
     }
@@ -170,17 +165,7 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
     /**
      * 宝宝列表适配器
      */
-    inner class BabyListAdapter : BaseQuickAdapter<BabyInfo, BabyListAdapter.VH>() {
-
-        private var currentBabyId: Int = -1
-        private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-
-        fun setCurrentBabyId(id: Int) {
-            if (currentBabyId == id) return
-            currentBabyId = id
-            // 宝宝列表内容不变时也要刷新选中标记。
-            notifyDataSetChanged()
-        }
+    inner class BabyListAdapter : BaseQuickAdapter<BabyCardUiModel, BabyListAdapter.VH>() {
 
         inner class VH(
             parent: ViewGroup,
@@ -193,26 +178,24 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
             return VH(parent)
         }
 
-        override fun onBindViewHolder(holder: VH, position: Int, item: BabyInfo?) {
+        override fun onBindViewHolder(holder: VH, position: Int, item: BabyCardUiModel?) {
             if (item == null) return
 
             with(holder.binding) {
                 val itemContext = root.context
 
                 // 名字
-                tvName.text = item.name
+                tvName.text = item.baby.name
 
                 // 性别和天数
-                val genderCode = BabyGender.normalize(item.gender)
+                val genderCode = item.gender
                 val genderText = when (genderCode) {
                     BabyGender.BOY -> itemContext.getString(com.zero.common.R.string.baby_gender_boy_label)
                     BabyGender.GIRL -> itemContext.getString(com.zero.common.R.string.baby_gender_girl_label)
                     else -> ""
                 }
-                val days = if (item.birthDate > 0) {
-                    TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - item.birthDate)
-                } else 0
-                val daysText = itemContext.getString(com.zero.common.R.string.baby_age_days_format, days)
+                val daysText = item.ageDays?.let { itemContext.getString(item.ageTextRes, it) }
+                    ?: itemContext.getString(item.ageTextRes)
                 tvInfo.text = if (genderText.isNotEmpty()) {
                     itemContext.getString(com.zero.common.R.string.baby_info_gender_age_format, genderText, daysText)
                 } else {
@@ -220,10 +203,10 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
                 }
 
                 // 出生日期
-                if (item.birthDate > 0) {
+                if (item.birthDateText != null) {
                     tvBirthDate.text = itemContext.getString(
                         com.zero.common.R.string.baby_birth_date_format,
-                        dateFormat.format(Date(item.birthDate))
+                        item.birthDateText
                     )
                     tvBirthDate.visibility = View.VISIBLE
                 } else {
@@ -231,7 +214,11 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
                 }
 
                 // 当前选中状态
-                ivSelected.visibility = if (item.babyId == currentBabyId) View.VISIBLE else View.GONE
+                // 保留勾选槽宽度，切换当前宝宝时文字不跳行，也避免复用卡片留下窄宽重测前的高度。
+                ivSelected.visibility = if (item.selected) View.VISIBLE else View.INVISIBLE
+                root.isSelected = item.selected
+                ViewCompat.setStateDescription(root,
+                    if (item.selected) itemContext.getString(com.zero.common.R.string.current_baby) else null)
 
                 // 头像颜色根据性别
                 when (genderCode) {
@@ -249,12 +236,12 @@ class AllChildrenFragment : BaseFragment<FragmentAllChildrenBinding>(), BackPres
 
                 // 编辑按钮
                 actionRow.tvEdit.setOnClickListener {
-                    goToEditBaby(item)
+                    goToEditBaby(item.baby)
                 }
 
                 // 长按删除
                 root.setOnLongClickListener {
-                    deleteBaby(item)
+                    deleteBaby(item.baby)
                     true
                 }
             }

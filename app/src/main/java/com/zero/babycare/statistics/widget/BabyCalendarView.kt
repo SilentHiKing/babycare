@@ -22,6 +22,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.customview.widget.ExploreByTouchHelper
 import com.zero.babycare.statistics.mapper.StatisticsDateRange
+import com.zero.babycare.statistics.model.CalendarBrowseState
 import com.zero.common.ext.getThemeColor
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -126,6 +127,7 @@ class BabyCalendarView @JvmOverloads constructor(
     private var onDateSelectedListener: ((LocalDate) -> Unit)? = null
     private var onMonthChangedListener: ((YearMonth) -> Unit)? = null
     private var onModeChangedListener: ((ViewMode) -> Unit)? = null
+    private var onBrowseStateChangedListener: ((CalendarBrowseState) -> Unit)? = null
 
     // ==================== 手势检测 ====================
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
@@ -545,6 +547,7 @@ class BabyCalendarView @JvmOverloads constructor(
         if (notify && dateChanged) {
             onDateSelectedListener?.invoke(date)
         }
+        if (notify) onBrowseStateChangedListener?.invoke(getBrowseState())
     }
 
     fun getSelectedDate(): LocalDate = selectedDate
@@ -593,6 +596,7 @@ class BabyCalendarView @JvmOverloads constructor(
             invalidate()
         }
         accessibilityHelper.invalidateRoot()
+        onBrowseStateChangedListener?.invoke(getBrowseState())
     }
 
     fun getViewMode(): ViewMode = currentMode
@@ -626,6 +630,7 @@ class BabyCalendarView @JvmOverloads constructor(
             }
         }
         accessibilityHelper.invalidateRoot()
+        onBrowseStateChangedListener?.invoke(getBrowseState())
     }
 
     fun navigateNext() {
@@ -653,6 +658,7 @@ class BabyCalendarView @JvmOverloads constructor(
             }
         }
         accessibilityHelper.invalidateRoot()
+        onBrowseStateChangedListener?.invoke(getBrowseState())
     }
 
     fun goToToday() {
@@ -660,6 +666,30 @@ class BabyCalendarView @JvmOverloads constructor(
     }
 
     fun getDisplayMonth(): YearMonth = displayMonth
+
+    fun getBrowseState() = CalendarBrowseState(
+        monthMode = currentMode == ViewMode.MONTH,
+        anchorDate = if (currentMode == ViewMode.MONTH) displayMonth.atDay(1) else displayWeekStart
+    )
+
+    /** 列表重绑只恢复浏览位置，不触发用户事件，也不把它强制拉回选中日期。 */
+    fun restoreBrowseState(state: CalendarBrowseState) {
+        if (getBrowseState() == state) return
+        expandAnimator?.cancel()
+        expandAnimator = null
+        transitionDates = null
+        currentMode = if (state.monthMode) ViewMode.MONTH else ViewMode.WEEK
+        if (state.monthMode) displayMonth = YearMonth.from(state.anchorDate)
+        else displayWeekStart = state.anchorDate.with(TemporalAdjusters.previousOrSame(firstDayOfWeek))
+        animatedRowCount = if (state.monthMode) (getMonthDates().size / DAYS_IN_WEEK).toFloat() else WEEK_ROWS.toFloat()
+        requestLayout()
+        invalidate()
+        accessibilityHelper.invalidateRoot()
+    }
+
+    fun setOnBrowseStateChangedListener(listener: (CalendarBrowseState) -> Unit) {
+        onBrowseStateChangedListener = listener
+    }
 
     /**
      * 获取格式化的标题（如 "2024年1月 第2周"）

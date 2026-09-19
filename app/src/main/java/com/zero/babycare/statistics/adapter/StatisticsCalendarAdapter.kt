@@ -5,19 +5,19 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.zero.babycare.databinding.ItemStatisticsCalendarBinding
 import com.zero.babycare.statistics.widget.BabyCalendarView
+import com.zero.babycare.statistics.model.CalendarBrowseState
 import java.time.LocalDate
-import java.time.YearMonth
 
 class StatisticsCalendarAdapter(
     private val onDateSelected: (LocalDate) -> Unit,
-    private val onMonthChanged: (YearMonth) -> Unit,
-    private val onModeChanged: (BabyCalendarView.ViewMode) -> Unit,
+    private val onBrowseStateChanged: (CalendarBrowseState) -> Unit,
     private val onTodayClick: () -> Unit
 ) : RecyclerView.Adapter<StatisticsCalendarAdapter.CalendarViewHolder>() {
 
     private var binding: ItemStatisticsCalendarBinding? = null
     private var pendingDates: Set<LocalDate>? = null
     private var pendingSelectedDate: LocalDate? = null
+    private var pendingBrowseState: CalendarBrowseState? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CalendarViewHolder {
         val binding = ItemStatisticsCalendarBinding.inflate(
@@ -37,14 +37,12 @@ class StatisticsCalendarAdapter(
             updateCalendarTitle()
         }
 
-        binding.calendarView.setOnMonthChangedListener { yearMonth ->
-            onMonthChanged(yearMonth)
-            updateCalendarTitle()
-        }
-
         binding.calendarView.setOnModeChangedListener { mode ->
-            onModeChanged(mode)
             updateExpandIndicator(mode, animate = true)
+        }
+        binding.calendarView.setOnBrowseStateChangedListener { state ->
+            pendingBrowseState = state
+            onBrowseStateChanged(state)
             updateCalendarTitle()
         }
 
@@ -71,6 +69,7 @@ class StatisticsCalendarAdapter(
         pendingSelectedDate?.let {
             binding.calendarView.setSelectedDate(it, notify = false)
         }
+        pendingBrowseState?.let(binding.calendarView::restoreBrowseState)
         pendingDates?.let { binding.calendarView.setDatesWithRecords(it) }
         updateExpandIndicator(binding.calendarView.getViewMode(), animate = false)
         updateCalendarTitle()
@@ -85,8 +84,17 @@ class StatisticsCalendarAdapter(
     override fun getItemCount(): Int = 1
 
     fun setDatesWithRecords(dates: Set<LocalDate>) {
+        if (pendingDates == dates) return
         pendingDates = dates
         binding?.calendarView?.setDatesWithRecords(dates)
+    }
+
+    fun syncBrowseState(state: CalendarBrowseState) {
+        if (pendingBrowseState == state && binding?.calendarView?.getBrowseState() == state) return
+        pendingBrowseState = state
+        binding?.calendarView?.restoreBrowseState(state)
+        binding?.calendarView?.let { updateExpandIndicator(it.getViewMode(), animate = false) }
+        updateCalendarTitle()
     }
 
     fun syncSelectedDate(date: LocalDate) {

@@ -4,17 +4,19 @@ import android.content.Context
 import androidx.room.withTransaction
 import com.zero.babydata.entity.ChildDailyRecord
 import com.zero.babydata.room.BabyDatabase
+import java.util.UUID
 
 /** 解析、校验并事务化导入独立备份协议。 */
-class BabyBackupImporter internal constructor(private val db: BabyDatabase) {
+class BabyBackupImporter(private val db: BabyDatabase) {
     constructor(context: Context) : this(BabyDatabase.getInstance(context))
 
     fun parse(json: String): BabyBackupEnvelope = BabyBackupParser.parse(json)
 
-    suspend fun importOverwrite(envelope: BabyBackupEnvelope): BackupImportReport {
+    suspend fun importOverwrite(envelope: BabyBackupEnvelope, commitId: String = UUID.randomUUID().toString()): BackupImportReport {
         BabyBackupParser.validateEnvelope(envelope)
         val data = envelope.data
-        db.withTransaction {
+        return db.withTransaction {
+            val replacedBabyIds = db.babyInfoDao().getAllBabyInfo().map { it.babyId }
             clearAllTables()
             val babyIdMap = mutableMapOf<String, Int>()
             data.babies.forEach { baby ->
@@ -35,8 +37,7 @@ class BabyBackupImporter internal constructor(private val db: BabyDatabase) {
                     record.toEntity(babyIdMap.getValue(record.babyStableId))
                 )
             }
-        }
-        return BackupImportReport(
+            val report = BackupImportReport(
             strategy = BackupImportStrategy.OVERWRITE,
             babyInserted = data.babies.size,
             babyMatched = 0,
@@ -49,11 +50,14 @@ class BabyBackupImporter internal constructor(private val db: BabyDatabase) {
             eventSkipped = 0,
             childDailyInserted = data.childDailyRecords.size,
             childDailyUpdated = 0
-        )
+            )
+            BackupImportJournal(db).recordCommit(commitId, report, replacedBabyIds)
+            report
+        }
     }
 
     /** 合并只按稳定 UUID 匹配宝宝，可变姓名、性别或生日不再承担主键职责。 */
-    suspend fun importMerge(envelope: BabyBackupEnvelope, timeToleranceMinutes: Int): BackupImportReport {
+    suspend fun importMerge(envelope: BabyBackupEnvelope, timeToleranceMinutes: Int, commitId: String = UUID.randomUUID().toString()): BackupImportReport {
         BabyBackupParser.validateEnvelope(envelope)
         val data = envelope.data
         val toleranceMillis = timeToleranceMinutes.coerceAtLeast(0) * 60_000L
@@ -68,7 +72,7 @@ class BabyBackupImporter internal constructor(private val db: BabyDatabase) {
         var childDailyInserted = 0
         var childDailyUpdated = 0
 
-        db.withTransaction {
+        return db.withTransaction {
             val babyDao = db.babyInfoDao()
             val feedingDao = db.feedingRecordDao()
             val sleepDao = db.sleepRecordDao()
@@ -153,9 +157,7 @@ class BabyBackupImporter internal constructor(private val db: BabyDatabase) {
                     }
                 }
             }
-        }
-
-        return BackupImportReport(
+            val report = BackupImportReport(
             strategy = BackupImportStrategy.MERGE,
             babyInserted = babyInserted,
             babyMatched = babyMatched,
@@ -168,7 +170,10 @@ class BabyBackupImporter internal constructor(private val db: BabyDatabase) {
             eventSkipped = eventSkipped,
             childDailyInserted = childDailyInserted,
             childDailyUpdated = childDailyUpdated
-        )
+            )
+            BackupImportJournal(db).recordCommit(commitId, report, emptyList())
+            report
+        }
     }
 
     private suspend fun clearAllTables() {

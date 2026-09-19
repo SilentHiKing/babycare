@@ -1,0 +1,109 @@
+package com.zero.babydata
+
+import androidx.room.Room
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.zero.babydata.backup.BabyBackupExporter
+import com.zero.babydata.backup.BabyBackupImporter
+import com.zero.babydata.domain.BabyWriteException
+import com.zero.babydata.domain.BabyWriteFailure
+import com.zero.babydata.entity.BabyInfo
+import com.zero.babydata.room.BabyDatabase
+import com.zero.babydata.room.BabyRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.*
+import org.junit.Test
+import org.junit.runner.RunWith
+import java.util.UUID
+
+/** 独立 Room 库验证新建草稿重试；不读取、修改应用中的宝宝。 */
+@RunWith(AndroidJUnit4::class)
+class BabyCreationReceiptTest {
+    private val context = InstrumentationRegistry.getInstrumentation().targetContext
+
+    @Test
+    fun reopenedRetryReturnsOriginalIdAndPreservesLaterEdits() = runBlocking {
+        val name = "baby-create-${UUID.randomUUID()}.db"
+        val draft = BabyInfo(name = "合成新建", birthHeight = 50f)
+        var db = Room.databaseBuilder(context, BabyDatabase::class.java, name).build()
+        try {
+            val first = BabyRepository(db)
+            val id = first.insertBabyInfoOnce(draft)
+            assertTrue(first.updateBabyInfoIfPresent(draft.copy(babyId = id, name = "后来修改")))
+            db.close()
+            db = Room.databaseBuilder(context, BabyDatabase::class.java, name).build()
+            val restored = BabyRepository(db)
+            assertEquals(id, restored.insertBabyInfoOnce(draft.copy(babyId = 999)))
+            assertEquals("后来修改", restored.getAllBabyInfo().single().name)
+        } finally { db.close(); context.deleteDatabase(name) }
+    }
+
+    @Test
+    fun concurrentSameIdentityIsOnceButNewIdentityCanIntentionallyRepeat() = database { db ->
+        val repository = BabyRepository(db)
+        val draft = BabyInfo(name = "合成资料")
+        val ids = coroutineScope { List(12) { async(Dispatchers.IO) { repository.insertBabyInfoOnce(draft.copy()) } }.awaitAll() }
+        assertEquals(1, ids.toSet().size)
+        repository.insertBabyInfoOnce(draft.copy(stableId = UUID.randomUUID().toString()))
+        assertEquals(2, repository.getAllBabyInfo().size)
+        failure(BabyWriteFailure.CONTENT_CONFLICT) { repository.insertBabyInfoOnce(draft.copy(name = "更改草稿")) }
+        failure(BabyWriteFailure.INVALID_REQUEST) { repository.insertBabyInfoOnce(draft.copy(stableId = "bad")) }
+    }
+
+    @Test
+    fun deletedOrOverwrittenIdentityCannotBeResurrectedByOldDraft() = database { db ->
+        val repository = BabyRepository(db)
+        val draft = BabyInfo(name = "合成资料")
+        val id = repository.insertBabyInfoOnce(draft)
+        val envelope = BabyBackupExporter(db).buildEnvelope()
+        repository.deleteBabyInfo(requireNotNull(repository.getBabyInfo(id)))
+        failure(BabyWriteFailure.BABY_DELETED) { repository.insertBabyInfoOnce(draft) }
+        BabyBackupImporter(db).importOverwrite(envelope)
+        assertNotEquals(id, repository.getAllBabyInfo().single().babyId)
+        failure(BabyWriteFailure.BABY_DELETED) { repository.insertBabyInfoOnce(draft) }
+        assertEquals(1, repository.getAllBabyInfo().size)
+    }
+
+    @Test
+    fun missingOrReusedLocalIdCannotBeUpdatedByAnotherIdentity() = database { db ->
+        val repository = BabyRepository(db)
+        val draft = BabyInfo(name = "合成资料")
+        val id = repository.insertBabyInfoOnce(draft)
+        val saved = draft.copy(babyId = id)
+        repository.deleteBabyInfo(saved)
+        assertFalse(repository.updateBabyInfoIfPresent(saved.copy(name = "旧编辑")))
+        val replacement = BabyInfo(babyId = id, name = "另一身份")
+        repository.insertBabyInfo(replacement)
+        assertFalse(repository.updateBabyInfoIfPresent(saved.copy(name = "旧编辑")))
+        assertEquals(replacement, repository.getBabyInfo(id))
+    }
+
+    @Test
+    fun receiptFailureRollsBackBabyAndAllowsRetry() = database { db ->
+        val repository = BabyRepository(db)
+        val draft = BabyInfo(name = "合成资料")
+        db.openHelper.writableDatabase.execSQL("CREATE TRIGGER fail_creation BEFORE INSERT ON Baby_Creation_Receipts BEGIN SELECT RAISE(ABORT,'synthetic'); END")
+        try {
+            repository.insertBabyInfoOnce(draft)
+            fail("回执插入应失败")
+        } catch (expected: android.database.sqlite.SQLiteException) {
+            assertTrue(repository.getAllBabyInfo().isEmpty())
+        }
+        db.openHelper.writableDatabase.execSQL("DROP TRIGGER fail_creation")
+        assertTrue(repository.insertBabyInfoOnce(draft) > 0)
+        assertEquals(1, repository.getAllBabyInfo().size)
+    }
+
+    private suspend fun failure(expected: BabyWriteFailure, block: suspend () -> Unit) {
+        try { block(); fail("旧创建请求应被拒绝") } catch (error: BabyWriteException) { assertEquals(expected, error.reason) }
+    }
+
+    private fun database(block: suspend (BabyDatabase) -> Unit) = runBlocking {
+        val db = Room.inMemoryDatabaseBuilder(context, BabyDatabase::class.java).build()
+        try { block(db) } finally { db.close() }
+    }
+}

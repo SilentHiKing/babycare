@@ -200,7 +200,7 @@ class DashboardViewModel : BaseViewModel() {
     private fun observeRecordChanges() {
         viewModelScope.launch {
             BabyRecordChangeBus.changes.collect { changedBabyId ->
-                if (changedBabyId == currentBaby?.babyId) {
+                if (changedBabyId == BabyRecordChangeBus.ALL_BABIES_CHANGED || changedBabyId == currentBaby?.babyId) {
                     refreshDashboard()
                 }
             }

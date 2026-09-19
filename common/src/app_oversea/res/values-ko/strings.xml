@@ -555,4 +555,8 @@
     <string name="calendar_recorded_date_format">%1$s, 기록 있음</string>
     <string name="record_draft_already_saved">이미 저장된 기록이에요. 타임라인에서 원래 기록을 수정해 주세요</string>
     <string name="record_draft_record_deleted">원래 기록이 삭제되었어요. 기록 화면을 다시 열어 새 기록을 만들어 주세요</string>
+    <string name="baby_profile_save_conflict">이미 저장된 프로필이에요. 수정하려면 아기 프로필을 다시 열어 주세요</string>
+    <string name="baby_profile_deleted">이 아기의 프로필이 삭제되었어요. 돌아가서 새로 만들어 주세요</string>
+    <string name="baby_age_birthdate_missing">생일 미설정</string>
+    <string name="baby_age_not_born_yet">아직 태어나지 않았어요</string>
 </resources>

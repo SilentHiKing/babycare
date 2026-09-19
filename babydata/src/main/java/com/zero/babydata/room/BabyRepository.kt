@@ -14,6 +14,10 @@ import com.zero.babydata.domain.RecordWriteException
 import com.zero.babydata.domain.RecordWriteFailure
 import com.zero.babydata.domain.RecordWritePayload
 import com.zero.babydata.entity.RecordWriteReceipt
+import com.zero.babydata.entity.BabyCreationReceipt
+import com.zero.babydata.domain.BabyWriteException
+import com.zero.babydata.domain.BabyWriteFailure
+import java.util.UUID
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
@@ -43,6 +47,45 @@ class BabyRepository(private val database: BabyDatabase) {
         return babyInfoDao.insertBabyInfo(babyInfo).toInt().also { babyInfo.babyId = it }
     }
 
+    /** stableId 随新建草稿保存；回执与宝宝同事务提交，重试保留后来编辑，删除后不复活。 */
+    suspend fun insertBabyInfoOnce(babyInfo: BabyInfo): Int {
+        val snapshot = babyInfo.copy(babyId = 0)
+        val normalizedId = runCatching { UUID.fromString(snapshot.stableId).toString() }.getOrNull()
+        if (normalizedId == null || normalizedId != snapshot.stableId ||
+            !snapshot.birthWeight.isFinite() || !snapshot.birthHeight.isFinite()) {
+            throw BabyWriteException(BabyWriteFailure.INVALID_REQUEST)
+        }
+        val payloadHash = RecordWritePayload.baby(snapshot)
+        return database.withTransaction {
+            val receipts = database.babyCreationReceiptDao()
+            val receipt = receipts.getReceipt(normalizedId)
+            if (receipt != null) {
+                if (receipt.payloadHash != payloadHash) throw BabyWriteException(BabyWriteFailure.CONTENT_CONFLICT)
+                val saved = babyInfoDao.getBabyInfo(receipt.babyId)
+                if (saved?.stableId != snapshot.stableId) throw BabyWriteException(BabyWriteFailure.BABY_DELETED)
+                return@withTransaction receipt.babyId
+            }
+            // 已通过备份恢复的相同身份也不能重复创建；首次绑定时只接受完全相同的业务内容。
+            val existing = babyInfoDao.findBabyByStableId(snapshot.stableId)
+            if (existing != null && RecordWritePayload.baby(existing) != payloadHash) {
+                throw BabyWriteException(BabyWriteFailure.CONTENT_CONFLICT)
+            }
+            val id = existing?.babyId ?: babyInfoDao.insertBabyInfo(snapshot).toInt()
+            receipts.insertReceipt(BabyCreationReceipt(normalizedId, id, payloadHash))
+            id
+        }
+    }
+
+    /** 身份核验与更新同事务，删除/覆盖期间的旧编辑不能将零行更新当作成功。 */
+    suspend fun updateBabyInfoIfPresent(babyInfo: BabyInfo): Boolean {
+        val snapshot = babyInfo.copy()
+        return database.withTransaction {
+            if (babyInfoDao.getBabyInfo(snapshot.babyId)?.stableId != snapshot.stableId) return@withTransaction false
+            babyInfoDao.updateBabyInfo(snapshot)
+            true
+        }
+    }
+
     suspend fun updateBabyInfo(babyInfo: BabyInfo) = babyInfoDao.updateBabyInfo(babyInfo)
 
     suspend fun deleteBabyInfo(babyInfo: BabyInfo) = babyInfoDao.deleteBabyInfo(babyInfo)
@@ -69,8 +112,16 @@ class BabyRepository(private val database: BabyDatabase) {
         )
     }
 
-    suspend fun updateFeedingRecord(feedingRecord: FeedingRecord) =
-        feedingRecordDao.updateFeedingRecord(feedingRecord)
+    suspend fun updateFeedingRecord(feedingRecord: FeedingRecord) {
+        val snapshot = feedingRecord.copy()
+        database.withTransaction {
+            // 覆盖/删除可能先于排队的编辑提交；零行更新不能伪报保存成功，也不能迁移宝宝归属。
+            if (feedingRecordDao.getFeedingRecordById(snapshot.feedingId)?.babyId != snapshot.babyId) {
+                throw RecordWriteException(RecordWriteFailure.RECORD_DELETED)
+            }
+            feedingRecordDao.updateFeedingRecord(snapshot)
+        }
+    }
 
     suspend fun deleteFeedingRecord(feedingRecord: FeedingRecord) =
         feedingRecordDao.deleteFeedingRecord(feedingRecord)
@@ -129,8 +180,15 @@ class BabyRepository(private val database: BabyDatabase) {
         )
     }
 
-    suspend fun updateSleepRecord(sleepRecord: SleepRecord) =
-        sleepRecordDao.updateSleepRecord(sleepRecord)
+    suspend fun updateSleepRecord(sleepRecord: SleepRecord) {
+        val snapshot = sleepRecord.copy()
+        database.withTransaction {
+            if (sleepRecordDao.getSleepRecordById(snapshot.sleepId)?.babyId != snapshot.babyId) {
+                throw RecordWriteException(RecordWriteFailure.RECORD_DELETED)
+            }
+            sleepRecordDao.updateSleepRecord(snapshot)
+        }
+    }
 
     suspend fun deleteSleepRecord(sleepRecord: SleepRecord) =
         sleepRecordDao.deleteSleepRecord(sleepRecord)
@@ -267,7 +325,15 @@ class BabyRepository(private val database: BabyDatabase) {
         }
     }
 
-    suspend fun updateEventRecord(record: EventRecord) = eventRecordDao.updateEventRecord(record)
+    suspend fun updateEventRecord(record: EventRecord) {
+        val snapshot = record.copy()
+        database.withTransaction {
+            if (eventRecordDao.getEventRecordById(snapshot.eventId)?.babyId != snapshot.babyId) {
+                throw RecordWriteException(RecordWriteFailure.RECORD_DELETED)
+            }
+            eventRecordDao.updateEventRecord(snapshot)
+        }
+    }
 
     suspend fun deleteEventRecord(record: EventRecord) = eventRecordDao.deleteEventRecord(record)
 

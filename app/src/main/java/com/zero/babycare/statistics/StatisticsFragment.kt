@@ -23,8 +23,10 @@ import com.zero.babycare.statistics.adapter.StatisticsTrendAdapter
 import com.zero.babycare.statistics.adapter.TimelineAdapter
 import com.zero.babycare.statistics.model.TimelineEditTarget
 import com.zero.babycare.statistics.model.TimelineUiItem
+import com.zero.babycare.statistics.model.StatisticsUiState
 import com.zero.common.ext.launchInLifecycle
 import com.zero.components.base.BaseFragment
+import kotlinx.coroutines.flow.combine
 
 /**
  * 数据统计页面
@@ -54,6 +56,7 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     private lateinit var insightHeaderAdapter: StatisticsInsightHeaderAdapter
     private lateinit var concatAdapter: ConcatAdapter
     private lateinit var timelineAdapter: TimelineAdapter
+    private var renderedState: StatisticsUiState? = null
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
@@ -76,29 +79,15 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     override fun initData(view: View, savedInstanceState: Bundle?) {
         super.initData(view, savedInstanceState)
 
-        // Fragment 会被 MainActivity 预创建；只有统计页真正成为当前页面时，才允许触发无宝宝跳转。
-        if (!isHidden && isCurrentStatisticsTarget()) {
-            ensureBabyOrNavigate()
-        }
-
         // 观察数据变化
         observeData()
+        syncCurrentBaby(refresh = false)
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (!hidden && isCurrentStatisticsTarget()) {
-            // 页面显示时刷新数据
-            if (ensureBabyOrNavigate()) {
-                val currentBaby = mainVm.getCurrentBabyInfo()
-                currentBaby?.let {
-                    if (vm.currentBabyId.value != it.babyId) {
-                        vm.setBabyId(it.babyId)
-                    } else {
-                        vm.refreshData()
-                    }
-                }
-            }
+            syncCurrentBaby(refresh = true)
         }
     }
 
@@ -108,8 +97,7 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     private fun setupContentList() {
         calendarAdapter = StatisticsCalendarAdapter(
             onDateSelected = { date -> vm.selectDate(date) },
-            onMonthChanged = { yearMonth -> vm.onMonthChanged(yearMonth) },
-            onModeChanged = { },
+            onBrowseStateChanged = vm::onCalendarBrowsed,
             onTodayClick = { vm.goToToday() }
         )
         summaryAdapter = StatisticsSummaryAdapter()
@@ -170,14 +158,30 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     }
 
     private fun ensureBabyOrNavigate(): Boolean {
+        // 冷恢复时 Room 尚未给出首个快照，null 只代表未加载，不能据此创建新宝宝。
+        if (!mainVm.babyDataLoaded.value) return false
         val currentBaby = mainVm.getCurrentBabyInfo()
         return if (currentBaby == null) {
+            vm.setBabyId(0)
             mainVm.navigateTo(NavTarget.BabyInfo.create(returnTarget = NavTarget.Statistics(getReturnTarget())))
             false
         } else {
-            vm.setBabyId(currentBaby.babyId)
             true
         }
+    }
+
+    /** 仅当前统计页消费已加载的宝宝；显示页面或当前宝宝改变后都从同一个入口同步归属。 */
+    private fun syncCurrentBaby(refresh: Boolean) {
+        if (isHidden || !isCurrentStatisticsTarget()) return
+        if (ensureBabyOrNavigate()) {
+            val babyId = mainVm.getCurrentBabyInfo()?.babyId ?: return
+            if (vm.currentBabyId.value != babyId) {
+                vm.setBabyId(babyId)
+            } else if (refresh) {
+                vm.refreshData()
+            }
+        }
+        renderStatistics(vm.uiState.value)
     }
 
     /**
@@ -185,25 +189,44 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
      */
     private fun observeData() {
         launchInLifecycle {
-            vm.uiState.collect { state ->
-                calendarAdapter.setDatesWithRecords(state.datesWithRecords)
-                calendarAdapter.syncSelectedDate(state.selectedDate)
-                babyAgeAdapter.bindDayRecord(state.dayRecord)
-                summaryAdapter.updateSummary(state.dayRecord.summaryMetrics)
-                updateTimelineUI(state.dayRecord.timelineItems)
-                trendAdapter.updateTrend(state.insights.trend, state.selectedDate)
-                structureAdapter.updateStructure(state.insights.structure, state.selectedDate)
-                growthAdapter.updateTrend(state.insights.growth, state.selectedDate)
-                growthPercentileAdapter.updatePercentile(state.insights.percentile, state.selectedDate)
-                healthAdapter.updateHealth(state.insights.health)
-                renderPageState(state)
-            }
+            // 等待真实宝宝快照；同一页面内发生宝宝切换时也不能继续显示旧对象的数据。
+            combine(mainVm.currentBaby, mainVm.babyDataLoaded, mainVm.navTarget) { _, _, _ -> Unit }
+                .collect { syncCurrentBaby(refresh = false) }
+        }
+        launchInLifecycle {
+            vm.uiState.collect(::renderStatistics)
         }
     }
 
+    private fun renderStatistics(state: StatisticsUiState) {
+        renderPageState(state)
+        if (!mainVm.babyDataLoaded.value || state.isLoading || state.errorMessage != null) return
+        calendarAdapter.setDatesWithRecords(state.datesWithRecords)
+        calendarAdapter.syncSelectedDate(state.selectedDate)
+        calendarAdapter.syncBrowseState(state.calendarBrowse)
+        // 月份记录点和加载状态不能使所有时间轴重新绑定，浏览位置也不能因此回到选中日。
+        if (renderedState?.dayRecord != state.dayRecord) {
+            babyAgeAdapter.bindDayRecord(state.dayRecord)
+            summaryAdapter.updateSummary(state.dayRecord.summaryMetrics)
+            updateTimelineUI(state.dayRecord.timelineItems)
+        }
+        if (renderedState?.insights != state.insights) {
+            trendAdapter.updateTrend(state.insights.trend, state.selectedDate)
+            structureAdapter.updateStructure(state.insights.structure, state.selectedDate)
+            growthAdapter.updateTrend(state.insights.growth, state.selectedDate)
+            growthPercentileAdapter.updatePercentile(state.insights.percentile, state.selectedDate)
+            healthAdapter.updateHealth(state.insights.health)
+        }
+        renderedState = state
+    }
+
     /** 页面级错误优先于加载态；内容恢复后再显示列表，避免旧数据伪装成最新结果。 */
-    private fun renderPageState(state: com.zero.babycare.statistics.model.StatisticsUiState) {
+    private fun renderPageState(state: StatisticsUiState) {
         when {
+            !mainVm.babyDataLoaded.value -> {
+                binding.rvStatistics.visibility = View.GONE
+                binding.pageState.showLoading(com.zero.common.R.string.loading)
+            }
             state.errorMessage != null -> {
                 binding.rvStatistics.visibility = View.GONE
                 binding.pageState.showMessage(
@@ -221,6 +244,13 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
                 binding.rvStatistics.visibility = View.VISIBLE
             }
         }
+    }
+
+    override fun onDestroyView() {
+        // ConcatAdapter 的日历 holder 带有回调和 View 引用，View 销毁时同步断开列表连接。
+        binding.rvStatistics.adapter = null
+        renderedState = null
+        super.onDestroyView()
     }
 
     /**

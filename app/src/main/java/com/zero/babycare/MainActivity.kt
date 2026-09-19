@@ -1,6 +1,9 @@
 package com.zero.babycare
 
 import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.IntentFilter
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
@@ -14,6 +17,7 @@ import androidx.fragment.app.Fragment
 import com.blankj.utilcode.util.FragmentUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.zero.babycare.babies.AllChildrenFragment
+import com.zero.babycare.babies.BabyCardUiModel
 import com.zero.babycare.babyinfo.UpdateInfoFragment
 import com.zero.babycare.databinding.ActivityMainBinding
 import com.zero.babycare.databinding.LayoutNavDrawerBinding
@@ -34,7 +38,6 @@ import com.zero.common.theme.ThemeManager
 import com.zero.components.base.BaseActivity
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import java.util.concurrent.TimeUnit
 import kotlin.getValue
 import kotlin.math.abs
 
@@ -75,6 +78,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var isDrawerGestureClaimed = false
     private var hasCancelledDashboardTouch = false
     private var shouldChooseInitialDestination = false
+    private val ageClockReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            vm.refreshBabyAges()
+        }
+    }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,6 +97,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onResume() {
         super.onResume()
         vm.onAppForeground()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // 前台跨午夜或修改系统时区后同步年龄；停止时解除，避免 Activity 被接收器持有。
+        ContextCompat.registerReceiver(this, ageClockReceiver, IntentFilter().apply {
+            addAction(Intent.ACTION_DATE_CHANGED)
+            addAction(Intent.ACTION_TIME_CHANGED)
+            addAction(Intent.ACTION_TIMEZONE_CHANGED)
+        }, ContextCompat.RECEIVER_NOT_EXPORTED)
+    }
+
+    override fun onStop() {
+        unregisterReceiver(ageClockReceiver)
+        super.onStop()
     }
 
     /**
@@ -128,6 +151,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // 监听 Fragment 切换
         observeFragmentStatus()
         observeCurrentBaby()
+        launchInLifecycle {
+            vm.currentBabyCard.collectLatest { card ->
+                if (card != null && card.baby.babyId == vm.currentBaby.value?.babyId) {
+                    renderDrawerBabyInfo(card)
+                } else if (vm.babyDataLoaded.value && vm.currentBaby.value == null) {
+                    showNoBabyState()
+                }
+            }
+        }
         observeBabyDeletionResults()
     }
 
@@ -172,6 +204,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // 首页去掉显式菜单按钮后，确保 DrawerLayout 自身的 start 侧边缘手势不被状态恢复锁住。
         binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED, GravityCompat.START)
         binding.drawerLayout.setScrimColor(ContextCompat.getColor(this, com.zero.common.R.color.drawer_scrim))
+        binding.drawerLayout.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
+            override fun onDrawerOpened(drawerView: View) {
+                vm.refreshBabyAges()
+            }
+        })
         
         // 更新当前宝宝信息
         val currentBaby = vm.getCurrentBabyInfo()
@@ -216,15 +253,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
      */
     private fun updateDrawerBabyInfo(babyInfo: BabyInfo) {
         drawerBinding.tvBabyName.text = babyInfo.name
-        
-        // 计算出生天数
-        if (babyInfo.birthDate > 0) {
-            val days = TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - babyInfo.birthDate)
-            drawerBinding.tvBabyDays.visibility = View.VISIBLE
-            drawerBinding.tvBabyDays.text = getString(com.zero.common.R.string.days_born, days.toInt())
-        } else {
-            drawerBinding.tvBabyDays.visibility = View.GONE
-        }
+        // 年龄由 VM 的完整 UI 状态更新；切换宝宝时不短暂展示上一个宝宝的年龄。
+        vm.currentBabyCard.value?.takeIf { it.baby.babyId == babyInfo.babyId }?.let(::renderDrawerBabyInfo)
+            ?: run { drawerBinding.tvBabyDays.visibility = View.GONE }
+    }
+
+    private fun renderDrawerBabyInfo(card: BabyCardUiModel) {
+        drawerBinding.tvBabyName.text = card.baby.name
+        drawerBinding.tvBabyDays.visibility = View.VISIBLE
+        drawerBinding.tvBabyDays.text = card.ageDays?.let { getString(card.ageFullTextRes, it) }
+            ?: getString(card.ageFullTextRes)
     }
 
     /**

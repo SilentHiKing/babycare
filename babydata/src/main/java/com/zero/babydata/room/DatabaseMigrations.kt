@@ -55,6 +55,14 @@ object DatabaseMigrations {
             db.execSQL("DROP INDEX IF EXISTS index_Sleep_Records_babyId_sleepStart")
             LogUtils.i("数据库迁移完成：版本 8，跨日查询索引已优化")
         }
+    }).plus(object : Migration(8, 9) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            LogUtils.i("数据库迁移开始：版本 8 → 9")
+            // 无删除级联，保留创建墓碑；本机回执不进入用户备份协议。
+            db.execSQL("CREATE TABLE IF NOT EXISTS Baby_Creation_Receipts (requestId TEXT NOT NULL PRIMARY KEY, babyId INTEGER NOT NULL, payloadHash TEXT NOT NULL)")
+            db.execSQL("CREATE TABLE IF NOT EXISTS Backup_Import_Commits (commitId TEXT NOT NULL PRIMARY KEY, reportJson TEXT NOT NULL, replacedBabyIdsJson TEXT NOT NULL, committedAt INTEGER NOT NULL, cleanupComplete INTEGER NOT NULL, reportConsumed INTEGER NOT NULL)")
+            LogUtils.i("数据库迁移完成：版本 9，创建与导入提交恢复已启用")
+        }
     }).toTypedArray()
 
     private fun migrateToVersionFive(db: SupportSQLiteDatabase) {

@@ -25,6 +25,7 @@ import com.zero.babycare.MainViewModel
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babydata.backup.BackupBaby
 import com.zero.babydata.backup.BackupImportReport
+import com.zero.babydata.backup.CommittedBackupImport
 import com.zero.babydata.backup.BackupImportStrategy
 import com.zero.babydata.backup.BabyBackupData
 import com.zero.babydata.backup.BabyBackupEnvelope
@@ -106,7 +107,7 @@ class BackupImportRecoveryTest {
             restored.vm.confirmImport(confirmation.id)
         }
         withTimeout(10_000) {
-            restored.vm.importState.filterIsInstance<UiState.Success<BackupImportReport>>().first()
+            restored.vm.importState.filterIsInstance<UiState.Success<CommittedBackupImport>>().first()
         }
         assertEquals(1, operations.writeCount.get())
         assertEquals(BackupImportMode.MERGE, operations.lastMode)
@@ -296,13 +297,13 @@ class BackupImportRecoveryTest {
             return fileOperations.read(uri).also { hasPermission.set(true) }
         }
 
-        override suspend fun execute(envelope: BabyBackupEnvelope, mode: BackupImportMode, dedupMinutes: Int): BackupImportReport {
+        override suspend fun execute(envelope: BabyBackupEnvelope, mode: BackupImportMode, dedupMinutes: Int): CommittedBackupImport {
             writeCount.incrementAndGet()
             lastMode = mode
-            return BackupImportReport(
+            return CommittedBackupImport(UUID.randomUUID().toString(), BackupImportReport(
                 if (mode == BackupImportMode.MERGE) BackupImportStrategy.MERGE else BackupImportStrategy.OVERWRITE,
                 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-            )
+            ), emptyList())
         }
 
         override fun release(uri: Uri) {

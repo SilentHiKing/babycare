@@ -43,6 +43,7 @@ object OngoingRecordManager {
         }
     }
 
+    @Synchronized
     private fun saveSession(session: OngoingSession) {
         MMKVStore.put(
             sessionKey(session.babyId, session.type),
@@ -53,6 +54,7 @@ object OngoingRecordManager {
         if (ids.add(session.babyId)) saveTrackedBabyIds(ids)
     }
 
+    @Synchronized
     private fun removeSession(babyId: Int, type: RecordType): OngoingSession? {
         val session = readSession(babyId, type)
         MMKVStore.remove(sessionKey(babyId, type))
@@ -155,9 +157,19 @@ object OngoingRecordManager {
     }
 
     /** 数据域覆盖或退出时清除全部会话，不依赖可能损坏的追踪 ID 列表。 */
+    @Synchronized
     fun clearAll() {
         MMKVStore.removeByPrefix(KEY_SESSION_PREFIX)
         MMKVStore.remove(KEY_TRACKED_BABY_IDS)
+    }
+
+    /** 与新会话写入共用锁，清旧宝宝时不能覆盖追踪列表里刚加入的新宝宝。 */
+    @Synchronized
+    fun clearBaby(babyId: Int) {
+        MMKVStore.remove(sessionKey(babyId, RecordType.FEEDING))
+        MMKVStore.remove(sessionKey(babyId, RecordType.SLEEP))
+        val ids = getTrackedBabyIds()
+        if (ids.remove(babyId)) saveTrackedBabyIds(ids)
     }
 
     private fun updateStart(babyId: Int, type: RecordType, startTime: Long) {

@@ -555,4 +555,8 @@
     <string name="calendar_recorded_date_format">%1$s, has records</string>
     <string name="record_draft_already_saved">Already saved. Edit the original entry in the timeline.</string>
     <string name="record_draft_record_deleted">Original entry deleted. Reopen this form to add a new entry.</string>
+    <string name="baby_profile_save_conflict">This profile is already saved. Reopen your baby’s profile to edit it.</string>
+    <string name="baby_profile_deleted">This baby’s profile was deleted. Go back to create a new one.</string>
+    <string name="baby_age_birthdate_missing">Birthday not set</string>
+    <string name="baby_age_not_born_yet">Not born yet</string>
 </resources>

@@ -54,6 +54,9 @@ class DatabaseMigrationTest {
     @Test
     fun versionSevenReplacesStartIndexesWithoutChangingRecordsReceiptsOrQueryOrder() = verifyIndexMigration(7)
 
+    @Test
+    fun versionEightAddsCommitRecoveryWithoutChangingExistingData() = verifyIndexMigration(8)
+
     private fun verifyIndexMigration(sourceVersion: Int) = runBlocking {
         val name = "migration-index-test-${UUID.randomUUID()}.db"
         val path = context.getDatabasePath(name).apply { parentFile?.mkdirs() }
@@ -98,7 +101,13 @@ class DatabaseMigrationTest {
                 .addMigrations(*DatabaseMigrations.getAllMigrations()).build()
             try {
                 val db = room.openHelper.writableDatabase
-                assertEquals(8, db.version)
+                assertEquals(9, db.version)
+                for (table in listOf("Baby_Creation_Receipts", "Backup_Import_Commits")) {
+                    db.query("SELECT COUNT(*) FROM `$table`").use { cursor ->
+                        assertTrue(cursor.moveToFirst())
+                        assertEquals(0, cursor.getInt(0))
+                    }
+                }
                 assertEquals(originalRows, tables.associateWith { table -> readRows(db.query("SELECT * FROM `$table` ORDER BY 1")) })
                 val indexes = mapOf(
                     "index_Feeding_Records_babyId_feedingStart_feedingEnd" to listOf("babyId", "feedingStart", "feedingEnd"),
@@ -214,7 +223,7 @@ class DatabaseMigrationTest {
                 .build()
             try {
                     val db = room.openHelper.writableDatabase
-                    assertEquals(8, db.version)
+                    assertEquals(9, db.version)
                     db.query("SELECT COUNT(*) FROM Record_Write_Receipts").use { cursor ->
                         assertTrue(cursor.moveToFirst())
                         assertEquals(0, cursor.getInt(0))

@@ -20,8 +20,8 @@ import com.zero.common.ext.launchInLifecycle
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
 import com.zero.components.base.vm.UiState
-import com.zero.babydata.backup.BackupImportReport
 import com.zero.babydata.backup.BackupImportStrategy
+import com.zero.babydata.backup.CommittedBackupImport
 
 /**
  * 数据备份页面
@@ -37,6 +37,9 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     private var importDialog: BasePopupView? = null
     private var displayedImportPromptId: String? = null
     private var importDialogEpoch = 0L
+    private var importReportDialog: BasePopupView? = null
+    private var displayedImportCommitId: String? = null
+    private var importReportEpoch = 0L
 
     private val exportRow get() = binding.rowBackupExport
     private val importRow get() = binding.rowBackupImport
@@ -402,14 +405,17 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     private fun renderImportResult() {
         if (!canShowImportUi()) return
         when (val state = vm.importState.value) {
-            UiState.None -> Unit
-            UiState.Loading -> showLoading(getString(com.zero.common.R.string.backup_importing))
+            UiState.None -> dismissImportReportDialog()
+            UiState.Loading -> {
+                dismissImportReportDialog()
+                showLoading(getString(com.zero.common.R.string.backup_importing))
+            }
             is UiState.Success -> {
                 hideLoading()
-                vm.resetImportState()
                 showImportReport(state.data)
             }
             is UiState.Error -> {
+                dismissImportReportDialog()
                 hideLoading()
                 ToastUtils.showShort(state.message)
                 vm.resetImportState()
@@ -479,11 +485,12 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     /**
      * 导入完成报告
      */
-    private fun showImportReport(report: BackupImportReport?) {
-        if (report == null) {
-            ToastUtils.showShort(com.zero.common.R.string.backup_import_success)
-            return
-        }
+    private fun showImportReport(committed: CommittedBackupImport?) {
+        if (committed == null || displayedImportCommitId == committed.commitId) return
+        dismissImportReportDialog()
+        val report = committed.report
+        displayedImportCommitId = committed.commitId
+        val epoch = importReportEpoch
         val modeLabel = when (report.strategy) {
             BackupImportStrategy.OVERWRITE -> getString(com.zero.common.R.string.backup_import_mode_overwrite)
             BackupImportStrategy.MERGE -> getString(com.zero.common.R.string.backup_import_mode_merge)
@@ -503,12 +510,22 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
             report.childDailyInserted,
             report.childDailyUpdated
         )
-        DialogHelper.showAlertDialog(
+        importReportDialog = DialogHelper.showAlertDialog(
             context = requireContext(),
             title = getString(com.zero.common.R.string.backup_import_report_title),
             content = content
-        )
-        vm.saveImportReport(report)
+        ).also { popup ->
+            popup.popupInfo.xPopupCallback = object : SimpleCallback() {
+                override fun onDismiss(popupView: BasePopupView?) {
+                    // 旋转、隐藏和旧窗口的回调不消费收据；只有当前页面的真实关闭才确认已读。
+                    if (importReportEpoch != epoch || displayedImportCommitId != committed.commitId || !canShowImportUi()) return
+                    displayedImportCommitId = null
+                    importReportDialog = null
+                    vm.saveImportReport(report)
+                    vm.consumeImportResult(committed.commitId)
+                }
+            }
+        }
     }
 
     private fun handleReportClick(item: BackupReportItem) {
@@ -631,6 +648,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
 
     override fun onDestroyView() {
         dismissImportDialog()
+        dismissImportReportDialog()
         binding.rvBackupReports.adapter = null
         super.onDestroyView()
     }
@@ -638,6 +656,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
     override fun onPause() {
         // Activity 重建、系统选择器和离开前台都只撤下窗口，不取消用户正在确认的导入。
         dismissImportDialog()
+        dismissImportReportDialog()
         hideLoading()
         super.onPause()
     }
@@ -646,6 +665,7 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
         super.onHiddenChanged(hidden)
         if (hidden) {
             dismissImportDialog()
+            dismissImportReportDialog()
             hideLoading()
         } else {
             renderImportPrompt()
@@ -658,6 +678,14 @@ class BackupFragment : BaseFragment<FragmentBackupBinding>(), BackPressHandler {
         displayedImportPromptId = null
         val popup = importDialog
         importDialog = null
+        popup?.dismiss()
+    }
+
+    private fun dismissImportReportDialog() {
+        importReportEpoch++
+        displayedImportCommitId = null
+        val popup = importReportDialog
+        importReportDialog = null
         popup?.dismiss()
     }
 

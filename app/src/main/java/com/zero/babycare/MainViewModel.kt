@@ -6,6 +6,7 @@ import com.blankj.utilcode.util.Utils
 import com.zero.babycare.navigation.NavTarget
 import com.zero.babycare.reminder.ReminderScheduler
 import com.zero.babycare.reminder.ReminderType
+import com.zero.babycare.settings.backup.BackupImportRecovery
 import com.zero.babydata.entity.BabyInfo
 import com.zero.components.base.vm.BaseViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -18,10 +19,16 @@ import com.zero.common.mmkv.MMKVKeys.CURRENT_BABY_ID
 import com.zero.common.mmkv.MMKVKeys.LEGACY_BABY_INFO
 import com.zero.babycare.babies.CurrentBabySelection
 import com.zero.babycare.babies.BabyDeletionNavigation
+import com.zero.babycare.babies.BabyAgeReference
+import com.zero.babycare.babies.BabyCardUiMapper
+import com.zero.babycare.babies.BabyCardUiModel
 import com.zero.common.mmkv.MMKVStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 
 
 class MainViewModel(
@@ -51,6 +58,14 @@ class MainViewModel(
     private val _allBabies = MutableStateFlow<List<BabyInfo>>(emptyList())
     val allBabies: StateFlow<List<BabyInfo>> = _allBabies.asStateFlow()
 
+    private val ageReference = MutableStateFlow(BabyAgeReference.now())
+    val babyCards: StateFlow<List<BabyCardUiModel>> = combine(allBabies, currentBaby, ageReference) { babies, current, reference ->
+        babies.map { BabyCardUiMapper.map(it, current?.babyId, reference) }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val currentBabyCard: StateFlow<BabyCardUiModel?> = combine(currentBaby, ageReference) { baby, reference ->
+        baby?.let { BabyCardUiMapper.map(it, it.babyId, reference) }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     enum class BabyDeletionResult { SUCCESS, FAILED }
 
     private val deletionResults = Channel<BabyDeletionResult>(Channel.BUFFERED)
@@ -73,7 +88,15 @@ class MainViewModel(
 
     /** 系统通知设置可在应用外改变，返回前台时恢复因权限被关闭而结束的提醒任务。 */
     fun onAppForeground() {
+        refreshBabyAges()
         ReminderScheduler.ensureScheduled(Utils.getApp())
+        // 只恢复已提交导入的派生状态，不会再次执行导入；任务随 Activity 的 ViewModel 释放。
+        viewModelScope.launch { BackupImportRecovery.recoverPending(Utils.getApp()) }
+    }
+
+    /** 回前台或重新打开宝宝入口时刷新日期/时区，长驻页面不会一直保留昨日年龄。 */
+    fun refreshBabyAges() {
+        ageReference.value = BabyAgeReference.now()
     }
 
     /**

@@ -555,4 +555,8 @@
     <string name="calendar_recorded_date_format">%1$s、記録あり</string>
     <string name="record_draft_already_saved">保存済みです。タイムラインから元の記録を編集してください</string>
     <string name="record_draft_record_deleted">元の記録は削除されています。記録画面を開き直して新しく作成してください</string>
+    <string name="baby_profile_save_conflict">このプロフィールは保存済みです。編集するには赤ちゃんのプロフィールを開き直してください</string>
+    <string name="baby_profile_deleted">この赤ちゃんのプロフィールは削除されています。戻って新しく作成してください</string>
+    <string name="baby_age_birthdate_missing">誕生日未設定</string>
+    <string name="baby_age_not_born_yet">出生前</string>
 </resources>

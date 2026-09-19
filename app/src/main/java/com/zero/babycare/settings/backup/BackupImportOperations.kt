@@ -3,30 +3,36 @@ package com.zero.babycare.settings.backup
 import android.app.Application
 import android.content.Intent
 import android.net.Uri
-import com.zero.babycare.home.BabyRecordChangeBus
-import com.zero.babycare.home.OngoingRecordManager
-import com.zero.babycare.reminder.ReminderScheduler
 import com.zero.babydata.backup.BackupImportError
 import com.zero.babydata.backup.BackupImportException
-import com.zero.babydata.backup.BackupImportReport
-import com.zero.babydata.backup.BackupImportStrategy
+import com.zero.babydata.backup.BackupImportJournal
+import com.zero.babydata.backup.CommittedBackupImport
 import com.zero.babydata.backup.BabyBackupEnvelope
 import com.zero.babydata.backup.BabyBackupImporter
 import com.zero.babydata.backup.BabyBackupParser
-import com.zero.babydata.domain.BabyDataHelper
-import com.zero.common.mmkv.MMKVKeys
-import com.zero.common.mmkv.MMKVStore
+import com.zero.babydata.room.BabyDatabase
+import kotlinx.coroutines.CancellationException
+import java.util.UUID
 
 /** 文件读取和实际导入分开，恢复预览永远不能隐式执行数据库写入。调用方必须切到 IO。 */
 internal interface BackupImportOperations {
     suspend fun read(uri: Uri): BabyBackupEnvelope
-    suspend fun execute(envelope: BabyBackupEnvelope, mode: BackupImportMode, dedupMinutes: Int): BackupImportReport
+    suspend fun execute(envelope: BabyBackupEnvelope, mode: BackupImportMode, dedupMinutes: Int): CommittedBackupImport
+    suspend fun recoverReport(): CommittedBackupImport? = null
+    suspend fun consumeReport(commitId: String) = Unit
     fun release(uri: Uri)
 }
 
 /** 只持有 Application；授权和派生状态更新不依赖发起选择器的页面。 */
-internal class ApplicationBackupImportOperations(private val app: Application) : BackupImportOperations {
-    private val importer by lazy { BabyBackupImporter(app) }
+internal class ApplicationBackupImportOperations(
+    private val app: Application,
+    database: BabyDatabase? = null,
+    effects: BackupImportSideEffects? = null
+) : BackupImportOperations {
+    private val database by lazy { database ?: BabyDatabase.getInstance(app) }
+    private val importer by lazy { BabyBackupImporter(this.database) }
+    private val journal by lazy { BackupImportJournal(this.database) }
+    private val coordinator by lazy { BackupImportCommitCoordinator(journal, effects ?: ApplicationBackupImportSideEffects(app)) }
 
     override suspend fun read(uri: Uri): BabyBackupEnvelope {
         try {
@@ -45,24 +51,31 @@ internal class ApplicationBackupImportOperations(private val app: Application) :
         envelope: BabyBackupEnvelope,
         mode: BackupImportMode,
         dedupMinutes: Int
-    ): BackupImportReport {
-        val report = when (mode) {
-            BackupImportMode.OVERWRITE -> importer.importOverwrite(envelope)
-            BackupImportMode.MERGE -> importer.importMerge(envelope, dedupMinutes)
+    ): CommittedBackupImport {
+        val commitId = UUID.randomUUID().toString()
+        val committed = try {
+            val report = when (mode) {
+                BackupImportMode.OVERWRITE -> importer.importOverwrite(envelope, commitId)
+                BackupImportMode.MERGE -> importer.importMerge(envelope, dedupMinutes, commitId)
+            }
+            CommittedBackupImport(commitId, report, emptyList())
+        } catch (cancelled: CancellationException) {
+            // 提交前取消由 Room 回滚；提交后取消留下同事务收据，恢复只补善后/报告。
+            throw cancelled
+        } catch (error: Exception) {
+            // 若数据库已提交，回程异常也不能把它改写为“导入失败”。
+            journal.get(commitId) ?: throw error
         }
-        // 数据提交后刷新当前宝宝、计时和提醒的派生缓存，避免旧状态继续作用于新数据库。
-        if (report.strategy == BackupImportStrategy.OVERWRITE) {
-            MMKVStore.remove(MMKVKeys.CURRENT_BABY_ID)
-            OngoingRecordManager.clearAll()
-        }
-        MMKVStore.removeByPrefix(MMKVKeys.SETTINGS_FEEDING_REMINDER_LAST_PREFIX)
-        MMKVStore.removeByPrefix(MMKVKeys.SETTINGS_SLEEP_REMINDER_LAST_PREFIX)
-        MMKVStore.removeByPrefix(MMKVKeys.SETTINGS_FEEDING_REMINDER_SOURCE_PREFIX)
-        MMKVStore.removeByPrefix(MMKVKeys.SETTINGS_SLEEP_REMINDER_SOURCE_PREFIX)
-        ReminderScheduler.ensureScheduled(app)
-        BabyDataHelper.repository.getAllBabyInfo().forEach { BabyRecordChangeBus.notifyChanged(it.babyId) }
-        return report
+        coordinator.recoverPending()
+        return committed
     }
+
+    override suspend fun recoverReport(): CommittedBackupImport? {
+        coordinator.recoverPending()
+        return journal.oldestUnconsumed()
+    }
+
+    override suspend fun consumeReport(commitId: String) = journal.consumeReport(commitId)
 
     override fun release(uri: Uri) {
         runCatching {
