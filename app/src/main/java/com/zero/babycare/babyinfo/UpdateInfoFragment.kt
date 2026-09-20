@@ -16,7 +16,6 @@ import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.ext.launchInLifecycle
 import com.zero.common.util.BabyGender
-import com.zero.common.util.CompatDateUtils
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
 import com.lxj.xpopup.core.BasePopupView
@@ -67,6 +66,8 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
     private var activeTargetKey: String? = null
     private var isRestoringForm = false
     private var formDialog: BasePopupView? = null
+    private var birthdayTimestamp: Long? = null
+    private var birthdayTimestampText = ""
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
@@ -210,7 +211,10 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
             return
         }
         val targetKey = target.key()
-        if (activeTargetKey == targetKey) return
+        if (activeTargetKey == targetKey) {
+            refreshBirthdayDisplay()
+            return
+        }
         formDialog?.dismiss()
         formDialog = null
         val draft = vm.getDraft(targetKey, target.babyId?.let(mainVm::getBabyById)?.stableId)
@@ -232,7 +236,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
             initialSnapshot = draft.initial
             selectedGenderCode = draft.form.genderCode
             binding.etName.setText(draft.form.name)
-            binding.etBirthday.setText(draft.form.birthday)
+            restoreBirthdayInput(draft.form, draft.initial)
             binding.etGender.setText(getGenderLabel(selectedGenderCode))
             binding.etWeight.setText(draft.form.weight)
             binding.etHeight.setText(draft.form.height)
@@ -301,7 +305,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
     private fun clearForm() {
         selectedGenderCode = ""
         binding.etName.setText("")
-        binding.etBirthday.setText("")
+        renderBirthdayInput(null)
         binding.etGender.setText("")
         binding.etWeight.setText("")
         binding.etHeight.setText("")
@@ -316,12 +320,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         selectedGenderCode = BabyGender.normalize(baby.gender)
         binding.etGender.setText(getGenderLabel(selectedGenderCode))
 
-        if (baby.birthDate > 0) {
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-            binding.etBirthday.setText(dateFormat.format(Date(baby.birthDate)))
-        } else {
-            binding.etBirthday.setText("")
-        }
+        renderBirthdayInput(baby.birthDate.takeIf { it > 0L })
 
         if (baby.birthWeight > 0) {
             binding.etWeight.setText(vm.formatBirthWeight(baby.birthWeight))
@@ -369,14 +368,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         baby.gender = selectedGenderCode
 
         // 编辑页允许把非必填出生信息清空，保存时需要同步清掉旧值。
-        val birthdayText = binding.etBirthday.text?.toString()?.trim().orEmpty()
-        // 展示精度只到分钟/两位小数；未编辑的字段保留原始值，避免改姓名时损失出生数据精度。
-        if (!isEditMode || birthdayText != initialSnapshot.birthday.trim()) {
-            baby.birthDate = birthdayText
-                .takeIf { it.isNotEmpty() }
-                ?.let { CompatDateUtils.stringToTimestamp(it) }
-                ?: 0L
-        }
+        baby.birthDate = vm.resolveBirthdayTimestamp(currentSnapshot(), initialSnapshot, editingBaby?.birthDate) ?: 0L
 
         val weightText = binding.etWeight.text?.toString()?.trim().orEmpty()
         val parsedWeight = weightText
@@ -526,10 +518,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
 
     private fun showBirthdayPickerSheet() {
         val acceptsCallback = currentFormGuard()
-        val initialTime = binding.etBirthday.text?.toString()
-            ?.takeIf { it.isNotBlank() }
-            ?.let { CompatDateUtils.stringToTimestamp(it) }
-            ?: editingBaby?.birthDate?.takeIf { it > 0L }
+        val initialTime = vm.resolveBirthdayTimestamp(currentSnapshot(), initialSnapshot, editingBaby?.birthDate)
             ?: System.currentTimeMillis()
 
         formDialog = DialogHelper.showDateTimeSheet(
@@ -540,12 +529,42 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
             maxTime = System.currentTimeMillis(),
             onConfirm = { timestamp ->
                 if (acceptsCallback()) {
-                    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-                    binding.etBirthday.setText(dateFormat.format(Date(timestamp)))
+                    renderBirthdayInput(timestamp)
                     refreshPrimaryActionState()
                 }
             }
         )
+    }
+
+    /** 日期字段只展示瞬间；同步文本标识避免尚未确认的外部文本沿用另一个时间戳。 */
+    private fun renderBirthdayInput(timestamp: Long?, fallbackText: String = "") {
+        birthdayTimestamp = timestamp
+        birthdayTimestampText = timestamp?.let(::formatBirthday) ?: fallbackText
+        binding.etBirthday.setText(birthdayTimestampText)
+    }
+
+    private fun formatBirthday(timestamp: Long): String =
+        SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(timestamp))
+
+    /** 当前值和初始基线一起重渲染，时区变化本身不能被当作用户修改生日。 */
+    private fun restoreBirthdayInput(form: BabyInfoFormSnapshot, initial: BabyInfoFormSnapshot) {
+        val originalTime = vm.resolveBirthdayTimestamp(initial, initial, editingBaby?.birthDate)
+        initialSnapshot = initial.copy(
+            birthday = originalTime?.let(::formatBirthday) ?: initial.birthday,
+            birthdayTimestamp = originalTime
+        )
+        renderBirthdayInput(vm.resolveBirthdayTimestamp(form, initial, editingBaby?.birthDate), form.birthday)
+    }
+
+    /** 同一 View 留在后台后返回也要刷新显示；业务值仍使用此前选择的时间戳。 */
+    private fun refreshBirthdayDisplay() {
+        val form = currentSnapshot()
+        val timestamp = form.birthdayTimestamp ?: return
+        if (form.birthday == formatBirthday(timestamp)) return
+        isRestoringForm = true
+        restoreBirthdayInput(form, initialSnapshot)
+        isRestoringForm = false
+        refreshPrimaryActionState()
     }
 
     private fun bindCreateHeader() {
@@ -601,7 +620,8 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
             genderCode = selectedGenderCode,
             weight = binding.etWeight.text?.toString().orEmpty(),
             height = binding.etHeight.text?.toString().orEmpty(),
-            bloodType = binding.etBloodType.text?.toString().orEmpty()
+            bloodType = binding.etBloodType.text?.toString().orEmpty(),
+            birthdayTimestamp = birthdayTimestamp.takeIf { binding.etBirthday.text.toString() == birthdayTimestampText }
         )
     }
 

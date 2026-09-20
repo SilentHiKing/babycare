@@ -11,6 +11,7 @@ import com.zero.babydata.domain.BabyWriteFailure
 import com.zero.babydata.entity.BabyInfo
 import com.zero.common.util.UnitConfig
 import com.zero.common.util.UnitConverter
+import com.zero.common.util.CompatDateUtils
 import com.zero.common.R
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -52,6 +53,18 @@ class UpdateInfoViewModel @JvmOverloads constructor(
 
     fun clearDraft() {
         savedStateHandle.remove<BabyInfoDraft>(DRAFT_KEY)
+    }
+
+    /** 新草稿使用选择时的瞬间；旧草稿未改生日保留原精度，其余旧文本只能按恢复时区兼容解析。 */
+    internal fun resolveBirthdayTimestamp(
+        form: BabyInfoFormSnapshot,
+        initial: BabyInfoFormSnapshot,
+        originalTimestamp: Long?
+    ): Long? {
+        if (form.birthday.isBlank()) return null
+        return form.birthdayTimestamp
+            ?: originalTimestamp?.takeIf { it > 0L && form.birthday == initial.birthday }
+            ?: CompatDateUtils.stringToTimestamp(form.birthday)?.takeIf { it > 0L }
     }
 
     private val _unitState = MutableStateFlow(loadUnitState())
@@ -223,8 +236,14 @@ data class BabyInfoFormSnapshot(
     val genderCode: String = "",
     val weight: String = "",
     val height: String = "",
-    val bloodType: String = ""
-) : Serializable
+    val bloodType: String = "",
+    val birthdayTimestamp: Long? = null
+) : Serializable {
+    companion object {
+        // 固定新增字段前的默认 UID；旧序列化流没有时间戳时读为 null，继续走兼容分支。
+        private const val serialVersionUID = 1898364289836678547L
+    }
+}
 
 data class BabyInfoUnitState(
     val weightUnit: String,
