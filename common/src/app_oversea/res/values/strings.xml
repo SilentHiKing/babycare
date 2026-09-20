@@ -568,4 +568,7 @@
     <string name="backup_export_limit_exceeded">This backup exceeds the supported size or record limit and was not exported. Your records are still saved on this device.</string>
     <string name="backup_export_invalid_data">Some records cannot be included in a restorable backup, so nothing was exported. Your records are still saved on this device.</string>
     <string name="backup_import_ambiguous_baby">Some babies could not be matched safely. The backup was not merged, and your records are unchanged.</string>
+    <string name="prediction_feeding_expired">Feeding window has passed</string>
+    <string name="prediction_sleep_expired">Sleep window has passed</string>
+    <string name="prediction_expired_hint">Follow your baby’s actual routine; new records update estimates</string>
 </resources>

@@ -225,7 +225,7 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         )
 
         // ==================== 预测卡片 ====================
-        updatePredictionCard(data)
+        updatePredictionCard(data, now)
     }
 
     private fun updateStatusCard(data: DashboardData, now: Long) {
@@ -293,71 +293,49 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         }
     }
 
-    private fun updatePredictionCard(data: DashboardData) {
+    private fun updatePredictionCard(data: DashboardData, now: Long) {
+        val rows = DashboardPredictionMapper.map(data, now)
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-
-        // 喂养预测
-        val feedingPrediction = data.feedingPrediction
-        if (data.currentStatus != DashboardData.BabyStatus.FEEDING &&
-            feedingPrediction != null && !feedingPrediction.isExpired()) {
-            // 显示时间区间
-            binding.tvPredictFeedingTime.text = getString(
-                com.zero.common.R.string.predict_feeding_with_range,
-                timeFormat.format(feedingPrediction.earliestTime),
-                timeFormat.format(feedingPrediction.latestTime)
-            )
-            // 剩余时间
-            val remainMinutes = TimeUnit.MILLISECONDS.toMinutes(
-                feedingPrediction.getRemainingMillis()
-            )
-            binding.tvPredictFeedingRemain.text = getString(
-                com.zero.common.R.string.remain_time,
-                formatDurationMinutesCompact(remainMinutes)
-            )
-            updatePredictionEvidence(binding.tvPredictFeedingEvidence, feedingPrediction)
-        } else {
-            binding.tvPredictFeedingTime.setText(com.zero.common.R.string.prediction_feeding_empty)
-            binding.tvPredictFeedingRemain.text = ""
-            binding.tvPredictFeedingEvidence.visibility = View.VISIBLE
-            binding.tvPredictFeedingEvidence.setText(
-                if (data.currentStatus == DashboardData.BabyStatus.FEEDING)
-                    com.zero.common.R.string.prediction_in_progress_hint
-                else com.zero.common.R.string.prediction_feeding_empty_hint
-            )
-        }
-
-        // 睡眠预测
-        val sleepPrediction = data.sleepPrediction
-        if (data.currentStatus != DashboardData.BabyStatus.SLEEPING &&
-            sleepPrediction != null && !sleepPrediction.isExpired()) {
-            binding.tvPredictSleepTime.text = getString(
-                com.zero.common.R.string.predict_sleep_with_range,
-                timeFormat.format(sleepPrediction.earliestTime),
-                timeFormat.format(sleepPrediction.latestTime)
-            )
-            val remainMinutes = TimeUnit.MILLISECONDS.toMinutes(
-                sleepPrediction.getRemainingMillis()
-            )
-            binding.tvPredictSleepRemain.text = getString(
-                com.zero.common.R.string.remain_time,
-                formatDurationMinutesCompact(remainMinutes)
-            )
-            updatePredictionEvidence(binding.tvPredictSleepEvidence, sleepPrediction)
-        } else {
-            binding.tvPredictSleepTime.setText(com.zero.common.R.string.prediction_sleep_empty)
-            binding.tvPredictSleepRemain.text = ""
-            binding.tvPredictSleepEvidence.visibility = View.VISIBLE
-            binding.tvPredictSleepEvidence.setText(
-                if (data.currentStatus == DashboardData.BabyStatus.SLEEPING)
-                    com.zero.common.R.string.prediction_in_progress_hint
-                else com.zero.common.R.string.prediction_sleep_empty_hint
-            )
-        }
-        // 空态不占一个剩余时间列；有效预测完整保留文案，是否同行仅由实际字宽决定。
-        binding.tvPredictFeedingRemain.visibility = if (binding.tvPredictFeedingRemain.text.isEmpty()) View.GONE else View.VISIBLE
-        binding.tvPredictSleepRemain.visibility = if (binding.tvPredictSleepRemain.text.isEmpty()) View.GONE else View.VISIBLE
+        bindPredictionRow(rows.feeding, feeding = true, timeFormat = timeFormat)
+        bindPredictionRow(rows.sleep, feeding = false, timeFormat = timeFormat)
         binding.cardPrediction.removeCallbacks(predictionLayoutUpdate)
         binding.cardPrediction.post(predictionLayoutUpdate)
+    }
+
+    /** 状态已经按各类会话与快照时钟确定，View只绑定完整文案并保留现有排版策略。 */
+    private fun bindPredictionRow(state: DashboardPredictionMapper.Row, feeding: Boolean, timeFormat: SimpleDateFormat) {
+        val title = if (feeding) binding.tvPredictFeedingTime else binding.tvPredictSleepTime
+        val remaining = if (feeding) binding.tvPredictFeedingRemain else binding.tvPredictSleepRemain
+        val evidence = if (feeding) binding.tvPredictFeedingEvidence else binding.tvPredictSleepEvidence
+        evidence.visibility = View.VISIBLE
+        if (state is DashboardPredictionMapper.Row.Ready) {
+            title.text = getString(
+                if (feeding) com.zero.common.R.string.predict_feeding_with_range else com.zero.common.R.string.predict_sleep_with_range,
+                timeFormat.format(state.prediction.earliestTime),
+                timeFormat.format(state.prediction.latestTime)
+            )
+            remaining.visibility = View.VISIBLE
+            remaining.text = getString(
+                com.zero.common.R.string.remain_time,
+                formatDurationMinutesCompact(TimeUnit.MILLISECONDS.toMinutes(state.remainingMillis))
+            )
+            updatePredictionEvidence(evidence, state.prediction)
+            return
+        }
+
+        // 过期不等于没有依据；两类标题仍保留各自业务名称，不把旧区间滚动到未来。
+        title.setText(if (state == DashboardPredictionMapper.Row.Expired) {
+            if (feeding) com.zero.common.R.string.prediction_feeding_expired else com.zero.common.R.string.prediction_sleep_expired
+        } else {
+            if (feeding) com.zero.common.R.string.prediction_feeding_empty else com.zero.common.R.string.prediction_sleep_empty
+        })
+        remaining.text = ""
+        remaining.visibility = View.GONE
+        evidence.setText(when (state) {
+            DashboardPredictionMapper.Row.InProgress -> com.zero.common.R.string.prediction_in_progress_hint
+            DashboardPredictionMapper.Row.Expired -> com.zero.common.R.string.prediction_expired_hint
+            else -> if (feeding) com.zero.common.R.string.prediction_feeding_empty_hint else com.zero.common.R.string.prediction_sleep_empty_hint
+        })
     }
 
     /** 根据完整文字宽度重排预测行，避免长英文或大字号让主列被剩余时间挤成零宽。 */

@@ -568,4 +568,7 @@
     <string name="backup_export_limit_exceeded">備份內容超出目前支援範圍，未匯出。現有記錄仍儲存在此裝置上。</string>
     <string name="backup_export_invalid_data">部分記錄無法產生可還原的備份，未匯出。現有記錄仍儲存在此裝置上。</string>
     <string name="backup_import_ambiguous_baby">部分寶寶的對應關係不明確，未合併。現有記錄未變更。</string>
+    <string name="prediction_feeding_expired">餵奶預測區間已過</string>
+    <string name="prediction_sleep_expired">睡眠預測區間已過</string>
+    <string name="prediction_expired_hint">以寶寶實際情況為準，記錄後更新預測</string>
 </resources>

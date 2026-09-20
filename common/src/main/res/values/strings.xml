@@ -568,4 +568,7 @@
     <string name="backup_export_limit_exceeded">备份内容超出当前支持范围，未导出。现有记录仍保存在此设备上。</string>
     <string name="backup_export_invalid_data">部分记录无法生成可恢复的备份，未导出。现有记录仍保存在此设备上。</string>
     <string name="backup_import_ambiguous_baby">部分宝宝的对应关系不明确，未合并。现有记录未改变。</string>
+    <string name="prediction_feeding_expired">喂奶预测区间已过</string>
+    <string name="prediction_sleep_expired">睡眠预测区间已过</string>
+    <string name="prediction_expired_hint">以宝宝实际情况为准，记录后更新预测</string>
 </resources>

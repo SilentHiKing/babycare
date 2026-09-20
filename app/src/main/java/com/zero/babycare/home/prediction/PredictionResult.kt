@@ -42,9 +42,10 @@ data class PredictionResult(
     /**
      * 获取距预测区间最晚时间的剩余毫秒数
      * 与过期判断保持一致，避免中心点已过但区间仍有效导致显示为 0
+     * UI可传入状态快照时钟，防止一次渲染的过期判断与倒计时落在截止点两侧。
      */
-    fun getRemainingMillis(): Long {
-        return (latestTime.time - System.currentTimeMillis()).coerceAtLeast(0)
+    fun getRemainingMillis(now: Long = System.currentTimeMillis()): Long {
+        return (latestTime.time - now).coerceAtLeast(0)
     }
 }
 

@@ -1,5 +1,7 @@
 package com.zero.babycare
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Rect
 import android.os.SystemClock
 import android.view.MotionEvent
@@ -31,6 +33,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.File
 import java.util.Date
 
 /** 使用宿主真实语言、字号与窗口；合成状态只进入 UI 流，不切换宝宝、不写业务库或计时会话。 */
@@ -38,6 +41,7 @@ import java.util.Date
 class DashboardFirstScreenTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private var renderVersion = 0L
+    private var renderedNow = 0L
     private var renderedCase = "initial"
 
     @Test
@@ -111,6 +115,119 @@ class DashboardFirstScreenTest {
     }
 
     @Test
+    fun eachPredictionUsesItsOwnUnfinishedSession() = withDashboard { scenario ->
+        val now = System.currentTimeMillis()
+        // 零时长也代表已开始；顶部状态只显示一种，不能代替另外一类会话的存在性。
+        val cases = listOf(
+            Triple(DashboardData.BabyStatus.SLEEPING, 0L, 0L),
+            Triple(DashboardData.BabyStatus.FEEDING, 60_000L, 120_000L),
+            Triple(DashboardData.BabyStatus.SLEEPING, null, 0L),
+            Triple(DashboardData.BabyStatus.FEEDING, 0L, null)
+        )
+        cases.forEach { (status, feeding, sleep) ->
+            val data = ordinaryData(now).copy(currentStatus = status,
+                ongoingFeedingDurationMillis = feeding, ongoingSleepDurationMillis = sleep)
+            render(scenario, data, now, exactTime = true)
+            scenario.onActivity { activity ->
+                val root = dashboard(activity).requireView()
+                listOf(true to feeding, false to sleep).forEach { (isFeeding, duration) ->
+                    val (title, remaining, evidence) = predictionLabels(root, isFeeding)
+                    if (duration != null) {
+                        assertEquals("每种未结束会话都必须暂停自己的预测：顶部=$status，喂养=$isFeeding",
+                            View.GONE, remaining.visibility)
+                        assertEquals("进行中说明不能被旧预测依据覆盖：顶部=$status，喂养=$isFeeding",
+                            activity.getString(com.zero.common.R.string.prediction_in_progress_hint), evidence.text.toString())
+                        assertEquals("进行中仍须保留业务类别", activity.getString(if (isFeeding)
+                            com.zero.common.R.string.prediction_feeding_empty else com.zero.common.R.string.prediction_sleep_empty), title.text.toString())
+                    } else {
+                        assertEquals("另一类未开始时，其有效预测应继续显示", View.VISIBLE, remaining.visibility)
+                        assertEquals(activity.getString(com.zero.common.R.string.prediction_evidence_samples, 6), evidence.text.toString())
+                    }
+                }
+                assertAllCardTextFits(root, data)
+            }
+        }
+    }
+
+    @Test
+    fun predictionExpiryAndRemainingUseTheContentClock() = withDashboard { scenario ->
+        // 故意让观察时刻不同于设备现在，检出renderer暗中读取另一个系统时钟的行为。
+        val latest = System.currentTimeMillis() - 3_600_000L
+        val result = PredictionResult(Date(latest - 600_000L), 0.8f,
+            Date(latest - 900_000L), Date(latest), evidenceCount = 8)
+        val data = DashboardData(feedingPrediction = result, sleepPrediction = result)
+        listOf(latest - 60_000L, latest, latest + 1L).forEach { observedAt ->
+            render(scenario, data, observedAt, exactTime = true)
+            scenario.onActivity { activity ->
+                val root = dashboard(activity).requireView()
+                listOf(true, false).forEach { isFeeding ->
+                    val (title, remaining, evidence) = predictionLabels(root, isFeeding)
+                    if (observedAt <= latest) {
+                        assertEquals("截止前及等于截止时仍有效，必须使用Content时钟：观察=$observedAt，截止=$latest",
+                            View.VISIBLE, remaining.visibility)
+                        val duration = if (observedAt < latest) activity.getString(com.zero.common.R.string.summary_duration_minutes_compact, 1L)
+                            else activity.getString(com.zero.common.R.string.summary_duration_zero_compact)
+                        assertEquals("剩余量与过期判断必须取同一次时钟", activity.getString(com.zero.common.R.string.remain_time, duration),
+                            remaining.text.toString())
+                        assertEquals(activity.getString(com.zero.common.R.string.prediction_evidence_samples, 8), evidence.text.toString())
+                    } else {
+                        assertEquals("截止后不再提供未来倒计时", View.GONE, remaining.visibility)
+                        assertEquals("已过预测必须解释变化并保留类别", activity.getString(if (isFeeding)
+                            com.zero.common.R.string.prediction_feeding_expired else com.zero.common.R.string.prediction_sleep_expired), title.text.toString())
+                        assertEquals("过期应提供基于实际情况继续记录的说明",
+                            activity.getString(com.zero.common.R.string.prediction_expired_hint), evidence.text.toString())
+                    }
+                }
+                assertAllCardTextFits(root, data)
+            }
+            capturePredictionCard(scenario, when {
+                observedAt < latest -> "before-boundary"
+                observedAt == latest -> "at-boundary"
+                else -> "expired"
+            })
+        }
+        render(scenario, DashboardData(), latest + 1L, exactTime = true)
+        scenario.onActivity { activity ->
+            listOf(true, false).forEach { isFeeding ->
+                val (title, remaining, evidence) = predictionLabels(dashboard(activity).requireView(), isFeeding)
+                assertEquals(activity.getString(if (isFeeding) com.zero.common.R.string.prediction_feeding_empty
+                    else com.zero.common.R.string.prediction_sleep_empty), title.text.toString())
+                assertEquals(View.GONE, remaining.visibility)
+                assertEquals(activity.getString(if (isFeeding) com.zero.common.R.string.prediction_feeding_empty_hint
+                    else com.zero.common.R.string.prediction_sleep_empty_hint), evidence.text.toString())
+            }
+            assertAllCardTextFits(dashboard(activity).requireView(), DashboardData())
+        }
+        capturePredictionCard(scenario, "empty")
+    }
+
+    /** 只绘制合成预测卡；默认不落盘，位图绘制在主线程，文件写入留在仪器线程。 */
+    private fun capturePredictionCard(scenario: ActivityScenario<MainActivity>, variant: String) {
+        if (InstrumentationRegistry.getArguments().getString("captureScreenshots") != "true") return
+        lateinit var bitmap: Bitmap
+        scenario.onActivity { activity ->
+            val card = dashboard(activity).requireView().findViewById<View>(R.id.cardPrediction)
+            bitmap = Bitmap.createBitmap(card.width, card.height, Bitmap.Config.ARGB_8888)
+            card.draw(Canvas(bitmap))
+        }
+        try {
+            val directory = File(instrumentation.targetContext.filesDir, "audit-screens")
+            check(directory.isDirectory || directory.mkdirs()) { "无法创建预测截图目录" }
+            File(directory, "phase10-prediction-$variant.png").outputStream().use {
+                check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) { "无法保存预测截图" }
+            }
+        } finally { bitmap.recycle() }
+    }
+
+    private fun predictionLabels(root: View, feeding: Boolean): Triple<TextView, TextView, TextView> = if (feeding) {
+        Triple(root.findViewById(R.id.tvPredictFeedingTime), root.findViewById(R.id.tvPredictFeedingRemain),
+            root.findViewById(R.id.tvPredictFeedingEvidence))
+    } else {
+        Triple(root.findViewById(R.id.tvPredictSleepTime), root.findViewById(R.id.tvPredictSleepRemain),
+            root.findViewById(R.id.tvPredictSleepEvidence))
+    }
+
+    @Test
     fun recordHistoryEntryIsReachableAndOpensStatisticsWithDashboardReturn() = withDashboard { scenario ->
         render(scenario, DashboardData(), System.currentTimeMillis())
         scenario.onActivity { activity ->
@@ -160,7 +277,7 @@ class DashboardFirstScreenTest {
         latestTime = Date(now + (minutes + 15) * 60_000L), evidenceCount = 6
     )
 
-    private fun render(scenario: ActivityScenario<MainActivity>, data: DashboardData, now: Long) {
+    private fun render(scenario: ActivityScenario<MainActivity>, data: DashboardData, now: Long, exactTime: Boolean = false) {
         renderedCase = when {
             data == DashboardData() -> "empty"
             data.currentStatus == DashboardData.BabyStatus.SLEEPING -> "ongoing_sleep"
@@ -173,7 +290,10 @@ class DashboardFirstScreenTest {
             (field(vm, "loadJob").get(vm) as? Job)?.cancel()
             field(vm, "loadedSnapshot").set(vm, null)
             // 返回首页会重设 Toolbar；递增毫秒版本保证相同样本也重新交给真实 renderer。
-            uiFlow(vm).value = DashboardUiState.Content(Int.MAX_VALUE, "Layout Audit", data, now + ++renderVersion)
+            renderVersion++
+            renderedNow = if (exactTime) now else now + renderVersion
+            uiFlow(vm).value = DashboardUiState.Content(Int.MAX_VALUE, "Layout Audit", data,
+                renderedNow)
             dashboard(activity).requireView().findViewById<NestedScrollView>(R.id.contentScroll).scrollTo(0, 0)
         }
         await(scenario, "合成首页未完成渲染") { activity ->
@@ -232,9 +352,9 @@ class DashboardFirstScreenTest {
     private fun assertPredictionRows(root: View, data: DashboardData) {
         val rows = listOf(
             Triple(R.id.tvPredictFeedingTime, R.id.tvPredictFeedingRemain, R.id.tvPredictFeedingEvidence) to
-                (data.feedingPrediction != null && data.currentStatus != DashboardData.BabyStatus.FEEDING),
+                (data.feedingPrediction?.latestTime?.time?.let { it >= renderedNow } == true && data.ongoingFeedingDurationMillis == null),
             Triple(R.id.tvPredictSleepTime, R.id.tvPredictSleepRemain, R.id.tvPredictSleepEvidence) to
-                (data.sleepPrediction != null && data.currentStatus != DashboardData.BabyStatus.SLEEPING)
+                (data.sleepPrediction?.latestTime?.time?.let { it >= renderedNow } == true && data.ongoingSleepDurationMillis == null)
         )
         rows.filter { it.second }.forEach { (ids, _) ->
             val title = root.findViewById<TextView>(ids.first)

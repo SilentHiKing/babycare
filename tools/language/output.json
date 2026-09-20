@@ -5682,6 +5682,36 @@
           "ja": "一部のお子さまの対応関係を特定できないため、バックアップを統合しませんでした。既存の記録は変更されていません。",
           "ko": "일부 아기의 일치 여부를 명확히 확인할 수 없어 백업을 병합하지 않았습니다. 기존 기록은 변경되지 않았습니다."
         }
+      },
+      {
+        "codeKey": "prediction_feeding_expired",
+        "language": {
+          "zh-Hans": "喂奶预测区间已过",
+          "en": "Feeding window has passed",
+          "zh-Hant": "餵奶預測區間已過",
+          "ja": "授乳の予測時間帯を過ぎました",
+          "ko": "수유 예상 시간대가 지났어요"
+        }
+      },
+      {
+        "codeKey": "prediction_sleep_expired",
+        "language": {
+          "zh-Hans": "睡眠预测区间已过",
+          "en": "Sleep window has passed",
+          "zh-Hant": "睡眠預測區間已過",
+          "ja": "睡眠の予測時間帯を過ぎました",
+          "ko": "수면 예상 시간대가 지났어요"
+        }
+      },
+      {
+        "codeKey": "prediction_expired_hint",
+        "language": {
+          "zh-Hans": "以宝宝实际情况为准，记录后更新预测",
+          "en": "Follow your baby’s actual routine; new records update estimates",
+          "zh-Hant": "以寶寶實際情況為準，記錄後更新預測",
+          "ja": "赤ちゃんの実際の様子を優先し、記録して予測を更新",
+          "ko": "아기의 실제 상태를 참고해 기록하면 예측이 업데이트돼요"
+        }
       }
     ],
     "app": [

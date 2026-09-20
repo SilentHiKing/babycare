@@ -7,6 +7,7 @@ import com.zero.common.ext.getAppString
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.zero.babycare.home.BabyRecordChangeBus
 import com.zero.babycare.statistics.mapper.StatisticsDateRange
 import com.zero.babycare.statistics.mapper.StatisticsDurationCalculator
 import com.zero.babycare.statistics.mapper.StatisticsGrowthHistory
@@ -55,6 +56,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
@@ -64,9 +66,14 @@ import java.time.temporal.ChronoUnit
 /**
  * 统计页面 ViewModel
  */
-class StatisticsViewModel(application: Application, private val savedStateHandle: SavedStateHandle) : AndroidViewModel(application) {
+class StatisticsViewModel @JvmOverloads constructor(
+    application: Application,
+    private val savedStateHandle: SavedStateHandle,
+    injectedRepository: BabyRepository? = null
+) : AndroidViewModel(application) {
 
-    private val repository = BabyRepository(application)
+    // 默认仍使用应用数据库；隔离回归可通过同一查询实现验证提交后的派生状态。
+    private val repository = injectedRepository ?: BabyRepository(application)
     private val whoStandardProvider by lazy { WhoGrowthStandardProvider(getApplication()) }
 
     // ==================== 状态 ====================
@@ -92,6 +99,19 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
 
     private var contentLoadJob: Job? = null
     private var calendarLoadJob: Job? = null
+
+    init {
+        // 保存允许离页；返回统计后的首次查询可能早于提交完成，必须继续接收提交后的失效信号。
+        viewModelScope.launch {
+            BabyRecordChangeBus.changes.collect { changedBabyId ->
+                val currentBabyId = _currentBabyId.value
+                if (currentBabyId > 0 && (changedBabyId == currentBabyId ||
+                        changedBabyId == BabyRecordChangeBus.ALL_BABIES_CHANGED)) {
+                    loadData()
+                }
+            }
+        }
+    }
 
     // ==================== 公开方法 ====================
 
@@ -258,11 +278,22 @@ class StatisticsViewModel(application: Application, private val savedStateHandle
 
         calendarLoadJob = viewModelScope.launch {
             try {
-                // 周视图可能跨月，两个可见月份都查询，翻周后不能继续沿用旧月的记录点。
-                val firstMonth = YearMonth.from(browse.anchorDate)
-                val lastMonth = if (browse.monthMode) firstMonth else YearMonth.from(browse.anchorDate.plusDays(6))
-                val dates = repository.getDatesWithRecords(babyId, firstMonth) +
-                    if (lastMonth == firstMonth) emptySet() else repository.getDatesWithRecords(babyId, lastMonth)
+                // 月视图也补齐首尾周；灰色日期仍可点击，记录点必须覆盖整个可见日期范围。
+                val month = YearMonth.from(browse.anchorDate)
+                val firstDate = if (browse.monthMode) StatisticsDateRange.week(month.atDay(1)).startDate
+                    else browse.anchorDate
+                val lastDate = if (browse.monthMode) StatisticsDateRange.week(month.atEndOfMonth()).endDate
+                    else browse.anchorDate.plusDays(6)
+                val dates = withContext(Dispatchers.IO) {
+                    buildSet {
+                        var queryMonth = YearMonth.from(firstDate)
+                        val lastMonth = YearMonth.from(lastDate)
+                        while (queryMonth <= lastMonth) {
+                            addAll(repository.getDatesWithRecords(babyId, queryMonth).filter { it in firstDate..lastDate })
+                            queryMonth = queryMonth.plusMonths(1)
+                        }
+                    }
+                }
                 if (_currentBabyId.value == babyId && _uiState.value.calendarBrowse == browse) {
                     _uiState.value = _uiState.value.copy(datesWithRecords = dates)
                 }
