@@ -3,7 +3,6 @@ package com.zero.babycare.statistics
 import com.zero.babycare.statistics.mapper.StatisticsTimelineMapper
 import com.zero.babycare.statistics.model.TimelineEditTarget
 import com.zero.babydata.entity.CustomEventData
-import com.zero.babydata.entity.ChildDailyRecord
 import com.zero.babydata.entity.DiaperData
 import com.zero.babydata.entity.EventRecord
 import com.zero.babydata.entity.EventType
@@ -23,43 +22,6 @@ import java.time.Instant
 import java.time.ZoneId
 
 class StatisticsTimelineMapperTest {
-
-    @Test
-    fun `legacy growth preserves float units identity and unparsed full details`() {
-        val raw = "  {\"unknown\":9007199254740993}\n" + "合成备注".repeat(300) + "  "
-        val photo = "content://synthetic/photo?raw=1\nhttps://example.invalid/reference"
-        val record = ChildDailyRecord(recordId = 77, babyId = 9,
-            recordDate = Instant.parse("2026-05-02T13:04:05Z").toEpochMilli(),
-            weight = 4.234567f, height = 54.12345f, headCircumference = 37.45678f,
-            extra = raw, pic = photo)
-        val before = record.copy()
-        val imperialMapper = StatisticsTimelineMapper(FakeStrings(), ZoneId.of("Asia/Shanghai"), FakeUnits(true))
-        val item = imperialMapper.mapLegacyGrowth(record)
-        assertEquals(TimelineEditTarget.LegacyGrowth(77), item.editTarget)
-        assertEquals(CommonR.drawable.ic_event_growth, item.iconResId)
-        assertEquals(CommonR.color.event_growth, item.colorResId)
-        assertEquals("21:04", item.timeText)
-        assertEquals("体重：4.234567kg · 身高：54.12345cm · 头围：37.45678cm", item.detailText)
-        assertEquals(raw.take(500), item.noteText)
-        val detail = requireNotNull(item.legacyGrowthDetail)
-        assertEquals(9, detail.babyId)
-        assertEquals(77, detail.recordId)
-        assertTrue(detail.contentText.contains("2026-05-02 21:04:05"))
-        assertTrue(detail.contentText.contains(raw))
-        assertTrue(detail.contentText.contains(photo))
-        assertTrue(detail.contentText.endsWith("旧版记录不计入成长趋势与百分位"))
-        assertEquals(before, record)
-    }
-
-    @Test
-    fun `legacy row without measurements remains visible with its original note`() {
-        val item = mapper.mapLegacyGrowth(ChildDailyRecord(recordId = 78, babyId = 9,
-            recordDate = 1_000, extra = "只有备注"))
-        assertEquals("未填写测量值", item.detailText)
-        assertEquals("只有备注", item.noteText)
-        assertTrue(requireNotNull(item.legacyGrowthDetail).contentText.contains("备注：只有备注"))
-        assertTrue(!item.detailText.contains("0kg") && !item.detailText.contains("0cm"))
-    }
 
     @Test
     fun `medicine stable codes and legacy units share localized timeline labels`() {
@@ -363,12 +325,6 @@ class StatisticsTimelineMapperTest {
                 CommonR.string.unit_mg_abbr -> "mg"
                 CommonR.string.unit_drop -> "滴"
                 CommonR.string.unit_tablet -> "片"
-                CommonR.string.legacy_growth_record_title -> "历史成长记录"
-                CommonR.string.legacy_growth_empty -> "未填写测量值"
-                CommonR.string.legacy_growth_photo_reference -> "图片引用"
-                CommonR.string.legacy_growth_statistics_hint -> "旧版记录不计入成长趋势与百分位"
-                CommonR.string.event_time -> "事件时间"
-                CommonR.string.note -> "备注"
                 else -> "res-$resId"
             }
         }
@@ -395,12 +351,12 @@ class StatisticsTimelineMapperTest {
         }
     }
 
-    private class FakeUnits(private val imperial: Boolean = false) : StatisticsTimelineMapper.Units {
+    private class FakeUnits : StatisticsTimelineMapper.Units {
         override fun feedingUnit(): String = "ml"
         override fun feedingUnitLabelResId(): Int = CommonR.string.unit_ml_abbr
-        override fun weightUnit(): String = if (imperial) "lb" else "kg"
-        override fun weightUnitLabelResId(): Int = if (imperial) CommonR.string.unit_lb_abbr else CommonR.string.weight_unit
-        override fun heightUnit(): String = if (imperial) "in" else "cm"
-        override fun heightUnitLabelResId(): Int = if (imperial) CommonR.string.unit_in_abbr else CommonR.string.height_unit
+        override fun weightUnit(): String = "kg"
+        override fun weightUnitLabelResId(): Int = CommonR.string.weight_unit
+        override fun heightUnit(): String = "cm"
+        override fun heightUnitLabelResId(): Int = CommonR.string.height_unit
     }
 }

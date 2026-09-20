@@ -571,8 +571,8 @@
     <string name="prediction_feeding_expired">수유 예상 시간대가 지났어요</string>
     <string name="prediction_sleep_expired">수면 예상 시간대가 지났어요</string>
     <string name="prediction_expired_hint">아기의 실제 상태를 참고해 기록하면 예측이 업데이트돼요</string>
-    <string name="legacy_growth_record_title">이전 형식의 성장 기록</string>
-    <string name="legacy_growth_empty">입력된 측정값이 없어요</string>
-    <string name="legacy_growth_photo_reference">사진 참조</string>
-    <string name="legacy_growth_statistics_hint">이전 형식의 기록은 원래 측정값을 유지하며, 아직 성장 추이와 백분위에 포함되지 않아요.</string>
+    <string name="statistics_growth_percentile_chart_note">점은 측정 순서대로 같은 간격으로 표시되며, 간격은 시간을 나타내지 않아요. 기준선: P10, P50, P90.</string>
+    <string name="statistics_growth_percentile_period_format">최근 유효 측정: %1$d회\n%2$s–%3$s</string>
+    <string name="statistics_growth_percentile_point_accessibility_format">%1$s, P%2$d</string>
+    <string name="statistics_growth_percentile_chart_accessibility_format">%1$s. %2$s. %3$s</string>
 </resources>

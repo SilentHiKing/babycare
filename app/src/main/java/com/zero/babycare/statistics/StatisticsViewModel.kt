@@ -24,14 +24,13 @@ import com.zero.babycare.statistics.model.HealthStats
 import com.zero.babycare.statistics.model.InsightSectionUiModel
 import com.zero.babycare.statistics.model.StatisticsUiEvent
 import com.zero.babycare.statistics.model.StatisticsUiState
+import com.zero.babycare.statistics.model.StatisticsClockContext
 import com.zero.babycare.statistics.model.StructureItem
 import com.zero.babycare.statistics.model.StructureOverview
 import com.zero.babycare.statistics.model.StructureSection
 import com.zero.babycare.statistics.model.SummaryMetricType
 import com.zero.babycare.statistics.model.SummaryMetricUiModel
 import com.zero.babycare.statistics.model.TimelineUiItem
-import com.zero.babycare.statistics.model.TimelineEditTarget
-import com.zero.babycare.statistics.model.LegacyGrowthDetailUiModel
 import com.zero.babycare.statistics.model.TrendOverview
 import com.zero.babycare.statistics.model.TrendPeriod
 import com.zero.babycare.statistics.model.TrendPeriodSummary
@@ -74,11 +73,6 @@ class StatisticsViewModel @JvmOverloads constructor(
     injectedRepository: BabyRepository? = null
 ) : AndroidViewModel(application) {
 
-    private companion object {
-        const val LEGACY_DETAIL_BABY = "statistics_legacy_detail_baby"
-        const val LEGACY_DETAIL_RECORD = "statistics_legacy_detail_record"
-    }
-
     // 默认仍使用应用数据库；隔离回归可通过同一查询实现验证提交后的派生状态。
     private val repository = injectedRepository ?: BabyRepository(application)
     private val whoStandardProvider by lazy { WhoGrowthStandardProvider(getApplication()) }
@@ -106,6 +100,7 @@ class StatisticsViewModel @JvmOverloads constructor(
 
     private var contentLoadJob: Job? = null
     private var calendarLoadJob: Job? = null
+    private var requestedClockContext = _uiState.value.clockContext
 
     init {
         // 保存允许离页；返回统计后的首次查询可能早于提交完成，必须继续接收提交后的失效信号。
@@ -127,10 +122,6 @@ class StatisticsViewModel @JvmOverloads constructor(
      */
     fun setBabyId(babyId: Int) {
         if (_currentBabyId.value != babyId) {
-            // 冷恢复尚未取得宝宝时保留请求；首个真实宝宝不匹配或主动切换后立即失效。
-            if (_currentBabyId.value != 0 || savedStateHandle.get<Int>(LEGACY_DETAIL_BABY) != babyId) {
-                clearLegacyGrowthDetail()
-            }
             _currentBabyId.value = babyId
             _uiState.value = _uiState.value.copy(
                 babyId = babyId,
@@ -146,9 +137,7 @@ class StatisticsViewModel @JvmOverloads constructor(
             is StatisticsUiEvent.ChangeMonth -> onMonthChanged(event.yearMonth)
             StatisticsUiEvent.GoToday -> goToToday()
             StatisticsUiEvent.Refresh -> refreshData()
-            is StatisticsUiEvent.OpenTimelineItem -> {
-                (event.target as? TimelineEditTarget.LegacyGrowth)?.let { openLegacyGrowthDetail(it.recordId) }
-            }
+            is StatisticsUiEvent.OpenTimelineItem -> Unit
         }
     }
 
@@ -158,7 +147,6 @@ class StatisticsViewModel @JvmOverloads constructor(
     fun selectDate(date: LocalDate) {
         val browse = CalendarBrowseState.forDate(date, _uiState.value.calendarBrowse.monthMode)
         if (_selectedDate.value != date || _uiState.value.calendarBrowse != browse) {
-            if (_selectedDate.value != date) clearLegacyGrowthDetail()
             _selectedDate.value = date
             savedStateHandle["statistics_selected_date"] = date.toString()
             saveCalendarBrowse(browse)
@@ -186,38 +174,16 @@ class StatisticsViewModel @JvmOverloads constructor(
         loadData()
     }
 
-    /** 仅接受当前已加载日列表中的旧表身份，避免迟到点击打开另一宝宝或日期的数据。 */
-    fun openLegacyGrowthDetail(recordId: Int) {
-        val state = _uiState.value
-        if (state.isLoading || state.errorMessage != null || state.babyId != _currentBabyId.value) return
-        val detail = state.dayRecord.timelineItems.firstOrNull {
-            it.editTarget == TimelineEditTarget.LegacyGrowth(recordId)
-        }?.legacyGrowthDetail?.takeIf { it.babyId == state.babyId } ?: return
-        savedStateHandle[LEGACY_DETAIL_BABY] = detail.babyId
-        savedStateHandle[LEGACY_DETAIL_RECORD] = detail.recordId
-        _uiState.value = state.copy(legacyGrowthDetail = detail)
+    /** 返回前台核对时区/日期；系统校时广播可强制刷新，但保留选中日和独立浏览位置。 */
+    fun onClockChanged(force: Boolean = false) {
+        if (force || requestedClockContext != StatisticsClockContext.now()) loadData()
     }
 
-    fun dismissLegacyGrowthDetail(babyId: Int, recordId: Int) {
-        if (savedStateHandle.get<Int>(LEGACY_DETAIL_BABY) == babyId &&
-            savedStateHandle.get<Int>(LEGACY_DETAIL_RECORD) == recordId) clearLegacyGrowthDetail()
-    }
-
-    private fun clearLegacyGrowthDetail() {
-        savedStateHandle.remove<Int>(LEGACY_DETAIL_BABY)
-        savedStateHandle.remove<Int>(LEGACY_DETAIL_RECORD)
-        _uiState.value = _uiState.value.copy(legacyGrowthDetail = null)
-    }
-
-    /** SavedState 不携带长备注或图片引用，查询完成后按宝宝和原始行 ID 从最新快照恢复。 */
-    private fun restoreLegacyGrowthDetail(babyId: Int, items: List<TimelineUiItem>): LegacyGrowthDetailUiModel? {
-        val recordId = savedStateHandle.get<Int>(LEGACY_DETAIL_RECORD) ?: return null
-        val detail = items.firstOrNull { it.editTarget == TimelineEditTarget.LegacyGrowth(recordId) }
-            ?.legacyGrowthDetail?.takeIf {
-                it.babyId == babyId && savedStateHandle.get<Int>(LEGACY_DETAIL_BABY) == babyId
-            }
-        if (detail == null) clearLegacyGrowthDetail()
-        return detail
+    /** 查询期间切换时区时丢弃旧结果，并由最新上下文接管整页加载。 */
+    private fun acceptsClock(clock: StatisticsClockContext): Boolean {
+        if (clock == StatisticsClockContext.now()) return true
+        onClockChanged()
+        return false
     }
 
     // ==================== 私有方法 ====================
@@ -229,6 +195,9 @@ class StatisticsViewModel @JvmOverloads constructor(
     private fun loadData() {
         val babyId = _currentBabyId.value
         val date = _selectedDate.value
+        val clock = StatisticsClockContext.now()
+        val zone = clock.zone
+        requestedClockContext = clock
         contentLoadJob?.cancel()
 
         if (babyId <= 0) {
@@ -239,24 +208,29 @@ class StatisticsViewModel @JvmOverloads constructor(
                 insights = InsightSectionUiModel.empty(date),
                 datesWithRecords = emptySet(),
                 isLoading = false,
-                errorMessage = null
+                errorMessage = null,
+                clockContext = clock
             )
             calendarLoadJob?.cancel()
             return
         }
 
-        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+        _uiState.value = _uiState.value.copy(
+            isLoading = true,
+            errorMessage = null,
+            datesWithRecords = if (_uiState.value.clockContext == clock) _uiState.value.datesWithRecords else emptySet()
+        )
         contentLoadJob = viewModelScope.launch {
             try {
                 val content = coroutineScope {
                     // Deferred 仅属于本次请求；各区块共享输入，切换宝宝/日期时一并取消，不复用过期数据。
-                    val monthRange = StatisticsDateRange.month(date)
+                    val monthRange = StatisticsDateRange.month(date, zone)
                     val input = StatisticsLoadInputs(
                         babyInfo = async(Dispatchers.IO) { repository.getBabyInfo(babyId) },
                         growth = listOf(EventType.GROWTH_WEIGHT, EventType.GROWTH_HEIGHT, EventType.GROWTH_HEAD)
                             .associateWith { type ->
                                 async(Dispatchers.IO) {
-                                    StatisticsGrowthHistory.create(repository.getEventRecordsByType(babyId, type), date)
+                                    StatisticsGrowthHistory.create(repository.getEventRecordsByType(babyId, type), date, zone)
                                 }
                             },
                         monthFeedings = async(Dispatchers.IO) {
@@ -266,14 +240,14 @@ class StatisticsViewModel @JvmOverloads constructor(
                             repository.getEventRecordsBetween(babyId, monthRange.startMillis, monthRange.endMillis)
                         }
                     )
-                    val dayRecord = async(Dispatchers.IO) { buildDayRecordSection(babyId, date, input.babyInfo.await()) }
+                    val dayRecord = async(Dispatchers.IO) { buildDayRecordSection(babyId, date, input.babyInfo.await(), zone) }
                     val growth = async(Dispatchers.IO) { buildGrowthTrend(input) }
-                    val trend = async(Dispatchers.IO) { buildTrendOverview(babyId, date, input) }
+                    val trend = async(Dispatchers.IO) { buildTrendOverview(babyId, date, input, zone) }
                     val structure = async(Dispatchers.IO) {
                         buildStructureOverview(input.monthFeedings.await(), input.monthEvents.await())
                     }
                     val percentile = async(Dispatchers.IO) { buildGrowthPercentileOverview(input) }
-                    val health = async(Dispatchers.IO) { buildHealthStats(date, input.monthEvents.await()) }
+                    val health = async(Dispatchers.IO) { buildHealthStats(date, input.monthEvents.await(), zone) }
 
                     LoadedStatisticsContent(
                         dayRecord = dayRecord.await(),
@@ -288,21 +262,23 @@ class StatisticsViewModel @JvmOverloads constructor(
                     )
                 }
 
-                if (_selectedDate.value == date && _currentBabyId.value == babyId) {
+                currentCoroutineContext().ensureActive()
+                if (_selectedDate.value == date && _currentBabyId.value == babyId && acceptsClock(clock)) {
                     _uiState.value = _uiState.value.copy(
                         babyId = babyId,
                         selectedDate = date,
                         dayRecord = content.dayRecord,
                         insights = content.insights,
-                        legacyGrowthDetail = restoreLegacyGrowthDetail(babyId, content.dayRecord.timelineItems),
                         isLoading = false,
-                        errorMessage = null
+                        errorMessage = null,
+                        clockContext = clock
                     )
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                if (_selectedDate.value == date && _currentBabyId.value == babyId) {
+                currentCoroutineContext().ensureActive()
+                if (_selectedDate.value == date && _currentBabyId.value == babyId && acceptsClock(clock)) {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         errorMessage = getLoadFailedText()
@@ -310,14 +286,15 @@ class StatisticsViewModel @JvmOverloads constructor(
                 }
             }
         }
-        loadDatesWithRecords(_uiState.value.calendarBrowse)
+        loadDatesWithRecords(_uiState.value.calendarBrowse, clock)
     }
 
     /**
      * 月份标记独立于选中日内容；同样只允许最新月份请求写回。
      */
-    private fun loadDatesWithRecords(browse: CalendarBrowseState) {
+    private fun loadDatesWithRecords(browse: CalendarBrowseState, clock: StatisticsClockContext = requestedClockContext) {
         val babyId = _currentBabyId.value
+        val zone = clock.zone
         calendarLoadJob?.cancel()
 
         if (babyId <= 0) {
@@ -329,27 +306,29 @@ class StatisticsViewModel @JvmOverloads constructor(
             try {
                 // 月视图也补齐首尾周；灰色日期仍可点击，记录点必须覆盖整个可见日期范围。
                 val month = YearMonth.from(browse.anchorDate)
-                val firstDate = if (browse.monthMode) StatisticsDateRange.week(month.atDay(1)).startDate
+                val firstDate = if (browse.monthMode) StatisticsDateRange.week(month.atDay(1), zone).startDate
                     else browse.anchorDate
-                val lastDate = if (browse.monthMode) StatisticsDateRange.week(month.atEndOfMonth()).endDate
+                val lastDate = if (browse.monthMode) StatisticsDateRange.week(month.atEndOfMonth(), zone).endDate
                     else browse.anchorDate.plusDays(6)
                 val dates = withContext(Dispatchers.IO) {
                     buildSet {
                         var queryMonth = YearMonth.from(firstDate)
                         val lastMonth = YearMonth.from(lastDate)
                         while (queryMonth <= lastMonth) {
-                            addAll(repository.getDatesWithRecords(babyId, queryMonth).filter { it in firstDate..lastDate })
+                            addAll(repository.getDatesWithRecords(babyId, queryMonth, zone).filter { it in firstDate..lastDate })
                             queryMonth = queryMonth.plusMonths(1)
                         }
                     }
                 }
-                if (_currentBabyId.value == babyId && _uiState.value.calendarBrowse == browse) {
+                currentCoroutineContext().ensureActive()
+                if (_currentBabyId.value == babyId && _uiState.value.calendarBrowse == browse && acceptsClock(clock)) {
                     _uiState.value = _uiState.value.copy(datesWithRecords = dates)
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                if (_currentBabyId.value == babyId && _uiState.value.calendarBrowse == browse) {
+                currentCoroutineContext().ensureActive()
+                if (_currentBabyId.value == babyId && _uiState.value.calendarBrowse == browse && acceptsClock(clock)) {
                     _uiState.value = _uiState.value.copy(datesWithRecords = emptySet())
                 }
             }
@@ -383,10 +362,11 @@ class StatisticsViewModel @JvmOverloads constructor(
     private suspend fun buildDayRecordSection(
         babyId: Int,
         date: LocalDate,
-        babyInfo: BabyInfo?
+        babyInfo: BabyInfo?,
+        zone: ZoneId
     ): DayRecordSectionUiModel {
-        val summaryData = repository.getDaySummary(babyId, date)
-        val timelineRecords = repository.getTimelineRecords(babyId, date)
+        val summaryData = repository.getDaySummary(babyId, date, zone)
+        val timelineRecords = repository.getTimelineRecords(babyId, date, zone)
         val summary = DaySummary(
             date = date,
             feedingCount = summaryData.feedingCount,
@@ -400,7 +380,7 @@ class StatisticsViewModel @JvmOverloads constructor(
             diaperDryCount = summaryData.diaperDryCount,
             otherEventCount = summaryData.otherEventCount
         )
-        val mapper = buildTimelineMapper()
+        val mapper = buildTimelineMapper(zone)
         val context = currentCoroutineContext()
         val timelineItems = timelineRecords.map { record ->
             context.ensureActive()
@@ -408,14 +388,14 @@ class StatisticsViewModel @JvmOverloads constructor(
                 is BabyRepository.TimelineRecord.Feeding -> mapper.mapFeeding(record.record)
                 is BabyRepository.TimelineRecord.Sleep -> mapper.mapSleep(record.record)
                 is BabyRepository.TimelineRecord.Event -> mapper.mapEvent(record.record)
-                is BabyRepository.TimelineRecord.LegacyGrowth -> mapper.mapLegacyGrowth(record.record)
             }
         }
         return buildDayRecordSection(
             date = date,
             babyInfo = babyInfo,
             summary = summary,
-            timelineItems = timelineItems
+            timelineItems = timelineItems,
+            zone = zone
         )
     }
 
@@ -469,10 +449,10 @@ class StatisticsViewModel @JvmOverloads constructor(
     /**
      * 生成周/月/年趋势数据
      */
-    private suspend fun buildTrendOverview(babyId: Int, date: LocalDate, input: StatisticsLoadInputs): TrendOverview {
-        val weekRange = StatisticsDateRange.week(date)
-        val monthRange = StatisticsDateRange.month(date)
-        val yearRange = StatisticsDateRange.year(date)
+    private suspend fun buildTrendOverview(babyId: Int, date: LocalDate, input: StatisticsLoadInputs, zone: ZoneId): TrendOverview {
+        val weekRange = StatisticsDateRange.week(date, zone)
+        val monthRange = StatisticsDateRange.month(date, zone)
+        val yearRange = StatisticsDateRange.year(date, zone)
 
         val summaries = listOf(
             buildPeriodSummary(babyId, TrendPeriod.WEEK, weekRange),
@@ -519,8 +499,7 @@ class StatisticsViewModel @JvmOverloads constructor(
         )
 
         var diaperCount = 0
-        // 旧测量暂不进入成长算法，但记录条数必须与日摘要、时间轴采用同一口径。
-        var otherEventCount = repository.getLegacyGrowthCountBetween(babyId, range.startMillis, range.endMillis)
+        var otherEventCount = 0
         events.forEach { event ->
             context.ensureActive()
             if (EventType.isDiaper(event.type)) {
@@ -782,8 +761,8 @@ class StatisticsViewModel @JvmOverloads constructor(
     /**
      * 构建健康/疫苗统计（按选中月份）
      */
-    private suspend fun buildHealthStats(date: LocalDate, events: List<EventRecord>): HealthStats {
-        val range = StatisticsDateRange.month(date)
+    private suspend fun buildHealthStats(date: LocalDate, events: List<EventRecord>, zone: ZoneId): HealthStats {
+        val range = StatisticsDateRange.month(date, zone)
 
         var temperatureCount = 0
         var medicineCount = 0
@@ -878,9 +857,10 @@ class StatisticsViewModel @JvmOverloads constructor(
         date: LocalDate,
         babyInfo: BabyInfo?,
         summary: DaySummary,
-        timelineItems: List<TimelineUiItem>
+        timelineItems: List<TimelineUiItem>,
+        zone: ZoneId
     ): DayRecordSectionUiModel {
-        val babyAgeText = babyInfo?.let { buildBabyAgeText(it, date) }
+        val babyAgeText = babyInfo?.let { buildBabyAgeText(it, date, zone) }
         return DayRecordSectionUiModel(
             date = date,
             babyAgeText = babyAgeText,
@@ -895,12 +875,12 @@ class StatisticsViewModel @JvmOverloads constructor(
         )
     }
 
-    private fun buildBabyAgeText(babyInfo: BabyInfo, selectedDate: LocalDate): String? {
+    private fun buildBabyAgeText(babyInfo: BabyInfo, selectedDate: LocalDate, zone: ZoneId): String? {
         if (babyInfo.birthDate <= 0) {
             return null
         }
         val birthDate = Instant.ofEpochMilli(babyInfo.birthDate)
-            .atZone(ZoneId.systemDefault())
+            .atZone(zone)
             .toLocalDate()
         val days = ChronoUnit.DAYS.between(birthDate, selectedDate)
         return if (days < 0) {
@@ -989,7 +969,7 @@ class StatisticsViewModel @JvmOverloads constructor(
         return if (parts.isEmpty()) "" else "(${parts.joinToString("/")})"
     }
 
-    private fun buildTimelineMapper(): StatisticsTimelineMapper {
+    private fun buildTimelineMapper(zone: ZoneId): StatisticsTimelineMapper {
         val app = LanguageManager.localizedContext(getApplication<Application>())
         return StatisticsTimelineMapper(
             strings = object : StatisticsTimelineMapper.Strings {
@@ -1000,7 +980,8 @@ class StatisticsViewModel @JvmOverloads constructor(
                 override fun format(resId: Int, vararg args: Any): String {
                     return app.getString(resId, *args)
                 }
-            }
+            },
+            zone = zone
         )
     }
 

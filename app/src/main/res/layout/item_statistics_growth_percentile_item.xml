@@ -17,6 +17,14 @@
         android:layout_height="wrap_content"
         android:textColor="?attr/colorTextPrimary" />
 
+    <TextView
+        android:id="@+id/tvGrowthPercentilePeriod"
+        style="@style/TextAppearance.BabyCare.Body2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/content_gap_small"
+        android:textColor="?attr/colorTextSecondary" />
+
     <com.zero.babycare.statistics.widget.PercentileChartView
         android:id="@+id/chartGrowthPercentile"
         android:layout_width="match_parent"

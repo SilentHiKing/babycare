@@ -1,8 +1,12 @@
 package com.zero.babycare.statistics
 
 import android.os.Bundle
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.view.View
-import android.view.Gravity
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.ConcatAdapter
@@ -25,12 +29,8 @@ import com.zero.babycare.statistics.adapter.TimelineAdapter
 import com.zero.babycare.statistics.model.TimelineEditTarget
 import com.zero.babycare.statistics.model.TimelineUiItem
 import com.zero.babycare.statistics.model.StatisticsUiState
-import com.zero.babycare.statistics.model.LegacyGrowthDetailUiModel
-import com.lxj.xpopup.core.BasePopupView
-import com.lxj.xpopup.interfaces.SimpleCallback
 import com.zero.common.ext.launchInLifecycle
 import com.zero.components.base.BaseFragment
-import com.zero.components.base.util.DialogHelper
 import kotlinx.coroutines.flow.combine
 
 /**
@@ -62,9 +62,12 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     private lateinit var concatAdapter: ConcatAdapter
     private lateinit var timelineAdapter: TimelineAdapter
     private var renderedState: StatisticsUiState? = null
-    private var legacyDetailDialog: BasePopupView? = null
-    private var displayedLegacyDetail: LegacyGrowthDetailUiModel? = null
-    private var legacyDetailEpoch = 0L
+    private var clockReceiverContext: Context? = null
+    private val clockReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            refreshClock(force = true)
+        }
+    }
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
@@ -96,19 +99,37 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
         super.onHiddenChanged(hidden)
         if (!hidden && isCurrentStatisticsTarget()) {
             syncCurrentBaby(refresh = true)
-        } else if (hidden) {
-            dismissLegacyDetailWindow()
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // 只在页面生命周期内监听；隐藏页面不查询，重新显示时由原可见入口刷新。
+        val context = requireContext().applicationContext
+        ContextCompat.registerReceiver(context, clockReceiver, IntentFilter().apply {
+            addAction(Intent.ACTION_DATE_CHANGED)
+            addAction(Intent.ACTION_TIME_CHANGED)
+            addAction(Intent.ACTION_TIMEZONE_CHANGED)
+        }, ContextCompat.RECEIVER_NOT_EXPORTED)
+        clockReceiverContext = context
+    }
+
+    override fun onStop() {
+        clockReceiverContext?.unregisterReceiver(clockReceiver)
+        clockReceiverContext = null
+        super.onStop()
     }
 
     override fun onResume() {
         super.onResume()
-        renderLegacyGrowthDetail(vm.uiState.value)
+        refreshClock()
     }
 
-    override fun onPause() {
-        dismissLegacyDetailWindow()
-        super.onPause()
+    /** 恢复只核对时间上下文，正常后台往返不重复重查，也不会把历史选中日改成今天。 */
+    private fun refreshClock(force: Boolean = false) {
+        if (view == null || isHidden || !isCurrentStatisticsTarget() || !mainVm.babyDataLoaded.value) return
+        syncCurrentBaby(refresh = false)
+        if (isCurrentStatisticsTarget()) vm.onClockChanged(force)
     }
 
     /**
@@ -219,19 +240,20 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     }
 
     private fun renderStatistics(state: StatisticsUiState) {
-        renderLegacyGrowthDetail(state)
         renderPageState(state)
         if (!mainVm.babyDataLoaded.value || state.isLoading || state.errorMessage != null) return
+        val clockChanged = renderedState?.clockContext != state.clockContext
         calendarAdapter.setDatesWithRecords(state.datesWithRecords)
+        if (clockChanged) calendarAdapter.refreshClock()
         calendarAdapter.syncSelectedDate(state.selectedDate)
         calendarAdapter.syncBrowseState(state.calendarBrowse)
         // 月份记录点和加载状态不能使所有时间轴重新绑定，浏览位置也不能因此回到选中日。
-        if (renderedState?.dayRecord != state.dayRecord) {
+        if (clockChanged || renderedState?.dayRecord != state.dayRecord) {
             babyAgeAdapter.bindDayRecord(state.dayRecord)
             summaryAdapter.updateSummary(state.dayRecord.summaryMetrics)
             updateTimelineUI(state.dayRecord.timelineItems)
         }
-        if (renderedState?.insights != state.insights) {
+        if (clockChanged || renderedState?.insights != state.insights) {
             trendAdapter.updateTrend(state.insights.trend, state.selectedDate)
             structureAdapter.updateStructure(state.insights.structure, state.selectedDate)
             growthAdapter.updateTrend(state.insights.growth, state.selectedDate)
@@ -268,7 +290,6 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
     }
 
     override fun onDestroyView() {
-        dismissLegacyDetailWindow()
         // ConcatAdapter 的日历 holder 带有回调和 View 引用，View 销毁时同步断开列表连接。
         binding.rvStatistics.adapter = null
         renderedState = null
@@ -327,47 +348,6 @@ class StatisticsFragment : BaseFragment<FragmentStatisticsBinding>(), BackPressH
                     )
                 )
             }
-            is TimelineEditTarget.LegacyGrowth -> vm.openLegacyGrowthDetail(target.recordId)
         }
-    }
-
-    private fun canShowLegacyDetail(state: StatisticsUiState): Boolean =
-        view != null && isResumed && !isHidden && isCurrentStatisticsTarget() &&
-            mainVm.babyDataLoaded.value && mainVm.getCurrentBabyInfo()?.babyId == state.babyId &&
-            !state.isLoading && state.errorMessage == null
-
-    /** 窗口世代隔离迟到关闭回调；离页和重建只撤窗口，用户关闭当前详情才消费 VM 身份。 */
-    private fun renderLegacyGrowthDetail(state: StatisticsUiState) {
-        val detail = state.legacyGrowthDetail
-        if (!canShowLegacyDetail(state) || detail == null) {
-            dismissLegacyDetailWindow()
-            return
-        }
-        if (displayedLegacyDetail == detail) return
-        dismissLegacyDetailWindow()
-        displayedLegacyDetail = detail
-        val epoch = legacyDetailEpoch
-        legacyDetailDialog = DialogHelper.showAlertDialog(
-            context = requireContext(), title = detail.titleText, content = detail.contentText,
-            contentGravity = Gravity.START
-        ).also { popup ->
-            popup.popupInfo.xPopupCallback = object : SimpleCallback() {
-                override fun onDismiss(popupView: BasePopupView?) {
-                    if (legacyDetailEpoch != epoch || displayedLegacyDetail != detail ||
-                        !canShowLegacyDetail(vm.uiState.value)) return
-                    displayedLegacyDetail = null
-                    legacyDetailDialog = null
-                    vm.dismissLegacyGrowthDetail(detail.babyId, detail.recordId)
-                }
-            }
-        }
-    }
-
-    private fun dismissLegacyDetailWindow() {
-        legacyDetailEpoch++
-        displayedLegacyDetail = null
-        val popup = legacyDetailDialog
-        legacyDetailDialog = null
-        popup?.dismiss()
     }
 }

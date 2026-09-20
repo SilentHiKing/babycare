@@ -435,13 +435,8 @@ class BabyRepository(private val database: BabyDatabase) {
 
     // ==================== 统计页面相关查询 ====================
 
-    /** 周期汇总只取数量，避免重复载入旧表长备注和图片引用。 */
-    suspend fun getLegacyGrowthCountBetween(babyId: Int, startTime: Long, endTime: Long): Int =
-        childDailyRecordDao.countRecordsBetween(babyId, startTime, endTime)
-
     /** 获取指定月份存在任意生活记录的日期集合。 */
-    suspend fun getDatesWithRecords(babyId: Int, yearMonth: YearMonth): Set<LocalDate> {
-        val zone = ZoneId.systemDefault()
+    suspend fun getDatesWithRecords(babyId: Int, yearMonth: YearMonth, zone: ZoneId = ZoneId.systemDefault()): Set<LocalDate> {
         val startOfMonth = yearMonth.atDay(1)
             .atStartOfDay(zone)
             .toInstant()
@@ -454,8 +449,7 @@ class BabyRepository(private val database: BabyDatabase) {
 
         val feedingSpans = feedingRecordDao.getFeedingTimeSpans(babyId, startOfMonth, endOfMonth)
         val sleepSpans = sleepRecordDao.getSleepTimeSpans(babyId, startOfMonth, endOfMonth)
-        val eventDates = eventRecordDao.getDatesWithEvents(babyId, startOfMonth, endOfMonth)
-        val legacyGrowthTimes = childDailyRecordDao.getRecordTimesBetween(babyId, startOfMonth, endOfMonth)
+        val eventTimes = eventRecordDao.getEventTimesBetween(babyId, startOfMonth, endOfMonth)
         val context = currentCoroutineContext()
 
         return buildSet {
@@ -479,11 +473,7 @@ class BabyRepository(private val database: BabyDatabase) {
             }
             feedingSpans.forEach(::addSpan)
             sleepSpans.forEach(::addSpan)
-            eventDates.forEach { dateText ->
-                context.ensureActive()
-                runCatching { LocalDate.parse(dateText) }.getOrNull()?.let(::add)
-            }
-            legacyGrowthTimes.forEach { time ->
+            eventTimes.forEach { time ->
                 context.ensureActive()
                 add(Instant.ofEpochMilli(time).atZone(zone).toLocalDate())
             }
@@ -504,10 +494,10 @@ class BabyRepository(private val database: BabyDatabase) {
     )
 
     /** 获取当日喂养、睡眠、排泄与其他事件摘要。 */
-    suspend fun getDaySummary(babyId: Int, date: LocalDate): DaySummaryData {
-        val startOfDay = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    suspend fun getDaySummary(babyId: Int, date: LocalDate, zone: ZoneId = ZoneId.systemDefault()): DaySummaryData {
+        val startOfDay = date.atStartOfDay(zone).toInstant().toEpochMilli()
         val endOfDay = date.plusDays(1)
-            .atStartOfDay(ZoneId.systemDefault())
+            .atStartOfDay(zone)
             .toInstant()
             .toEpochMilli() - 1
 
@@ -522,8 +512,7 @@ class BabyRepository(private val database: BabyDatabase) {
         var diaperDirtyCount = 0
         var diaperMixedCount = 0
         var diaperDryCount = 0
-        // 历史成长行与当前成长事件同属其他记录；摘要数量须与可回看的时间轴一致。
-        var otherEventCount = getLegacyGrowthCountBetween(babyId, startOfDay, endOfDay)
+        var otherEventCount = 0
         events.forEach { event ->
             when (event.type) {
                 EventType.DIAPER_WET -> diaperWetCount++
@@ -565,14 +554,13 @@ class BabyRepository(private val database: BabyDatabase) {
         data class Feeding(val record: FeedingRecord) : TimelineRecord(record.feedingStart)
         data class Sleep(val record: SleepRecord) : TimelineRecord(record.sleepStart)
         data class Event(val record: EventRecord) : TimelineRecord(record.time)
-        data class LegacyGrowth(val record: ChildDailyRecord) : TimelineRecord(record.recordDate)
     }
 
     /** 返回当天发生或持续至当天的原记录，保留编辑身份和原始起止时间。 */
-    suspend fun getTimelineRecords(babyId: Int, date: LocalDate): List<TimelineRecord> {
-        val startOfDay = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    suspend fun getTimelineRecords(babyId: Int, date: LocalDate, zone: ZoneId = ZoneId.systemDefault()): List<TimelineRecord> {
+        val startOfDay = date.atStartOfDay(zone).toInstant().toEpochMilli()
         val endOfDay = date.plusDays(1)
-            .atStartOfDay(ZoneId.systemDefault())
+            .atStartOfDay(zone)
             .toInstant()
             .toEpochMilli() - 1
 
@@ -582,9 +570,6 @@ class BabyRepository(private val database: BabyDatabase) {
             .map { TimelineRecord.Sleep(it) }
         val events = eventRecordDao.getEventRecordsForDay(babyId, startOfDay, endOfDay)
             .map { TimelineRecord.Event(it) }
-        val legacyGrowth = childDailyRecordDao.getRecordsBetween(babyId, startOfDay, endOfDay)
-            .map { TimelineRecord.LegacyGrowth(it) }
-
-        return (feedings + sleeps + events + legacyGrowth).sortedByDescending { it.time }
+        return (feedings + sleeps + events).sortedByDescending { it.time }
     }
 }

@@ -37,8 +37,9 @@ interface EventRecordDao {
     @Query("SELECT * FROM Event_Records WHERE babyId = :babyId AND time BETWEEN :startTime AND :endTime ORDER BY time ASC")
     suspend fun getEventRecordsBetween(babyId: Int, startTime: Long, endTime: Long): List<EventRecord>
 
-    @Query("SELECT DISTINCT date(time / 1000, 'unixepoch', 'localtime') as recordDate FROM Event_Records WHERE babyId = :babyId AND time BETWEEN :startTime AND :endTime")
-    suspend fun getDatesWithEvents(babyId: Int, startTime: Long, endTime: Long): List<String>
+    // 只投影时间，由 Repository 按本次请求时区归日，避免 SQLite 的全局 localtime 混入另一时区。
+    @Query("SELECT DISTINCT time FROM Event_Records WHERE babyId = :babyId AND time BETWEEN :startTime AND :endTime")
+    suspend fun getEventTimesBetween(babyId: Int, startTime: Long, endTime: Long): List<Long>
 
     @Query("DELETE FROM Event_Records WHERE eventId = :eventId")
     suspend fun deleteEventRecordById(eventId: Int): Int

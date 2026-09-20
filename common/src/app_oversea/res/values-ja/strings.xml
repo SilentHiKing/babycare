@@ -571,8 +571,8 @@
     <string name="prediction_feeding_expired">授乳の予測時間帯を過ぎました</string>
     <string name="prediction_sleep_expired">睡眠の予測時間帯を過ぎました</string>
     <string name="prediction_expired_hint">赤ちゃんの実際の様子を優先し、記録して予測を更新</string>
-    <string name="legacy_growth_record_title">旧形式の成長記録</string>
-    <string name="legacy_growth_empty">測定値が入力されていません</string>
-    <string name="legacy_growth_photo_reference">画像の参照先</string>
-    <string name="legacy_growth_statistics_hint">旧形式の記録は元の測定値を保持しています。成長傾向とパーセンタイルにはまだ含まれていません。</string>
+    <string name="statistics_growth_percentile_chart_note">各点は測定順に等間隔で並び、間隔は時間を表しません。基準線：P10、P50、P90。</string>
+    <string name="statistics_growth_percentile_period_format">直近の有効な測定：%1$d 回\n%2$s～%3$s</string>
+    <string name="statistics_growth_percentile_point_accessibility_format">%1$s、P%2$d</string>
+    <string name="statistics_growth_percentile_chart_accessibility_format">%1$s。%2$s。%3$s</string>
 </resources>

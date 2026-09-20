@@ -34,6 +34,15 @@
         android:text="@string/statistics_growth_percentile_note_who"
         android:textColor="?attr/colorTextHint" />
 
+    <TextView
+        android:id="@+id/tvGrowthPercentileChartNote"
+        style="@style/TextAppearance.BabyCare.Body2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/content_gap_medium"
+        android:text="@string/statistics_growth_percentile_chart_note"
+        android:textColor="?attr/colorTextSecondary" />
+
     <include
         android:id="@+id/itemGrowthPercentileWeight"
         layout="@layout/item_statistics_growth_percentile_item"

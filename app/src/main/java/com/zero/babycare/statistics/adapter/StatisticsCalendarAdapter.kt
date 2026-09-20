@@ -89,6 +89,11 @@ class StatisticsCalendarAdapter(
         binding?.calendarView?.setDatesWithRecords(dates)
     }
 
+    /** 日期未选变且记录点相同时，也要重画“今天”并更新日历的虚拟读屏节点。 */
+    fun refreshClock() {
+        binding?.calendarView?.setDatesWithRecords(pendingDates.orEmpty())
+    }
+
     fun syncBrowseState(state: CalendarBrowseState) {
         if (pendingBrowseState == state && binding?.calendarView?.getBrowseState() == state) return
         pendingBrowseState = state

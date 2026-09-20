@@ -5,6 +5,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneId
 import com.zero.babycare.statistics.mapper.StatisticsDateRange
 
 /**
@@ -19,8 +20,18 @@ data class StatisticsUiState(
     val insights: InsightSectionUiModel = InsightSectionUiModel.empty(LocalDate.now()),
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val legacyGrowthDetail: LegacyGrowthDetailUiModel? = null
+    val clockContext: StatisticsClockContext = StatisticsClockContext.now()
 )
+
+/** 查询和渲染共享本地日期/时区；不改变用户选中日，也不以显示文本反推记录时间。 */
+data class StatisticsClockContext(val zone: ZoneId, val today: LocalDate) {
+    companion object {
+        fun now(): StatisticsClockContext {
+            val zone = ZoneId.systemDefault()
+            return StatisticsClockContext(zone, LocalDate.now(zone))
+        }
+    }
+}
 
 /**
  * 用户动作入口，Fragment 只转发事件，不承载业务判断。
@@ -96,23 +107,13 @@ data class TimelineUiItem(
     @param:DrawableRes val iconResId: Int,
     @param:ColorRes val colorResId: Int,
     @param:ColorRes val surfaceColorResId: Int,
-    val editTarget: TimelineEditTarget,
-    val legacyGrowthDetail: LegacyGrowthDetailUiModel? = null
-)
-
-/** 只读旧表详情保留原单位与完整文本；不伪造可编辑的新事件身份。 */
-data class LegacyGrowthDetailUiModel(
-    val babyId: Int,
-    val recordId: Int,
-    val titleText: String,
-    val contentText: String
+    val editTarget: TimelineEditTarget
 )
 
 sealed interface TimelineEditTarget {
     data class Feeding(val recordId: Int) : TimelineEditTarget
     data class Sleep(val recordId: Int) : TimelineEditTarget
     data class Event(val recordId: Int) : TimelineEditTarget
-    data class LegacyGrowth(val recordId: Int) : TimelineEditTarget
 }
 
 /**

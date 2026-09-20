@@ -571,8 +571,8 @@
     <string name="prediction_feeding_expired">喂奶预测区间已过</string>
     <string name="prediction_sleep_expired">睡眠预测区间已过</string>
     <string name="prediction_expired_hint">以宝宝实际情况为准，记录后更新预测</string>
-    <string name="legacy_growth_record_title">历史成长记录</string>
-    <string name="legacy_growth_empty">未填写测量值</string>
-    <string name="legacy_growth_photo_reference">图片引用</string>
-    <string name="legacy_growth_statistics_hint">旧版记录保留原始测量值，暂不计入成长趋势与百分位。</string>
+    <string name="statistics_growth_percentile_chart_note">各点按测量次序等距排列，间距不代表时间。参考线：P10、P50、P90。</string>
+    <string name="statistics_growth_percentile_period_format">最近 %1$d 次有效测量\n%2$s—%3$s</string>
+    <string name="statistics_growth_percentile_point_accessibility_format">%1$s，P%2$d</string>
+    <string name="statistics_growth_percentile_chart_accessibility_format">%1$s。%2$s。%3$s</string>
 </resources>
