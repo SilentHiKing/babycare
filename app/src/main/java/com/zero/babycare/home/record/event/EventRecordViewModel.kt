@@ -13,6 +13,7 @@ import com.zero.components.base.vm.BaseViewModel
 import com.zero.common.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -25,6 +26,27 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
     // 延迟获取默认数据源，让草稿状态恢复独立于数据库初始化，并支持隔离的数据层验证。
     private val repository by lazy { injectedRepository ?: BabyDataHelper.repository }
     internal val mutation = RecordMutationController(viewModelScope)
+
+    /** 校验反馈保留字段身份；重复保存有独立请求号，用户回到备注后仍能重新定位。 */
+    enum class ValidationField {
+        START_TIME, END_TIME, GROWTH_VALUE, TEMPERATURE, MEDICINE_NAME,
+        VACCINE_NAME, SYMPTOM, MILESTONE_NAME, CUSTOM_EVENT_NAME
+    }
+
+    data class FieldValidation(
+        val field: ValidationField,
+        @param:StringRes val messageResId: Int,
+        val requestId: Long
+    )
+
+    private var validationRequestId = 0L
+    private val _fieldValidation = MutableStateFlow<FieldValidation?>(null)
+    val fieldValidation: StateFlow<FieldValidation?> = _fieldValidation.asStateFlow()
+
+    /** 输入更改仅撤销该字段的旧反馈；是否可保存仍由下次完整校验决定。 */
+    fun clearFieldValidation(field: ValidationField? = null) {
+        if (field == null || _fieldValidation.value?.field == field) _fieldValidation.value = null
+    }
 
     /** 草稿只保存未提交的页面状态，详情原始输入由 View 层层级状态保留。 */
     data class Draft(
@@ -91,6 +113,7 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
      * 选择大类
      */
     fun selectCategory(category: EventCategory) {
+        clearFieldValidation()
         // 先清理依赖旧类型的详情状态，再发出分类/子类型变化，避免页面重建时读到旧表单数据。
         clearDurationTiming()
         _extraData.value = null
@@ -102,6 +125,7 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
      * 选择子类型
      */
     fun selectSubtype(subtype: EventSubtype) {
+        clearFieldValidation()
         val subtypeChanged = _selectedSubtype.value?.type != subtype.type
         if (subtypeChanged) {
             // selectedSubtype 的观察者会同步重建详情区，必须在发出新类型前清空旧计时状态。
@@ -191,11 +215,11 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
         if (requiresDuration()) {
             val start = _durationStartTime.value
             if (start == null || start <= 0L) {
-                return ValidationResult.Error(R.string.start_time_required)
+                return ValidationResult.Error(R.string.start_time_required, ValidationField.START_TIME)
             }
             val end = _endTime.value
             if (end == null || end <= start) {
-                return ValidationResult.Error(R.string.event_end_time_invalid)
+                return ValidationResult.Error(R.string.event_end_time_invalid, ValidationField.END_TIME)
             }
         }
 
@@ -203,7 +227,7 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
         if (EventType.isGrowth(subtype.type)) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.GrowthData) {
-                return ValidationResult.Error(R.string.event_value_required)
+                return ValidationResult.Error(R.string.event_value_required, ValidationField.GROWTH_VALUE)
             }
         }
 
@@ -211,7 +235,7 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
         if (subtype.type == EventType.HEALTH_TEMPERATURE) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.TemperatureData) {
-                return ValidationResult.Error(R.string.temperature_value_required)
+                return ValidationResult.Error(R.string.temperature_value_required, ValidationField.TEMPERATURE)
             }
         }
 
@@ -219,7 +243,7 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
         if (subtype.type == EventType.HEALTH_MEDICINE) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.MedicineData || data.name.isBlank()) {
-                return ValidationResult.Error(R.string.medicine_name_hint)
+                return ValidationResult.Error(R.string.medicine_name_hint, ValidationField.MEDICINE_NAME)
             }
         }
 
@@ -227,7 +251,7 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
         if (subtype.type == EventType.HEALTH_VACCINE) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.VaccineData || data.name.isBlank()) {
-                return ValidationResult.Error(R.string.vaccine_name_hint)
+                return ValidationResult.Error(R.string.vaccine_name_hint, ValidationField.VACCINE_NAME)
             }
         }
 
@@ -235,7 +259,7 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
         if (subtype.type == EventType.HEALTH_SYMPTOM) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.SymptomData || data.description.isNullOrBlank()) {
-                return ValidationResult.Error(R.string.symptom_hint)
+                return ValidationResult.Error(R.string.symptom_hint, ValidationField.SYMPTOM)
             }
         }
 
@@ -243,7 +267,7 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
         if (subtype.type == EventType.MILESTONE_CUSTOM) {
             val data = _extraData.value
             if (data !is com.zero.babydata.entity.MilestoneData || data.name.isNullOrBlank()) {
-                return ValidationResult.Error(R.string.milestone_name_hint)
+                return ValidationResult.Error(R.string.milestone_name_hint, ValidationField.MILESTONE_NAME)
             }
         }
 
@@ -253,7 +277,7 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
             val hasValue = data is com.zero.babydata.entity.CustomEventData &&
                 (!data.name.isNullOrBlank() || !data.description.isNullOrBlank())
             if (!hasValue) {
-                return ValidationResult.Error(R.string.custom_event_required)
+                return ValidationResult.Error(R.string.custom_event_required, ValidationField.CUSTOM_EVENT_NAME)
             }
         }
 
@@ -271,9 +295,15 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
         if (mutation.isPending) return
         val validation = validateData()
         if (validation is ValidationResult.Error) {
-            mutation.reject(target, RecordMutationController.Kind.SAVE, validation.messageResId)
+            // 字段校验不伪装成数据库失败，页面能保留说明并定位到可修正输入。
+            if (validation.field != null) {
+                _fieldValidation.value = FieldValidation(validation.field, validation.messageResId, ++validationRequestId)
+            } else {
+                mutation.reject(target, RecordMutationController.Kind.SAVE, validation.messageResId)
+            }
             return
         }
+        clearFieldValidation()
 
         val subtype = _selectedSubtype.value ?: return
         val recordTime = if (EventType.hasDuration(subtype.type)) {
@@ -337,6 +367,7 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
      * 重置状态
      */
     fun reset() {
+        clearFieldValidation()
         _selectedCategory.value = null
         _selectedSubtype.value = null
         _eventTime.value = System.currentTimeMillis()
@@ -355,6 +386,9 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
      */
     sealed class ValidationResult {
         object Success : ValidationResult()
-        data class Error(@param:StringRes val messageResId: Int) : ValidationResult()
+        data class Error(
+            @param:StringRes val messageResId: Int,
+            val field: ValidationField? = null
+        ) : ValidationResult()
     }
 }

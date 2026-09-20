@@ -1,5 +1,6 @@
 package com.zero.babycare.home.record.event
 
+import android.graphics.Rect
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -87,6 +88,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private var noteExpanded = false
     private var hasUnsavedChanges = false
     private var isProgrammaticChange = false
+    private var isViewStateRestored = false
     private var cleanInputs = arrayListOf<String>()
     private var originalExtraInputs: EventRecordViewModel.ExtraDataInputs? = null
     private var retainedDraft: Bundle? = null
@@ -115,6 +117,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
     override fun initView(view: View, savedInstanceState: Bundle?) {
         super.initView(view, savedInstanceState)
+        isViewStateRestored = false
 
         resolveEditMode()
         draftForView = (savedInstanceState?.getBundle(RecordDraftState.KEY) ?: retainedDraft)
@@ -162,6 +165,9 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         observeViewModel()
         observeMutation()
         launchInLifecycle {
+            vm.fieldValidation.collect(::renderFieldValidation)
+        }
+        launchInLifecycle {
             mainVm.currentBaby.combine(mainVm.navTarget) { baby, target -> baby?.babyId to target }
                 .collect { (babyId, target) ->
                     if (!isHidden && target is NavTarget.EventRecord && babyId != null) {
@@ -194,6 +200,8 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         }
         draftForView = null
         retainedDraft = null
+        isViewStateRestored = true
+        renderFieldValidation(vm.fieldValidation.value)
     }
 
     private fun captureDraft(): Bundle = Bundle().apply {
@@ -616,7 +624,51 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         }
 
         applyEditDetailIfNeeded(subtype)
+        // 动态表单随类型重建；只监听输入更改，不在 View 重复业务校验。
+        EventRecordViewModel.ValidationField.entries.forEach { target ->
+            validationInput(target)?.doAfterTextChanged {
+                if (isViewStateRestored && !isProgrammaticChange) vm.clearFieldValidation(target)
+            }
+        }
+        binding.containerDetail.findViewById<EditText>(com.zero.babycare.R.id.etCustomEventDescription)
+            ?.doAfterTextChanged {
+                // 自定义事件允许名称或描述任一项，编辑替代输入也应撤销这一组的旧反馈。
+                if (isViewStateRestored && !isProgrammaticChange) {
+                    vm.clearFieldValidation(EventRecordViewModel.ValidationField.CUSTOM_EVENT_NAME)
+                }
+            }
         if (!hasUnsavedChanges) cleanInputs = RecordDraftState.inputValues(binding.root)
+    }
+
+    private fun validationInput(target: EventRecordViewModel.ValidationField): TextView? = when (target) {
+        EventRecordViewModel.ValidationField.START_TIME -> activityTimerPanel()?.startInput
+        EventRecordViewModel.ValidationField.END_TIME -> activityTimerPanel()?.endInput
+        else -> binding.containerDetail.findViewById(when (target) {
+            EventRecordViewModel.ValidationField.GROWTH_VALUE -> com.zero.babycare.R.id.etValue
+            EventRecordViewModel.ValidationField.TEMPERATURE -> com.zero.babycare.R.id.etTemperature
+            EventRecordViewModel.ValidationField.MEDICINE_NAME -> com.zero.babycare.R.id.etMedicineName
+            EventRecordViewModel.ValidationField.VACCINE_NAME -> com.zero.babycare.R.id.etVaccineName
+            EventRecordViewModel.ValidationField.SYMPTOM -> com.zero.babycare.R.id.etSymptomDescription
+            EventRecordViewModel.ValidationField.MILESTONE_NAME -> com.zero.babycare.R.id.etMilestoneName
+            EventRecordViewModel.ValidationField.CUSTOM_EVENT_NAME -> com.zero.babycare.R.id.etCustomEventName
+            else -> error("时间字段应由计时面板提供")
+        })
+    }
+
+    /** 错误留在原字段；焦点复用基类键盘滚动能力，不排队访问可能销毁的 binding。 */
+    @Suppress("DEPRECATION")
+    private fun renderFieldValidation(validation: EventRecordViewModel.FieldValidation?) {
+        EventRecordViewModel.ValidationField.entries.forEach { validationInput(it)?.error = null }
+        if (validation == null) return
+        val field = validationInput(validation.field) ?: return
+        val message = getString(validation.messageResId)
+        field.error = message
+        // 系统恢复输入不算用户修正；恢复完成后再定位，避免旧层级状态覆盖焦点。
+        if (isViewStateRestored && !isHidden) {
+            field.requestFocus()
+            field.requestRectangleOnScreen(Rect(0, 0, field.width, field.height), true)
+            field.announceForAccessibility(message)
+        }
     }
 
     private fun applyEditDetailIfNeeded(subtype: EventSubtype) {

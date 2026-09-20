@@ -182,9 +182,11 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvLeftBreastDurationLabel"
                             style="@style/TextAppearance.BabyCare.Label"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:labelFor="@id/etLeftBreastDuration"
                             android:text="@string/left_breast"
                             android:textColor="?attr/colorTextSecondary" />
 
@@ -205,7 +207,6 @@
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
                                 android:background="@null"
-                                android:hint="@string/number_zero"
                                 android:inputType="number"
                                 android:maxLength="3"
                                 android:textColor="?attr/colorTextPrimary"
@@ -233,9 +234,11 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvRightBreastDurationLabel"
                             style="@style/TextAppearance.BabyCare.Label"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:labelFor="@id/etRightBreastDuration"
                             android:text="@string/right_breast"
                             android:textColor="?attr/colorTextSecondary" />
 
@@ -256,7 +259,6 @@
                                 android:layout_height="match_parent"
                                 android:layout_weight="1"
                                 android:background="@null"
-                                android:hint="@string/number_zero"
                                 android:inputType="number"
                                 android:maxLength="3"
                                 android:textColor="?attr/colorTextPrimary"
