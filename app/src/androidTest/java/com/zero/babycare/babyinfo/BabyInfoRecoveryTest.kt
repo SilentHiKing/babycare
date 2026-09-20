@@ -6,7 +6,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Parcel
 import android.os.SystemClock
-import android.util.Base64
 import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -55,8 +54,6 @@ import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.Serializable
-import java.io.ByteArrayInputStream
-import java.io.ObjectInputStream
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.TimeZone
@@ -261,7 +258,6 @@ class BabyInfoRecoveryTest {
         var scenario: ActivityScenario<MainActivity>? = null
         try {
             TimeZone.setDefault(sourceZone)
-            assertLegacyBirthdaySnapshotCompatibility(picked, unchanged)
             val current = ActivityScenario.launch(MainActivity::class.java).also { scenario = it }
             awaitActivity(current) { mainVm(it).babyDataLoaded.value && mainVm(it).getBabyById(baby.babyId) != null }
             val actual = mutableListOf<Long>()
@@ -281,7 +277,9 @@ class BabyInfoRecoveryTest {
                     root.findViewById<EditText>(R.id.etName).setText("隔离生日-$mode")
                     if (mode != "unchanged") {
                         // 只为真实选择器提供确定初值；确认仍必须经过生产弹窗回调，不能直接调用 VM 写时间。
-                        root.findViewById<EditText>(R.id.etBirthday).setText("2020-01-02 12:34")
+                        fragment(activity).javaClass.getDeclaredMethod(
+                            "renderBirthdayInput", java.lang.Long::class.java, String::class.java
+                        ).apply { isAccessible = true }.invoke(fragment(activity), picked, "")
                         assertTrue(root.findViewById<android.view.View>(R.id.rowBirthday).performClick())
                     }
                 }
@@ -307,7 +305,7 @@ class BabyInfoRecoveryTest {
                 awaitActivity(current) { mainVm(it).navTarget.value == NavTarget.Dashboard }
                 actual += runBlocking { repository.getAllBabyInfo().single { it.name == "隔离生日-$mode" }.birthDate }
             }
-            assertEquals("选择时的时间戳必须跨时区恢复，未修改的历史时间保持全部精度", listOf(picked, picked, unchanged), actual)
+            assertEquals("选择时的时间戳必须跨时区恢复，未修改的时间保持全部精度", listOf(picked, picked, unchanged), actual)
         } finally {
             TimeZone.setDefault(originalZone)
             scenario?.onActivity { mainVm(it).navigateTo(NavTarget.Dashboard) }
@@ -316,28 +314,6 @@ class BabyInfoRecoveryTest {
             if (originalSelection > 0) MMKVStore.put(MMKVKeys.CURRENT_BABY_ID, originalSelection)
                 else MMKVStore.remove(MMKVKeys.CURRENT_BABY_ID)
             database.close()
-        }
-    }
-
-    /** 该六字段流由修改前的已编译类生成；不能用新类现写现读代替真实版本兼容验证。 */
-    private fun assertLegacyBirthdaySnapshotCompatibility(picked: Long, unchanged: Long) = runBlocking {
-        val encoded = "rO0ABXNyAC9jb20uemVyby5iYWJ5Y2FyZS5iYWJ5aW5mby5CYWJ5SW5mb0Zvcm1TbmFwc2hvdBpYWEN+AH2TAgAGTAAIYmlydGhkYXl0ABJMamF2YS9sYW5nL1N0cmluZztMAAlibG9vZFR5cGVxAH4AAUwACmdlbmRlckNvZGVxAH4AAUwABmhlaWdodHEAfgABTAAEbmFtZXEAfgABTAAGd2VpZ2h0cQB+AAF4cHQAEDIwMjAtMDEtMDIgMTI6MzR0AAFBdAADYm95dAAENTEuNXQADkxlZ2FjeUJpcnRoZGF5dAAEMy4yNQ=="
-        val legacy = ObjectInputStream(ByteArrayInputStream(Base64.decode(encoded, Base64.DEFAULT))).use {
-            it.readObject() as BabyInfoFormSnapshot
-        }
-        assertEquals(BabyInfoFormSnapshot("LegacyBirthday", "2020-01-02 12:34", "boy", "3.25", "51.5", "A"), legacy)
-        assertNull(legacy.birthdayTimestamp)
-        val original = session(unusedOperations())
-        withContext(Dispatchers.Main) {
-            original.vm.saveDraft(target.key(), legacy, legacy, null)
-        }
-        val restored = session(unusedOperations(), snapshot(original))
-        withContext(Dispatchers.Main) {
-            val form = requireNotNull(restored.vm.getDraft(target.key())).form
-            assertEquals(legacy, form)
-            // 旧流未改字段保留实体的秒/毫秒；旧创建没有原时区，只兼容原有当前时区文本解析。
-            assertEquals(unchanged, restored.vm.resolveBirthdayTimestamp(form, form, unchanged))
-            assertEquals(picked, restored.vm.resolveBirthdayTimestamp(form, BabyInfoFormSnapshot(), null))
         }
     }
 

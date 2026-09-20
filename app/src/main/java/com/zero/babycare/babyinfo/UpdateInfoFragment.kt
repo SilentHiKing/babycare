@@ -368,7 +368,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
         baby.gender = selectedGenderCode
 
         // 编辑页允许把非必填出生信息清空，保存时需要同步清掉旧值。
-        baby.birthDate = vm.resolveBirthdayTimestamp(currentSnapshot(), initialSnapshot, editingBaby?.birthDate) ?: 0L
+        baby.birthDate = vm.resolveBirthdayTimestamp(currentSnapshot()) ?: 0L
 
         val weightText = binding.etWeight.text?.toString()?.trim().orEmpty()
         val parsedWeight = weightText
@@ -518,7 +518,7 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
 
     private fun showBirthdayPickerSheet() {
         val acceptsCallback = currentFormGuard()
-        val initialTime = vm.resolveBirthdayTimestamp(currentSnapshot(), initialSnapshot, editingBaby?.birthDate)
+        val initialTime = vm.resolveBirthdayTimestamp(currentSnapshot())
             ?: System.currentTimeMillis()
 
         formDialog = DialogHelper.showDateTimeSheet(
@@ -548,12 +548,12 @@ class UpdateInfoFragment : BaseFragment<FragmentUpdateInfoBinding>(), BackPressH
 
     /** 当前值和初始基线一起重渲染，时区变化本身不能被当作用户修改生日。 */
     private fun restoreBirthdayInput(form: BabyInfoFormSnapshot, initial: BabyInfoFormSnapshot) {
-        val originalTime = vm.resolveBirthdayTimestamp(initial, initial, editingBaby?.birthDate)
+        val originalTime = vm.resolveBirthdayTimestamp(initial)
         initialSnapshot = initial.copy(
             birthday = originalTime?.let(::formatBirthday) ?: initial.birthday,
             birthdayTimestamp = originalTime
         )
-        renderBirthdayInput(vm.resolveBirthdayTimestamp(form, initial, editingBaby?.birthDate), form.birthday)
+        renderBirthdayInput(vm.resolveBirthdayTimestamp(form), form.birthday)
     }
 
     /** 同一 View 留在后台后返回也要刷新显示；业务值仍使用此前选择的时间戳。 */
