@@ -32,8 +32,23 @@ class FeedingRecordViewModel(private val injectedRepository: BabyRepository? = n
         )
     }
 
-    internal fun save(feedingRecord: FeedingRecord, target: RecordMutationController.Target, sessionId: String? = null) {
-        val frozenRecord = feedingRecord.copy()
+    internal fun save(
+        feedingRecord: FeedingRecord,
+        target: RecordMutationController.Target,
+        sessionId: String? = null,
+        originalRecord: FeedingRecord? = null
+    ) {
+        // 未展示的旧字段不属于本次表单编辑；仅从同宝宝、同记录的原快照保留，不能跨目标复制。
+        val original = originalRecord?.takeIf {
+            target.recordId != null && it.feedingId == target.recordId &&
+                it.feedingId == feedingRecord.feedingId && it.babyId == target.babyId &&
+                it.babyId == feedingRecord.babyId
+        }
+        val frozenRecord = if (original == null) feedingRecord.copy() else feedingRecord.copy(
+            babyMood = original.babyMood,
+            feedingLocation = original.feedingLocation,
+            createdAt = original.createdAt
+        )
         mutation.submit(target, RecordMutationController.Kind.SAVE, R.string.save_failed) {
             if (target.recordId != null) repository.updateFeedingRecord(frozenRecord)
             else sessions.saveFeeding(frozenRecord, target.draftId, sessionId)

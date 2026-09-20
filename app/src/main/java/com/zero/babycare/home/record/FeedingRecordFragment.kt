@@ -1013,7 +1013,8 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         }
 
         vm.save(feedingRecord, mutationTarget(babyId),
-            if (isEditMode) null else timerController?.ongoingSessionId)
+            if (isEditMode) null else timerController?.ongoingSessionId,
+            originalRecord = editingRecord)
     }
 
     /** 编辑态允许纠正误记录；删除完成后由变更总线统一刷新依赖数据。 */

@@ -95,6 +95,43 @@ class RecordEditValueRecoveryTest {
     }
 
     @Test
+    fun feedingNoteEditsPreserveUnexposedFieldsBeforeAndAfterRecreation() = withScreen { scenario, repository, babyId ->
+        MMKVStore.put(MMKVKeys.SETTINGS_FEEDING_UNIT, UnitConfig.FEEDING_UNIT_ML)
+        val expected = mutableListOf<FeedingRecord>()
+        val actual = mutableListOf<FeedingRecord>()
+        listOf(false, true).forEachIndexed { index, recreate ->
+            // 合法旧库/备份字段没有对应表单控件；只改备注必须保留其值、身份和创建时间。
+            val record = FeedingRecord(
+                feedingId = RECORD_ID + index, babyId = babyId, feedingType = FeedingType.FORMULA.type,
+                feedingStart = START, feedingEnd = START + 600_000L, feedingDuration = 600_000L,
+                feedingAmount = 120, babyMood = FeedingRecord.MOOD_HUNGRY_CRYING,
+                feedingLocation = FeedingRecord.LOCATION_OUTSIDE, note = "合成原备注", createdAt = START + 900_000L
+            )
+            runBlocking { repository.insertFeedingRecord(record) }
+            val target = NavTarget.FeedingRecord(record.feedingId, NavTarget.Dashboard)
+            navigate(scenario, target)
+            await(scenario) { currentView(it, target)?.findViewById<EditText>(R.id.etNote)?.text?.toString() == record.note }
+            val changedNote = if (recreate) "重建后只改备注" else "直接只改备注"
+            scenario.onActivity { activity ->
+                requireNotNull(currentView(activity, target)).findViewById<EditText>(R.id.etNote).setText(changedNote)
+            }
+            if (recreate) {
+                scenario.recreate()
+                await(scenario) { currentView(it, target)?.findViewById<EditText>(R.id.etNote)?.text?.toString() == changedNote }
+            }
+            scenario.onActivity { activity ->
+                assertTrue(requireNotNull(currentView(activity, target)).findViewById<View>(R.id.tvSave).performClick())
+            }
+            onView(withId(com.zero.components.R.id.tv_confirm)).perform(click())
+            await(scenario) { mainVm(it).navTarget.value == NavTarget.Dashboard }
+            expected += record.copy(note = changedNote)
+            actual += runBlocking { requireNotNull(repository.getFeedingRecordById(record.feedingId)) }
+        }
+        // 两条都经真实页面提交后比较完整实体，避免只覆盖直接保存而遗漏重建路径。
+        assertEquals(expected, actual)
+    }
+
+    @Test
     fun growthEditsKeepOriginalPrecisionAndStoredUnitsAcrossFreshViews() = withScreen { scenario, repository, babyId ->
         val examples = listOf(EventType.GROWTH_WEIGHT to GrowthData(7.25, "kg"), EventType.GROWTH_HEIGHT to GrowthData(512.3, "mm"))
         examples.forEachIndexed { index, (type, original) ->

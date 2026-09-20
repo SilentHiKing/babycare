@@ -1,5 +1,6 @@
 package com.zero.babydata.backup
 
+import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import com.zero.babydata.entity.EventRecord
 import com.zero.babydata.entity.EventType
@@ -41,7 +42,7 @@ internal class BackupRecordDeduplicator(toleranceMillis: Long) {
     )
 
     private fun registerEvent(record: EventRecord, checkDuplicate: Boolean): Boolean = register(
-        // JsonElement 按对象内容比较，键顺序不应制造重复事件；列表键也避免文案含 # 时碰撞。
+        // 精确结构键忽略对象键顺序，保留原始数值有效位；列表键也避免文案含 # 时碰撞。
         key = listOf("event", record.babyId, record.type, jsonContent(record.extraData, record.type), record.note),
         times = listOf(record.time, record.endTime),
         checkDuplicate = checkDuplicate
@@ -73,7 +74,7 @@ internal class BackupRecordDeduplicator(toleranceMillis: Long) {
         runCatching {
             // 老版本已经落库的深层/超长扩展也不能在合并哈希时递归溢出；异常原文按字符串比较。
             BackupJsonLimits.validate(raw, maxValues = BackupJsonLimits.MAX_EXTRA_VALUES)
-            JsonParser.parseString(raw).also { json ->
+            val json = JsonParser.parseString(raw).also { json ->
                 if (type == EventType.HEALTH_MEDICINE && json.isJsonObject) {
                     val unit = json.asJsonObject.get("unit")
                     if (unit?.isJsonPrimitive == true && unit.asJsonPrimitive.isString) {
@@ -82,6 +83,23 @@ internal class BackupRecordDeduplicator(toleranceMillis: Long) {
                     }
                 }
             }
+            ParsedJsonContent(exactJsonValue(json))
         }.getOrElse { raw.trim() }
+    }
+
+    /** 解析成功与异常原文分开标记，JSON 字符串不能与空内容或旧损坏原文误判相同。 */
+    private data class ParsedJsonContent(val value: Any?)
+
+    /**
+     * JsonPrimitive 的数字相等/哈希会经过 Double，足以吞掉合法的大整数与高精度小数。
+     * 已经限制深度和节点数后再转结构键；BigDecimal 只去无意义尾零，不改实体里的原文。
+     */
+    private fun exactJsonValue(json: JsonElement): Any? = when {
+        json.isJsonNull -> null
+        json.isJsonObject -> json.asJsonObject.entrySet().associate { (key, value) -> key to exactJsonValue(value) }
+        json.isJsonArray -> json.asJsonArray.map(::exactJsonValue)
+        json.asJsonPrimitive.isNumber -> json.asBigDecimal.stripTrailingZeros()
+        json.asJsonPrimitive.isBoolean -> json.asBoolean
+        else -> json.asString
     }
 }

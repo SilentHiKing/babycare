@@ -6,12 +6,14 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.zero.babydata.backup.BABY_BACKUP_VERSION
 import com.zero.babydata.backup.BackupBaby
 import com.zero.babydata.backup.BackupChildDailyRecord
+import com.zero.babydata.backup.BackupEventRecord
 import com.zero.babydata.backup.BackupSleepRecord
 import com.zero.babydata.backup.BabyBackupData
 import com.zero.babydata.backup.BabyBackupEnvelope
 import com.zero.babydata.backup.BabyBackupExporter
 import com.zero.babydata.backup.BabyBackupImporter
 import com.zero.babydata.backup.BabyBackupParser
+import com.zero.babydata.entity.EventType
 import com.zero.babydata.room.BabyDatabase
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -22,6 +24,52 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class BackupImportTest {
     private val stableId = "8668a9e3-406d-478c-af23-6b4ad5327458"
+
+    @Test
+    fun mergePreservesExactJsonNumbersAndOriginalTextAcrossParsedRepeatedImports() = withDatabase { db ->
+        val importer = BabyBackupImporter(db)
+        val exporter = BabyBackupExporter(db)
+        val originalInteger = "{\"vendor\":{\"sequence\":9007199254740992}}"
+        val changedInteger = "{\"vendor\":{\"sequence\":9007199254740993}}"
+        val originalDecimal = "{\"unit\":\"kg\",\"value\":4.000000000000000001}"
+        val changedDecimal = "{\"value\":4.000000000000000002,\"unit\":\"kg\"}"
+        val integer = BackupEventRecord("event:integer-a", stableId, EventType.DIAPER_WET,
+            1000, 0, originalInteger, "", 1000)
+        val decimal = BackupEventRecord("event:decimal-a", stableId, EventType.GROWTH_WEIGHT,
+            1000, 0, originalDecimal, "", 1000)
+        val original = sampleEnvelope().let {
+            it.copy(data = it.data.copy(eventRecords = listOf(integer, decimal), childDailyRecords = emptyList()))
+        }
+        val seeded = importer.importMerge(BabyBackupParser.parse(exporter.toJson(original)), 0)
+        assertEquals(2, seeded.eventInserted)
+        assertEquals(0, seeded.eventSkipped)
+
+        // 实际协议解析后再与库内记录比较：精确值不同须入库，仅等值指数写法与键顺序可去重。
+        val incoming = original.copy(data = original.data.copy(eventRecords = listOf(
+            integer.copy(sourceId = "event:integer-b", extraData = changedInteger),
+            decimal.copy(sourceId = "event:decimal-b", extraData = changedDecimal),
+            decimal.copy(sourceId = "event:decimal-equivalent",
+                extraData = "{\"value\":4000000000000000001e-18,\"unit\":\"kg\"}")
+        )))
+        val incomingJson = exporter.toJson(incoming)
+        val parsed = BabyBackupParser.parse(incomingJson)
+        assertEquals(incoming.data.eventRecords, parsed.data.eventRecords)
+        val merged = importer.importMerge(parsed, 0)
+        assertEquals(0, merged.babyInserted)
+        assertEquals(1, merged.babyMatched)
+        assertEquals(2, merged.eventInserted)
+        assertEquals(1, merged.eventSkipped)
+        val snapshot = exporter.buildEnvelope().data
+        assertEquals(4, snapshot.eventRecords.size)
+        assertEquals(setOf(originalInteger, changedInteger, originalDecimal, changedDecimal),
+            snapshot.eventRecords.map { it.extraData }.toSet())
+
+        // 再次读同一文件既不能新增，也不能用规范化后的比较副本改写任何原文。
+        val repeated = importer.importMerge(BabyBackupParser.parse(incomingJson), 0)
+        assertEquals(0, repeated.eventInserted)
+        assertEquals(3, repeated.eventSkipped)
+        assertEquals(snapshot, exporter.buildEnvelope().data)
+    }
 
     @Test
     fun mergeUsesActualTimeToleranceAcrossMinuteBoundaries() = withDatabase { db ->
