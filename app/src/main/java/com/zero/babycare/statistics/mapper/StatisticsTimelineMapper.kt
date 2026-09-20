@@ -3,6 +3,8 @@ package com.zero.babycare.statistics.mapper
 import com.zero.babycare.statistics.model.TimelineEditTarget
 import com.zero.babycare.home.record.event.MedicineUnitText
 import com.zero.babycare.statistics.model.TimelineUiItem
+import com.zero.babycare.statistics.model.LegacyGrowthDetailUiModel
+import com.zero.babydata.entity.ChildDailyRecord
 import com.zero.babydata.entity.CustomEventData
 import com.zero.babydata.entity.DiaperData
 import com.zero.babydata.entity.EventExtraData
@@ -131,6 +133,46 @@ class StatisticsTimelineMapper(
             colorResId = info.colorRes,
             surfaceColorResId = info.bgColorRes,
             editTarget = TimelineEditTarget.Event(record.eventId)
+        )
+    }
+
+    /** 旧 Java 表明确使用 kg/cm；显示原 Float 文本，不受当前输入单位配置影响，也不解析未知 extra/pic。 */
+    fun mapLegacyGrowth(record: ChildDailyRecord): TimelineUiItem {
+        fun labeled(label: Int, value: String) =
+            strings.format(CommonR.string.event_label_value_format, strings.get(label), value)
+        fun measurement(label: Int, value: Float, unit: Int): String? = value.takeIf { it != 0f }?.let {
+            labeled(label, strings.format(CommonR.string.statistics_value_with_unit_format,
+                it.toString(), strings.get(unit)))
+        }
+        val measurements = listOfNotNull(
+            measurement(CommonR.string.event_growth_weight, record.weight, CommonR.string.weight_unit),
+            measurement(CommonR.string.event_growth_height, record.height, CommonR.string.height_unit),
+            measurement(CommonR.string.event_growth_head, record.headCircumference, CommonR.string.height_unit)
+        )
+        val title = strings.get(CommonR.string.legacy_growth_record_title)
+        val detail = if (measurements.isEmpty()) strings.get(CommonR.string.legacy_growth_empty)
+            else measurements.joinToString(strings.get(CommonR.string.list_separator_dot))
+        val fullTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone(zone)
+        }.format(Date(record.recordDate))
+        val content = buildList {
+            add(labeled(CommonR.string.event_time, fullTime))
+            addAll(measurements.ifEmpty { listOf(strings.get(CommonR.string.legacy_growth_empty)) })
+            if (record.extra.isNotEmpty()) add(labeled(CommonR.string.note, record.extra))
+            if (record.pic.isNotEmpty()) add(labeled(CommonR.string.legacy_growth_photo_reference, record.pic))
+            add(strings.get(CommonR.string.legacy_growth_statistics_hint))
+        }.joinToString("\n\n")
+        return TimelineUiItem(
+            stableId = stableId("legacy-growth", record.recordId),
+            timeText = timeFormat.format(Date(record.recordDate)),
+            titleText = title,
+            detailText = detail,
+            noteText = record.extra.takeIf { it.isNotBlank() }?.take(500),
+            iconResId = CommonR.drawable.ic_event_growth,
+            colorResId = CommonR.color.event_growth,
+            surfaceColorResId = CommonR.color.event_growth_light,
+            editTarget = TimelineEditTarget.LegacyGrowth(record.recordId),
+            legacyGrowthDetail = LegacyGrowthDetailUiModel(record.babyId, record.recordId, title, content)
         )
     }
 

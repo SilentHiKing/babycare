@@ -5712,6 +5712,46 @@
           "ja": "赤ちゃんの実際の様子を優先し、記録して予測を更新",
           "ko": "아기의 실제 상태를 참고해 기록하면 예측이 업데이트돼요"
         }
+      },
+      {
+        "codeKey": "legacy_growth_record_title",
+        "language": {
+          "zh-Hans": "历史成长记录",
+          "en": "Legacy growth record",
+          "zh-Hant": "歷史成長記錄",
+          "ja": "旧形式の成長記録",
+          "ko": "이전 형식의 성장 기록"
+        }
+      },
+      {
+        "codeKey": "legacy_growth_empty",
+        "language": {
+          "zh-Hans": "未填写测量值",
+          "en": "No measurements entered",
+          "zh-Hant": "未填寫測量值",
+          "ja": "測定値が入力されていません",
+          "ko": "입력된 측정값이 없어요"
+        }
+      },
+      {
+        "codeKey": "legacy_growth_photo_reference",
+        "language": {
+          "zh-Hans": "图片引用",
+          "en": "Photo reference",
+          "zh-Hant": "圖片參照",
+          "ja": "画像の参照先",
+          "ko": "사진 참조"
+        }
+      },
+      {
+        "codeKey": "legacy_growth_statistics_hint",
+        "language": {
+          "zh-Hans": "旧版记录保留原始测量值，暂不计入成长趋势与百分位。",
+          "en": "Legacy records keep their original measurements and are not yet included in growth trends or percentiles.",
+          "zh-Hant": "舊版記錄保留原始測量值，暫不計入成長趨勢與百分位。",
+          "ja": "旧形式の記録は元の測定値を保持しています。成長傾向とパーセンタイルにはまだ含まれていません。",
+          "ko": "이전 형식의 기록은 원래 측정값을 유지하며, 아직 성장 추이와 백분위에 포함되지 않아요."
+        }
       }
     ],
     "app": [

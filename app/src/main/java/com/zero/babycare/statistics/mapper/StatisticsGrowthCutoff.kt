@@ -10,6 +10,10 @@ import java.time.ZoneId
  */
 object StatisticsGrowthCutoff {
 
+    // 同一测量时刻优先较晚创建的记录；旧数据的创建时间相同时，用持久 ID 保证各统计区块一致。
+    internal val measurementOrder: Comparator<EventRecord> =
+        compareBy<EventRecord> { it.time }.thenBy { it.createdAt }.thenBy { it.eventId }
+
     data class GrowthRecordData(
         val record: EventRecord,
         val data: GrowthData
@@ -43,7 +47,7 @@ object StatisticsGrowthCutoff {
         zone: ZoneId = ZoneId.systemDefault()
     ): List<EventRecord> {
         return filterUntil(records, selectedDate, zone)
-            .sortedByDescending { it.time }
+            .sortedWith(measurementOrder.reversed())
             .take(limit)
     }
 
@@ -54,7 +58,7 @@ object StatisticsGrowthCutoff {
         zone: ZoneId = ZoneId.systemDefault()
     ): List<GrowthRecordData> {
         return validGrowthDataUntil(records, selectedDate, zone)
-            .sortedByDescending { it.record.time }
+            .sortedWith { left, right -> measurementOrder.compare(right.record, left.record) }
             .take(limit)
     }
 }

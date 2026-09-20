@@ -30,6 +30,8 @@ import com.zero.babycare.statistics.model.StructureSection
 import com.zero.babycare.statistics.model.SummaryMetricType
 import com.zero.babycare.statistics.model.SummaryMetricUiModel
 import com.zero.babycare.statistics.model.TimelineUiItem
+import com.zero.babycare.statistics.model.TimelineEditTarget
+import com.zero.babycare.statistics.model.LegacyGrowthDetailUiModel
 import com.zero.babycare.statistics.model.TrendOverview
 import com.zero.babycare.statistics.model.TrendPeriod
 import com.zero.babycare.statistics.model.TrendPeriodSummary
@@ -71,6 +73,11 @@ class StatisticsViewModel @JvmOverloads constructor(
     private val savedStateHandle: SavedStateHandle,
     injectedRepository: BabyRepository? = null
 ) : AndroidViewModel(application) {
+
+    private companion object {
+        const val LEGACY_DETAIL_BABY = "statistics_legacy_detail_baby"
+        const val LEGACY_DETAIL_RECORD = "statistics_legacy_detail_record"
+    }
 
     // 默认仍使用应用数据库；隔离回归可通过同一查询实现验证提交后的派生状态。
     private val repository = injectedRepository ?: BabyRepository(application)
@@ -120,6 +127,10 @@ class StatisticsViewModel @JvmOverloads constructor(
      */
     fun setBabyId(babyId: Int) {
         if (_currentBabyId.value != babyId) {
+            // 冷恢复尚未取得宝宝时保留请求；首个真实宝宝不匹配或主动切换后立即失效。
+            if (_currentBabyId.value != 0 || savedStateHandle.get<Int>(LEGACY_DETAIL_BABY) != babyId) {
+                clearLegacyGrowthDetail()
+            }
             _currentBabyId.value = babyId
             _uiState.value = _uiState.value.copy(
                 babyId = babyId,
@@ -135,7 +146,9 @@ class StatisticsViewModel @JvmOverloads constructor(
             is StatisticsUiEvent.ChangeMonth -> onMonthChanged(event.yearMonth)
             StatisticsUiEvent.GoToday -> goToToday()
             StatisticsUiEvent.Refresh -> refreshData()
-            is StatisticsUiEvent.OpenTimelineItem -> Unit
+            is StatisticsUiEvent.OpenTimelineItem -> {
+                (event.target as? TimelineEditTarget.LegacyGrowth)?.let { openLegacyGrowthDetail(it.recordId) }
+            }
         }
     }
 
@@ -145,6 +158,7 @@ class StatisticsViewModel @JvmOverloads constructor(
     fun selectDate(date: LocalDate) {
         val browse = CalendarBrowseState.forDate(date, _uiState.value.calendarBrowse.monthMode)
         if (_selectedDate.value != date || _uiState.value.calendarBrowse != browse) {
+            if (_selectedDate.value != date) clearLegacyGrowthDetail()
             _selectedDate.value = date
             savedStateHandle["statistics_selected_date"] = date.toString()
             saveCalendarBrowse(browse)
@@ -170,6 +184,40 @@ class StatisticsViewModel @JvmOverloads constructor(
      */
     fun refreshData() {
         loadData()
+    }
+
+    /** 仅接受当前已加载日列表中的旧表身份，避免迟到点击打开另一宝宝或日期的数据。 */
+    fun openLegacyGrowthDetail(recordId: Int) {
+        val state = _uiState.value
+        if (state.isLoading || state.errorMessage != null || state.babyId != _currentBabyId.value) return
+        val detail = state.dayRecord.timelineItems.firstOrNull {
+            it.editTarget == TimelineEditTarget.LegacyGrowth(recordId)
+        }?.legacyGrowthDetail?.takeIf { it.babyId == state.babyId } ?: return
+        savedStateHandle[LEGACY_DETAIL_BABY] = detail.babyId
+        savedStateHandle[LEGACY_DETAIL_RECORD] = detail.recordId
+        _uiState.value = state.copy(legacyGrowthDetail = detail)
+    }
+
+    fun dismissLegacyGrowthDetail(babyId: Int, recordId: Int) {
+        if (savedStateHandle.get<Int>(LEGACY_DETAIL_BABY) == babyId &&
+            savedStateHandle.get<Int>(LEGACY_DETAIL_RECORD) == recordId) clearLegacyGrowthDetail()
+    }
+
+    private fun clearLegacyGrowthDetail() {
+        savedStateHandle.remove<Int>(LEGACY_DETAIL_BABY)
+        savedStateHandle.remove<Int>(LEGACY_DETAIL_RECORD)
+        _uiState.value = _uiState.value.copy(legacyGrowthDetail = null)
+    }
+
+    /** SavedState 不携带长备注或图片引用，查询完成后按宝宝和原始行 ID 从最新快照恢复。 */
+    private fun restoreLegacyGrowthDetail(babyId: Int, items: List<TimelineUiItem>): LegacyGrowthDetailUiModel? {
+        val recordId = savedStateHandle.get<Int>(LEGACY_DETAIL_RECORD) ?: return null
+        val detail = items.firstOrNull { it.editTarget == TimelineEditTarget.LegacyGrowth(recordId) }
+            ?.legacyGrowthDetail?.takeIf {
+                it.babyId == babyId && savedStateHandle.get<Int>(LEGACY_DETAIL_BABY) == babyId
+            }
+        if (detail == null) clearLegacyGrowthDetail()
+        return detail
     }
 
     // ==================== 私有方法 ====================
@@ -246,6 +294,7 @@ class StatisticsViewModel @JvmOverloads constructor(
                         selectedDate = date,
                         dayRecord = content.dayRecord,
                         insights = content.insights,
+                        legacyGrowthDetail = restoreLegacyGrowthDetail(babyId, content.dayRecord.timelineItems),
                         isLoading = false,
                         errorMessage = null
                     )
@@ -359,6 +408,7 @@ class StatisticsViewModel @JvmOverloads constructor(
                 is BabyRepository.TimelineRecord.Feeding -> mapper.mapFeeding(record.record)
                 is BabyRepository.TimelineRecord.Sleep -> mapper.mapSleep(record.record)
                 is BabyRepository.TimelineRecord.Event -> mapper.mapEvent(record.record)
+                is BabyRepository.TimelineRecord.LegacyGrowth -> mapper.mapLegacyGrowth(record.record)
             }
         }
         return buildDayRecordSection(
@@ -469,7 +519,8 @@ class StatisticsViewModel @JvmOverloads constructor(
         )
 
         var diaperCount = 0
-        var otherEventCount = 0
+        // 旧测量暂不进入成长算法，但记录条数必须与日摘要、时间轴采用同一口径。
+        var otherEventCount = repository.getLegacyGrowthCountBetween(babyId, range.startMillis, range.endMillis)
         events.forEach { event ->
             context.ensureActive()
             if (EventType.isDiaper(event.type)) {

@@ -35,6 +35,7 @@ class TimelineAdapter(
                 is TimelineEditTarget.Feeding -> VIEW_TYPE_FEEDING
                 is TimelineEditTarget.Sleep -> VIEW_TYPE_SLEEP
                 is TimelineEditTarget.Event -> VIEW_TYPE_EVENT
+                is TimelineEditTarget.LegacyGrowth -> VIEW_TYPE_EVENT
             }
         }
     }

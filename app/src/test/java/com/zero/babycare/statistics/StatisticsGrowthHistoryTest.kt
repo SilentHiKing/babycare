@@ -20,7 +20,7 @@ import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import kotlin.random.Random
 
-/** 对照旧的完整历史计算，验证提早停止只减少工作、不改变最近值或曲线语义。 */
+/** 对照完整历史计算，验证确定性测量顺序及提早停止不会改变有效性、截止或曲线点数。 */
 class StatisticsGrowthHistoryTest {
     private val zone = ZoneId.of("Asia/Shanghai")
     private val birthDate = LocalDate.of(2020, 1, 1)
@@ -36,7 +36,7 @@ class StatisticsGrowthHistoryTest {
             add(record(102, 40, "broken-json"))
             add(record(103, 41))
         }
-        // 顺序随机且含同一时间项：不能用简单反转替代稳定降序，也不能原始 takeLast(12)。
+        // 随机查询顺序不能改变同一时间项的先后，也不能在过滤有效百分位之前 takeLast(12)。
         repeat(8) { seed ->
             val shuffled = records.shuffled(Random(seed))
             val history = StatisticsGrowthHistory.create(shuffled, selectedDate, zone)
@@ -78,10 +78,10 @@ class StatisticsGrowthHistoryTest {
     }
 
     @Test
-    fun `same timestamp keeps first original values for trend and last original values for percentile`() = runBlocking {
+    fun `same timestamp selects the same newest measurement for trend and percentile`() = runBlocking {
         val records = (1..20).map { record(it, 15) }
         val history = StatisticsGrowthHistory.create(records, selectedDate, zone)
-        assertEquals(listOf(1, 2), history.latestValid().map { it.record.eventId })
+        assertEquals(listOf(20, 19), history.latestValid().map { it.record.eventId })
         val result = history.recentPercentiles(birthMillis, { it.value }, ::rank, { it * 2.0 })
         assertEquals(40.0, result.latestValue!!, 0.0)
         assertEquals((9..20).toList(), result.points.map { it.percentile })
@@ -89,7 +89,30 @@ class StatisticsGrowthHistoryTest {
     }
 
     @Test
-    fun `point limit boundary keeps every available point in its original order`() = runBlocking {
+    fun `equal measurement times use creation time then record id regardless of query order`() = runBlocking {
+        val records = listOf(
+            record(9, 15).copy(createdAt = 100),
+            record(3, 15).copy(createdAt = 200),
+            record(4, 15).copy(createdAt = 200),
+            record(99, 14).copy(createdAt = 999),
+            record(100, 15, "broken-json").copy(createdAt = 300),
+            record(101, 41).copy(createdAt = 400)
+        )
+        // 相同测量时间可能来自补记或备份，不允许无序 SQL 的返回位置决定两张卡片各自的最新值。
+        repeat(4) { seed ->
+            val history = StatisticsGrowthHistory.create(records.shuffled(Random(seed)), selectedDate, zone)
+            val latest = history.latestValid()
+            assertEquals(listOf(4, 3), latest.map { it.record.eventId })
+            assertEquals(1.0, latest[0].data.value - latest[1].data.value, 0.0)
+            val result = history.recentPercentiles(birthMillis, { it.value }, ::rank, { it * 2.0 })
+            assertEquals(8.0, result.latestValue!!, 0.0)
+            assertEquals(4, result.latestPercentile)
+            assertEquals(listOf(99, 9, 3, 4), result.points.map { it.percentile })
+        }
+    }
+
+    @Test
+    fun `point limit boundary keeps every available point in measurement order`() = runBlocking {
         for (count in listOf(0, 1, 11, 12, 13)) {
             val records = (1..count).map { record(it, 10) }
             val history = StatisticsGrowthHistory.create(records, selectedDate, zone)
@@ -162,10 +185,12 @@ class StatisticsGrowthHistoryTest {
         }
     }
 
-    /** 保留改动前的全量算法，测试不依赖新算法的排序或提前退出实现。 */
+    /** 全量正向计算并独立声明排序字段，避免复用被测比较器或提前退出实现掩盖错误。 */
     private fun reference(records: List<EventRecord>): StatisticsGrowthHistory.Percentiles {
         val valid = StatisticsGrowthCutoff.validGrowthDataUntil(records, selectedDate, zone)
-            .sortedBy { it.record.time }
+            .sortedWith(compareBy<StatisticsGrowthCutoff.GrowthRecordData> { it.record.time }
+                .thenBy { it.record.createdAt }
+                .thenBy { it.record.eventId })
         val points = mutableListOf<GrowthPercentilePoint>()
         var latestValue: Double? = null
         var latestPercentile: Int? = null

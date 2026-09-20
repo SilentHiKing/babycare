@@ -18,7 +18,8 @@ data class StatisticsUiState(
     val dayRecord: DayRecordSectionUiModel = DayRecordSectionUiModel.empty(LocalDate.now()),
     val insights: InsightSectionUiModel = InsightSectionUiModel.empty(LocalDate.now()),
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val legacyGrowthDetail: LegacyGrowthDetailUiModel? = null
 )
 
 /**
@@ -95,13 +96,23 @@ data class TimelineUiItem(
     @param:DrawableRes val iconResId: Int,
     @param:ColorRes val colorResId: Int,
     @param:ColorRes val surfaceColorResId: Int,
-    val editTarget: TimelineEditTarget
+    val editTarget: TimelineEditTarget,
+    val legacyGrowthDetail: LegacyGrowthDetailUiModel? = null
+)
+
+/** 只读旧表详情保留原单位与完整文本；不伪造可编辑的新事件身份。 */
+data class LegacyGrowthDetailUiModel(
+    val babyId: Int,
+    val recordId: Int,
+    val titleText: String,
+    val contentText: String
 )
 
 sealed interface TimelineEditTarget {
     data class Feeding(val recordId: Int) : TimelineEditTarget
     data class Sleep(val recordId: Int) : TimelineEditTarget
     data class Event(val recordId: Int) : TimelineEditTarget
+    data class LegacyGrowth(val recordId: Int) : TimelineEditTarget
 }
 
 /**

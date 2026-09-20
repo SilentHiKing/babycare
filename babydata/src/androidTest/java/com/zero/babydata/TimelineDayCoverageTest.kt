@@ -4,6 +4,7 @@ import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.zero.babydata.entity.BabyInfo
+import com.zero.babydata.entity.ChildDailyRecord
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.FeedingType
 import com.zero.babydata.entity.SleepRecord
@@ -108,6 +109,30 @@ class TimelineDayCoverageTest {
         assertEquals(23 * 60, repository.getDaySummary(1, date).sleepTotalMinutes)
         assertEquals(listOf(BabyRepository.TimelineRecord.Sleep(sleep)), repository.getTimelineRecords(1, date))
         assertEquals(setOf(date.minusDays(1), date), repository.getDatesWithRecords(1, YearMonth.from(date)))
+    }
+
+    @Test fun restoredLegacyGrowthRemainsVisibleWithoutMergingSameDayRows() = runBlocking {
+        val date = LocalDate.of(2026, 2, 1)
+        val time = at("2026-02-01T10:00")
+        val records = listOf(
+            ChildDailyRecord(recordId = 31, babyId = 1, recordDate = time,
+                weight = 4.321f, height = 54.25f, headCircumference = 33.75f,
+                pic = "content://synthetic/legacy-photo", extra = "原始附加信息"),
+            ChildDailyRecord(recordId = 32, babyId = 1, recordDate = time, weight = 4.4f)
+        )
+        records.forEach { database.childDailyRecordDao().insertChildDailyRecord(it) }
+        database.childDailyRecordDao().insertChildDailyRecord(records[0].copy(recordId = 33, babyId = 2))
+        database.childDailyRecordDao().insertChildDailyRecord(records[0].copy(recordId = 34,
+            recordDate = at("2026-02-02T00:00")))
+        // 备份接受的独立记录必须可回看，不能只恢复入库却在空态里消失。
+        val timeline = repository.getTimelineRecords(1, date)
+        assertEquals(2, timeline.size)
+        assertEquals(listOf(time, time), timeline.map { it.time })
+        assertEquals(records.reversed().map { BabyRepository.TimelineRecord.LegacyGrowth(it) }, timeline)
+        assertEquals(2, repository.getDaySummary(1, date).otherEventCount)
+        assertEquals(setOf(date, date.plusDays(1)), repository.getDatesWithRecords(1, YearMonth.from(date)))
+        assertEquals(records, database.childDailyRecordDao().getAllRecordsByBabyId(1)
+            .filter { it.recordDate == time }.sortedBy { it.recordId })
     }
 
     private fun at(value: String): Long = LocalDateTime.parse(value).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()

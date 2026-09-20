@@ -1,6 +1,7 @@
 package com.zero.components.base.util
 
 import android.content.Context
+import android.view.Gravity
 import com.lxj.xpopup.XPopup
 import com.lxj.xpopup.core.BasePopupView
 import com.lxj.xpopup.impl.LoadingPopupView
@@ -141,11 +142,13 @@ object DialogHelper {
         title: String,
         content: String,
         confirmText: String = context.getString(com.zero.common.R.string.confirm),
+        contentGravity: Int = Gravity.CENTER,
         onConfirm: (() -> Unit)? = null
     ): BasePopupView {
         val popup = ConfirmPopup(context)
             .setTitle(title)
             .setContent(content)
+            .setContentGravity(contentGravity)
             .setConfirmText(confirmText)
             .setHideCancel(true)
 

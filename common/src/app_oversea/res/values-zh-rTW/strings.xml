@@ -571,4 +571,8 @@
     <string name="prediction_feeding_expired">餵奶預測區間已過</string>
     <string name="prediction_sleep_expired">睡眠預測區間已過</string>
     <string name="prediction_expired_hint">以寶寶實際情況為準，記錄後更新預測</string>
+    <string name="legacy_growth_record_title">歷史成長記錄</string>
+    <string name="legacy_growth_empty">未填寫測量值</string>
+    <string name="legacy_growth_photo_reference">圖片參照</string>
+    <string name="legacy_growth_statistics_hint">舊版記錄保留原始測量值，暫不計入成長趨勢與百分位。</string>
 </resources>

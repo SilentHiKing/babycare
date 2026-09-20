@@ -21,35 +21,25 @@ internal class StatisticsGrowthHistory private constructor(
         val points: List<GrowthPercentilePoint>
     )
 
-    /** 趋势的有效条件只有 JSON 可解析；相同时间沿用原查询顺序，不能直接反转整列。 */
+    /** 趋势的有效条件只有 JSON 可解析；与百分位共用确定性顺序，从最新有效测量向前取值。 */
     suspend fun latestValid(limit: Int = 2): List<StatisticsGrowthCutoff.GrowthRecordData> {
         require(limit >= 0)
         val context = currentCoroutineContext()
         context.ensureActive()
         val result = ArrayList<StatisticsGrowthCutoff.GrowthRecordData>(limit)
-        var groupEnd = recordsAscending.lastIndex
-        while (groupEnd >= 0 && result.size < limit) {
+        for (index in recordsAscending.indices.reversed()) {
             context.ensureActive()
-            var groupStart = groupEnd
-            while (groupStart > 0 && recordsAscending[groupStart - 1].time == recordsAscending[groupEnd].time) {
-                context.ensureActive()
-                groupStart--
-            }
-            for (index in groupStart..groupEnd) {
-                context.ensureActive()
-                val record = recordsAscending[index]
-                val data = GrowthData.fromJson(record.extraData) ?: continue
-                result.add(StatisticsGrowthCutoff.GrowthRecordData(record, data))
-                if (result.size == limit) break
-            }
-            groupEnd = groupStart - 1
+            if (result.size == limit) break
+            val record = recordsAscending[index]
+            val data = GrowthData.fromJson(record.extraData) ?: continue
+            result.add(StatisticsGrowthCutoff.GrowthRecordData(record, data))
         }
         return result
     }
 
     /**
      * 最新值允许超出 WHO 年龄范围，曲线则只保留最近的有效百分位；无效项不能占用 12 点额度。
-     * 倒序遍历稳定升序快照，最后反转结果，保持旧算法的时间及相同时间项顺序。
+     * 倒序遍历确定性升序快照，最后反转曲线点；最新值与趋势取自同一排序规则。
      */
     suspend fun recentPercentiles(
         birthDateMillis: Long,
@@ -107,7 +97,7 @@ internal class StatisticsGrowthHistory private constructor(
             var comparisons = 0
             selected.sortWith { left, right ->
                 if (comparisons++ % 64 == 0) context.ensureActive()
-                left.time.compareTo(right.time)
+                StatisticsGrowthCutoff.measurementOrder.compare(left, right)
             }
             context.ensureActive()
             return StatisticsGrowthHistory(selected, zone)

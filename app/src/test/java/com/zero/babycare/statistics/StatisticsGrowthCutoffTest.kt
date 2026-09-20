@@ -12,6 +12,26 @@ import java.time.ZoneId
 class StatisticsGrowthCutoffTest {
 
     @Test
+    fun `latest helpers resolve equal time by creation time then persistent id`() {
+        val zone = ZoneId.of("Asia/Shanghai")
+        val selectedDate = LocalDate.of(2026, 5, 2)
+        val time = selectedDate.atStartOfDay(zone).toInstant().toEpochMilli()
+        val records = listOf(
+            growthRecord(9, time).copy(createdAt = 100),
+            growthRecord(3, time).copy(createdAt = 200),
+            growthRecord(4, time).copy(createdAt = 200),
+            growthRecord(99, time - 1).copy(createdAt = 999),
+            growthRecord(100, selectedDate.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli())
+        )
+        listOf(records, records.reversed()).forEach { input ->
+            assertEquals(listOf(4, 3, 9),
+                StatisticsGrowthCutoff.latestUntil(input, selectedDate, 3, zone).map { it.eventId })
+            assertEquals(listOf(4, 3, 9),
+                StatisticsGrowthCutoff.latestValidGrowthDataUntil(input, selectedDate, 3, zone).map { it.record.eventId })
+        }
+    }
+
+    @Test
     fun `growth records after selected day are excluded`() {
         val zone = ZoneId.of("Asia/Shanghai")
         val selectedDate = LocalDate.of(2026, 5, 2)

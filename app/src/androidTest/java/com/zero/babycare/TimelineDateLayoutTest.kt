@@ -169,6 +169,7 @@ class TimelineDateLayoutTest {
                         is TimelineEditTarget.Sleep -> "sleep"
                         is TimelineEditTarget.Feeding -> "feeding"
                         is TimelineEditTarget.Event -> "event"
+                        is TimelineEditTarget.LegacyGrowth -> "legacy-growth"
                     }
                     captureScreenshot(scenario, list, "$themeName-$recordType")
                 } finally {

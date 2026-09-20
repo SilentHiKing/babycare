@@ -2,6 +2,7 @@ package com.zero.components.base.util
 
 import android.content.Context
 import android.view.KeyEvent
+import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -26,6 +27,7 @@ class ConfirmPopup(context: Context) : CenterPopupView(context) {
     private var onConfirmListener: (() -> Unit)? = null
     private var onCancelListener: (() -> Unit)? = null
     private var hideCancel: Boolean = false
+    private var contentGravity: Int = Gravity.CENTER
 
     override fun getImplLayoutId(): Int = R.layout.popup_confirm_dialog
 
@@ -60,6 +62,7 @@ class ConfirmPopup(context: Context) : CenterPopupView(context) {
 
         // 设置内容
         tvContent.text = content
+        tvContent.gravity = contentGravity
 
         // 设置按钮文字
         tvCancel.text = cancelText
@@ -102,6 +105,12 @@ class ConfirmPopup(context: Context) : CenterPopupView(context) {
      */
     fun setContent(content: String): ConfirmPopup {
         this.content = content
+        return this
+    }
+
+    /** 数据详情需要从起始边连续扫读，普通短确认提示仍沿用居中样式。 */
+    fun setContentGravity(gravity: Int): ConfirmPopup {
+        contentGravity = gravity
         return this
     }
 
