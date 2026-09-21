@@ -28,7 +28,9 @@ import androidx.room.PrimaryKey
     // 日历/时间轴和指定类型的最新测量分别使用复合索引，不改写记录内容或业务 SQL。
     indices = [
         Index(value = ["babyId"]), Index(value = ["type"]),
-        Index(value = ["babyId", "time"]), Index(value = ["babyId", "type", "time"])
+        Index(value = ["babyId", "time"]), Index(value = ["babyId", "type", "time"]),
+        Index(value = ["timerSessionId"], unique = true),
+        Index(value = ["babyId", "timerSlot"], unique = true)
     ]
 )
 data class EventRecord(
@@ -64,5 +66,12 @@ data class EventRecord(
     var note: String = "",
     
     /** 创建时间 */
-    var createdAt: Long = 0L
+    var createdAt: Long = 0L,
+    // 活动有效时长允许未知；各具体活动用 type 作为未完成槽位，避免互相覆盖。
+    var activeDurationMs: Long? = null,
+    var timerStatus: Int = 0,
+    var timerSessionId: String? = null,
+    var timerRevision: Long = 0L,
+    var timerData: String? = null,
+    var timerSlot: Int? = null
 )

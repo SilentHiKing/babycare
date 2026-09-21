@@ -1,0 +1,822 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 10,
+    "identityHash": "cc6b86a47a3c4f6accd4f5501004772f",
+    "entities": [
+      {
+        "tableName": "Baby_Info",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`babyId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `stableId` TEXT NOT NULL, `name` TEXT NOT NULL, `gender` TEXT NOT NULL, `birthDate` INTEGER NOT NULL, `birthWeight` REAL NOT NULL, `birthHeight` REAL NOT NULL, `bloodType` TEXT NOT NULL, `extra` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "babyId",
+            "columnName": "babyId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stableId",
+            "columnName": "stableId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gender",
+            "columnName": "gender",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "birthDate",
+            "columnName": "birthDate",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "birthWeight",
+            "columnName": "birthWeight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "birthHeight",
+            "columnName": "birthHeight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bloodType",
+            "columnName": "bloodType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "extra",
+            "columnName": "extra",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "babyId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Baby_Info_stableId",
+            "unique": true,
+            "columnNames": [
+              "stableId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Baby_Info_stableId` ON `${TABLE_NAME}` (`stableId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "Feeding_Records",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`feedingId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `babyId` INTEGER NOT NULL, `feedingType` INTEGER NOT NULL, `feedingStart` INTEGER NOT NULL, `feedingEnd` INTEGER NOT NULL, `feedingDuration` INTEGER NOT NULL, `feedingDurationBreastLeft` INTEGER NOT NULL, `feedingDurationBreastRight` INTEGER NOT NULL, `note` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `feedingAmount` INTEGER, `babyMood` INTEGER, `feedingLocation` INTEGER, `solidFoodType` INTEGER, `foodName` TEXT, `isFirstTime` INTEGER NOT NULL, `timerStatus` INTEGER NOT NULL, `timerSessionId` TEXT, `timerRevision` INTEGER NOT NULL, `timerData` TEXT, `timerSlot` INTEGER, FOREIGN KEY(`babyId`) REFERENCES `Baby_Info`(`babyId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "feedingId",
+            "columnName": "feedingId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "babyId",
+            "columnName": "babyId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "feedingType",
+            "columnName": "feedingType",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "feedingStart",
+            "columnName": "feedingStart",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "feedingEnd",
+            "columnName": "feedingEnd",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "feedingDuration",
+            "columnName": "feedingDuration",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "feedingDurationBreastLeft",
+            "columnName": "feedingDurationBreastLeft",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "feedingDurationBreastRight",
+            "columnName": "feedingDurationBreastRight",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "feedingAmount",
+            "columnName": "feedingAmount",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "babyMood",
+            "columnName": "babyMood",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "feedingLocation",
+            "columnName": "feedingLocation",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "solidFoodType",
+            "columnName": "solidFoodType",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "foodName",
+            "columnName": "foodName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "isFirstTime",
+            "columnName": "isFirstTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timerStatus",
+            "columnName": "timerStatus",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timerSessionId",
+            "columnName": "timerSessionId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timerRevision",
+            "columnName": "timerRevision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timerData",
+            "columnName": "timerData",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timerSlot",
+            "columnName": "timerSlot",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "feedingId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Feeding_Records_babyId",
+            "unique": false,
+            "columnNames": [
+              "babyId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Feeding_Records_babyId` ON `${TABLE_NAME}` (`babyId`)"
+          },
+          {
+            "name": "index_Feeding_Records_babyId_feedingStart_feedingEnd",
+            "unique": false,
+            "columnNames": [
+              "babyId",
+              "feedingStart",
+              "feedingEnd"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Feeding_Records_babyId_feedingStart_feedingEnd` ON `${TABLE_NAME}` (`babyId`, `feedingStart`, `feedingEnd`)"
+          },
+          {
+            "name": "index_Feeding_Records_babyId_feedingEnd",
+            "unique": false,
+            "columnNames": [
+              "babyId",
+              "feedingEnd"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Feeding_Records_babyId_feedingEnd` ON `${TABLE_NAME}` (`babyId`, `feedingEnd`)"
+          },
+          {
+            "name": "index_Feeding_Records_timerSessionId",
+            "unique": true,
+            "columnNames": [
+              "timerSessionId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Feeding_Records_timerSessionId` ON `${TABLE_NAME}` (`timerSessionId`)"
+          },
+          {
+            "name": "index_Feeding_Records_babyId_timerSlot",
+            "unique": true,
+            "columnNames": [
+              "babyId",
+              "timerSlot"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Feeding_Records_babyId_timerSlot` ON `${TABLE_NAME}` (`babyId`, `timerSlot`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Baby_Info",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "babyId"
+            ],
+            "referencedColumns": [
+              "babyId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "Sleep_Records",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`sleepId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `babyId` INTEGER NOT NULL, `sleepStart` INTEGER NOT NULL, `sleepEnd` INTEGER NOT NULL, `sleepDuration` INTEGER NOT NULL, `note` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `timerStatus` INTEGER NOT NULL, `timerSessionId` TEXT, `timerRevision` INTEGER NOT NULL, `timerData` TEXT, `timerSlot` INTEGER, FOREIGN KEY(`babyId`) REFERENCES `Baby_Info`(`babyId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "sleepId",
+            "columnName": "sleepId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "babyId",
+            "columnName": "babyId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sleepStart",
+            "columnName": "sleepStart",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sleepEnd",
+            "columnName": "sleepEnd",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sleepDuration",
+            "columnName": "sleepDuration",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timerStatus",
+            "columnName": "timerStatus",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timerSessionId",
+            "columnName": "timerSessionId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timerRevision",
+            "columnName": "timerRevision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timerData",
+            "columnName": "timerData",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timerSlot",
+            "columnName": "timerSlot",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "sleepId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Sleep_Records_babyId",
+            "unique": false,
+            "columnNames": [
+              "babyId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Sleep_Records_babyId` ON `${TABLE_NAME}` (`babyId`)"
+          },
+          {
+            "name": "index_Sleep_Records_babyId_sleepStart_sleepEnd",
+            "unique": false,
+            "columnNames": [
+              "babyId",
+              "sleepStart",
+              "sleepEnd"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Sleep_Records_babyId_sleepStart_sleepEnd` ON `${TABLE_NAME}` (`babyId`, `sleepStart`, `sleepEnd`)"
+          },
+          {
+            "name": "index_Sleep_Records_babyId_sleepEnd",
+            "unique": false,
+            "columnNames": [
+              "babyId",
+              "sleepEnd"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Sleep_Records_babyId_sleepEnd` ON `${TABLE_NAME}` (`babyId`, `sleepEnd`)"
+          },
+          {
+            "name": "index_Sleep_Records_timerSessionId",
+            "unique": true,
+            "columnNames": [
+              "timerSessionId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Sleep_Records_timerSessionId` ON `${TABLE_NAME}` (`timerSessionId`)"
+          },
+          {
+            "name": "index_Sleep_Records_babyId_timerSlot",
+            "unique": true,
+            "columnNames": [
+              "babyId",
+              "timerSlot"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Sleep_Records_babyId_timerSlot` ON `${TABLE_NAME}` (`babyId`, `timerSlot`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Baby_Info",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "babyId"
+            ],
+            "referencedColumns": [
+              "babyId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "ChildDailyRecord",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`recordId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `babyId` INTEGER NOT NULL, `recordDate` INTEGER NOT NULL, `weight` REAL NOT NULL, `height` REAL NOT NULL, `headCircumference` REAL NOT NULL, `pic` TEXT NOT NULL, `extra` TEXT NOT NULL, FOREIGN KEY(`babyId`) REFERENCES `Baby_Info`(`babyId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "recordId",
+            "columnName": "recordId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "babyId",
+            "columnName": "babyId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recordDate",
+            "columnName": "recordDate",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "weight",
+            "columnName": "weight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "height",
+            "columnName": "height",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "headCircumference",
+            "columnName": "headCircumference",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pic",
+            "columnName": "pic",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "extra",
+            "columnName": "extra",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "recordId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_ChildDailyRecord_babyId",
+            "unique": false,
+            "columnNames": [
+              "babyId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ChildDailyRecord_babyId` ON `${TABLE_NAME}` (`babyId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Baby_Info",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "babyId"
+            ],
+            "referencedColumns": [
+              "babyId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "Event_Records",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`eventId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `babyId` INTEGER NOT NULL, `type` INTEGER NOT NULL, `time` INTEGER NOT NULL, `endTime` INTEGER NOT NULL, `extraData` TEXT NOT NULL, `note` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `activeDurationMs` INTEGER, `timerStatus` INTEGER NOT NULL, `timerSessionId` TEXT, `timerRevision` INTEGER NOT NULL, `timerData` TEXT, `timerSlot` INTEGER, FOREIGN KEY(`babyId`) REFERENCES `Baby_Info`(`babyId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "eventId",
+            "columnName": "eventId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "babyId",
+            "columnName": "babyId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "time",
+            "columnName": "time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endTime",
+            "columnName": "endTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "extraData",
+            "columnName": "extraData",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "activeDurationMs",
+            "columnName": "activeDurationMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "timerStatus",
+            "columnName": "timerStatus",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timerSessionId",
+            "columnName": "timerSessionId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timerRevision",
+            "columnName": "timerRevision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timerData",
+            "columnName": "timerData",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timerSlot",
+            "columnName": "timerSlot",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "eventId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Event_Records_babyId",
+            "unique": false,
+            "columnNames": [
+              "babyId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Event_Records_babyId` ON `${TABLE_NAME}` (`babyId`)"
+          },
+          {
+            "name": "index_Event_Records_type",
+            "unique": false,
+            "columnNames": [
+              "type"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Event_Records_type` ON `${TABLE_NAME}` (`type`)"
+          },
+          {
+            "name": "index_Event_Records_babyId_time",
+            "unique": false,
+            "columnNames": [
+              "babyId",
+              "time"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Event_Records_babyId_time` ON `${TABLE_NAME}` (`babyId`, `time`)"
+          },
+          {
+            "name": "index_Event_Records_babyId_type_time",
+            "unique": false,
+            "columnNames": [
+              "babyId",
+              "type",
+              "time"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Event_Records_babyId_type_time` ON `${TABLE_NAME}` (`babyId`, `type`, `time`)"
+          },
+          {
+            "name": "index_Event_Records_timerSessionId",
+            "unique": true,
+            "columnNames": [
+              "timerSessionId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Event_Records_timerSessionId` ON `${TABLE_NAME}` (`timerSessionId`)"
+          },
+          {
+            "name": "index_Event_Records_babyId_timerSlot",
+            "unique": true,
+            "columnNames": [
+              "babyId",
+              "timerSlot"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Event_Records_babyId_timerSlot` ON `${TABLE_NAME}` (`babyId`, `timerSlot`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Baby_Info",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "babyId"
+            ],
+            "referencedColumns": [
+              "babyId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "Record_Write_Receipts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`requestId` TEXT NOT NULL, `babyId` INTEGER NOT NULL, `recordType` INTEGER NOT NULL, `recordId` INTEGER NOT NULL, `payloadHash` TEXT NOT NULL, PRIMARY KEY(`requestId`), FOREIGN KEY(`babyId`) REFERENCES `Baby_Info`(`babyId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "requestId",
+            "columnName": "requestId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "babyId",
+            "columnName": "babyId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recordType",
+            "columnName": "recordType",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recordId",
+            "columnName": "recordId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadHash",
+            "columnName": "payloadHash",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "requestId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Record_Write_Receipts_babyId",
+            "unique": false,
+            "columnNames": [
+              "babyId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Record_Write_Receipts_babyId` ON `${TABLE_NAME}` (`babyId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Baby_Info",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "babyId"
+            ],
+            "referencedColumns": [
+              "babyId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "Baby_Creation_Receipts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`requestId` TEXT NOT NULL, `babyId` INTEGER NOT NULL, `payloadHash` TEXT NOT NULL, PRIMARY KEY(`requestId`))",
+        "fields": [
+          {
+            "fieldPath": "requestId",
+            "columnName": "requestId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "babyId",
+            "columnName": "babyId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadHash",
+            "columnName": "payloadHash",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "requestId"
+          ]
+        }
+      },
+      {
+        "tableName": "Backup_Import_Commits",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`commitId` TEXT NOT NULL, `reportJson` TEXT NOT NULL, `replacedBabyIdsJson` TEXT NOT NULL, `committedAt` INTEGER NOT NULL, `cleanupComplete` INTEGER NOT NULL, `reportConsumed` INTEGER NOT NULL, PRIMARY KEY(`commitId`))",
+        "fields": [
+          {
+            "fieldPath": "commitId",
+            "columnName": "commitId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reportJson",
+            "columnName": "reportJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "replacedBabyIdsJson",
+            "columnName": "replacedBabyIdsJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "committedAt",
+            "columnName": "committedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cleanupComplete",
+            "columnName": "cleanupComplete",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reportConsumed",
+            "columnName": "reportConsumed",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "commitId"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'cc6b86a47a3c4f6accd4f5501004772f')"
+    ]
+  }
+}

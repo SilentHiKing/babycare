@@ -707,7 +707,8 @@ class UiResourcePolicyTest {
             if (!fragment.contains("vm.mutation.isPending") ||
                 !fragment.contains("vm.mutation.state.collect") ||
                 !fragment.contains("vm.mutation.consume(state)") ||
-                !fragment.contains("binding.btnSave.isEnabled = !inProgress")
+                !fragment.contains("saveInProgress = inProgress || timerState?.busy == true") ||
+                !fragment.contains("binding.btnSave.isEnabled = !saveInProgress")
             ) {
                 add("save button should follow retained mutation state and consume results once")
             }

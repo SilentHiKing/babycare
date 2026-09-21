@@ -7,6 +7,7 @@ import android.text.TextWatcher
 import android.text.StaticLayout
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -35,6 +36,8 @@ import com.zero.babycare.databinding.LayoutEventDetailCustomBinding
 import com.zero.babycare.databinding.LayoutEventDetailSymptomBinding
 import com.zero.babycare.databinding.LayoutEventDetailVaccineBinding
 import com.zero.babycare.home.record.RecordTimerController
+import com.zero.babycare.home.record.CompletedTimerDurationPreview
+import com.zero.babycare.home.record.PersistentTimerEditor
 import com.zero.babycare.home.record.RecordDraftState
 import com.zero.babycare.home.record.RecordNumberInput
 import com.zero.babycare.home.record.TimerMode
@@ -42,6 +45,10 @@ import com.zero.babycare.navigation.NavTarget
 import com.zero.babycare.navigation.BackPressHandler
 import com.zero.babydata.entity.CustomEventData
 import com.zero.babydata.domain.MedicineUnit
+import com.zero.babydata.domain.TimerRef
+import com.zero.babydata.domain.TimerStatus
+import com.zero.babydata.domain.TimerCalculations
+import com.zero.babydata.domain.TimerMetadataCodec
 import com.zero.babydata.entity.DiaperData
 import com.zero.babydata.entity.EventExtraData
 import com.zero.babydata.entity.EventType
@@ -58,7 +65,6 @@ import com.zero.common.util.UnitConverter
 import com.zero.components.base.BaseFragment
 import com.zero.components.base.util.DialogHelper
 import com.zero.components.touch.HorizontalNestedScrollTouchDelegate
-import com.zero.components.widget.RecordView.RecordState
 import com.zero.components.widget.ToolbarAction
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -84,6 +90,13 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     private var isCategoryLocked = false
     private var pendingExtraData: com.zero.babydata.entity.EventExtraData? = null
     private var activityTimerController: RecordTimerController? = null
+    private var renderedTimerRef: TimerRef? = null
+    private var pendingTimerRawDraft: Bundle? = null
+    private var openedTimerKey: Pair<Int, Int>? = null
+    private var pendingDiscardRef: TimerRef? = null
+    private var expectedTimerSessionId: String? = null
+    private var reportedTimerError: Int? = null
+    private var reviewTimerRef: TimerRef? = null
     private var saveInProgress = false
     private var noteExpanded = false
     private var hasUnsavedChanges = false
@@ -164,6 +177,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
         observeViewModel()
         observeMutation()
+        launchInLifecycle { vm.timer.state.collect(::renderPersistentTimer) }
         launchInLifecycle {
             vm.fieldValidation.collect(::renderFieldValidation)
         }
@@ -190,7 +204,14 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             isProgrammaticChange = true
             RecordDraftState.restoreHierarchy(binding.root, draft)
             draft.getBundle("timer")?.let { timer ->
-                activityTimerPanel()?.let { RecordDraftState.restoreTimer(it, activityTimerController, timer) }
+                // 业务状态从 Room 恢复；页面草稿只覆盖原始输入，不能复活旧计时器。
+                pendingTimerRawDraft = timer
+                expectedTimerSessionId = timer.getString("ongoing_session_id")
+                activityTimerPanel()?.let { panel ->
+                    panel.startInput.restoreInputState(timer.getLong("start"), timer.getString("start_raw").orEmpty())
+                    panel.endInput.restoreInputState(timer.getLong("end"), timer.getString("end_raw").orEmpty())
+                }
+                if (isEditMode) activityTimerController?.updateDurationFromInputs(previewOnly = true)
             }
             setNoteExpanded(draft.getBoolean("note_expanded"))
             cleanInputs = draft.getStringArrayList("clean_inputs") ?: RecordDraftState.inputValues(binding.root)
@@ -202,6 +223,8 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         retainedDraft = null
         isViewStateRestored = true
         renderFieldValidation(vm.fieldValidation.value)
+        openCurrentTimer()
+        renderPersistentTimer(vm.timer.state.value)
     }
 
     private fun captureDraft(): Bundle = Bundle().apply {
@@ -227,13 +250,102 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         }
         putString("event_state", Gson().toJson(vm.captureDraft()))
         editingRecord?.let { putString("editing_record", Gson().toJson(it)) }
-        activityTimerPanel()?.let { putBundle("timer", RecordDraftState.saveTimer(it, activityTimerController)) }
+        activityTimerPanel()?.let {
+            putBundle("timer", RecordDraftState.saveTimer(it, activityTimerController).apply {
+                // 完成已落库但成功结果尚未消费时，仍保留原身份供冷恢复核验。
+                expectedTimerSessionId?.let { sessionId -> putString("ongoing_session_id", sessionId) }
+            })
+        }
         RecordDraftState.saveHierarchy(binding.root, this)
     }
 
     private fun activityTimerPanel(): com.zero.components.widget.RecordTimerPanelView? {
         if (activityTimerController == null || binding.containerDetail.childCount == 0) return null
         return LayoutEventDetailActivityBinding.bind(binding.containerDetail.getChildAt(0)).timerPanel
+    }
+
+    /** 分类和宝宝共同限定槽位，旧页面异步结果不能渲染到新活动表单。 */
+    private fun currentPersistentTimer(): PersistentTimerEditor.State? {
+        if (isEditMode) return null
+        val type = vm.selectedSubtype.value?.type ?: return null
+        if (!EventType.hasDuration(type)) return null
+        return vm.timer.state.value.takeIf { it.babyId == draftBabyId && it.eventType == type }
+    }
+
+    private fun openCurrentTimer() {
+        if (!isViewStateRestored || isHidden || isEditMode) return
+        val babyId = draftBabyId ?: return
+        val type = vm.selectedSubtype.value?.type ?: return
+        if (!EventType.hasDuration(type)) return
+        val key = babyId to type
+        if (openedTimerKey == key) return
+        openedTimerKey = key
+        vm.openTimer(babyId, type, expectedTimerSessionId)
+    }
+
+    /** Room 的版本变化才重绘计时；busy/error 重发不覆盖用户尚未提交的原始输入。 */
+    private fun renderPersistentTimer(state: PersistentTimerEditor.State) {
+        if (view == null || isHidden || !isViewStateRestored || currentPersistentTimer() !== state) return
+        val panel = activityTimerPanel() ?: return
+        val snapshot = state.snapshot
+        if (!state.busy && snapshot?.status == TimerStatus.COMPLETED) {
+            // 提交成功后进程退出也只能消费原会话，不能将恢复草稿再插入成手工记录。
+            prepareCreateModeState()
+            ToastUtils.showShort(getString(R.string.save_success))
+            mainVm.navigateTo(getReturnTarget())
+            return
+        }
+        if (!state.busy && snapshot != null && (snapshot.ref != renderedTimerRef || state.errorRes != null)) {
+            val firstRender = renderedTimerRef == null
+            val draft = pendingTimerRawDraft?.takeIf {
+                it.getString("ongoing_session_id") == snapshot.ref.sessionId
+            }
+            val rawStart = if (draft?.getLong("start") == 0L) draft.getString("start_raw")
+                else panel.startInput.text.toString().takeIf { !panel.startInput.hasValidTime() && it.isNotBlank() }
+            val rawEnd = if (draft?.getLong("end") == 0L &&
+                (draft.getString("end_raw").orEmpty().isNotBlank() || draft.getLong("pause_end") > 0L)) draft.getString("end_raw")
+                else panel.endInput.text.toString().takeIf { !panel.endInput.hasValidTime() && it.isNotBlank() }
+            isProgrammaticChange = true
+            try {
+                activityTimerController?.renderPersistent(snapshot)
+                renderedTimerRef = snapshot.ref
+                expectedTimerSessionId = snapshot.ref.sessionId
+                vm.setDurationStartTime(snapshot.startAt)
+                vm.setEndTime(snapshot.endAt)
+                // 配置重建保留半截输入；业务行仍是最后一次成功提交的状态。
+                rawStart?.let { panel.startInput.restoreInputState(0L, it) }
+                rawEnd?.let { panel.endInput.restoreInputState(0L, it) }
+                if (firstRender && pendingTimerRawDraft == null && binding.etNote.text.isNullOrBlank()) {
+                    binding.etNote.setText(snapshot.event?.note.orEmpty())
+                    setNoteExpanded(!binding.etNote.text.isNullOrBlank())
+                    cleanInputs = RecordDraftState.inputValues(binding.root)
+                }
+            } finally {
+                pendingTimerRawDraft = null
+                isProgrammaticChange = false
+            }
+        } else if (!state.busy && snapshot == null) {
+            activityTimerController?.renderPersistent(null)
+            renderedTimerRef = null
+        }
+        setSaveInProgress(vm.mutation.state.value is RecordMutationController.State.Running)
+        if (!state.busy && pendingDiscardRef != null) {
+            pendingDiscardRef = null
+            if (state.errorRes == null && snapshot == null) prepareCreateModeState()
+        }
+        if (state.errorRes == null) reportedTimerError = null
+        state.errorRes?.let { message ->
+            if (reportedTimerError != message) ToastUtils.showShort(getString(message))
+            reportedTimerError = message
+            // 打开失败时不能清错后退回“无会话”，否则旧草稿会被保存为重复手工记录。
+            if (snapshot != null) vm.timer.clearError()
+        }
+        if (!state.busy && snapshot?.metadata?.requiresReview == true && reviewTimerRef != snapshot.ref) {
+            reviewTimerRef = snapshot.ref
+            activityTimerController?.showReviewConfirmation {
+                if (currentPersistentTimer()?.snapshot?.ref == snapshot.ref) vm.timer.acknowledgeReview()
+            }
+        }
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
@@ -257,6 +369,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         resolveEditMode()
         prepareCreateModeState()
         if (isEditMode) loadEditRecord()
+        else openCurrentTimer()
     }
 
     private fun prepareCreateModeState() {
@@ -266,6 +379,9 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         numericInput = null
         numericInputType = null
         originalExtraInputs = null
+        pendingTimerRawDraft = null
+        expectedTimerSessionId = null
+        reportedTimerError = null
         hasMedicineDraftUnit = false
         medicineDraftUnit = null
         releaseActivityTimer()
@@ -369,6 +485,22 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     private fun updateToolbarAction() {
+        val timerState = currentPersistentTimer()
+        if (timerState?.snapshot == null && timerState?.errorRes != null) {
+            val label = getString(R.string.retry)
+            binding.toolbar.setActions(listOf(ToolbarAction(text = label, contentDescription = label,
+                enabled = !timerState.busy))) {
+                openedTimerKey = null
+                openCurrentTimer()
+            }
+            return
+        }
+        if (currentPersistentTimer()?.snapshot != null) {
+            val label = getString(R.string.timer_discard)
+            binding.toolbar.setActions(listOf(ToolbarAction(text = label, contentDescription = label,
+                enabled = !saveInProgress))) { showDiscardTimerDialog() }
+            return
+        }
         if (!isEditMode) {
             binding.toolbar.hideAction()
             return
@@ -395,7 +527,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
     private fun setupCategoryRecyclerView() {
         categoryAdapter = EventCategoryAdapter { category ->
-            if (!isCategoryLocked) {
+            if (!isCategoryLocked && !saveInProgress) {
                 hasUnsavedChanges = true
                 vm.selectCategory(category)
             }
@@ -408,7 +540,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
 
     private fun setupSubtypeRecyclerView() {
         subtypeAdapter = EventSubtypeAdapter { subtype ->
-            if (!isCategoryLocked) {
+            if (!isCategoryLocked && !saveInProgress) {
                 hasUnsavedChanges = true
                 vm.selectSubtype(subtype)
             }
@@ -424,6 +556,23 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         binding.rvSubtype.adapter = subtypeAdapter
         binding.rvSubtype.addOnLayoutChangeListener(subtypeLayoutListener)
         applyCategoryLockState()
+    }
+
+    private fun showDiscardTimerDialog() {
+        val snapshot = currentPersistentTimer()?.snapshot ?: return
+        val expectedDraft = draftId
+        DialogHelper.showConfirmDialog(
+            context = requireContext(), title = getString(R.string.timer_discard),
+            content = getString(R.string.timer_discard_confirm),
+            confirmText = getString(R.string.timer_discard), cancelText = getString(R.string.cancel),
+            onConfirm = {
+                if (view != null && !isHidden && draftId == expectedDraft &&
+                    currentPersistentTimer()?.snapshot?.ref == snapshot.ref) {
+                    pendingDiscardRef = snapshot.ref
+                    vm.timer.discard()
+                }
+            }
+        )
     }
 
     private val subtypeLayoutListener = View.OnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
@@ -503,6 +652,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                 // 编辑加载最后统一重建详情，避免同步 Flow 重入提前消耗 pendingExtraData。
                 if (!isProgrammaticChange) updateDetailView(subtype)
                 updateUIVisibility(subtype != null)
+                if (!isProgrammaticChange) openCurrentTimer()
             }
         }
 
@@ -520,6 +670,9 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     private fun showDateTimePicker() {
+        val expectedView = view
+        val expectedDraft = draftId
+        val expectedType = vm.selectedSubtype.value?.type
         DialogHelper.showDateTimeSheet(
             context = requireContext(),
             title = getString(R.string.select_time),
@@ -527,11 +680,14 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             mode = DialogHelper.DateTimeMode.DATE_TIME,
             maxTime = System.currentTimeMillis(),
             onConfirm = { timestamp ->
+                if (view !== expectedView || isHidden || draftId != expectedDraft ||
+                    vm.selectedSubtype.value?.type != expectedType) return@showDateTimeSheet
                 hasUnsavedChanges = true
-                vm.setEventTime(timestamp)
                 val subtype = vm.selectedSubtype.value
                 if (subtype != null && EventType.hasDuration(subtype.type) && vm.durationStartTime.value != null) {
                     syncActivityStartTime(timestamp)
+                } else {
+                    vm.setEventTime(timestamp)
                 }
             }
         )
@@ -545,6 +701,11 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             detailBinding.timerPanel.startInput.hasValidTime()
         if (!hasExplicitStartTime) return
         if (detailBinding.timerPanel.startInput.getTimestamp() == timestamp) return
+
+        currentPersistentTimer()?.snapshot?.let {
+            vm.timer.editStart(timestamp)
+            return
+        }
 
         activityTimerController?.let { controller ->
             controller.syncStartTime(
@@ -804,6 +965,14 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                 activityTimerController?.setEndTime(endTime, notify = false, updateDuration = true)
             } else {
                 activityTimerController?.clearEndTime(notify = false)
+            }
+            if (record != null) {
+                // 已完成记录只编辑内容，不通过原计时按钮开启另一个实时会话。
+                val panel = activityTimerPanel()
+                val duration = record.timerData?.let(TimerMetadataCodec::decode)?.let { TimerCalculations.totalDuration(it) }
+                    ?: record.activeDurationMs ?: (record.endTime - record.time).coerceAtLeast(0L)
+                panel?.timerView?.showDurationWithoutTimer(duration)
+                panel?.timerView?.isEnabled = false
             }
         }
 
@@ -1136,11 +1305,29 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             config = RecordTimerController.Config(
                 invalidEndTimeMessageRes = R.string.event_end_time_invalid,
                 mode = TimerMode.ACTIVITY,
-                shouldIgnoreInput = { isProgrammaticChange }
+                persistent = true,
+                shouldIgnoreInput = { isProgrammaticChange },
+                durationPreview = { start, end ->
+                    CompletedTimerDurationPreview.calculate(editingRecord?.timerData, start, end)?.map { it.durationMs }
+                }
             ),
             callbacks = RecordTimerController.Callbacks(
-                onStartTimeChanged = { timestamp -> vm.setDurationStartTime(timestamp) },
-                onEndTimeChanged = { timestamp -> vm.setEndTime(timestamp) },
+                onStartTimeChanged = { timestamp ->
+                    if (currentPersistentTimer()?.snapshot != null) vm.timer.editStart(timestamp)
+                    else vm.setDurationStartTime(timestamp)
+                },
+                onEndTimeChanged = { timestamp ->
+                    if (timestamp != null && currentPersistentTimer()?.snapshot != null) vm.timer.editEnd(timestamp)
+                    else vm.setEndTime(timestamp)
+                },
+                onTimerStart = { timestamp ->
+                    if (!isEditMode) draftBabyId?.let { babyId ->
+                        vm.startTimer(babyId, timestamp, activityTimerController?.isStartTimeAutomatic == true,
+                            binding.etNote.text.toString().trim())
+                    }
+                },
+                onTimerPause = { if (!isEditMode) vm.timer.pause() },
+                onTimerResume = { if (!isEditMode) vm.timer.resume() },
                 onDirty = { if (!isProgrammaticChange) hasUnsavedChanges = true }
             )
         )
@@ -1193,7 +1380,9 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     private fun saveRecord() {
-        if (vm.mutation.isPending || (isEditMode && editingRecord == null)) return
+        val timerState = currentPersistentTimer()
+        if (vm.mutation.isPending || timerState?.busy == true ||
+            (timerState?.snapshot == null && timerState?.errorRes != null) || (isEditMode && editingRecord == null)) return
 
         val babyId = mainVm.getCurrentBabyInfo()?.babyId
         if (babyId == null || (draftBabyId != null && draftBabyId != babyId)) {
@@ -1211,12 +1400,13 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
                 panel.startInput.requestFocus()
                 return
             }
-            if (!panel.endInput.hasValidTime() &&
-                (panel.timerView.currentShowState != RecordState.RECORDING || !panel.endInput.text.isNullOrBlank())) {
+            val running = currentPersistentTimer()?.snapshot?.status == TimerStatus.RUNNING
+            if (!panel.endInput.hasValidTime() && (!running || !panel.endInput.text.isNullOrBlank())) {
                 panel.endInput.error = getString(if (panel.endInput.text.isNullOrBlank()) R.string.end_time_required else R.string.invalid_time)
                 panel.endInput.requestFocus()
                 return
             }
+            if (isEditMode && activityTimerController?.updateDurationFromInputs(previewOnly = true) == false) return
         }
 
         syncRunningActivityTimerBeforeSave()
@@ -1243,10 +1433,22 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
     }
 
     private fun setSaveInProgress(inProgress: Boolean) {
-        saveInProgress = inProgress
+        val timerState = currentPersistentTimer()
+        saveInProgress = inProgress || timerState?.busy == true ||
+            (timerState?.snapshot == null && timerState?.errorRes != null)
         if (view == null) return
-        binding.btnSave.isEnabled = !inProgress
-        binding.btnSave.alpha = if (inProgress) 0.7f else 1f
+        binding.btnSave.isEnabled = !saveInProgress
+        binding.btnSave.alpha = if (saveInProgress) 0.7f else 1f
+        binding.cardTime.isEnabled = !saveInProgress
+        binding.etNote.isEnabled = !saveInProgress
+        fun enableInputs(root: View) {
+            root.isEnabled = !saveInProgress
+            if (root is ViewGroup) for (index in 0 until root.childCount) enableInputs(root.getChildAt(index))
+        }
+        enableInputs(binding.containerDetail)
+        val status = currentPersistentTimer()?.snapshot?.status
+        activityTimerPanel()?.timerView?.isEnabled = !saveInProgress && !isEditMode && status != TimerStatus.STOPPED
+        applyCategoryLockState()
         updateToolbarAction()
     }
 
@@ -1301,10 +1503,7 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         if (root.childCount == 0) return
 
         val detailBinding = LayoutEventDetailActivityBinding.bind(root.getChildAt(0))
-        if (detailBinding.timerPanel.timerView.currentShowState == RecordState.RECORDING) {
-            // 保存活动类事件前先触发统一暂停流程，让结束时间同步写入 ViewModel。
-            detailBinding.timerPanel.timerView.forcePause(triggerCallback = true)
-        }
+        if (currentPersistentTimer()?.snapshot != null) return
         // VM 只接收本次表单已提交的时间，清空旧字段后不能继续保存 VM 中残留的旧时间。
         vm.setDurationStartTime(detailBinding.timerPanel.startInput.getTimestamp().takeIf { it > 0L })
         vm.setEndTime(detailBinding.timerPanel.endInput.getTimestamp().takeIf { it > 0L })
@@ -1491,7 +1690,8 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             DialogHelper.showConfirmDialog(
                 context = requireContext(),
                 title = getString(R.string.tip),
-                content = getString(R.string.unsaved_record_tip),
+                content = getString(if (currentPersistentTimer()?.snapshot != null)
+                    R.string.timer_leave_tip else R.string.unsaved_record_tip),
                 confirmText = getString(R.string.confirm),
                 cancelText = getString(R.string.cancel),
                 onConfirm = {
@@ -1508,10 +1708,11 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
         if (!::categoryAdapter.isInitialized || !::subtypeAdapter.isInitialized) {
             return
         }
-        categoryAdapter.setLocked(isCategoryLocked)
-        subtypeAdapter.setLocked(isCategoryLocked)
-        binding.rvCategory.isEnabled = !isCategoryLocked
-        binding.rvSubtype.isEnabled = !isCategoryLocked
+        val locked = isCategoryLocked || saveInProgress
+        categoryAdapter.setLocked(locked)
+        subtypeAdapter.setLocked(locked)
+        binding.rvCategory.isEnabled = !locked
+        binding.rvSubtype.isEnabled = !locked
     }
 
     private fun releaseActivityTimer() {
@@ -1524,6 +1725,11 @@ class EventRecordFragment : BaseFragment<FragmentEventRecordBinding>(), BackPres
             }
         }
         activityTimerController = null
+        renderedTimerRef = null
+        openedTimerKey = null
+        pendingDiscardRef = null
+        expectedTimerSessionId = null
+        reviewTimerRef = null
     }
 
     override fun onDestroyView() {

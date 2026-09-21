@@ -97,29 +97,6 @@ class TimerClockRecoveryTest {
         }
     }
 
-    @Test fun cancellationReplansOnlyOnceAndScopeCleanupDoesNotSchedule() {
-        val babyId = 1_900_000_321
-        val keys = RecordType.entries.associateWith { "ongoing_session_${it.name.lowercase()}_$babyId" }
-        keys.values.forEach { assertTrue("合成键不能覆盖现有会话", MMKVStore.getString(it).isNullOrEmpty()) }
-        try {
-            RecordType.entries.forEach { type ->
-                MMKVStore.put(keys.getValue(type), OngoingSession.running(babyId, type, start.wallTimeMs, now = start), encrypt = true)
-                var requests = 0
-                OngoingRecordManager.cancelSession(babyId, type) { requests++ }
-                assertEquals(1, requests)
-                OngoingRecordManager.cancelSession(babyId, type) { requests++ }
-                assertEquals("重复取消不能重复调度", 1, requests)
-                MMKVStore.put(keys.getValue(type), OngoingSession.running(babyId, type, start.wallTimeMs, now = start), encrypt = true)
-                // 删除/覆盖的按宝宝清理由外层事务统一善后，不能冒充用户取消而单独调度。
-                OngoingRecordManager.clearBaby(babyId)
-                OngoingRecordManager.cancelSession(babyId, type) { requests++ }
-                assertEquals(1, requests)
-                assertTrue(MMKVStore.getString(keys.getValue(type)).isNullOrEmpty())
-            }
-        } finally {
-            keys.values.forEach { MMKVStore.remove(it) }
-        }
-    }
 
     @Test fun firstEndSelectionUpdatesDurationAndPersistsManualPause() {
         instrumentation.runOnMainSync {
@@ -184,58 +161,38 @@ class TimerClockRecoveryTest {
         }
     }
 
-    @Test fun separateClockSamplesUseExactSessionIdentityForSaveAndRejectReplacement() {
-        val babyId = 1_900_000_322
-        val key = "ongoing_session_feeding_$babyId"
-        assertTrue("合成键不能覆盖现有会话", MMKVStore.getString(key).isNullOrEmpty())
-        try {
-            instrumentation.runOnMainSync {
-                val now = TimerClock.snapshot()
-                val controllerAnchor = now.copy(wallTimeMs = now.wallTimeMs - 900_000L + 3_600_000L,
-                    elapsedRealtimeMs = now.elapsedRealtimeMs!! - 900_000L)
-                val managerAnchor = controllerAnchor.copy(wallTimeMs = controllerAnchor.wallTimeMs + 2L)
-                val original = OngoingSession.running(babyId, RecordType.FEEDING, controllerAnchor.wallTimeMs,
-                    automaticStart = true, now = managerAnchor)
-                MMKVStore.put(key, original, encrypt = true)
-                val context = ContextThemeWrapper(app, com.zero.common.R.style.AppTheme_Boy)
-                val timer = RecordView(context, clock = { now })
-                val from = TimeEditText(context)
-                val until = TimeEditText(context)
-                val controller = RecordTimerController(context, timer, from, until, View(context), View(context),
-                    RecordTimerController.Config(com.zero.common.R.string.end_time_must_after_start),
-                    RecordTimerController.Callbacks(
-                        onClockSynchronized = { id, timestamp, clock ->
-                            OngoingRecordManager.synchronizeAutomaticStart(babyId, RecordType.FEEDING, id, timestamp, clock)
-                        },
-                        onTimerPause = { end -> OngoingRecordManager.pauseFeeding(babyId, end, timer.getDuration(), original.sessionId) }
-                    ), clock = { now })
-                try {
-                    controller.setStartTime(original.startAt)
-                    controller.restoreAutomaticStart(true, controllerAnchor, original.sessionId)
-                    timer.startFromOffset(900_000L)
-                    timer.forcePause(triggerCallback = true)
-                    val submitted = requireNotNull(OngoingRecordManager.getFeedingSession(babyId))
-                    assertEquals("校正后起点须精确匹配，不使用时间容差", from.getTimestamp(), submitted.startAt)
-                    assertEquals(original.sessionId, submitted.sessionId)
-                    runBlocking { OngoingSessionSavePolicy.save(submitted, {},
-                        { OngoingRecordManager.getFeedingSession(babyId) }, { OngoingRecordManager.endFeeding(babyId) }) }
-                    assertNull(OngoingRecordManager.getFeedingSession(babyId))
-                    val replacement = OngoingSession.running(babyId, RecordType.FEEDING, now.wallTimeMs,
-                        automaticStart = true, now = now)
-                    MMKVStore.put(key, replacement, encrypt = true)
-                    OngoingRecordManager.synchronizeAutomaticStart(babyId, RecordType.FEEDING,
-                        requireNotNull(original.sessionId), from.getTimestamp(), now)
-                    OngoingRecordManager.pauseFeeding(babyId, now.wallTimeMs, 900_000L, original.sessionId)
-                    runBlocking { OngoingSessionSavePolicy.save(submitted, {},
-                        { OngoingRecordManager.getFeedingSession(babyId) }, { OngoingRecordManager.endFeeding(babyId) }) }
-                    val remaining = requireNotNull(OngoingRecordManager.getFeedingSession(babyId))
-                    assertEquals(replacement.sessionId, remaining.sessionId)
-                    assertEquals(SessionStatus.RUNNING, remaining.status)
-                    OngoingRecordManager.updateFeedingStart(babyId, remaining.startAt, remaining.sessionId)
-                    assertEquals("手工确认原值只改变日期来源，累计与身份不能被改写",
-                        remaining.copy(automaticStart = false), OngoingRecordManager.getFeedingSession(babyId))
-                } finally { controller.dispose(); timer.release() }
-            }
-        } finally { OngoingRecordManager.cancelSession(babyId, RecordType.FEEDING) {} }
+
+    @Test fun persistentClicksWaitForDatabaseAndUnchangedEndPreservesPausedDuration() {
+        instrumentation.runOnMainSync {
+            val context = ContextThemeWrapper(app, com.zero.common.R.style.AppTheme_Boy)
+            val timer = RecordView(context, clock = { later(20) })
+            val from = TimeEditText(context)
+            val until = TimeEditText(context)
+            var starts = 0
+            var edits = 0
+            val controller = RecordTimerController(context, timer, from, until, View(context), View(context),
+                RecordTimerController.Config(com.zero.common.R.string.end_time_must_after_start, persistent = true),
+                RecordTimerController.Callbacks(onTimerStart = { starts++ }, onEndTimeChanged = { edits++ }),
+                clock = { later(20) })
+            try {
+                timer.performClick()
+                assertEquals(1, starts)
+                assertEquals("数据库提交前只能发送命令", RecordView.RecordState.INIT, timer.currentShowState)
+                val metadata = com.zero.babydata.domain.TimerMetadata(segments = listOf(
+                    com.zero.babydata.domain.TimerSegment(start.wallTimeMs, later(5).wallTimeMs, 300_000L),
+                    com.zero.babydata.domain.TimerSegment(later(10).wallTimeMs, later(15).wallTimeMs, 300_000L)))
+                val snapshot = com.zero.babydata.domain.TimerRecordSnapshot(
+                    com.zero.babydata.domain.TimerRef(com.zero.babydata.domain.TimerRecordKind.FEEDING, 91, 1, "test-session", 4),
+                    com.zero.babydata.domain.TimerStatus.PAUSED, metadata,
+                    feeding = com.zero.babydata.entity.FeedingRecord(babyId = 91, feedingStart = start.wallTimeMs,
+                        feedingEnd = later(15).wallTimeMs, feedingDuration = 600_000L))
+                controller.renderPersistent(snapshot)
+                RecordTimerController::class.java.getDeclaredMethod("applyEndTimeChange", Long::class.javaPrimitiveType)
+                    .apply { isAccessible = true }.invoke(controller, later(15).wallTimeMs)
+                assertEquals(0, edits)
+                assertEquals("确认原值不能把五分钟暂停加回去", 600_000L, timer.getDuration())
+            } finally { controller.dispose(); timer.release() }
+        }
     }
+
 }

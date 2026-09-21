@@ -7,12 +7,15 @@ import androidx.lifecycle.ViewModelStore
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.zero.babycare.home.OngoingRecordManager
 import com.zero.babydata.backup.*
+import com.zero.babydata.domain.TimerRecordKind
 import com.zero.babydata.entity.BabyInfo
+import com.zero.babydata.entity.SleepRecord
 import com.zero.babydata.room.BabyDatabase
+import com.zero.babydata.room.BabyRepository
 import com.zero.common.mmkv.MMKVKeys
 import com.zero.common.mmkv.MMKVStore
+import com.zero.common.util.TimerClockSnapshot
 import com.zero.components.base.vm.UiState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.filter
@@ -105,6 +108,11 @@ class BackupCommitRecoveryTest {
         withSyntheticCaches(listOf(babyId, otherId)) {
             val baby = BabyInfo(babyId = babyId, name = "合成宝宝")
             db.babyInfoDao().insertBabyInfo(baby)
+            db.babyInfoDao().insertBabyInfo(BabyInfo(babyId = otherId, name = "另一合成宝宝"))
+            val timers = BabyRepository(db).timers
+            val sessions = listOf(babyId, otherId).associateWith { id ->
+                timers.startSleep(SleepRecord(babyId = id, sleepStart = 1_000L), TimerClockSnapshot(1_000L))
+            }
             val data = envelope(baby)
             val effects = cacheEffects()
             val report = ApplicationBackupImportOperations(app, db, effects).execute(data, BackupImportMode.MERGE, 0).report
@@ -112,7 +120,7 @@ class BackupCommitRecoveryTest {
             assertEquals(1, report.babyMatched)
             listOf(babyId, otherId).forEach { id ->
                 prefixes.forEach { assertEquals(123L, MMKVStore.getLong(it + id)) }
-                assertNotNull(OngoingRecordManager.getSleepSession(id))
+                assertEquals(sessions[id], timers.findUnfinished(TimerRecordKind.SLEEP, id))
             }
         }
     }
@@ -122,15 +130,25 @@ class BackupCommitRecoveryTest {
         val oldId = SYNTHETIC_BASE + 2
         val newId = oldId + 1
         withSyntheticCaches(listOf(oldId, newId)) {
-            // 新 ID 的缓存模拟 Room 发布导入结果后、善后尚未完成时用户刚开始的计时。
             val baby = BabyInfo(babyId = oldId, name = "合成宝宝")
             db.babyInfoDao().insertBabyInfo(baby)
+            val timers = BabyRepository(db).timers
+            timers.startSleep(SleepRecord(babyId = oldId, sleepStart = 1_000L), TimerClockSnapshot(1_000L))
             val data = envelope(baby)
-            ApplicationBackupImportOperations(app, db, cacheEffects()).execute(data, BackupImportMode.OVERWRITE, 0)
+            val productionEffects = cacheEffects()
+            val effects = object : BackupImportSideEffects by productionEffects {
+                override suspend fun clearReplacedBabyState(babyIds: List<Int>) {
+                    // 真正处于覆盖事务提交后、清理前窗口；新会话写入隔离 Room 的新宝宝行。
+                    assertEquals(newId, db.babyInfoDao().getAllBabyInfo().single().babyId)
+                    timers.startSleep(SleepRecord(babyId = newId, sleepStart = 2_000L), TimerClockSnapshot(2_000L))
+                    productionEffects.clearReplacedBabyState(babyIds)
+                }
+            }
+            ApplicationBackupImportOperations(app, db, effects).execute(data, BackupImportMode.OVERWRITE, 0)
             assertEquals(newId, db.babyInfoDao().getAllBabyInfo().single().babyId)
-            assertNull(OngoingRecordManager.getSleepSession(oldId))
+            assertNull(timers.findUnfinished(TimerRecordKind.SLEEP, oldId))
             prefixes.forEach { assertEquals(0L, MMKVStore.getLong(it + oldId)) }
-            assertNotNull(OngoingRecordManager.getSleepSession(newId))
+            assertEquals(2_000L, timers.findUnfinished(TimerRecordKind.SLEEP, newId)?.startAt)
             prefixes.forEach { assertEquals(123L, MMKVStore.getLong(it + newId)) }
         }
     }
@@ -144,16 +162,14 @@ class BackupCommitRecoveryTest {
     }
 
     private suspend fun withSyntheticCaches(ids: List<Int>, block: suspend () -> Unit) {
-        assumeTrue(ids.all { id -> OngoingRecordManager.getSleepSession(id) == null &&
-            OngoingRecordManager.getFeedingSession(id) == null && prefixes.all { MMKVStore.getLong(it + id) == 0L } })
+        assumeTrue(ids.all { id -> prefixes.all { MMKVStore.getLong(it + id) == 0L } })
         try {
             ids.forEach { id ->
-                OngoingRecordManager.startSleep(id, 1_000L)
                 prefixes.forEach { MMKVStore.put(it + id, 123L) }
             }
             block()
         } finally {
-            ids.forEach { id -> OngoingRecordManager.clearBaby(id); prefixes.forEach { MMKVStore.remove(it + id) } }
+            ids.forEach { id -> prefixes.forEach { MMKVStore.remove(it + id) } }
         }
     }
 
@@ -162,7 +178,7 @@ class BackupCommitRecoveryTest {
         override suspend fun refreshRecords() { if (failRefresh) error("合成调度失败") }
     }
 
-    private fun envelope(baby: BabyInfo = BabyInfo(name = "合成宝宝")) = BabyBackupEnvelope(1, 1L, "test", BabyBackupData(
+    private fun envelope(baby: BabyInfo = BabyInfo(name = "合成宝宝")) = BabyBackupEnvelope(BABY_BACKUP_VERSION, 1L, "test", BabyBackupData(
         listOf(BackupBaby(baby.stableId, baby.name, baby.gender, baby.birthDate, baby.birthWeight, baby.birthHeight, baby.bloodType, baby.extra)),
         emptyList(), emptyList(), emptyList(), emptyList()
     ))

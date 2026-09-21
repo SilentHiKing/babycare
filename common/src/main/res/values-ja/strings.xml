@@ -575,4 +575,18 @@
     <string name="statistics_growth_percentile_period_format">直近の有効な測定：%1$d 回\n%2$s～%3$s</string>
     <string name="statistics_growth_percentile_point_accessibility_format">%1$s、P%2$d</string>
     <string name="statistics_growth_percentile_chart_accessibility_format">%1$s。%2$s。%3$s</string>
+    <string name="timer_stopped_hint">計測終了・保存待ち</string>
+    <string name="timer_sleep_awake">夜中に起きた</string>
+    <string name="timer_sleep_again">また眠った</string>
+    <string name="timer_sleep_finish">起床して保存</string>
+    <string name="timer_review_title">計測時刻を確認</string>
+    <string name="timer_review_required">端末の再起動または時刻変更がありました。開始・終了時刻を確認してください。確認後、該当区間を表示時刻で修正します。一時停止の時間は含みません。</string>
+    <string name="timer_invalid_change">既存の区間の順序を保ち、時刻を確認してください</string>
+    <string name="timer_leave_tip">計測は自動保存され、後で再開できます。他の未保存の入力は失われる場合があります。</string>
+    <string name="timer_discard">計測を破棄</string>
+    <string name="timer_discard_confirm">この未完了の記録と計測区間を削除しますか？</string>
+    <string name="timer_sleep_paused">睡眠を一時停止中</string>
+    <string name="timer_feeding_paused">授乳を一時停止中</string>
+    <string name="timer_open_record">記録を開く</string>
+    <string name="timer_part_unspecified">左右未指定</string>
 </resources>

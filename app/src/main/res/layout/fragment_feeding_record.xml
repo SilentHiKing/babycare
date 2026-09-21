@@ -166,6 +166,60 @@
 
                 </com.zero.components.widget.WrappingRadioGroup>
 
+                <com.zero.components.widget.WrappingRadioGroup
+                    android:id="@+id/rgTimerPart"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/record_time_field_gap"
+                    android:checkedButton="@id/rbTimerUnspecified"
+                    android:orientation="horizontal">
+                    <RadioButton
+                        android:id="@+id/rbTimerUnspecified"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="@dimen/min_touch_target"
+                        android:paddingStart="@dimen/card_padding_compact"
+                        android:paddingEnd="@dimen/card_padding_compact"
+                        android:paddingTop="@dimen/content_gap_medium"
+                        android:paddingBottom="@dimen/content_gap_medium"
+                        android:background="@drawable/selector_radio_bg"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:text="@string/timer_part_unspecified"
+                        android:textAppearance="@style/TextAppearance.BabyCare.Body2"
+                        android:textColor="@color/selector_radio_text_color" />
+                    <RadioButton
+                        android:id="@+id/rbTimerLeft"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="@dimen/min_touch_target"
+                        android:paddingStart="@dimen/card_padding_compact"
+                        android:paddingEnd="@dimen/card_padding_compact"
+                        android:paddingTop="@dimen/content_gap_medium"
+                        android:paddingBottom="@dimen/content_gap_medium"
+                        android:background="@drawable/selector_radio_bg"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:text="@string/left_breast"
+                        android:textAppearance="@style/TextAppearance.BabyCare.Body2"
+                        android:textColor="@color/selector_radio_text_color" />
+                    <RadioButton
+                        android:id="@+id/rbTimerRight"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="@dimen/min_touch_target"
+                        android:paddingStart="@dimen/card_padding_compact"
+                        android:paddingEnd="@dimen/card_padding_compact"
+                        android:paddingTop="@dimen/content_gap_medium"
+                        android:paddingBottom="@dimen/content_gap_medium"
+                        android:background="@drawable/selector_radio_bg"
+                        android:button="@null"
+                        android:gravity="center"
+                        android:text="@string/right_breast"
+                        android:textAppearance="@style/TextAppearance.BabyCare.Body2"
+                        android:textColor="@color/selector_radio_text_color" />
+                </com.zero.components.widget.WrappingRadioGroup>
+
                 <LinearLayout
                     android:id="@+id/llBreastDuration"
                     android:layout_width="match_parent"

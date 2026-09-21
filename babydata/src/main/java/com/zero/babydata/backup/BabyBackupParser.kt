@@ -7,6 +7,10 @@ import com.google.gson.JsonParser
 import com.google.gson.JsonSyntaxException
 import com.zero.babydata.entity.EventType
 import com.zero.babydata.entity.FeedingType
+import com.zero.babydata.domain.DurationBasis
+import com.zero.babydata.domain.TimerMetadata
+import com.zero.babydata.domain.TimerMetadataCodec
+import com.zero.babydata.domain.TimerRecordKind
 import java.io.Reader
 import java.util.UUID
 
@@ -95,24 +99,31 @@ object BabyBackupParser {
             record.sourceId.isValidTransportId() &&
                 record.feedingType in validFeedingTypes &&
                 record.feedingStart > 0L &&
-                record.feedingEnd >= record.feedingStart &&
-                record.feedingDuration in 0L..(record.feedingEnd - record.feedingStart) &&
+                (record.feedingEnd >= record.feedingStart ||
+                    record.timing?.basis == DurationBasis.UNMEASURED && record.feedingEnd == 0L) &&
+                record.feedingDuration in 0L..(record.feedingEnd - record.feedingStart).coerceAtLeast(0L) &&
                 record.feedingDurationBreastLeft >= 0L &&
                 record.feedingDurationBreastRight >= 0L &&
                 (record.feedingAmount == null || record.feedingAmount in 0..MAX_FEEDING_AMOUNT) &&
-                record.note.isPresent()
+                record.note.isPresent() &&
+                validTiming(record.timing, TimerRecordKind.FEEDING, record.feedingStart, record.feedingEnd,
+                    record.feedingDuration, record.feedingDurationBreastLeft, record.feedingDurationBreastRight)
         } && data.sleepRecords.all { record ->
             record.sourceId.isValidTransportId() &&
                 record.sleepStart > 0L &&
                 record.sleepEnd >= record.sleepStart &&
                 record.sleepDuration in 0L..(record.sleepEnd - record.sleepStart) &&
-                record.note.isPresent()
+                record.note.isPresent() &&
+                validTiming(record.timing, TimerRecordKind.SLEEP, record.sleepStart, record.sleepEnd, record.sleepDuration)
         } && data.eventRecords.all { record ->
             record.sourceId.isValidTransportId() &&
                 record.type in VALID_EVENT_TYPES &&
                 record.time > 0L &&
                 (record.endTime == 0L || record.endTime >= record.time) &&
                 record.note.isPresent() &&
+                (record.activeDurationMs == null || record.activeDurationMs in 0L..(record.endTime - record.time).coerceAtLeast(0L)) &&
+                (record.timing == null || EventType.hasDuration(record.type)) &&
+                validTiming(record.timing, TimerRecordKind.EVENT, record.time, record.endTime, record.activeDurationMs) &&
                 hasValidEventExtra(record)
         } && data.childDailyRecords.all { record ->
             record.sourceId.isValidTransportId() &&
@@ -161,6 +172,18 @@ object BabyBackupParser {
             record.type == EventType.OTHER_CUSTOM -> json.optionalStrings("name", "description")
             else -> json.optional("data") { it.isJsonObject }
         }
+    }
+
+    /** 协议只接受可完成的业务事实，不能夹带另一设备的运行锚点或不一致的派生汇总。 */
+    private fun validTiming(
+        timing: TimerMetadata?, kind: TimerRecordKind, start: Long, end: Long,
+        duration: Long?, left: Long? = null, right: Long? = null
+    ): Boolean {
+        if (timing == null) return true
+        if (timing.clockAnchor != null || timing.automaticStart) return false
+        return runCatching {
+            TimerMetadataCodec.validateRecord(timing, kind, start, end, duration, left, right)
+        }.isSuccess
     }
 
     /** 可选字段允许旧版缺失/null，但存在时必须与实际编辑/统计 DTO 的类型一致。 */

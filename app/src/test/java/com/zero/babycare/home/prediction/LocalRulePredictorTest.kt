@@ -3,6 +3,12 @@ package com.zero.babycare.home.prediction
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.FeedingType
 import com.zero.babydata.entity.SleepRecord
+import com.zero.babydata.domain.DurationBasis
+import com.zero.babydata.domain.TimerMetadata
+import com.zero.babydata.domain.TimerMetadataCodec
+import com.zero.babydata.domain.TimerPart
+import com.zero.babydata.domain.TimerSegment
+import com.zero.babydata.domain.TimerStatus
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -21,6 +27,41 @@ class LocalRulePredictorTest {
     @Before
     fun setup() {
         predictor = LocalRulePredictor()
+    }
+
+    @Test
+    fun `explicit waking affects sleep duration factor but not sleep session count`() {
+        val base = LocalDate.of(2026, 9, 20).atTime(6, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val records = (0..3).map { offset -> createSleepRecord(base + offset * 3 * HOUR, base + offset * 3 * HOUR + HOUR) }
+        val last = records.last()
+        val interrupted = last.copy(sleepDuration = 20 * MINUTE, timerData = TimerMetadataCodec.encode(TimerMetadata(
+            segments = listOf(
+                TimerSegment(last.sleepStart, last.sleepStart + 10 * MINUTE, 10 * MINUTE, TimerPart.SLEEP),
+                TimerSegment(last.sleepEnd - 10 * MINUTE, last.sleepEnd, 10 * MINUTE, TimerPart.SLEEP)
+            ))))
+        val continuous = predictor.predictNextSleep(4, records, null)!!
+        val withWaking = predictor.predictNextSleep(4, records.dropLast(1) + interrupted, null)!!
+        assertEquals(last.sleepEnd + 2 * HOUR, continuous.predictedTime.time)
+        assertEquals(last.sleepEnd + (2 * HOUR * 0.88).toLong(), withWaking.predictedTime.time)
+        assertEquals(continuous.evidenceCount, withWaking.evidenceCount)
+        assertEquals(last.sleepEnd, PredictionRecordSelector.sleepEnd(interrupted))
+        assertEquals(3, PredictionRecordSelector.completedSleeps(records.dropLast(1) + interrupted.copy(
+            timerStatus = TimerStatus.STOPPED.code)).size)
+    }
+
+    @Test
+    fun `unmeasured bottle remains an interval sample without a zero duration adjustment`() {
+        val base = LocalDate.of(2026, 9, 20).atTime(6, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val records = (0..3).map { offset ->
+            createFeedingRecord(base + offset * 3 * HOUR, base + offset * 3 * HOUR + 10 * MINUTE)
+        }
+        val last = records.last().copy(feedingType = FeedingType.FORMULA.type, feedingEnd = 0,
+            feedingDuration = 0, feedingAmount = 90,
+            timerData = TimerMetadataCodec.encode(TimerMetadata(basis = DurationBasis.UNMEASURED)))
+        assertEquals(4, PredictionRecordSelector.completedMilkFeedings(records.dropLast(1) + last).size)
+        assertEquals(last.feedingStart, PredictionRecordSelector.feedingEnd(last))
+        val prediction = predictor.predictNextFeeding(4, records.dropLast(1) + last, null)!!
+        assertEquals(last.feedingStart + 170 * MINUTE, prediction.predictedTime.time)
     }
 
     // ==================== 基本预测测试 ====================

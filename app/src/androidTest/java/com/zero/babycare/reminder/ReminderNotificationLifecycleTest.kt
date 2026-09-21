@@ -14,11 +14,14 @@ import com.zero.babycare.home.BabyRecordChangeBus
 import com.zero.babycare.home.OngoingRecordManager
 import com.zero.babycare.settings.SettingsViewModel
 import com.zero.babydata.domain.BabyDataHelper
+import com.zero.babydata.domain.TimerRecordKind
 import com.zero.babydata.entity.BabyInfo
+import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.room.BabyDatabase
 import com.zero.babydata.room.BabyRepository
 import com.zero.common.mmkv.MMKVKeys
 import com.zero.common.mmkv.MMKVStore
+import com.zero.common.util.TimerClock
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -52,7 +55,7 @@ class ReminderNotificationLifecycleTest {
     private val originalKeys = mutableMapOf<String, Long>()
 
     @Before
-    fun setUp() {
+    fun setUp() = runBlocking {
         assumeTrue("合成通知只允许在审查用 AVD 发布", Build.FINGERPRINT.contains("generic") || Build.MODEL.contains("sdk"))
         originallyEnabled = MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, false)
         restoreSettings = true
@@ -79,7 +82,6 @@ class ReminderNotificationLifecycleTest {
         if (!restoreSettings) return
         listOf(first, second).forEach { baby ->
             ReminderNotifier.clearForBaby(context, baby.babyId)
-            OngoingRecordManager.cancelFeeding(baby.babyId)
         }
         originalKeys.forEach { (key, value) -> if (value == 0L) MMKVStore.remove(key) else MMKVStore.put(key, value) }
         MMKVStore.put(MMKVKeys.SETTINGS_REMINDER_ENABLED, originallyEnabled)
@@ -133,17 +135,48 @@ class ReminderNotificationLifecycleTest {
 
     @Test
     fun startingTimerRemovesShownReminderAndRejectsLateCandidate() = runBlocking {
-        assertEquals(ReminderDeliveryResult.DELIVERED, deliver(first))
-        awaitNotifications(1)
-        MMKVStore.remove(ReminderPolicy.notifiedSourceKey(ReminderType.FEEDING, first.babyId))
+        val database = Room.inMemoryDatabaseBuilder(context, BabyDatabase::class.java).build()
+        val repository = BabyRepository(database)
+        try {
+            repository.insertBabyInfo(first.copy())
+            assertEquals(ReminderDeliveryResult.DELIVERED, deliver(first))
+            awaitNotifications(1)
+            MMKVStore.remove(ReminderPolicy.notifiedSourceKey(ReminderType.FEEDING, first.babyId))
+            val entered = CompletableDeferred<Unit>()
+            val release = CompletableDeferred<Unit>()
+            val pending = async {
+                deliver(first, beforeCandidate = { entered.complete(Unit); release.await() },
+                    ongoingCheck = { repository.timers.findUnfinished(TimerRecordKind.FEEDING, first.babyId) != null })
+            }
+            entered.await()
+            // 与正式编辑器相同，写入前先撤回旧候选，再在隔离 Room 建立实时会话。
+            ReminderNotifier.clearForBaby(context, first.babyId)
+            repository.timers.startFeeding(FeedingRecord(babyId = first.babyId, feedingStart = candidate.dueTime),
+                TimerClock.snapshot())
+            release.complete(Unit)
+            assertEquals(ReminderDeliveryResult.SUPPRESSED, pending.await())
+            awaitNotifications(0)
+        } finally {
+            database.close()
+        }
+    }
+
+    @Test
+    fun timerInvalidationDuringSuspendedRoomCheckRejectsItsOlderEmptyResult() = runBlocking {
         val entered = CompletableDeferred<Unit>()
         val release = CompletableDeferred<Unit>()
-        val pending = async { deliver(first, beforeCandidate = { entered.complete(Unit); release.await() }) }
+        val pending = async {
+            deliver(first, ongoingCheck = {
+                entered.complete(Unit)
+                release.await()
+                false // 查询在开始计时前已获得空快照，但其结果在撤回之后才返回。
+            })
+        }
         entered.await()
-        instrumentation.runOnMainSync { OngoingRecordManager.startFeeding(first.babyId, startTime = candidate.dueTime) }
+        ReminderNotifier.clearForBaby(context, first.babyId)
         release.complete(Unit)
         assertEquals(ReminderDeliveryResult.SUPPRESSED, pending.await())
-        awaitNotifications(0)
+        assertNoDeliveryRecorded()
     }
 
     @Test
@@ -271,7 +304,8 @@ class ReminderNotificationLifecycleTest {
     private suspend fun deliver(
         baby: BabyInfo,
         beforeCandidate: suspend () -> Unit = {},
-        clock: () -> Long = System::currentTimeMillis
+        clock: () -> Long = System::currentTimeMillis,
+        ongoingCheck: suspend () -> Boolean = { OngoingRecordManager.isFeeding(baby.babyId) }
     ): ReminderDeliveryResult =
         ReminderNotifier.notifyIfDue(context, baby.babyId, ReminderType.FEEDING, candidate.dueTime,
             object : ReminderDataSource {
@@ -280,7 +314,7 @@ class ReminderNotificationLifecycleTest {
                     beforeCandidate()
                     return candidate
                 }
-            }, clock)
+            }, clock, ongoingCheck = { _, _ -> ongoingCheck() })
 
     private fun syntheticNotifications() = manager.activeNotifications.filter {
         it.tag == "babycare_reminder:${first.babyId}" || it.tag == "babycare_reminder:${second.babyId}"

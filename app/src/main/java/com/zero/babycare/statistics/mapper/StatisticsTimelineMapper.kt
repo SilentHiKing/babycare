@@ -17,6 +17,7 @@ import com.zero.babydata.entity.SleepRecord
 import com.zero.babydata.entity.SymptomData
 import com.zero.babydata.entity.TemperatureData
 import com.zero.babydata.entity.VaccineData
+import com.zero.babydata.domain.RecordDurationCalculator
 import com.zero.common.util.UnitConfig
 import com.zero.common.util.UnitConverter
 import java.text.DecimalFormat
@@ -110,7 +111,8 @@ class StatisticsTimelineMapper(
             stableId = stableId("sleep", record.sleepId),
             timeText = formatIntervalStart(record.sleepStart, record.sleepEnd),
             titleText = strings.get(CommonR.string.sleeping),
-            detailText = buildSleepDuration(record.sleepDuration),
+            detailText = buildSleepDuration(if (record.timerData == null) record.sleepDuration
+                else RecordDurationCalculator.sleepDuration(record) ?: 0L),
             noteText = record.note.takeIf { it.isNotBlank() },
             iconResId = CommonR.drawable.ic_sleep,
             colorResId = CommonR.color.sleep_primary,
@@ -123,7 +125,7 @@ class StatisticsTimelineMapper(
         val info = getEventTypeResources(record.type)
         return TimelineUiItem(
             stableId = stableId("event", record.eventId),
-            timeText = timeFormat.format(Date(record.time)),
+            timeText = formatIntervalStart(record.time, record.endTime),
             titleText = info.title,
             detailText = buildEventDetail(record),
             noteText = record.note.takeIf { it.isNotBlank() },
@@ -174,6 +176,8 @@ class StatisticsTimelineMapper(
     private fun buildFeedingDetail(record: FeedingRecord, type: FeedingType): String {
         val parts = mutableListOf<String>()
         val separator = strings.get(CommonR.string.list_separator_dot)
+        val duration = if (record.timerData == null) record.feedingDuration
+            else RecordDurationCalculator.feedingDuration(record) ?: 0L
 
         when (type) {
             FeedingType.BREAST -> {
@@ -187,7 +191,7 @@ class StatisticsTimelineMapper(
                     val label = strings.get(CommonR.string.right_breast)
                     parts.add(strings.format(CommonR.string.feeding_breast_side_minutes_format, label, rightMin))
                 }
-                val totalMin = TimeUnit.MILLISECONDS.toMinutes(record.feedingDuration)
+                val totalMin = TimeUnit.MILLISECONDS.toMinutes(duration)
                 if (totalMin > 0) {
                     parts.add(strings.format(CommonR.string.feeding_total_minutes_format, totalMin))
                 }
@@ -202,7 +206,7 @@ class StatisticsTimelineMapper(
                         parts.add(strings.format(CommonR.string.feeding_amount_unit_format, displayText, unitLabel))
                     }
                 }
-                val totalMin = TimeUnit.MILLISECONDS.toMinutes(record.feedingDuration)
+                val totalMin = TimeUnit.MILLISECONDS.toMinutes(duration)
                 if (totalMin > 0) {
                     parts.add(strings.format(CommonR.string.min_format, totalMin))
                 }
@@ -218,7 +222,7 @@ class StatisticsTimelineMapper(
             }
             FeedingType.OTHER -> {
                 record.foodName?.let { if (it.isNotBlank()) parts.add(it) }
-                val totalMin = TimeUnit.MILLISECONDS.toMinutes(record.feedingDuration)
+                val totalMin = TimeUnit.MILLISECONDS.toMinutes(duration)
                 if (totalMin > 0) {
                     parts.add(strings.format(CommonR.string.min_format, totalMin))
                 }
@@ -505,8 +509,9 @@ class StatisticsTimelineMapper(
             else -> Unit
         }
 
-        if (EventType.hasDuration(event.type) && event.endTime > event.time) {
-            val durationMin = TimeUnit.MILLISECONDS.toMinutes(event.endTime - event.time)
+        if (EventType.hasDuration(event.type)) {
+            // 活动暂停与睡眠夜醒使用同一片段规则，不能用首尾跨度代替有效时长。
+            val durationMin = TimeUnit.MILLISECONDS.toMinutes(RecordDurationCalculator.eventDuration(event) ?: 0L)
             if (durationMin > 0) {
                 parts.add(strings.format(CommonR.string.event_duration_minutes_format, durationMin))
             }

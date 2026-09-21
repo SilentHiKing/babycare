@@ -17,7 +17,9 @@ import androidx.room.PrimaryKey
     indices = [
         Index(value = ["babyId"]),
         Index(value = ["babyId", "feedingStart", "feedingEnd"]),
-        Index(value = ["babyId", "feedingEnd"])
+        Index(value = ["babyId", "feedingEnd"]),
+        Index(value = ["timerSessionId"], unique = true),
+        Index(value = ["babyId", "timerSlot"], unique = true)
     ]
 )
 data class FeedingRecord(
@@ -58,7 +60,13 @@ data class FeedingRecord(
     var foodName: String? = null,
     
     /** 是否首次尝试此食物（用于过敏观察） */
-    var isFirstTime: Boolean = false
+    var isFirstTime: Boolean = false,
+    // 未完成计时与正式记录共用本行；可空槽位只在完成时释放，不靠页面锁维持唯一性。
+    var timerStatus: Int = 0,
+    var timerSessionId: String? = null,
+    var timerRevision: Long = 0L,
+    var timerData: String? = null,
+    var timerSlot: Int? = null
 ) {
     companion object {
         // 宝宝状态常量

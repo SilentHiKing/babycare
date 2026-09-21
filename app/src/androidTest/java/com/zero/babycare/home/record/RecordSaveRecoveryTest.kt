@@ -51,11 +51,8 @@ class RecordSaveRecoveryTest {
         database = Room.inMemoryDatabaseBuilder(instrumentation.targetContext, BabyDatabase::class.java).build()
         repository = BabyRepository(database)
         repository.insertBabyInfo(BabyInfo(babyId = BABY_ID, name = "合成恢复测试"))
-        // 即便测试设备存在用户会话，也不能通过碰撞的宝宝 ID/时间结束它。
-        onMain {
-            assertNull(OngoingRecordManager.getFeedingSession(BABY_ID))
-            assertNull(OngoingRecordManager.getSleepSession(BABY_ID))
-        }
+        Unit
+
     }
 
     @After

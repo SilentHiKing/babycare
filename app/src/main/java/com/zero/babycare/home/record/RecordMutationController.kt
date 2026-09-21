@@ -51,6 +51,14 @@ internal class RecordMutationController(private val scope: CoroutineScope) {
             } catch (cancelled: CancellationException) {
                 mutableState.compareAndSet(running, State.Idle)
                 throw cancelled
+            } catch (failure: com.zero.babydata.domain.TimerOperationException) {
+                val message = when (failure.reason) {
+                    com.zero.babydata.domain.TimerFailure.NEEDS_REVIEW -> R.string.timer_review_required
+                    com.zero.babydata.domain.TimerFailure.STALE_REVISION,
+                    com.zero.babydata.domain.TimerFailure.NOT_FOUND -> R.string.record_draft_already_saved
+                    else -> R.string.timer_invalid_change
+                }
+                mutableState.value = State.Finished(target, kind, operationId, message)
             } catch (failure: RecordWriteException) {
                 // 冷进程恢复后的旧草稿不能覆盖已修改或已删除的记录，页面保留输入并解释原因。
                 val message = when (failure.reason) {

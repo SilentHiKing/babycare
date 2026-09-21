@@ -5,6 +5,7 @@ import com.google.gson.JsonParser
 import com.zero.babydata.entity.EventRecord
 import com.zero.babydata.entity.EventType
 import com.zero.babydata.domain.MedicineUnit
+import com.zero.babydata.domain.TimerMetadataCodec
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.SleepRecord
 import java.util.TreeMap
@@ -26,7 +27,7 @@ internal class BackupRecordDeduplicator(toleranceMillis: Long) {
         key = listOf(
             "feeding", record.babyId, record.feedingType, record.feedingAmount,
             record.babyMood, record.feedingLocation, record.solidFoodType,
-            record.foodName.orEmpty(), record.isFirstTime, record.note
+            record.foodName.orEmpty(), record.isFirstTime, record.note, timingContent(record.timerData)
         ),
         times = listOf(
             record.feedingStart, record.feedingEnd, record.feedingDuration,
@@ -36,15 +37,16 @@ internal class BackupRecordDeduplicator(toleranceMillis: Long) {
     )
 
     private fun registerSleep(record: SleepRecord, checkDuplicate: Boolean): Boolean = register(
-        key = listOf("sleep", record.babyId, record.note),
+        key = listOf("sleep", record.babyId, record.note, timingContent(record.timerData)),
         times = listOf(record.sleepStart, record.sleepEnd, record.sleepDuration),
         checkDuplicate = checkDuplicate
     )
 
     private fun registerEvent(record: EventRecord, checkDuplicate: Boolean): Boolean = register(
         // 精确结构键忽略对象键顺序，保留原始数值有效位；列表键也避免文案含 # 时碰撞。
-        key = listOf("event", record.babyId, record.type, jsonContent(record.extraData, record.type), record.note),
-        times = listOf(record.time, record.endTime),
+        key = listOf("event", record.babyId, record.type, jsonContent(record.extraData, record.type), record.note,
+            timingContent(record.timerData)),
+        times = listOf(record.time, record.endTime, record.activeDurationMs ?: -1L),
         checkDuplicate = checkDuplicate
     )
 
@@ -69,6 +71,11 @@ internal class BackupRecordDeduplicator(toleranceMillis: Long) {
         if (first <= 0L || second <= 0L) return first == second
         return if (first >= second) first - second <= tolerance else second - first <= tolerance
     }
+
+    /** 暂停位置、侧别和来源都是业务事实，不能因为首尾与总量接近而吞掉不同片段。 */
+    private fun timingContent(json: String?): Any? = runCatching {
+        TimerMetadataCodec.decode(json)?.copy(clockAnchor = null, automaticStart = false)
+    }.getOrElse { json }
 
     private fun jsonContent(raw: String, type: Int): Any = if (raw.isBlank()) "" else {
         runCatching {

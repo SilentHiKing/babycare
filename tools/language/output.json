@@ -5752,6 +5752,146 @@
           "ja": "%1$s。%2$s。%3$s",
           "ko": "%1$s. %2$s. %3$s"
         }
+      },
+      {
+        "codeKey": "timer_stopped_hint",
+        "language": {
+          "zh-Hans": "计时已结束，等待保存",
+          "en": "Timing ended · ready to save",
+          "zh-Hant": "計時已結束，等待儲存",
+          "ja": "計測終了・保存待ち",
+          "ko": "타이머 종료 · 저장 대기"
+        }
+      },
+      {
+        "codeKey": "timer_sleep_awake",
+        "language": {
+          "zh-Hans": "夜间醒了",
+          "en": "Night waking",
+          "zh-Hant": "夜間醒了",
+          "ja": "夜中に起きた",
+          "ko": "밤중에 깼어요"
+        }
+      },
+      {
+        "codeKey": "timer_sleep_again",
+        "language": {
+          "zh-Hans": "再次入睡",
+          "en": "Back to sleep",
+          "zh-Hant": "再次入睡",
+          "ja": "また眠った",
+          "ko": "다시 잠들었어요"
+        }
+      },
+      {
+        "codeKey": "timer_sleep_finish",
+        "language": {
+          "zh-Hans": "醒了并保存",
+          "en": "Wake up and save",
+          "zh-Hant": "醒了並儲存",
+          "ja": "起床して保存",
+          "ko": "일어났어요 · 저장"
+        }
+      },
+      {
+        "codeKey": "timer_review_title",
+        "language": {
+          "zh-Hans": "核对计时时间",
+          "en": "Review timer times",
+          "zh-Hant": "核對計時時間",
+          "ja": "計測時刻を確認",
+          "ko": "타이머 시간 확인"
+        }
+      },
+      {
+        "codeKey": "timer_review_required",
+        "language": {
+          "zh-Hans": "设备重启或时间发生变化，请核对开始、结束时间。确认后将按所示时间修正受影响的片段；暂停间隔仍不计入。",
+          "en": "The device restarted or its clock changed. Check the start and end times. Confirm to correct affected segments using these times; pauses stay excluded.",
+          "zh-Hant": "裝置重新啟動或時間發生變化，請核對開始、結束時間。確認後將按所示時間修正受影響的片段；暫停間隔仍不計入。",
+          "ja": "端末の再起動または時刻変更がありました。開始・終了時刻を確認してください。確認後、該当区間を表示時刻で修正します。一時停止の時間は含みません。",
+          "ko": "기기가 재시작되었거나 시간이 변경되었습니다. 시작과 종료 시간을 확인하세요. 확인하면 해당 구간을 표시된 시간으로 수정하며 일시 정지 시간은 제외됩니다."
+        }
+      },
+      {
+        "codeKey": "timer_invalid_change",
+        "language": {
+          "zh-Hans": "无法这样修改，请保留已有片段的先后顺序并核对时间",
+          "en": "Check the times and keep the existing segments in order.",
+          "zh-Hant": "無法這樣修改，請保留已有片段的先後順序並核對時間",
+          "ja": "既存の区間の順序を保ち、時刻を確認してください",
+          "ko": "기존 구간의 순서를 유지하고 시간을 확인하세요"
+        }
+      },
+      {
+        "codeKey": "timer_leave_tip",
+        "language": {
+          "zh-Hans": "计时会自动保留，可以稍后回来继续；尚未保存的其他输入可能丢失。",
+          "en": "The timer is saved automatically. You can return later; other unsaved details may be lost.",
+          "zh-Hant": "計時會自動保留，可以稍後回來繼續；尚未儲存的其他輸入可能遺失。",
+          "ja": "計測は自動保存され、後で再開できます。他の未保存の入力は失われる場合があります。",
+          "ko": "타이머는 자동 저장되어 나중에 돌아올 수 있습니다. 저장하지 않은 다른 입력은 사라질 수 있습니다."
+        }
+      },
+      {
+        "codeKey": "timer_discard",
+        "language": {
+          "zh-Hans": "放弃计时",
+          "en": "Discard timer",
+          "zh-Hant": "放棄計時",
+          "ja": "計測を破棄",
+          "ko": "타이머 버리기"
+        }
+      },
+      {
+        "codeKey": "timer_discard_confirm",
+        "language": {
+          "zh-Hans": "放弃后将删除这次未完成记录及计时片段，是否继续？",
+          "en": "Delete this unfinished record and its timed segments?",
+          "zh-Hant": "放棄後將刪除這次未完成記錄及計時片段，是否繼續？",
+          "ja": "この未完了の記録と計測区間を削除しますか？",
+          "ko": "완료되지 않은 기록과 시간 구간을 삭제할까요?"
+        }
+      },
+      {
+        "codeKey": "timer_sleep_paused",
+        "language": {
+          "zh-Hans": "睡眠已暂停",
+          "en": "Sleep paused",
+          "zh-Hant": "睡眠已暫停",
+          "ja": "睡眠を一時停止中",
+          "ko": "수면 일시 정지"
+        }
+      },
+      {
+        "codeKey": "timer_feeding_paused",
+        "language": {
+          "zh-Hans": "喂养已暂停",
+          "en": "Feeding paused",
+          "zh-Hant": "餵養已暫停",
+          "ja": "授乳を一時停止中",
+          "ko": "수유 일시 정지"
+        }
+      },
+      {
+        "codeKey": "timer_open_record",
+        "language": {
+          "zh-Hans": "继续处理记录",
+          "en": "Open record",
+          "zh-Hant": "繼續處理記錄",
+          "ja": "記録を開く",
+          "ko": "기록 열기"
+        }
+      },
+      {
+        "codeKey": "timer_part_unspecified",
+        "language": {
+          "zh-Hans": "未区分侧别",
+          "en": "Unspecified side",
+          "zh-Hant": "未區分側別",
+          "ja": "左右未指定",
+          "ko": "방향 미지정"
+        }
       }
     ],
     "app": [

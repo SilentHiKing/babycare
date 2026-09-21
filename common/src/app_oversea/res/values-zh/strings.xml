@@ -575,4 +575,18 @@
     <string name="statistics_growth_percentile_period_format">最近 %1$d 次有效测量\n%2$s—%3$s</string>
     <string name="statistics_growth_percentile_point_accessibility_format">%1$s，P%2$d</string>
     <string name="statistics_growth_percentile_chart_accessibility_format">%1$s。%2$s。%3$s</string>
+    <string name="timer_stopped_hint">计时已结束，等待保存</string>
+    <string name="timer_sleep_awake">夜间醒了</string>
+    <string name="timer_sleep_again">再次入睡</string>
+    <string name="timer_sleep_finish">醒了并保存</string>
+    <string name="timer_review_title">核对计时时间</string>
+    <string name="timer_review_required">设备重启或时间发生变化，请核对开始、结束时间。确认后将按所示时间修正受影响的片段；暂停间隔仍不计入。</string>
+    <string name="timer_invalid_change">无法这样修改，请保留已有片段的先后顺序并核对时间</string>
+    <string name="timer_leave_tip">计时会自动保留，可以稍后回来继续；尚未保存的其他输入可能丢失。</string>
+    <string name="timer_discard">放弃计时</string>
+    <string name="timer_discard_confirm">放弃后将删除这次未完成记录及计时片段，是否继续？</string>
+    <string name="timer_sleep_paused">睡眠已暂停</string>
+    <string name="timer_feeding_paused">喂养已暂停</string>
+    <string name="timer_open_record">继续处理记录</string>
+    <string name="timer_part_unspecified">未区分侧别</string>
 </resources>

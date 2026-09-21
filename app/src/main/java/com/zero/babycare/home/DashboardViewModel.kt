@@ -3,6 +3,7 @@ package com.zero.babycare.home
 import androidx.lifecycle.viewModelScope
 import com.zero.babycare.home.bean.DashboardData
 import com.zero.babycare.home.prediction.PredictionManager
+import com.zero.babycare.home.prediction.PredictionRecordSelector
 import com.zero.babydata.domain.BabyDataHelper.repository
 import com.zero.babydata.domain.RecordDurationCalculator
 import com.zero.babydata.entity.BabyInfo
@@ -131,13 +132,14 @@ class DashboardViewModel : BaseViewModel() {
             val recentSleeps = repository.getRecentCompletedSleeps(babyId, PREDICTION_RECORD_COUNT)
 
             // 计算当前状态（使用 OngoingRecordManager）
-            val currentStatus = determineCurrentStatus(babyId)
             val sleepSession = OngoingRecordManager.getSleepSession(babyId)
             val feedingSession = OngoingRecordManager.getFeedingSession(babyId)
 
             // “距上次喂养”继续包含辅食；它与只预测下一次吃奶的样本范围不同。
-            val lastFeedingEndTime = repository.getLastFeedingRecord(babyId)?.feedingEnd
-            val lastSleepEndTime = repository.getLastSleepRecord(babyId)?.sleepEnd
+            val lastFeedingEndTime = repository.getLastFeedingRecord(babyId)?.let(PredictionRecordSelector::feedingEnd)
+                ?.takeIf { it > 0L }
+            val lastSleepEndTime = repository.getLastSleepRecord(babyId)?.let(PredictionRecordSelector::sleepEnd)
+                ?.takeIf { it > 0L }
 
             // 已完成记录与会话增量分别保留，分钟跳动只更新会话派生值。
             val feedingCount = feedings.size
@@ -169,7 +171,6 @@ class DashboardViewModel : BaseViewModel() {
             )
 
             val data = DashboardData(
-                currentStatus = currentStatus,
                 lastFeedingEndTime = lastFeedingEndTime,
                 feedingCount = feedingCount,
                 totalFeedingMinutes = totalFeedingMinutes,
@@ -242,13 +243,7 @@ class DashboardViewModel : BaseViewModel() {
         endOfDay: Long
     ): Long {
         return records.sumOf { record ->
-            calculateOverlappedDuration(
-                start = record.feedingStart,
-                end = record.feedingEnd,
-                duration = record.feedingDuration,
-                startOfDay = startOfDay,
-                endOfDay = endOfDay
-            )
+            RecordDurationCalculator.feedingDuration(record, startOfDay, endOfDay) ?: 0L
         }
     }
 
@@ -262,38 +257,7 @@ class DashboardViewModel : BaseViewModel() {
         endOfDay: Long
     ): Long {
         return records.sumOf { record ->
-            calculateOverlappedDuration(
-                start = record.sleepStart,
-                end = record.sleepEnd,
-                duration = record.sleepDuration,
-                startOfDay = startOfDay,
-                endOfDay = endOfDay
-            )
-        }
-    }
-
-    /**
-     * 计算记录与当天的重叠时长，必要时使用记录内的实际时长（完全落在当天时）
-     */
-    private fun calculateOverlappedDuration(
-        start: Long,
-        end: Long,
-        duration: Long,
-        startOfDay: Long,
-        endOfDay: Long
-    ): Long {
-        return RecordDurationCalculator.overlappedDuration(start, end, duration, startOfDay, endOfDay)
-    }
-
-    /**
-     * 判断当前宝宝状态
-     * 通过 OngoingRecordManager 检查是否有进行中的记录
-     */
-    private fun determineCurrentStatus(babyId: Int): DashboardData.BabyStatus {
-        return when (OngoingRecordManager.getCurrentStatus(babyId)) {
-            OngoingRecordManager.OngoingStatus.SLEEPING -> DashboardData.BabyStatus.SLEEPING
-            OngoingRecordManager.OngoingStatus.FEEDING -> DashboardData.BabyStatus.FEEDING
-            OngoingRecordManager.OngoingStatus.IDLE -> DashboardData.BabyStatus.AWAKE
+            RecordDurationCalculator.sleepDuration(record, startOfDay, endOfDay) ?: 0L
         }
     }
 

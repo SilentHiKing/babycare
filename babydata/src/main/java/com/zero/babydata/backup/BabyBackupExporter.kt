@@ -3,6 +3,7 @@ package com.zero.babydata.backup
 import android.content.Context
 import androidx.room.withTransaction
 import com.zero.babydata.room.BabyDatabase
+import com.zero.babydata.domain.TimerStatus
 
 /**
  * 数据备份导出器
@@ -32,10 +33,13 @@ class BabyBackupExporter internal constructor(private val database: BabyDatabase
 
             babies.forEach { baby ->
                 feedingRecords += database.feedingRecordDao().getAllFeedingRecords(baby.babyId)
+                    .filter { it.timerStatus == TimerStatus.COMPLETED.code }
                     .map { it.toBackup(baby.stableId) }
                 sleepRecords += database.sleepRecordDao().getAllSleepRecords(baby.babyId)
+                    .filter { it.timerStatus == TimerStatus.COMPLETED.code }
                     .map { it.toBackup(baby.stableId) }
                 eventRecords += database.eventRecordDao().getAllEventRecord(baby.babyId)
+                    .filter { it.timerStatus == TimerStatus.COMPLETED.code }
                     .map { it.toBackup(baby.stableId) }
                 childDailyRecords += database.childDailyRecordDao().getAllRecordsByBabyId(baby.babyId)
                     .map { it.toBackup(baby.stableId) }

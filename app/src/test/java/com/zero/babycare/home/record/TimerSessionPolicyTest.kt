@@ -1,13 +1,13 @@
 package com.zero.babycare.home.record
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class TimerSessionPolicyTest {
 
     @Test
-    fun `sleep saved duration always uses time range even when active duration is shorter`() {
+    fun `sleep saved duration excludes explicit pauses`() {
         val state = createState(
             startAt = START_AT,
             endAt = START_AT + THIRTY_MINUTES,
@@ -21,12 +21,12 @@ class TimerSessionPolicyTest {
             activeDuration = state.activeDuration
         )
 
-        assertEquals(THIRTY_MINUTES, result.valueMs)
-        assertEquals(DurationSource.TIME_RANGE, result.source)
+        assertEquals(TEN_MINUTES, result.valueMs)
+        assertEquals(DurationSource.ACTIVE_TIMER, result.source)
     }
 
     @Test
-    fun `activity saved duration uses time range`() {
+    fun `activity saved duration excludes explicit pauses`() {
         val state = createState(
             startAt = START_AT,
             endAt = START_AT + THIRTY_MINUTES,
@@ -40,8 +40,8 @@ class TimerSessionPolicyTest {
             activeDuration = state.activeDuration
         )
 
-        assertEquals(THIRTY_MINUTES, result.valueMs)
-        assertEquals(DurationSource.TIME_RANGE, result.source)
+        assertEquals(TEN_MINUTES, result.valueMs)
+        assertEquals(DurationSource.ACTIVE_TIMER, result.source)
     }
 
     @Test
@@ -102,9 +102,9 @@ class TimerSessionPolicyTest {
     }
 
     @Test
-    fun `sleep and activity should resume from start`() {
-        assertTrue(TimerSessionPolicy.shouldResumeFromStart(TimerMode.SLEEP))
-        assertTrue(TimerSessionPolicy.shouldResumeFromStart(TimerMode.ACTIVITY))
+    fun `sleep and activity must resume accumulated duration`() {
+        assertFalse(TimerSessionPolicy.shouldResumeFromStart(TimerMode.SLEEP))
+        assertFalse(TimerSessionPolicy.shouldResumeFromStart(TimerMode.ACTIVITY))
     }
 
     @Test
@@ -133,8 +133,8 @@ class TimerSessionPolicyTest {
             now = START_AT + THIRTY_MINUTES
         )
 
-        assertEquals(THIRTY_MINUTES, result.valueMs)
-        assertEquals(DurationSource.TIME_RANGE, result.source)
+        assertEquals(TEN_MINUTES, result.valueMs)
+        assertEquals(DurationSource.ACTIVE_TIMER, result.source)
     }
 
     @Test

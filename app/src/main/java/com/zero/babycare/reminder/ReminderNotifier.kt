@@ -42,7 +42,8 @@ object ReminderNotifier {
         type: ReminderType,
         expectedDue: Long,
         source: ReminderDataSource = RepositoryReminderDataSource,
-        clock: () -> Long = System::currentTimeMillis
+        clock: () -> Long = System::currentTimeMillis,
+        ongoingCheck: suspend (Int, ReminderType) -> Boolean = ::isOngoing
     ): ReminderDeliveryResult {
         val ticket = deliveryGate.capture(babyId, type)
         if (!MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, false) ||
@@ -68,11 +69,14 @@ object ReminderNotifier {
             return ReminderDeliveryResult.RESCHEDULE
         }
 
+        // Room 查询允许挂起，不能占用通知失效锁；开始/操作计时会先使 ticket 失效。
+        val ongoing = ongoingCheck(babyId, type)
+        coroutineContext.ensureActive()
         return deliveryGate.ifCurrent(ticket) {
             coroutineContext.ensureActive()
             // 查询会挂起；开关、渠道或计时状态可能已改变，必须在真正发布前复核。
             if (!MMKVStore.getBoolean(MMKVKeys.SETTINGS_REMINDER_ENABLED, false) ||
-                !canPostNotifications(context) || isOngoing(babyId, type) ||
+                !canPostNotifications(context) || ongoing ||
                 MMKVStore.getLong(ReminderPolicy.notifiedSourceKey(type, babyId), 0L) == candidate.sourceRecordTime
             ) return@ifCurrent ReminderDeliveryResult.SUPPRESSED
 
@@ -93,7 +97,7 @@ object ReminderNotifier {
         } ?: ReminderDeliveryResult.SUPPRESSED
     }
 
-    private fun isOngoing(babyId: Int, type: ReminderType): Boolean = when (type) {
+    private suspend fun isOngoing(babyId: Int, type: ReminderType): Boolean = when (type) {
         ReminderType.FEEDING -> OngoingRecordManager.isFeeding(babyId)
         ReminderType.SLEEP -> OngoingRecordManager.isSleeping(babyId)
     }
@@ -264,14 +268,14 @@ internal object ReminderPolicy {
         val result = mutableMapOf<ReminderType, ReminderCandidate>()
 
         if (!OngoingRecordManager.isFeeding(baby.babyId) && feedings.size >= MIN_RELEVANT_RECORDS) {
-            val lastEnd = feedings.maxOfOrNull { it.feedingEnd } ?: 0L
+            val lastEnd = feedings.maxOfOrNull(PredictionRecordSelector::feedingEnd) ?: 0L
             val prediction = PredictionManager.predictNextFeeding(ageMonths, feedings, sleeps)
             buildCandidate(baby.babyId, ReminderType.FEEDING, lastEnd, prediction)
                 ?.let { result[ReminderType.FEEDING] = it }
         }
 
         if (!OngoingRecordManager.isSleeping(baby.babyId) && sleeps.size >= MIN_RELEVANT_RECORDS) {
-            val lastEnd = sleeps.maxOfOrNull { it.sleepEnd } ?: 0L
+            val lastEnd = sleeps.maxOfOrNull(PredictionRecordSelector::sleepEnd) ?: 0L
             val prediction = PredictionManager.predictNextSleep(ageMonths, sleeps, feedings)
             buildCandidate(baby.babyId, ReminderType.SLEEP, lastEnd, prediction)
                 ?.let { result[ReminderType.SLEEP] = it }

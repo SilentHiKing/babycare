@@ -3,6 +3,7 @@ package com.zero.babycare.statistics.mapper
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.SleepRecord
 import com.zero.babydata.domain.RecordDurationCalculator
+import com.zero.babydata.domain.TimerStatus
 import java.util.concurrent.TimeUnit
 
 /**
@@ -32,13 +33,8 @@ object StatisticsDurationCalculator {
         return records.sumOf { record ->
             // 统计页切换日期时可中止长列表聚合，纯计算调用方仍不依赖协程。
             checkCancellation()
-            overlappedDuration(
-                start = record.feedingStart,
-                end = record.feedingEnd,
-                duration = record.feedingDuration,
-                rangeStart = rangeStart,
-                rangeEnd = rangeEnd
-            )
+            if (record.timerStatus == TimerStatus.COMPLETED.code)
+                RecordDurationCalculator.feedingDuration(record, rangeStart, rangeEnd) ?: 0L else 0L
         }
     }
 
@@ -50,13 +46,8 @@ object StatisticsDurationCalculator {
     ): Long {
         return records.sumOf { record ->
             checkCancellation()
-            overlappedDuration(
-                start = record.sleepStart,
-                end = record.sleepEnd,
-                duration = record.sleepDuration,
-                rangeStart = rangeStart,
-                rangeEnd = rangeEnd
-            )
+            if (record.timerStatus == TimerStatus.COMPLETED.code)
+                RecordDurationCalculator.sleepDuration(record, rangeStart, rangeEnd) ?: 0L else 0L
         }
     }
 

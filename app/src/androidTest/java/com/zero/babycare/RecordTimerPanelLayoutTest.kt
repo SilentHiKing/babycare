@@ -36,18 +36,16 @@ class RecordTimerPanelLayoutTest {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         instrumentation.runOnMainSync {
             val appContext = instrumentation.targetContext
-            val configuration = Configuration(appContext.resources.configuration).apply {
-                this.fontScale = fontScale
-            }
-            val context = ContextThemeWrapper(
-                appContext.createConfigurationContext(configuration),
-                com.zero.common.R.style.AppTheme_Boy
-            )
-            val panel = RecordTimerPanelView(context)
-            try {
-                block(panel)
-            } finally {
-                panel.timerView.release()
+            listOf(com.zero.common.R.style.AppTheme_Boy, com.zero.common.R.style.AppTheme_Girl).forEach { theme ->
+                listOf(Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_YES).forEach { night ->
+                    val configuration = Configuration(appContext.resources.configuration).apply {
+                        this.fontScale = fontScale
+                        uiMode = (uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or night
+                    }
+                    val context = ContextThemeWrapper(appContext.createConfigurationContext(configuration), theme)
+                    val panel = RecordTimerPanelView(context)
+                    try { block(panel) } finally { panel.timerView.release() }
+                }
             }
         }
     }

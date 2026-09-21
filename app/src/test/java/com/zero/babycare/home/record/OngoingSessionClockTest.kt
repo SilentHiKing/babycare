@@ -33,13 +33,13 @@ class OngoingSessionClockTest {
         assertEquals(25 * 60_000L, restored.endAt!! - restored.startAt)
     }
 
-    @Test fun `sleep includes pause in running and recovered full interval`() {
+    @Test fun `sleep excludes pause in running and recovered interval`() {
         val resumed = OngoingSession.running(91, RecordType.SLEEP, start.wallTimeMs,
             automaticStart = true, now = start)
             .paused(later(10).wallTimeMs, 600_000L, later(10))
             .resumed(later(20))
-        assertEquals(25 * 60_000L, resumed.elapsedDuration(later(25, process = "process-b")))
-        assertEquals(25 * 60_000L, resumed.paused(later(25).wallTimeMs, 900_000L, later(25))
+        assertEquals(15 * 60_000L, resumed.elapsedDuration(later(25, process = "process-b")))
+        assertEquals(15 * 60_000L, resumed.paused(later(25).wallTimeMs, 900_000L, later(25))
             .elapsedDuration(later(30)))
     }
 

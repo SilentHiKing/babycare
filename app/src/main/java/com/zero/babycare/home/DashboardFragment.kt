@@ -17,7 +17,6 @@ import com.zero.babycare.MainActivity
 import com.zero.babycare.MainViewModel
 import com.zero.babycare.databinding.FragmentDashboardBinding
 import com.zero.babycare.home.bean.DashboardData
-import com.zero.babycare.home.OngoingRecordManager
 import com.zero.babycare.home.prediction.PredictionResult
 import com.zero.babycare.home.prediction.PredictionSource
 import com.zero.babycare.navigation.NavTarget
@@ -265,9 +264,9 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             DashboardData.BabyStatus.SLEEPING -> {
                 binding.cardStatus.setBackgroundResource(com.zero.common.R.drawable.bg_status_card_sleeping)
                 binding.ivStatusIcon.setImageResource(com.zero.common.R.drawable.ic_baby_sleeping)
-                binding.tvStatusTitle.text = getString(com.zero.common.R.string.baby_sleeping)
+                binding.tvStatusTitle.text = getString(ongoingTitle(data.ongoingSleepState, feeding = false))
                 binding.tvStatusAction.visibility = View.VISIBLE
-                binding.tvStatusAction.text = getString(com.zero.common.R.string.end_record)
+                binding.tvStatusAction.text = getString(com.zero.common.R.string.timer_open_record)
                 
                 data.ongoingSleepDurationMillis?.let { duration ->
                     binding.tvStatusTime.text = getString(
@@ -279,9 +278,9 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
             DashboardData.BabyStatus.FEEDING -> {
                 binding.cardStatus.setBackgroundResource(com.zero.common.R.drawable.bg_status_card_feeding)
                 binding.ivStatusIcon.setImageResource(com.zero.common.R.drawable.ic_baby_feeding)
-                binding.tvStatusTitle.text = getString(com.zero.common.R.string.baby_feeding)
+                binding.tvStatusTitle.text = getString(ongoingTitle(data.ongoingFeedingState, feeding = true))
                 binding.tvStatusAction.visibility = View.VISIBLE
-                binding.tvStatusAction.text = getString(com.zero.common.R.string.end_record)
+                binding.tvStatusAction.text = getString(com.zero.common.R.string.timer_open_record)
                 
                 data.ongoingFeedingDurationMillis?.let { duration ->
                     binding.tvStatusTime.text = getString(
@@ -293,17 +292,26 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         }
     }
 
+    private fun ongoingTitle(state: DashboardData.OngoingState?, feeding: Boolean): Int = when (state) {
+        DashboardData.OngoingState.PAUSED -> if (feeding) com.zero.common.R.string.timer_feeding_paused
+            else com.zero.common.R.string.timer_sleep_paused
+        DashboardData.OngoingState.STOPPED -> com.zero.common.R.string.timer_stopped_hint
+        DashboardData.OngoingState.NEEDS_REVIEW -> com.zero.common.R.string.timer_review_required
+        else -> if (feeding) com.zero.common.R.string.baby_feeding else com.zero.common.R.string.baby_sleeping
+    }
+
     private fun updatePredictionCard(data: DashboardData, now: Long) {
         val rows = DashboardPredictionMapper.map(data, now)
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-        bindPredictionRow(rows.feeding, feeding = true, timeFormat = timeFormat)
-        bindPredictionRow(rows.sleep, feeding = false, timeFormat = timeFormat)
+        bindPredictionRow(rows.feeding, feeding = true, timeFormat = timeFormat, sessionState = data.ongoingFeedingState)
+        bindPredictionRow(rows.sleep, feeding = false, timeFormat = timeFormat, sessionState = data.ongoingSleepState)
         binding.cardPrediction.removeCallbacks(predictionLayoutUpdate)
         binding.cardPrediction.post(predictionLayoutUpdate)
     }
 
     /** 状态已经按各类会话与快照时钟确定，View只绑定完整文案并保留现有排版策略。 */
-    private fun bindPredictionRow(state: DashboardPredictionMapper.Row, feeding: Boolean, timeFormat: SimpleDateFormat) {
+    private fun bindPredictionRow(state: DashboardPredictionMapper.Row, feeding: Boolean, timeFormat: SimpleDateFormat,
+        sessionState: DashboardData.OngoingState?) {
         val title = if (feeding) binding.tvPredictFeedingTime else binding.tvPredictSleepTime
         val remaining = if (feeding) binding.tvPredictFeedingRemain else binding.tvPredictSleepRemain
         val evidence = if (feeding) binding.tvPredictFeedingEvidence else binding.tvPredictSleepEvidence
@@ -332,7 +340,8 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
         remaining.text = ""
         remaining.visibility = View.GONE
         evidence.setText(when (state) {
-            DashboardPredictionMapper.Row.InProgress -> com.zero.common.R.string.prediction_in_progress_hint
+            DashboardPredictionMapper.Row.InProgress -> if (sessionState != null && sessionState != DashboardData.OngoingState.RUNNING)
+                ongoingTitle(sessionState, feeding) else com.zero.common.R.string.prediction_in_progress_hint
             DashboardPredictionMapper.Row.Expired -> com.zero.common.R.string.prediction_expired_hint
             else -> if (feeding) com.zero.common.R.string.prediction_feeding_empty_hint else com.zero.common.R.string.prediction_sleep_empty_hint
         })
@@ -487,14 +496,15 @@ class DashboardFragment : BaseFragment<FragmentDashboardBinding>() {
      */
     private fun handleEndOngoingRecord() {
         val babyId = mainVm.currentBaby.value?.babyId ?: return
-        val currentStatus = OngoingRecordManager.getCurrentStatus(babyId)
+        val state = vm.dashboardUiState.value as? DashboardUiState.Content ?: return
+        if (state.babyId != babyId) return
 
-        when (currentStatus) {
-            OngoingRecordManager.OngoingStatus.SLEEPING -> {
+        when (state.data.currentStatus) {
+            DashboardData.BabyStatus.SLEEPING -> {
                 // 跳转到睡眠记录页面完成记录
                 mainVm.navigateTo(NavTarget.SleepRecord())
             }
-            OngoingRecordManager.OngoingStatus.FEEDING -> {
+            DashboardData.BabyStatus.FEEDING -> {
                 // 跳转到喂养记录页面完成记录
                 mainVm.navigateTo(NavTarget.FeedingRecord())
             }

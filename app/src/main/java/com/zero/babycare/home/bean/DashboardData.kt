@@ -13,6 +13,8 @@ data class DashboardData(
     /** 会话时长由 ViewModel 统一计算，暂停时不再继续增长。 */
     val ongoingSleepDurationMillis: Long? = null,
     val ongoingFeedingDurationMillis: Long? = null,
+    val ongoingSleepState: OngoingState? = null,
+    val ongoingFeedingState: OngoingState? = null,
     /** 含未保存会话的今日展示值，与已完成记录总量分开，避免分钟刷新重复叠加。 */
     val displayFeedingMinutes: Long = 0,
     val displaySleepMinutes: Long = 0,
@@ -53,5 +55,8 @@ data class DashboardData(
         /** 喂奶中 */
         FEEDING
     }
+
+    /** 页面只消费状态，不通过同步数据库查询猜测暂停或结束。 */
+    enum class OngoingState { RUNNING, PAUSED, STOPPED, NEEDS_REVIEW }
 }
 

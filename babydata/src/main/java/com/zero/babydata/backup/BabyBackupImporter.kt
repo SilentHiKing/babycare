@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.withTransaction
 import com.zero.babydata.entity.ChildDailyRecord
 import com.zero.babydata.room.BabyDatabase
+import com.zero.babydata.domain.TimerStatus
 import java.util.UUID
 
 /** 解析、校验并事务化导入独立备份协议。 */
@@ -98,9 +99,12 @@ class BabyBackupImporter(private val db: BabyDatabase) {
             val deduplicator = BackupRecordDeduplicator(toleranceMillis)
             babyIdMap.values.toSet().forEach { babyId ->
                 // 本地已有的每条记录都作为候选，不能因为两条本地记录接近就丢掉匹配范围。
-                feedingDao.getAllFeedingRecords(babyId).forEach(deduplicator::remember)
-                sleepDao.getAllSleepRecords(babyId).forEach(deduplicator::remember)
-                eventDao.getAllEventRecord(babyId).forEach(deduplicator::remember)
+                feedingDao.getAllFeedingRecords(babyId).filter { it.timerStatus == TimerStatus.COMPLETED.code }
+                    .forEach(deduplicator::remember)
+                sleepDao.getAllSleepRecords(babyId).filter { it.timerStatus == TimerStatus.COMPLETED.code }
+                    .forEach(deduplicator::remember)
+                eventDao.getAllEventRecord(babyId).filter { it.timerStatus == TimerStatus.COMPLETED.code }
+                    .forEach(deduplicator::remember)
             }
 
             data.feedingRecords.forEach { backup ->

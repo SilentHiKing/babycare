@@ -575,4 +575,18 @@
     <string name="statistics_growth_percentile_period_format">최근 유효 측정: %1$d회\n%2$s–%3$s</string>
     <string name="statistics_growth_percentile_point_accessibility_format">%1$s, P%2$d</string>
     <string name="statistics_growth_percentile_chart_accessibility_format">%1$s. %2$s. %3$s</string>
+    <string name="timer_stopped_hint">타이머 종료 · 저장 대기</string>
+    <string name="timer_sleep_awake">밤중에 깼어요</string>
+    <string name="timer_sleep_again">다시 잠들었어요</string>
+    <string name="timer_sleep_finish">일어났어요 · 저장</string>
+    <string name="timer_review_title">타이머 시간 확인</string>
+    <string name="timer_review_required">기기가 재시작되었거나 시간이 변경되었습니다. 시작과 종료 시간을 확인하세요. 확인하면 해당 구간을 표시된 시간으로 수정하며 일시 정지 시간은 제외됩니다.</string>
+    <string name="timer_invalid_change">기존 구간의 순서를 유지하고 시간을 확인하세요</string>
+    <string name="timer_leave_tip">타이머는 자동 저장되어 나중에 돌아올 수 있습니다. 저장하지 않은 다른 입력은 사라질 수 있습니다.</string>
+    <string name="timer_discard">타이머 버리기</string>
+    <string name="timer_discard_confirm">완료되지 않은 기록과 시간 구간을 삭제할까요?</string>
+    <string name="timer_sleep_paused">수면 일시 정지</string>
+    <string name="timer_feeding_paused">수유 일시 정지</string>
+    <string name="timer_open_record">기록 열기</string>
+    <string name="timer_part_unspecified">방향 미지정</string>
 </resources>

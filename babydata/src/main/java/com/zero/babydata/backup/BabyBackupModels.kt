@@ -5,9 +5,12 @@ import com.zero.babydata.entity.ChildDailyRecord
 import com.zero.babydata.entity.EventRecord
 import com.zero.babydata.entity.FeedingRecord
 import com.zero.babydata.entity.SleepRecord
+import com.zero.babydata.domain.TimerMetadata
+import com.zero.babydata.domain.TimerMetadataCodec
+import com.zero.babydata.domain.TimerStatus
 
 /** 当前备份协议版本；协议 DTO 与 Room Entity 独立演进。 */
-const val BABY_BACKUP_VERSION = 1
+const val BABY_BACKUP_VERSION = 2
 
 enum class BackupImportStrategy {
     OVERWRITE,
@@ -75,7 +78,8 @@ data class BackupFeedingRecord(
     val feedingLocation: Int?,
     val solidFoodType: Int?,
     val foodName: String?,
-    val isFirstTime: Boolean
+    val isFirstTime: Boolean,
+    val timing: TimerMetadata? = null
 )
 
 data class BackupSleepRecord(
@@ -85,7 +89,8 @@ data class BackupSleepRecord(
     val sleepEnd: Long,
     val sleepDuration: Long,
     val note: String,
-    val createdAt: Long
+    val createdAt: Long,
+    val timing: TimerMetadata? = null
 )
 
 data class BackupEventRecord(
@@ -96,7 +101,9 @@ data class BackupEventRecord(
     val endTime: Long,
     val extraData: String,
     val note: String,
-    val createdAt: Long
+    val createdAt: Long,
+    val activeDurationMs: Long? = null,
+    val timing: TimerMetadata? = null
 )
 
 data class BackupChildDailyRecord(
@@ -150,7 +157,8 @@ internal fun FeedingRecord.toBackup(babyStableId: String): BackupFeedingRecord =
         feedingLocation = feedingLocation,
         solidFoodType = solidFoodType,
         foodName = foodName,
-        isFirstTime = isFirstTime
+        isFirstTime = isFirstTime,
+        timing = portableTiming(timerStatus, timerData)
     )
 
 internal fun BackupFeedingRecord.toEntity(babyId: Int): FeedingRecord = FeedingRecord(
@@ -168,7 +176,8 @@ internal fun BackupFeedingRecord.toEntity(babyId: Int): FeedingRecord = FeedingR
     feedingLocation = feedingLocation,
     solidFoodType = solidFoodType,
     foodName = foodName,
-    isFirstTime = isFirstTime
+    isFirstTime = isFirstTime,
+    timerData = timing?.let(TimerMetadataCodec::encode)
 )
 
 internal fun SleepRecord.toBackup(babyStableId: String): BackupSleepRecord = BackupSleepRecord(
@@ -178,7 +187,8 @@ internal fun SleepRecord.toBackup(babyStableId: String): BackupSleepRecord = Bac
     sleepEnd = sleepEnd,
     sleepDuration = sleepDuration,
     note = note,
-    createdAt = createdAt
+    createdAt = createdAt,
+    timing = portableTiming(timerStatus, timerData)
 )
 
 internal fun BackupSleepRecord.toEntity(babyId: Int): SleepRecord = SleepRecord(
@@ -187,7 +197,8 @@ internal fun BackupSleepRecord.toEntity(babyId: Int): SleepRecord = SleepRecord(
     sleepEnd = sleepEnd,
     sleepDuration = sleepDuration,
     note = note,
-    createdAt = createdAt
+    createdAt = createdAt,
+    timerData = timing?.let(TimerMetadataCodec::encode)
 )
 
 internal fun EventRecord.toBackup(babyStableId: String): BackupEventRecord = BackupEventRecord(
@@ -198,7 +209,9 @@ internal fun EventRecord.toBackup(babyStableId: String): BackupEventRecord = Bac
     endTime = endTime,
     extraData = extraData,
     note = note,
-    createdAt = createdAt
+    createdAt = createdAt,
+    activeDurationMs = activeDurationMs,
+    timing = portableTiming(timerStatus, timerData)
 )
 
 internal fun BackupEventRecord.toEntity(babyId: Int): EventRecord = EventRecord(
@@ -208,7 +221,9 @@ internal fun BackupEventRecord.toEntity(babyId: Int): EventRecord = EventRecord(
     endTime = endTime,
     extraData = extraData,
     note = note,
-    createdAt = createdAt
+    createdAt = createdAt,
+    activeDurationMs = activeDurationMs,
+    timerData = timing?.let(TimerMetadataCodec::encode)
 )
 
 internal fun ChildDailyRecord.toBackup(babyStableId: String): BackupChildDailyRecord =
@@ -232,3 +247,11 @@ internal fun BackupChildDailyRecord.toEntity(babyId: Int): ChildDailyRecord = Ch
     pic = pic,
     extra = extra
 )
+
+/** 备份只携带完成事实；设备时钟和实时身份不能在另一设备被恢复成运行会话。 */
+private fun portableTiming(status: Int, json: String?): TimerMetadata? {
+    require(status == TimerStatus.COMPLETED.code)
+    return TimerMetadataCodec.decode(json)?.also {
+        TimerMetadataCodec.validate(it, completed = true)
+    }?.copy(clockAnchor = null, automaticStart = false)
+}

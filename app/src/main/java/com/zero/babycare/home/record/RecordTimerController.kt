@@ -12,6 +12,9 @@ import com.zero.components.base.util.DialogHelper
 import com.zero.components.widget.RecordView
 import com.zero.components.widget.RecordView.RecordState
 import com.zero.components.widget.TimeEditText
+import com.zero.babydata.domain.TimerCalculations
+import com.zero.babydata.domain.TimerStatus as PersistentStatus
+import com.zero.babydata.domain.TimerRecordSnapshot
 
 class RecordTimerController(
     private val context: Context,
@@ -28,7 +31,9 @@ class RecordTimerController(
     data class Config(
         val invalidEndTimeMessageRes: Int,
         val mode: TimerMode = TimerMode.FEEDING,
-        val shouldIgnoreInput: () -> Boolean = { false }
+        val persistent: Boolean = false,
+        val shouldIgnoreInput: () -> Boolean = { false },
+        val durationPreview: (Long, Long) -> Result<Long>? = { _, _ -> null }
     )
 
     data class Callbacks(
@@ -46,6 +51,11 @@ class RecordTimerController(
     private var pendingPopup: BasePopupView? = null
     private var callbackGeneration = 0L
     private var disposed = false
+    private var renderedStart: Long = 0L
+    private var renderedEnd: Long = 0L
+    /** 已完成分段记录的预览允许为零，保存不能把零误当作未计时再退回整跨度。 */
+    var manualDurationPreview: Long? = null
+        private set
     var ongoingSessionId: String? = null
         private set
     var isStartTimeAutomatic: Boolean = false
@@ -69,6 +79,9 @@ class RecordTimerController(
         isStartTimeAutomatic = false
         timelineClock = null
         ongoingSessionId = null
+        renderedStart = 0L
+        renderedEnd = 0L
+        manualDurationPreview = null
         timerView.reset()
     }
 
@@ -100,6 +113,7 @@ class RecordTimerController(
         }
 
         startInput.setTimestamp(timestamp)
+        renderedStart = timestamp
         updateEndTimeReference()
         if (notify) {
             callbacks.onStartTimeChanged(timestamp)
@@ -120,6 +134,7 @@ class RecordTimerController(
         }
 
         endInput.setTimestamp(timestamp)
+        renderedEnd = timestamp
         if (notify) {
             callbacks.onEndTimeChanged(timestamp)
         }
@@ -136,15 +151,36 @@ class RecordTimerController(
         }
     }
 
-    fun updateDurationFromInputs() {
+    fun updateDurationFromInputs(errorInput: TimeEditText = endInput, previewOnly: Boolean = false): Boolean {
+        manualDurationPreview = null
         if (!startInput.hasValidTime() || !endInput.hasValidTime()) {
-            return
+            return false
         }
-        val duration = DateUtils.calculateDuration(startInput.getTimestamp(), endInput.getTimestamp())
+        val start = startInput.getTimestamp()
+        val end = endInput.getTimestamp()
+        val preview = config.durationPreview(start, end)
+        // 保存前只复核已委托的分段编辑，不重算普通记录已经保留的手工有效总量。
+        if (preview == null && previewOnly) return true
+        if (preview?.isFailure == true) {
+            // 无效调整保留输入供纠正，撤下旧数字，不能展示一个保存时不会接受的跨度。
+            val rangeError = preview.exceptionOrNull() as? CompletedTimerDurationPreview.InvalidRange
+            val input = rangeError?.let { if (it.startField) startInput else endInput } ?: errorInput
+            input.error = context.getString(R.string.timer_invalid_change)
+            input.requestFocus()
+            timerView.reset()
+            timerView.setHintText(R.string.timer_invalid_change)
+            return false
+        }
+        manualDurationPreview = preview?.getOrThrow()
+        startInput.error = null
+        endInput.error = null
+        val duration = manualDurationPreview ?: DateUtils.calculateDuration(start, end)
         timerView.showDurationWithoutTimer(duration)
+        return true
     }
 
     private fun bind() {
+        timerView.externallyDriven = config.persistent
         setupTimeInputs()
         setupTimerCounter()
         setupTimePickerButtons()
@@ -237,14 +273,26 @@ class RecordTimerController(
     }
 
     private fun applyStartTimeChange(timestamp: Long) {
+        if (timestamp / 1000 == renderedStart / 1000 && renderedStart > 0L) return
+        if (config.persistent && ongoingSessionId != null) {
+            callbacks.onStartTimeChanged(timestamp)
+            callbacks.onDirty()
+            return
+        }
         isStartTimeAutomatic = false
         setStartTime(timestamp, notify = true)
-        clearEndTime(notify = true)
-        timerView.reset()
+        renderedStart = timestamp
+        updateDurationFromInputs(startInput)
         callbacks.onDirty()
     }
 
     private fun applyEndTimeChange(timestamp: Long) {
+        if (timestamp / 1000 == renderedEnd / 1000 && renderedEnd > 0L) return
+        if (config.persistent && ongoingSessionId != null) {
+            callbacks.onEndTimeChanged(timestamp)
+            callbacks.onDirty()
+            return
+        }
         val wasRunning = timerView.currentShowState == RecordState.RECORDING
         if (wasRunning) synchronizeClock(activeTransition = true)
         if (startInput.hasValidTime()) {
@@ -261,13 +309,24 @@ class RecordTimerController(
         }
         callbacks.onDirty()
         setEndTime(timestamp, notify = true)
+        renderedEnd = timestamp
         updateDurationFromInputs()
         if (wasRunning) callbacks.onTimerPause(timestamp)
         // 不覆盖 pausedEndTimestamp，保留手改结束后继续时的明确确认流程。
     }
 
     private fun handleTimerStart() {
+        if (!startInput.text.isNullOrBlank() && !startInput.hasValidTime()) {
+            startInput.error = context.getString(R.string.invalid_time)
+            startInput.requestFocus()
+            return
+        }
         isStartTimeAutomatic = !startInput.hasValidTime()
+        if (config.persistent) {
+            callbacks.onTimerStart(if (startInput.hasValidTime()) startInput.getTimestamp() else clock().wallTimeMs)
+            callbacks.onDirty()
+            return
+        }
         if (startInput.hasValidTime()) {
             val startTimestamp = startInput.getTimestamp()
             val offset = (clock().wallTimeMs - startTimestamp).coerceAtLeast(0L)
@@ -297,6 +356,11 @@ class RecordTimerController(
     }
 
     private fun continueTimerAfterPause() {
+        if (config.persistent) {
+            callbacks.onTimerResume()
+            callbacks.onDirty()
+            return
+        }
         synchronizeClock(activeTransition = true)
         handleTimerResume()
         if (TimerSessionPolicy.shouldResumeFromStart(config.mode) && startInput.hasValidTime()) {
@@ -315,6 +379,11 @@ class RecordTimerController(
     }
 
     private fun handleTimerPause() {
+        if (config.persistent) {
+            callbacks.onTimerPause(clock().wallTimeMs)
+            callbacks.onDirty()
+            return
+        }
         // forcePause 会先将 View 状态改为 PAUSE，再回调；仍属于本次运行的暂停转换。
         val currentTime = synchronizeClock(activeTransition = true).wallTimeMs
         setEndTime(currentTime, notify = true)
@@ -402,6 +471,7 @@ class RecordTimerController(
     /** 自动运行记录暂停/保存前校正日期，避免单调时长正确但墙钟回拨导致结束早于开始。 */
     fun synchronizeClock(activeTransition: Boolean = false): TimerClockSnapshot {
         val now = clock()
+        if (config.persistent) return now
         if (!isStartTimeAutomatic ||
             (!activeTransition && timerView.currentShowState != RecordState.RECORDING)) return now
         val shift = timelineClock?.let(now::automaticWallShiftSince) ?: 0L
@@ -420,6 +490,36 @@ class RecordTimerController(
             if (startInput.hasValidTime()) callbacks.onClockSynchronized(id, startInput.getTimestamp(), now)
         }
         return now
+    }
+
+    /** 只用数据库确认后的快照渲染；本地秒表仅插值显示，不能决定业务状态。 */
+    fun renderPersistent(snapshot: TimerRecordSnapshot?) {
+        ongoingSessionId = snapshot?.ref?.sessionId
+        if (snapshot == null) return
+        val metadata = snapshot.metadata
+        isStartTimeAutomatic = metadata.automaticStart
+        timelineClock = metadata.clockAnchor
+        renderedStart = snapshot.startAt
+        renderedEnd = snapshot.endAt ?: 0L
+        setStartTime(renderedStart)
+        setEndTime(renderedEnd)
+        val duration = TimerCalculations.totalDuration(metadata, clock())
+        if (snapshot.status == PersistentStatus.RUNNING) timerView.startFromOffset(duration)
+        else restorePausedSession(renderedEnd, duration)
+        if (snapshot.status == PersistentStatus.STOPPED) timerView.setHintText(R.string.timer_stopped_hint)
+        else if (config.mode == TimerMode.SLEEP) timerView.setHintText(
+            if (snapshot.status == PersistentStatus.RUNNING) R.string.timer_sleep_awake else R.string.timer_sleep_again)
+    }
+
+    /** 系统校时或重启后的估算由用户核对后确认，不能静默当作精确观测。 */
+    fun showReviewConfirmation(onConfirm: () -> Unit) {
+        dismissPendingUi()
+        val generation = callbackGeneration
+        pendingPopup = DialogHelper.showConfirmDialog(context,
+            context.getString(R.string.timer_review_title), context.getString(R.string.timer_review_required),
+            context.getString(R.string.confirm), context.getString(R.string.cancel), onConfirm = {
+                if (!disposed && callbackGeneration == generation && timerView.isShown) onConfirm()
+            })
     }
 
     private fun normalizePickerInitialTime(

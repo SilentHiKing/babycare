@@ -24,7 +24,7 @@ import com.zero.babydata.entity.BackupImportCommit
         BabyCreationReceipt::class,
         BackupImportCommit::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = true
 )
 abstract class BabyDatabase : RoomDatabase() {
@@ -45,15 +45,14 @@ abstract class BabyDatabase : RoomDatabase() {
         @JvmStatic
         fun getInstance(context: Context): BabyDatabase {
             return instance ?: synchronized(this) {
-                instance ?: Room.databaseBuilder(
-                    context.applicationContext,
-                    BabyDatabase::class.java,
-                    "baby_database"
-                )
-                    .addMigrations(*DatabaseMigrations.getAllMigrations())
-                    .build()
+                instance ?: createBuilder(context, "baby_database").build()
                     .also { instance = it }
             }
         }
+
+        /** 项目未上线，仅清理旧实验版本；未来版本缺迁移必须报错，不能继续静默清库。 */
+        internal fun createBuilder(context: Context, name: String): RoomDatabase.Builder<BabyDatabase> =
+            Room.databaseBuilder(context.applicationContext, BabyDatabase::class.java, name)
+                .fallbackToDestructiveMigrationFrom(true, 1, 2, 3, 4, 5, 6, 7, 8, 9)
     }
 }

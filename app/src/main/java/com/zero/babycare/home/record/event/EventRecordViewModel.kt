@@ -18,6 +18,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.zero.babycare.home.record.RecordMutationController
+import com.zero.babycare.home.record.PersistentTimerEditor
+import com.zero.babydata.domain.TimerRecordKind
+import com.zero.babydata.domain.TimerStatus
 
 /**
  * 事件记录 ViewModel
@@ -26,6 +29,22 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
     // 延迟获取默认数据源，让草稿状态恢复独立于数据库初始化，并支持隔离的数据层验证。
     private val repository by lazy { injectedRepository ?: BabyDataHelper.repository }
     internal val mutation = RecordMutationController(viewModelScope)
+    internal val timer = PersistentTimerEditor(viewModelScope, { repository }, TimerRecordKind.EVENT)
+
+    /** 活动槽位由具体类型决定；切换页面仅打开对应业务行，不结束之前的活动。 */
+    internal fun openTimer(babyId: Int, eventType: Int, expectedSessionId: String? = null) {
+        if (EventType.hasDuration(eventType)) timer.open(babyId, eventType, expectedSessionId)
+    }
+
+    /** 开始时只冻结当前活动输入，运行事实统一交给公共持久计时入口。 */
+    internal fun startTimer(babyId: Int, startAt: Long, automaticStart: Boolean, note: String) {
+        val subtype = _selectedSubtype.value ?: return
+        if (!EventType.hasDuration(subtype.type) || mutation.isPending) return
+        val state = timer.state.value
+        if (state.babyId != babyId || state.eventType != subtype.type || state.busy || state.errorRes != null) return
+        timer.startEvent(EventRecord(babyId = babyId, type = subtype.type, time = startAt,
+            note = note, createdAt = System.currentTimeMillis()), automaticStart)
+    }
 
     /** 校验反馈保留字段身份；重复保存有独立请求号，用户回到备注后仍能重新定位。 */
     enum class ValidationField {
@@ -292,8 +311,21 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
         createdAt: Long? = null,
         extraDataEdit: ExtraDataEdit? = null,
     ) {
-        if (mutation.isPending) return
-        val validation = validateData()
+        val timerState = timer.state.value.takeIf {
+            target.recordId == null && it.babyId == target.babyId && it.eventType == _selectedSubtype.value?.type
+        }
+        if (mutation.isPending || timerState?.busy == true ||
+            (timerState?.snapshot == null && timerState?.errorRes != null)) return
+        val timedSnapshot = timer.state.value.snapshot?.takeIf {
+            target.recordId == null && it.ref.babyId == target.babyId &&
+                it.event?.type == _selectedSubtype.value?.type
+        }
+        if (timedSnapshot?.status == TimerStatus.COMPLETED) {
+            mutation.reject(target, RecordMutationController.Kind.SAVE, R.string.record_draft_already_saved)
+            return
+        }
+        // 实时活动先关闭当前片段，不能为了满足结束字段校验在 View 里另算一次结束时间。
+        val validation = if (timedSnapshot != null) ValidationResult.Success else validateData()
         if (validation is ValidationResult.Error) {
             // 字段校验不伪装成数据库失败，页面能保留说明并定位到可修正输入。
             if (validation.field != null) {
@@ -324,7 +356,7 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
 
         // 冻结所有输入，再在受控保存协程内序列化；失败不写空值，也不绕过错误状态通道。
         val extraSnapshot = _extraData.value
-        val record = EventRecord(
+        val record = (original?.takeIf { hasOriginalExtra } ?: EventRecord()).copy(
                 eventId = target.recordId ?: 0,
                 babyId = target.babyId,
                 type = subtype.type,
@@ -335,6 +367,15 @@ class EventRecordViewModel(private val injectedRepository: BabyRepository? = nul
             )
 
         mutation.submit(target, RecordMutationController.Kind.SAVE, R.string.save_failed) {
+            if (timedSnapshot != null) {
+                val stopped = requireNotNull(timer.stopForSave(timedSnapshot.ref.sessionId))
+                val stoppedRecord = requireNotNull(stopped.event)
+                // 保存失败仍保留 STOPPED 行与原片段；重试不能插入另一条事件或延长结束时间。
+                timer.finishEvent(stoppedRecord.copy(note = record.note), target.draftId,
+                    expectedSessionId = timedSnapshot.ref.sessionId)
+                BabyRecordChangeBus.notifyChanged(record.babyId)
+                return@submit
+            }
             withContext(Dispatchers.IO) {
                 // 旧草稿没有输入基线：无详情表单可直接保真；有表单只接受扁平已知值严格相等。
                 // GenericData 从不解析或比较，类型切换也不能把旧通用扩展带入新事件。

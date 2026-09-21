@@ -114,7 +114,7 @@ class RecordDraftRecreationTest {
         scenario.onActivity { activity ->
             mainVm(activity).getCurrentBabyInfo()?.babyId?.let {
                 // 不修改用户已有的喂养计时会话。
-                assumeFalse(OngoingRecordManager.isFeeding(it))
+                assumeFalse(kotlinx.coroutines.runBlocking(kotlinx.coroutines.Dispatchers.IO) { OngoingRecordManager.isFeeding(it) })
             }
         }
         val target = NavTarget.FeedingRecord(returnTarget = NavTarget.Dashboard)

@@ -30,7 +30,7 @@ internal object RecordWritePayload {
         record.feedingType, record.feedingStart, record.feedingEnd, record.feedingDuration,
         record.feedingDurationBreastLeft, record.feedingDurationBreastRight, record.note,
         record.feedingAmount, record.babyMood, record.feedingLocation, record.solidFoodType,
-        record.foodName, record.isFirstTime
+        record.foodName, record.isFirstTime, record.timerData
     ))
 
     fun baby(record: BabyInfo): String = fingerprint(listOf(
@@ -39,14 +39,14 @@ internal object RecordWritePayload {
     ))
 
     fun sleep(record: SleepRecord): String = fingerprint(listOf(
-        record.sleepStart, record.sleepEnd, record.sleepDuration, record.note
+        record.sleepStart, record.sleepEnd, record.sleepDuration, record.note, record.timerData
     ))
 
     fun event(record: EventRecord): String {
         val extra = if (record.extraData.isBlank()) null else runCatching {
             canonical(JsonParser.parseString(record.extraData))
         }.getOrElse { throw RecordWriteException(RecordWriteFailure.INVALID_REQUEST) }
-        return fingerprint(listOf(record.type, record.time, record.endTime, extra, record.note))
+        return fingerprint(listOf(record.type, record.time, record.endTime, extra, record.note, record.activeDurationMs, record.timerData))
     }
 
     private fun fingerprint(values: List<Any?>): String {

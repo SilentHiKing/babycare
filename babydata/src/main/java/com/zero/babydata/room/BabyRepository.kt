@@ -13,6 +13,10 @@ import com.zero.babydata.domain.RecordDurationCalculator
 import com.zero.babydata.domain.RecordWriteException
 import com.zero.babydata.domain.RecordWriteFailure
 import com.zero.babydata.domain.RecordWritePayload
+import com.zero.babydata.domain.TimerRecordNormalizer
+import com.zero.babydata.domain.TimerMetadataCodec
+import com.zero.babydata.domain.DurationBasis
+import com.zero.common.util.TimerClock
 import com.zero.babydata.entity.RecordWriteReceipt
 import com.zero.babydata.entity.BabyCreationReceipt
 import com.zero.babydata.domain.BabyWriteException
@@ -35,6 +39,9 @@ import kotlinx.coroutines.ensureActive
  */
 class BabyRepository(private val database: BabyDatabase) {
     constructor(context: Context) : this(BabyDatabase.getInstance(context))
+
+    /** 所有计时命令和未完成查询集中在同一 Room 边界，调用方不再直接写 MMKV 会话。 */
+    val timers: RecordTimerRepository by lazy { RecordTimerRepository(database) }
 
     private val babyInfoDao = database.babyInfoDao()
     private val feedingRecordDao = database.feedingRecordDao()
@@ -116,7 +123,7 @@ class BabyRepository(private val database: BabyDatabase) {
 
     /** 同一草稿的跨进程重试只提交一次；自增 ID 和创建时间不参与业务内容比较。 */
     suspend fun insertFeedingRecordOnce(record: FeedingRecord, requestId: String): Int {
-        val snapshot = record.copy(feedingId = 0)
+        val snapshot = TimerRecordNormalizer.feeding(record.copy(feedingId = 0), null, TimerClock.snapshot())
         return insertRecordOnce(
             requestId, snapshot.babyId, RecordWritePayload.FEEDING, RecordWritePayload.feeding(snapshot),
             insert = { feedingRecordDao.insertFeedingRecord(snapshot) },
@@ -126,7 +133,7 @@ class BabyRepository(private val database: BabyDatabase) {
 
     /** 会话清理恢复只确认已有提交，不把未提交会话变成新记录。 */
     suspend fun findCommittedFeedingRecord(record: FeedingRecord, requestId: String): Int? {
-        val snapshot = record.copy()
+        val snapshot = TimerRecordNormalizer.feeding(record.copy(), null, TimerClock.snapshot())
         return findCommittedRecord(requestId, snapshot.babyId, RecordWritePayload.FEEDING,
             RecordWritePayload.feeding(snapshot)) { feedingRecordDao.getFeedingRecordById(it)?.babyId }
     }
@@ -135,10 +142,11 @@ class BabyRepository(private val database: BabyDatabase) {
         val snapshot = feedingRecord.copy()
         database.withTransaction {
             // 覆盖/删除可能先于排队的编辑提交；零行更新不能伪报保存成功，也不能迁移宝宝归属。
-            if (feedingRecordDao.getFeedingRecordById(snapshot.feedingId)?.babyId != snapshot.babyId) {
+            val existing = feedingRecordDao.getFeedingRecordById(snapshot.feedingId)
+            if (existing?.babyId != snapshot.babyId) {
                 throw RecordWriteException(RecordWriteFailure.RECORD_DELETED)
             }
-            feedingRecordDao.updateFeedingRecord(snapshot)
+            feedingRecordDao.updateFeedingRecord(TimerRecordNormalizer.feeding(snapshot, existing, TimerClock.snapshot()))
         }
     }
 
@@ -176,16 +184,23 @@ class BabyRepository(private val database: BabyDatabase) {
     ): List<FeedingRecord> = feedingRecordDao.getFeedingRecordsBetween(babyId, startTime, endTime)
 
     suspend fun getLastFeedingRecord(babyId: Int): FeedingRecord? =
-        feedingRecordDao.getLastFeedingRecord(babyId)
+        (listOfNotNull(feedingRecordDao.getLastFeedingRecord(babyId)) +
+            feedingRecordDao.getRecentUnmeasuredFeedings(babyId, 1, FeedingType.entries.map { it.type }))
+            .maxWithOrNull(compareBy<FeedingRecord> { it.feedingEnd.takeIf { end -> end > 0L } ?: it.feedingStart }
+                .thenBy { it.feedingStart }.thenBy { it.feedingId })
 
     suspend fun getRecentFeedings(babyId: Int, limit: Int): List<FeedingRecord> =
         feedingRecordDao.getRecentFeedings(babyId, limit)
 
     /** 预测只使用最近已完成的奶类记录，限制在数据库筛选之后生效。 */
-    suspend fun getRecentCompletedMilkFeedings(babyId: Int, limit: Int): List<FeedingRecord> =
-        feedingRecordDao.getRecentCompletedMilkFeedings(
-            babyId, limit, listOf(FeedingType.BREAST.type, FeedingType.FORMULA.type, FeedingType.MIXED.type)
-        )
+    suspend fun getRecentCompletedMilkFeedings(babyId: Int, limit: Int): List<FeedingRecord> {
+        if (limit <= 0) return emptyList()
+        val milkTypes = listOf(FeedingType.BREAST.type, FeedingType.FORMULA.type, FeedingType.MIXED.type)
+        return (feedingRecordDao.getRecentCompletedMilkFeedings(babyId, limit, milkTypes) +
+            feedingRecordDao.getRecentUnmeasuredFeedings(babyId, limit, milkTypes))
+            .sortedWith(compareByDescending<FeedingRecord> { it.feedingEnd.takeIf { end -> end > 0L } ?: it.feedingStart }
+                .thenByDescending { it.feedingStart }.thenByDescending { it.feedingId }).take(limit)
+    }
 
     suspend fun getFeedingRecordById(feedingId: Int): FeedingRecord? =
         feedingRecordDao.getFeedingRecordById(feedingId)
@@ -197,7 +212,7 @@ class BabyRepository(private val database: BabyDatabase) {
     }
 
     suspend fun insertSleepRecordOnce(record: SleepRecord, requestId: String): Int {
-        val snapshot = record.copy(sleepId = 0)
+        val snapshot = TimerRecordNormalizer.sleep(record.copy(sleepId = 0), null, TimerClock.snapshot())
         return insertRecordOnce(
             requestId, snapshot.babyId, RecordWritePayload.SLEEP, RecordWritePayload.sleep(snapshot),
             insert = { sleepRecordDao.insertSleepRecord(snapshot) },
@@ -206,7 +221,7 @@ class BabyRepository(private val database: BabyDatabase) {
     }
 
     suspend fun findCommittedSleepRecord(record: SleepRecord, requestId: String): Int? {
-        val snapshot = record.copy()
+        val snapshot = TimerRecordNormalizer.sleep(record.copy(), null, TimerClock.snapshot())
         return findCommittedRecord(requestId, snapshot.babyId, RecordWritePayload.SLEEP,
             RecordWritePayload.sleep(snapshot)) { sleepRecordDao.getSleepRecordById(it)?.babyId }
     }
@@ -214,10 +229,11 @@ class BabyRepository(private val database: BabyDatabase) {
     suspend fun updateSleepRecord(sleepRecord: SleepRecord) {
         val snapshot = sleepRecord.copy()
         database.withTransaction {
-            if (sleepRecordDao.getSleepRecordById(snapshot.sleepId)?.babyId != snapshot.babyId) {
+            val existing = sleepRecordDao.getSleepRecordById(snapshot.sleepId)
+            if (existing?.babyId != snapshot.babyId) {
                 throw RecordWriteException(RecordWriteFailure.RECORD_DELETED)
             }
-            sleepRecordDao.updateSleepRecord(snapshot)
+            sleepRecordDao.updateSleepRecord(TimerRecordNormalizer.sleep(snapshot, existing, TimerClock.snapshot()))
         }
     }
 
@@ -311,7 +327,7 @@ class BabyRepository(private val database: BabyDatabase) {
     }
 
     suspend fun insertEventRecordOnce(record: EventRecord, requestId: String): Int {
-        val snapshot = record.copy(eventId = 0)
+        val snapshot = TimerRecordNormalizer.event(record.copy(eventId = 0), null, TimerClock.snapshot())
         return insertRecordOnce(
             requestId, snapshot.babyId, RecordWritePayload.EVENT, RecordWritePayload.event(snapshot),
             insert = { eventRecordDao.insertEventRecord(snapshot) },
@@ -394,10 +410,11 @@ class BabyRepository(private val database: BabyDatabase) {
     suspend fun updateEventRecord(record: EventRecord) {
         val snapshot = record.copy()
         database.withTransaction {
-            if (eventRecordDao.getEventRecordById(snapshot.eventId)?.babyId != snapshot.babyId) {
+            val existing = eventRecordDao.getEventRecordById(snapshot.eventId)
+            if (existing?.babyId != snapshot.babyId) {
                 throw RecordWriteException(RecordWriteFailure.RECORD_DELETED)
             }
-            eventRecordDao.updateEventRecord(snapshot)
+            eventRecordDao.updateEventRecord(TimerRecordNormalizer.event(snapshot, existing, TimerClock.snapshot()))
         }
     }
 
@@ -449,12 +466,23 @@ class BabyRepository(private val database: BabyDatabase) {
 
         val feedingSpans = feedingRecordDao.getFeedingTimeSpans(babyId, startOfMonth, endOfMonth)
         val sleepSpans = sleepRecordDao.getSleepTimeSpans(babyId, startOfMonth, endOfMonth)
-        val eventTimes = eventRecordDao.getEventTimesBetween(babyId, startOfMonth, endOfMonth)
+        val eventSpans = eventRecordDao.getEventTimeSpans(babyId, startOfMonth, endOfMonth)
         val context = currentCoroutineContext()
 
         return buildSet {
             fun addSpan(span: RecordTimeSpan) {
                 context.ensureActive()
+                val metadata = TimerMetadataCodec.decode(span.timerData)
+                if (metadata?.basis == DurationBasis.SEGMENTED) {
+                    // 次数与编辑入口仍归原开始日，即使首段为零；其他日期只沿有效段展开。
+                    if (span.startTime in startOfMonth..endOfMonth)
+                        add(Instant.ofEpochMilli(span.startTime).atZone(zone).toLocalDate())
+                    // 整天处于暂停/夜醒时不点亮日历；只沿实际有效片段标记覆盖日期。
+                    metadata.segments.filter { it.durationMs > 0L }.forEach { segment ->
+                        addSpan(RecordTimeSpan(segment.startAt, requireNotNull(segment.endAt)))
+                    }
+                    return
+                }
                 // 旧未完成或倒置记录只标记开始日，仍能进入编辑，不向后扩散成持续事件。
                 if (span.startTime in startOfMonth..endOfMonth) {
                     add(Instant.ofEpochMilli(span.startTime).atZone(zone).toLocalDate())
@@ -473,10 +501,7 @@ class BabyRepository(private val database: BabyDatabase) {
             }
             feedingSpans.forEach(::addSpan)
             sleepSpans.forEach(::addSpan)
-            eventTimes.forEach { time ->
-                context.ensureActive()
-                add(Instant.ofEpochMilli(time).atZone(zone).toLocalDate())
-            }
+            eventSpans.forEach(::addSpan)
         }
     }
 
@@ -526,9 +551,7 @@ class BabyRepository(private val database: BabyDatabase) {
         return DaySummaryData(
             feedingCount = feedings.size,
             feedingTotalMinutes = TimeUnit.MILLISECONDS.toMinutes(overlappingFeedings.sumOf {
-                RecordDurationCalculator.overlappedDuration(
-                    it.feedingStart, it.feedingEnd, it.feedingDuration, startOfDay, endOfDay
-                )
+                RecordDurationCalculator.feedingDuration(it, startOfDay, endOfDay) ?: 0L
             }).toInt(),
             feedingTotalMl = feedings
                 .filter {
@@ -538,9 +561,7 @@ class BabyRepository(private val database: BabyDatabase) {
                 .sumOf { it.feedingAmount ?: 0 },
             sleepCount = sleeps.size,
             sleepTotalMinutes = TimeUnit.MILLISECONDS.toMinutes(overlappingSleeps.sumOf {
-                RecordDurationCalculator.overlappedDuration(
-                    it.sleepStart, it.sleepEnd, it.sleepDuration, startOfDay, endOfDay
-                )
+                RecordDurationCalculator.sleepDuration(it, startOfDay, endOfDay) ?: 0L
             }).toInt(),
             diaperWetCount = diaperWetCount,
             diaperDirtyCount = diaperDirtyCount,
@@ -565,10 +586,13 @@ class BabyRepository(private val database: BabyDatabase) {
             .toEpochMilli() - 1
 
         val feedings = feedingRecordDao.getFeedingRecordsCoveringDay(babyId, startOfDay, endOfDay)
+            .filter { it.feedingStart in startOfDay..endOfDay || (RecordDurationCalculator.feedingDuration(it, startOfDay, endOfDay) ?: 0L) > 0L }
             .map { TimelineRecord.Feeding(it) }
         val sleeps = sleepRecordDao.getSleepRecordsCoveringDay(babyId, startOfDay, endOfDay)
+            .filter { it.sleepStart in startOfDay..endOfDay || (RecordDurationCalculator.sleepDuration(it, startOfDay, endOfDay) ?: 0L) > 0L }
             .map { TimelineRecord.Sleep(it) }
-        val events = eventRecordDao.getEventRecordsForDay(babyId, startOfDay, endOfDay)
+        val events = eventRecordDao.getEventRecordsCoveringDay(babyId, startOfDay, endOfDay)
+            .filter { it.time in startOfDay..endOfDay || (RecordDurationCalculator.eventDuration(it, startOfDay, endOfDay) ?: 0L) > 0L }
             .map { TimelineRecord.Event(it) }
         return (feedings + sleeps + events).sortedByDescending { it.time }
     }

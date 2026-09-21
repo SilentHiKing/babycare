@@ -70,8 +70,8 @@ class BabyBackupParserTest {
 
     @Test
     fun missingOrNullRequiredCollectionsAreRejected() {
-        assertInvalid("{\"version\":1,\"createdAt\":1000,\"data\":null}")
-        assertInvalid("{\"version\":1,\"createdAt\":1000,\"data\":{}}")
+        assertInvalid("{\"version\":$BABY_BACKUP_VERSION,\"createdAt\":1000,\"data\":null}")
+        assertInvalid("{\"version\":$BABY_BACKUP_VERSION,\"createdAt\":1000,\"data\":{}}")
     }
 
     @Test

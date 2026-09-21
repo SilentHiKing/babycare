@@ -32,6 +32,9 @@ import com.zero.babycare.home.record.event.EventCategory
 import com.zero.babycare.home.record.event.EventSubtype
 import com.zero.babycare.home.record.event.MedicineUnitText
 import com.zero.babycare.navigation.NavTarget
+import com.zero.babydata.domain.DurationBasis
+import com.zero.babydata.domain.TimerMetadata
+import com.zero.babydata.domain.TimerMetadataCodec
 import com.zero.babydata.entity.BabyInfo
 import com.zero.babydata.entity.EventExtraData
 import com.zero.babydata.entity.EventRecord
@@ -100,14 +103,16 @@ class RecordEditValueRecoveryTest {
         val expected = mutableListOf<FeedingRecord>()
         val actual = mutableListOf<FeedingRecord>()
         listOf(false, true).forEachIndexed { index, recreate ->
-            // 合法旧库/备份字段没有对应表单控件；只改备注必须保留其值、身份和创建时间。
+            // 未暴露的业务字段和明确的时长来源，只改备注必须保留其值、身份和创建时间。
             val record = FeedingRecord(
                 feedingId = RECORD_ID + index, babyId = babyId, feedingType = FeedingType.FORMULA.type,
                 feedingStart = START, feedingEnd = START + 600_000L, feedingDuration = 600_000L,
                 feedingAmount = 120, babyMood = FeedingRecord.MOOD_HUNGRY_CRYING,
-                feedingLocation = FeedingRecord.LOCATION_OUTSIDE, note = "合成原备注", createdAt = START + 900_000L
+                feedingLocation = FeedingRecord.LOCATION_OUTSIDE, note = "合成原备注", createdAt = START + 900_000L,
+                timerData = TimerMetadataCodec.encode(TimerMetadata(basis = DurationBasis.MANUAL_INTERVAL))
             )
             runBlocking { repository.insertFeedingRecord(record) }
+            val persistedBaseline = runBlocking { requireNotNull(repository.getFeedingRecordById(record.feedingId)) }
             val target = NavTarget.FeedingRecord(record.feedingId, NavTarget.Dashboard)
             navigate(scenario, target)
             await(scenario) { currentView(it, target)?.findViewById<EditText>(R.id.etNote)?.text?.toString() == record.note }
@@ -124,7 +129,7 @@ class RecordEditValueRecoveryTest {
             }
             onView(withId(com.zero.components.R.id.tv_confirm)).perform(click())
             await(scenario) { mainVm(it).navTarget.value == NavTarget.Dashboard }
-            expected += record.copy(note = changedNote)
+            expected += persistedBaseline.copy(note = changedNote)
             actual += runBlocking { requireNotNull(repository.getFeedingRecordById(record.feedingId)) }
         }
         // 两条都经真实页面提交后比较完整实体，避免只覆盖直接保存而遗漏重建路径。

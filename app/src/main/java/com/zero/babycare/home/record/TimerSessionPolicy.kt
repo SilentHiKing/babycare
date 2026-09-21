@@ -71,7 +71,7 @@ object TimerSessionPolicy {
     }
 
     fun shouldResumeFromStart(mode: TimerMode): Boolean {
-        return mode == TimerMode.SLEEP || mode == TimerMode.ACTIVITY
+        return false
     }
 
     private fun calculateDurationForMode(
@@ -85,12 +85,7 @@ object TimerSessionPolicy {
             return timeRangeDuration
         }
 
-        // 睡眠和活动需要体现完整开始-结束区间，避免暂停时长影响最终记录。
-        if (mode == TimerMode.SLEEP || mode == TimerMode.ACTIVITY) {
-            return timeRangeDuration
-        }
-
-        // 喂养计时允许保留真实活跃计时，但不能超过用户选择的时间范围。
+        // 所有计时方式统一扣除明确暂停，无片段的手工区间才使用首尾差。
         return if (activeDuration > 0L && activeDuration <= timeRangeDuration.valueMs) {
             TimerDuration(activeDuration, DurationSource.ACTIVE_TIMER)
         } else {

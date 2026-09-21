@@ -1,7 +1,32 @@
 package com.zero.babydata.domain
 
+import com.zero.babydata.entity.FeedingRecord
+import com.zero.babydata.entity.SleepRecord
+import com.zero.babydata.entity.EventRecord
+
 /** 首页、日摘要和周期趋势共用的时长归属规则。范围终点按数据库查询的闭区间传入。 */
 object RecordDurationCalculator {
+
+    /** 未计时返回 null，与真实零时长区分；片段记录按有效段逐日求交。 */
+    fun feedingDuration(record: FeedingRecord, rangeStart: Long = Long.MIN_VALUE, rangeEnd: Long = Long.MAX_VALUE): Long? =
+        duration(record.timerData, record.feedingStart, record.feedingEnd, record.feedingDuration, rangeStart, rangeEnd)
+
+    fun sleepDuration(record: SleepRecord, rangeStart: Long = Long.MIN_VALUE, rangeEnd: Long = Long.MAX_VALUE): Long? =
+        duration(record.timerData, record.sleepStart, record.sleepEnd, record.sleepDuration, rangeStart, rangeEnd)
+
+    fun eventDuration(record: EventRecord, rangeStart: Long = Long.MIN_VALUE, rangeEnd: Long = Long.MAX_VALUE): Long? =
+        duration(record.timerData, record.time, record.endTime, record.activeDurationMs ?: (record.endTime - record.time).coerceAtLeast(0L), rangeStart, rangeEnd)
+
+    private fun duration(json: String?, start: Long, end: Long, saved: Long, rangeStart: Long, rangeEnd: Long): Long? {
+        val metadata = TimerMetadataCodec.decode(json)
+        return when (metadata?.basis) {
+            DurationBasis.UNMEASURED -> null
+            DurationBasis.SEGMENTED -> TimerCalculations.overlapDuration(metadata, rangeStart, rangeEnd)
+            DurationBasis.MANUAL_TOTAL -> if (saved == 0L) 0L else overlappedDuration(start, end, saved, rangeStart, rangeEnd)
+            DurationBasis.MANUAL_INTERVAL -> overlappedDuration(start, end, end - start, rangeStart, rangeEnd)
+            null -> overlappedDuration(start, end, saved, rangeStart, rangeEnd)
+        }
+    }
 
     fun overlappedDuration(
         start: Long,

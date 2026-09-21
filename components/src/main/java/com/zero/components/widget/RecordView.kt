@@ -25,6 +25,8 @@ class RecordView @JvmOverloads constructor(
         private set
 
     var statusChange: ((current: RecordState, next: RecordState) -> Unit)? = null
+    /** 持久计时由外部状态驱动，点击只能发事件，写入成功后才切换显示。 */
+    var externallyDriven: Boolean = false
 
     val timerCounter = TimerCounter(clock)
 
@@ -60,6 +62,10 @@ class RecordView @JvmOverloads constructor(
      * @param triggerCallback 是否触发 statusChange 回调
      */
     fun forcePause(triggerCallback: Boolean = false) {
+        if (externallyDriven && triggerCallback) {
+            if (currentShowState == RecordState.RECORDING) statusChange?.invoke(currentShowState, RecordState.PAUSE)
+            return
+        }
         if (currentShowState == RecordState.RECORDING) {
             val previousState = currentShowState
             timerCounter.pause()
@@ -87,6 +93,7 @@ class RecordView @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         timerCounter.elapsedTime.observeForever(observer)
+        timerCounter.setDisplayActive(isShown)
     }
 
     private val observer = androidx.lifecycle.Observer<Long> { value ->
@@ -95,7 +102,13 @@ class RecordView @JvmOverloads constructor(
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
+        timerCounter.setDisplayActive(false)
         timerCounter.elapsedTime.removeObserver(observer)
+    }
+
+    override fun onVisibilityChanged(changedView: android.view.View, visibility: Int) {
+        super.onVisibilityChanged(changedView, visibility)
+        if (isAttachedToWindow) timerCounter.setDisplayActive(isShown)
     }
 
     init {
@@ -105,11 +118,11 @@ class RecordView @JvmOverloads constructor(
             when (currentShowState) {
                 RecordState.INIT -> {
                     listener(currentShowState, RecordState.RECORDING)
-                    showState(RecordState.RECORDING)
+                    if (!externallyDriven) showState(RecordState.RECORDING)
                 }
                 RecordState.RECORDING -> {
                     listener(currentShowState, RecordState.PAUSE)
-                    showState(RecordState.PAUSE)
+                    if (!externallyDriven) showState(RecordState.PAUSE)
                 }
                 RecordState.PAUSE -> {
                     // PAUSE -> RECORDING 时，先回调让外部处理
@@ -136,6 +149,8 @@ class RecordView @JvmOverloads constructor(
      * 不触发 statusChange 回调
      */
     fun startFromOffset(offsetMs: Long) {
+        // 新快照可能修正起点或片段；先终止旧插值锚点，避免 start 的运行态保护忽略更新。
+        timerCounter.pause()
         timerCounter.setPauseOffset(offsetMs)
         currentShowState = RecordState.INIT
         showState(RecordState.RECORDING)
@@ -143,6 +158,7 @@ class RecordView @JvmOverloads constructor(
 
     /** 恢复持久化的暂停会话，展示累计时长但不重新启动计时。 */
     fun restorePaused(durationMs: Long) {
+        timerCounter.pause()
         currentShowState = RecordState.INIT
         timerCounter.setDisplayDuration(durationMs.coerceAtLeast(0L))
         showState(RecordState.PAUSE)
@@ -186,6 +202,11 @@ class RecordView @JvmOverloads constructor(
 
     fun showProgress(progress: String) {
         viewBinding.tvProgress.text = progress
+    }
+
+    fun setHintText(textRes: Int) {
+        viewBinding.tvHint.setText(textRes)
+        viewBinding.tvHint.visibility = VISIBLE
     }
 
     /** 显示时长但不启动计时器（用于手动输入时间后显示时长） */

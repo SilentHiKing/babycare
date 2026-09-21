@@ -5,6 +5,9 @@ import com.zero.babycare.home.OngoingRecordManager.RecordType
 import com.zero.babycare.home.OngoingRecordManager.SessionStatus
 import com.zero.babycare.home.bean.DashboardData
 import com.zero.babydata.domain.RecordDurationCalculator
+import com.zero.babydata.domain.TimerCalculations
+import com.zero.babydata.domain.TimerSegmentSource
+import com.zero.babydata.domain.TimerTransitions
 import com.zero.common.util.TimerClockSnapshot
 import java.time.Instant
 import java.time.ZoneId
@@ -27,12 +30,28 @@ internal object DashboardDurationMapper {
         val dayStart = day.atStartOfDay(zone).toInstant().toEpochMilli()
         val dayEnd = day.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli() - 1L
 
+        fun OngoingSession.displayMetadata() = snapshot?.metadata?.let {
+            if (status == SessionStatus.RUNNING) TimerTransitions.pause(it, clock) else it
+        }
+
         fun OngoingSession.duration(): Long {
+            snapshot?.let {
+                return TimerCalculations.totalDuration(it.metadata,
+                    if (status == SessionStatus.RUNNING) clock else null)
+            }
             return elapsedDuration(clock)
         }
 
         fun OngoingSession.todayMinutes(): Long {
-            val end = if (status == SessionStatus.PAUSED) endAt ?: startAt else clock.wallTimeMs
+            displayMetadata()?.let { metadata ->
+                // 开放段只在显示副本中闭合，不因首页每分钟刷新向数据库写结束时间。
+                // 时钟异常部分尚不能准确归日，已确认的历史段仍保留；待核对状态另行明确展示。
+                val confirmed = metadata.copy(clockAnchor = null, requiresReview = false,
+                    segments = metadata.segments.filter { it.endAt != null &&
+                        it.source != TimerSegmentSource.ESTIMATED && it.durationMs == requireNotNull(it.endAt) - it.startAt })
+                return TimeUnit.MILLISECONDS.toMinutes(TimerCalculations.overlapDuration(confirmed, dayStart, dayEnd))
+            }
+            val end = if (status != SessionStatus.RUNNING) endAt ?: startAt else clock.wallTimeMs
             val activeDuration = duration()
             if (activeDuration <= 0L) return 0L
             return TimeUnit.MILLISECONDS.toMinutes(
@@ -40,9 +59,27 @@ internal object DashboardDurationMapper {
             )
         }
 
+        fun OngoingSession.state(): DashboardData.OngoingState = when {
+            displayMetadata()?.requiresReview == true -> DashboardData.OngoingState.NEEDS_REVIEW
+            status == SessionStatus.RUNNING -> DashboardData.OngoingState.RUNNING
+            status == SessionStatus.PAUSED -> DashboardData.OngoingState.PAUSED
+            else -> DashboardData.OngoingState.STOPPED
+        }
+        // 正在发生的照护优先于更晚开始但已暂停/结束的草稿。
+        val headline = listOfNotNull(currentFeeding, currentSleep).maxWithOrNull(
+            compareBy<OngoingSession> { it.status == SessionStatus.RUNNING }.thenBy { it.startAt }
+        )
+
         return data.copy(
+            currentStatus = when (headline?.type) {
+                RecordType.FEEDING -> DashboardData.BabyStatus.FEEDING
+                RecordType.SLEEP -> DashboardData.BabyStatus.SLEEPING
+                null -> DashboardData.BabyStatus.AWAKE
+            },
             ongoingFeedingDurationMillis = currentFeeding?.duration(),
             ongoingSleepDurationMillis = currentSleep?.duration(),
+            ongoingFeedingState = currentFeeding?.state(),
+            ongoingSleepState = currentSleep?.state(),
             displayFeedingMinutes = data.totalFeedingMinutes + (currentFeeding?.todayMinutes() ?: 0L),
             displaySleepMinutes = data.totalSleepMinutes + (currentSleep?.todayMinutes() ?: 0L)
         )

@@ -17,7 +17,9 @@ import androidx.room.PrimaryKey
     indices = [
         Index(value = ["babyId"]),
         Index(value = ["babyId", "sleepStart", "sleepEnd"]),
-        Index(value = ["babyId", "sleepEnd"])
+        Index(value = ["babyId", "sleepEnd"]),
+        Index(value = ["timerSessionId"], unique = true),
+        Index(value = ["babyId", "timerSlot"], unique = true)
     ]
 )
 data class SleepRecord(
@@ -28,5 +30,11 @@ data class SleepRecord(
     var sleepEnd: Long = 0L,
     var sleepDuration: Long = 0L,
     var note: String = "",
-    var createdAt: Long = 0L
+    var createdAt: Long = 0L,
+    // 片段 JSON 是有效时长来源，sleepDuration 仅是同事务更新的汇总缓存。
+    var timerStatus: Int = 0,
+    var timerSessionId: String? = null,
+    var timerRevision: Long = 0L,
+    var timerData: String? = null,
+    var timerSlot: Int? = null
 )

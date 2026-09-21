@@ -19,18 +19,13 @@ class FeedingRecordViewModel(private val injectedRepository: BabyRepository? = n
     // 延迟获取默认数据源，让草稿状态恢复独立于数据库初始化，并支持隔离的数据层验证。
     private val repository by lazy { injectedRepository ?: BabyDataHelper.repository }
     internal val mutation = RecordMutationController(viewModelScope)
-    internal val sessions = SessionCommitCoordinator(viewModelScope, { repository }, OngoingRecordManager.RecordType.FEEDING)
+    internal val timer = PersistentTimerEditor(viewModelScope, { repository }, com.zero.babydata.domain.TimerRecordKind.FEEDING)
+    internal val sessions = SessionCommitCoordinator(viewModelScope, { repository }, OngoingRecordManager.RecordType.FEEDING, timer)
 
     private val _lastFeedingRecord = MutableLiveData<FeedingRecord?>()
     val lastFeedingRecord: LiveData<FeedingRecord?> = _lastFeedingRecord
     private var lastRequestedBabyId: Int? = null
 
-    /** 页面只报告已校正的显示起点；持久会话按稳定身份同步，不能影响后来启动的记录。 */
-    internal fun synchronizeTimerStart(babyId: Int, sessionId: String, start: Long, clock: TimerClockSnapshot) {
-        OngoingRecordManager.synchronizeAutomaticStart(
-            babyId, OngoingRecordManager.RecordType.FEEDING, sessionId, start, clock
-        )
-    }
 
     internal fun save(
         feedingRecord: FeedingRecord,
@@ -47,7 +42,8 @@ class FeedingRecordViewModel(private val injectedRepository: BabyRepository? = n
         val frozenRecord = if (original == null) feedingRecord.copy() else feedingRecord.copy(
             babyMood = original.babyMood,
             feedingLocation = original.feedingLocation,
-            createdAt = original.createdAt
+            createdAt = original.createdAt,
+            timerData = original.timerData, timerSessionId = original.timerSessionId, timerRevision = original.timerRevision
         )
         mutation.submit(target, RecordMutationController.Kind.SAVE, R.string.save_failed) {
             if (target.recordId != null) repository.updateFeedingRecord(frozenRecord)

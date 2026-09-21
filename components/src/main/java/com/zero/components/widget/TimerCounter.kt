@@ -22,6 +22,7 @@ class TimerCounter(private val clock: () -> TimerClockSnapshot = TimerClock::sna
 
     private var isRunning = false
     private var runningAnchor: TimerClockSnapshot? = null
+    private var displayActive = true
 
     private val handler = Handler(Looper.getMainLooper())
 
@@ -30,7 +31,7 @@ class TimerCounter(private val clock: () -> TimerClockSnapshot = TimerClock::sna
 
     private val updateRunnable = object : Runnable {
         override fun run() {
-            if (isRunning) {
+            if (isRunning && displayActive) {
                 val current = getDuration()
                 _elapsedTime.value = current
                 handler.postDelayed(this, 1000L) // 每 1 秒更新一次
@@ -92,7 +93,7 @@ class TimerCounter(private val clock: () -> TimerClockSnapshot = TimerClock::sna
         runningAnchor = now
         pauseOffset = 0L
         isRunning = true
-        handler.post(updateRunnable)
+        if (displayActive) handler.post(updateRunnable)
     }
 
     fun pause() {
@@ -122,6 +123,13 @@ class TimerCounter(private val clock: () -> TimerClockSnapshot = TimerClock::sna
     fun release() {
         stop()
         handler.removeCallbacksAndMessages(null)
+    }
+
+    /** 隐藏页面只停止刷新，不改变计时锚点；回到前台重新计算真实耗时。 */
+    fun setDisplayActive(active: Boolean) {
+        displayActive = active
+        handler.removeCallbacks(updateRunnable)
+        if (active && isRunning) handler.post(updateRunnable)
     }
 
     /** 检查是否正在运行 */

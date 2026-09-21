@@ -104,6 +104,13 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
     // 标记是否是程序设置时间（避免循环触发）
     private var isProgrammaticChange = false
 
+    private var discardPending = false
+    private var reviewRevision = -1L
+    private var selectedTimerPart = com.zero.babydata.domain.TimerPart.UNSPECIFIED
+    private var pendingStop: Pair<RecordMutationController.Target, String>? = null
+    private var renderedTimerRef: com.zero.babydata.domain.TimerRef? = null
+    private var pendingTimerRawDraft: Bundle? = null
+    private var timerBusy = false
     private var timerController: RecordTimerController? = null
     private var retainedDraft: Bundle? = null
     private var draftForView: Bundle? = null
@@ -119,6 +126,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
 
         setupFeedingTypeSelector()
         setupTimerController()
+        setupTimerParts()
         setupToolbar()
         setupSaveButton()
         setupFirstTimeCheckbox()
@@ -154,6 +162,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         }
         observeMutation()
         observeSessionRecovery()
+        observePersistentTimer()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -182,7 +191,17 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             updateSolidFoodNameVisibility()
             updateSolidUnit()
             updateAllergenTip()
-            draft.getBundle("timer")?.let { RecordDraftState.restoreTimer(binding.timerPanel, timerController, it) }
+            draft.getBundle("timer")?.let { timer ->
+                if (!isEditMode && timer.getString("ongoing_session_id") != null) {
+                    // 活动事实由 Room 恢复；Bundle 只保留原身份和未完成文本，不重启旧秒表。
+                    pendingTimerRawDraft = timer
+                    timerController?.restoreAutomaticStart(timer.getBoolean("automatic_start"),
+                        sessionId = timer.getString("ongoing_session_id"))
+                    binding.timerPanel.startInput.restoreInputState(timer.getLong("start"), timer.getString("start_raw").orEmpty())
+                    binding.timerPanel.endInput.restoreInputState(timer.getLong("end"), timer.getString("end_raw").orEmpty())
+                } else RecordDraftState.restoreTimer(binding.timerPanel, timerController, timer)
+            }
+            if (isEditMode) timerController?.updateDurationFromInputs(previewOnly = true)
             hasUnsavedChanges = draft.getBoolean("dirty")
             isProgrammaticChange = false
             applyTimerLockState()
@@ -216,6 +235,8 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             ?: RecordNumberInput(fallbackUnit)
 
     override fun onDestroyView() {
+        pendingStop = null
+        renderedTimerRef = null
         retainedDraft = if (!isHidden) captureDraft() else null
         timerController?.dispose()
         timerController = null
@@ -248,7 +269,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             val sessionId = timerController?.ongoingSessionId
             if (!isEditMode && babyId != null && sessionId != null) {
                 // 同步进行中的喂养类型，避免恢复与状态卡不一致
-                OngoingRecordManager.updateFeedingType(babyId, selectedFeedingType.type, expectedSessionId = sessionId)
+                vm.timer.updateFeedingType(selectedFeedingType.type)
             }
         }
         
@@ -438,6 +459,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      */
     private fun updateFeedingTypeVisibility() {
         // 母乳 - 显示左右乳房时长
+        binding.rgTimerPart.visibility = if (selectedFeedingType == FeedingType.BREAST && !isEditMode) View.VISIBLE else View.GONE
         binding.llBreastDuration.visibility = if (selectedFeedingType == FeedingType.BREAST) {
             View.VISIBLE
         } else {
@@ -469,6 +491,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 更新左右乳房时长输入框的可见性
      */
     private fun updateBreastDurationVisibility() {
+        binding.rgTimerPart.visibility = if (selectedFeedingType == FeedingType.BREAST && !isEditMode) View.VISIBLE else View.GONE
         binding.llBreastDuration.visibility = if (selectedFeedingType == FeedingType.BREAST) {
             View.VISIBLE
         } else {
@@ -486,6 +509,109 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         }
     }
 
+    /** 换侧关闭当前片段并开启新段，左右汇总不能靠手工输入反推时间顺序。 */
+    private fun setupTimerParts() {
+        binding.rgTimerPart.setOnCheckedChangeListener { _, checkedId ->
+            if (isProgrammaticChange) return@setOnCheckedChangeListener
+            selectedTimerPart = when (checkedId) {
+                com.zero.babycare.R.id.rbTimerLeft -> com.zero.babydata.domain.TimerPart.LEFT
+                com.zero.babycare.R.id.rbTimerRight -> com.zero.babydata.domain.TimerPart.RIGHT
+                else -> com.zero.babydata.domain.TimerPart.UNSPECIFIED
+            }
+            if (!isEditMode && vm.timer.state.value.snapshot != null) vm.timer.switchPart(selectedTimerPart)
+        }
+    }
+
+    private fun renderTimerParts(snapshot: com.zero.babydata.domain.TimerRecordSnapshot?) {
+        val enabled = !timerBusy && !isEditMode && snapshot?.status != com.zero.babydata.domain.TimerStatus.STOPPED
+        listOf(binding.rbTimerLeft, binding.rbTimerRight, binding.rbTimerUnspecified).forEach { it.isEnabled = enabled }
+        val segmented = snapshot != null || editingRecord?.timerData?.let {
+            com.zero.babydata.domain.TimerMetadataCodec.decode(it)?.basis == com.zero.babydata.domain.DurationBasis.SEGMENTED
+        } == true
+        binding.etLeftBreastDuration.isEnabled = !segmented
+        binding.etRightBreastDuration.isEnabled = !segmented
+        snapshot?.feeding?.let { record ->
+            selectedTimerPart = snapshot.part
+            binding.rgTimerPart.check(when (snapshot.part) {
+                com.zero.babydata.domain.TimerPart.LEFT -> com.zero.babycare.R.id.rbTimerLeft
+                com.zero.babydata.domain.TimerPart.RIGHT -> com.zero.babycare.R.id.rbTimerRight
+                else -> com.zero.babycare.R.id.rbTimerUnspecified
+            })
+            val left = DateUtils.millisecondsToMinutes(record.feedingDurationBreastLeft).toString()
+            val right = DateUtils.millisecondsToMinutes(record.feedingDurationBreastRight).toString()
+            leftDurationInput = RecordNumberInput("min").withOriginal(left, record.feedingDurationBreastLeft)
+            rightDurationInput = RecordNumberInput("min").withOriginal(right, record.feedingDurationBreastRight)
+            binding.etLeftBreastDuration.setText(left)
+            binding.etRightBreastDuration.setText(right)
+        }
+    }
+
+    /** 写入完成后才渲染计时状态，失败保持原片段并显示可重试错误。 */
+    private fun observePersistentTimer() {
+        launchInLifecycle {
+            vm.timer.state.collect { state ->
+                if (isEditMode || isHidden || state.babyId != currentDraftBabyId()) return@collect
+                timerBusy = state.busy
+                if (!state.busy) {
+                    isProgrammaticChange = true
+                    renderPersistentSnapshot(state.snapshot, force = state.errorRes != null)
+                    isProgrammaticChange = false
+                    state.errorRes?.let {
+                        discardPending = false
+                        pendingStop = null
+                        ToastUtils.showShort(getString(it))
+                        vm.timer.clearError()
+                    }
+                }
+                renderInputFreeze()
+                if (!state.busy && state.errorRes == null && discardPending && state.snapshot == null) {
+                    discardPending = false
+                    resetPage()
+                }
+                val snapshot = state.snapshot
+                if (!state.busy && snapshot?.metadata?.requiresReview == true &&
+                    snapshot.ref.revision != reviewRevision) {
+                    reviewRevision = snapshot.ref.revision
+                    pendingStop = null
+                    timerController?.showReviewConfirmation {
+                        if (vm.timer.state.value.snapshot?.ref == snapshot.ref) vm.timer.acknowledgeReview()
+                    }
+                }
+                if (!state.busy && state.errorRes == null && pendingStop != null &&
+                    state.snapshot?.status == com.zero.babydata.domain.TimerStatus.STOPPED) {
+                    val pending = pendingStop
+                    pendingStop = null
+                    if (pending?.first?.belongsTo(draftId, currentDraftBabyId(), mainVm.navTarget.value) == true &&
+                        pending.second == state.snapshot.ref.sessionId) saveRecord()
+                }
+            }
+        }
+    }
+
+    /** 相同版本的恢复/错误重发不覆盖编辑；新版本最后叠回未完成原文。 */
+    private fun renderPersistentSnapshot(snapshot: com.zero.babydata.domain.TimerRecordSnapshot?, force: Boolean = false) {
+        if (snapshot == null) {
+            timerController?.renderPersistent(null)
+            renderedTimerRef = null
+            renderTimerParts(null)
+            return
+        }
+        if (!force && renderedTimerRef == snapshot.ref && pendingTimerRawDraft == null) return
+        val panel = binding.timerPanel
+        val draft = pendingTimerRawDraft?.takeIf { it.getString("ongoing_session_id") == snapshot.ref.sessionId }
+        val startRaw = if (draft?.getLong("start") == 0L) draft.getString("start_raw")
+            else panel.startInput.text.toString().takeIf { !panel.startInput.hasValidTime() && it.isNotBlank() }
+        val endRaw = if (draft?.getLong("end") == 0L &&
+            (draft.getString("end_raw").orEmpty().isNotBlank() || draft.getLong("pause_end") > 0L)) draft.getString("end_raw")
+            else panel.endInput.text.toString().takeIf { !panel.endInput.hasValidTime() && it.isNotBlank() }
+        timerController?.renderPersistent(snapshot)
+        renderTimerParts(snapshot)
+        renderedTimerRef = snapshot.ref
+        pendingTimerRawDraft = null
+        startRaw?.let { panel.startInput.restoreInputState(0L, it) }
+        endRaw?.let { panel.endInput.restoreInputState(0L, it) }
+    }
+
     private fun setupTimerController() {
         timerController = RecordTimerController(
             context = requireContext(),
@@ -497,56 +623,45 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             config = RecordTimerController.Config(
                 invalidEndTimeMessageRes = R.string.end_time_must_after_start,
                 mode = TimerMode.FEEDING,
-                shouldIgnoreInput = { isProgrammaticChange }
+                persistent = true,
+                shouldIgnoreInput = { isProgrammaticChange },
+                durationPreview = { start, end ->
+                    CompletedTimerDurationPreview.calculate(editingRecord?.timerData, start, end)
+                        ?.onSuccess(::renderEditedTimerParts)?.map { it.durationMs }
+                }
             ),
             callbacks = RecordTimerController.Callbacks(
                 onStartTimeChanged = { startTime ->
                     markAsUnsaved()
-                    val babyId = currentDraftBabyId()
-                    val sessionId = timerController?.ongoingSessionId
-                    if (!isEditMode && babyId != null && sessionId != null) {
-                        // 同步进行中的开始时间，避免恢复与状态卡不一致
-                        OngoingRecordManager.updateFeedingStart(babyId, startTime, expectedSessionId = sessionId)
-                    }
+                    if (!isEditMode && timerController?.ongoingSessionId != null) vm.timer.editStart(startTime)
                 },
-                onEndTimeChanged = { markAsUnsaved() },
+                onEndTimeChanged = { endTime ->
+                    markAsUnsaved()
+                    if (!isEditMode && timerController?.ongoingSessionId != null && endTime != null) vm.timer.editEnd(endTime)
+                },
                 onTimerStart = { startTime ->
                     if (!isEditMode) currentDraftBabyId()?.let { babyId ->
-                        OngoingRecordManager.startFeeding(
-                            babyId, selectedFeedingType.type, startTime,
-                            automaticStart = timerController?.isStartTimeAutomatic == true
-                        )
-                        OngoingRecordManager.getFeedingSession(babyId)?.let { session ->
-                            timerController?.restoreAutomaticStart(session.automaticStart, session.clockAnchor, session.sessionId)
-                        }
+                        vm.timer.startFeeding(FeedingRecord(babyId = babyId, feedingType = selectedFeedingType.type, feedingStart = startTime, note = binding.etNote.text.toString(), createdAt = System.currentTimeMillis()), timerController?.isStartTimeAutomatic == true, selectedTimerPart)
                     }
                 },
-                onTimerResume = {
-                    markAsUnsaved()
-                    val sessionId = timerController?.ongoingSessionId
-                    if (!isEditMode && sessionId != null) currentDraftBabyId()?.let {
-                        OngoingRecordManager.resumeFeeding(it, expectedSessionId = sessionId)
-                    }
-                },
-                onTimerPause = { endTime ->
-                    val sessionId = timerController?.ongoingSessionId
-                    if (!isEditMode && sessionId != null) currentDraftBabyId()?.let { babyId ->
-                        OngoingRecordManager.pauseFeeding(
-                            babyId = babyId,
-                            endTime = endTime,
-                            activeDurationMs = binding.timerPanel.timerView.getDuration(),
-                            expectedSessionId = sessionId
-                        )
-                    }
-                },
-                onClockSynchronized = { sessionId, start, clock ->
-                    if (!isEditMode) currentDraftBabyId()?.let {
-                        vm.synchronizeTimerStart(it, sessionId, start, clock)
-                    }
-                },
+                onTimerResume = { if (!isEditMode) vm.timer.resume() },
+                onTimerPause = { if (!isEditMode) vm.timer.pause() },
                 onDirty = { markAsUnsaved() }
             )
         )
+    }
+
+    /** 日期预览与正式保存使用同一片段汇总，左右只读值也同步刷新。 */
+    private fun renderEditedTimerParts(preview: CompletedTimerDurationPreview.Value) {
+        val previous = isProgrammaticChange
+        isProgrammaticChange = true
+        val left = DateUtils.millisecondsToMinutes(preview.leftMs).toString()
+        val right = DateUtils.millisecondsToMinutes(preview.rightMs).toString()
+        leftDurationInput = RecordNumberInput("min").withOriginal(left, preview.leftMs)
+        rightDurationInput = RecordNumberInput("min").withOriginal(right, preview.rightMs)
+        binding.etLeftBreastDuration.setText(left)
+        binding.etRightBreastDuration.setText(right)
+        isProgrammaticChange = previous
     }
 
 
@@ -559,7 +674,22 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
 
     private fun updateToolbarAction() {
         if (!isEditMode) {
-            binding.btn.hideAction()
+            if (vm.timer.state.value.snapshot == null) binding.btn.hideAction()
+            else {
+                val label = getString(R.string.timer_discard)
+                binding.btn.setActions(listOf(ToolbarAction(text = label, contentDescription = label,
+                    enabled = !timerBusy && !mutationInProgress))) {
+                    val expectedSession = timerController?.ongoingSessionId
+                    DialogHelper.showConfirmDialog(requireContext(), getString(R.string.timer_discard),
+                        getString(R.string.timer_discard_confirm), getString(R.string.timer_discard), getString(R.string.cancel),
+                        onConfirm = {
+                            if (expectedSession == timerController?.ongoingSessionId && !isHidden) {
+                                discardPending = true
+                                vm.timer.discard()
+                            }
+                        })
+                }
+            }
             return
         }
         val label = getString(R.string.delete_record)
@@ -694,12 +824,12 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
     }
 
     private fun applyTimerLockState() {
-        val returnTarget = (mainVm.navTarget.value as? NavTarget.FeedingRecord)?.returnTarget
-        val locked = (isEditMode && returnTarget is NavTarget.Statistics) ||
+        val locked = isEditMode || timerBusy ||
+            vm.timer.state.value.snapshot?.status == com.zero.babydata.domain.TimerStatus.STOPPED ||
             mutationInProgress || sessionChecking || sessionCommitting || sessionCheckFailed
+        // 锁定交互不调暗整个计时区，避免短暂写入闪动，并保持已停止的时长清晰可读。
         binding.timerPanel.timerView.isEnabled = !locked
         binding.timerPanel.timerView.isClickable = !locked
-        binding.timerPanel.timerView.alpha = if (locked) 0.4f else 1f
     }
 
     private fun loadEditRecord() {
@@ -718,6 +848,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             editingRecord = record
             updateToolbarAction()
             if (!hasUnsavedChanges) applyRecordToUi(record)
+            else timerController?.updateDurationFromInputs(previewOnly = true)
         }
     }
 
@@ -737,7 +868,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         timerController?.setStartTime(record.feedingStart, notify = false)
         if (record.feedingEnd > 0L) {
             timerController?.setEndTime(record.feedingEnd, notify = false)
-            // 编辑备注不能把暂停间隔重新算作喂养；用户主动修改时间时 Controller 才重新算区间。
+            // 初始显示保留有效时长；修改日期后仍通过原片段预览，不补回暂停区间。
             binding.timerPanel.timerView.showDurationWithoutTimer(record.feedingDuration)
         } else {
             timerController?.clearEndTime(notify = false)
@@ -824,7 +955,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             requestSessionRecovery(preserveDraft = true)
             return
         }
-        if (sessionChecking || sessionCommitting) return
+        if (sessionChecking || sessionCommitting || timerBusy) return
         if (vm.mutation.isPending || (isEditMode && editingRecord == null)) return
         val babyId = currentDraftBabyId()
         if (babyId == null || babyId < 0) {
@@ -845,10 +976,25 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             return
         }
 
-        // 如果正在计时，先暂停
-        if (binding.timerPanel.timerView.currentShowState == RecordState.RECORDING) {
-            binding.timerPanel.timerView.forcePause(triggerCallback = true)
-            // 使用暂停回调已同步给持久会话的同一结束时刻，避免重试内容发生毫秒漂移。
+        if (!isEditMode && vm.timer.state.value.snapshot?.let {
+                it.status != com.zero.babydata.domain.TimerStatus.STOPPED
+            } == true) {
+            pendingStop = mutationTarget(babyId) to requireNotNull(vm.timer.state.value.snapshot).ref.sessionId
+            vm.timer.stop()
+            return
+        }
+
+
+        // 瓶喂、辅食等可只记录发生时间和数量，不把未测时长伪造成一段计时。
+        val unmeasuredEdit = isEditMode && editingRecord?.timerData?.let {
+            com.zero.babydata.domain.TimerMetadataCodec.decode(it)?.basis == com.zero.babydata.domain.DurationBasis.UNMEASURED
+        } == true
+        if ((!isEditMode || unmeasuredEdit) && timerController?.ongoingSessionId == null &&
+            selectedFeedingType != FeedingType.BREAST && binding.timerPanel.endInput.text.isNullOrBlank()) {
+            if (!validateStartTime()) return
+            val occurredAt = binding.timerPanel.startInput.getTimestamp()
+            doSaveRecord(babyId, occurredAt, 0L, 0L)
+            return
         }
 
         // 校验必填项
@@ -874,8 +1020,10 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         val startTime = binding.timerPanel.startInput.getTimestamp()
         val endTime = binding.timerPanel.endInput.getTimestamp()
 
+        if (isEditMode && timerController?.updateDurationFromInputs(previewOnly = true) == false) return
+
         // 喂养保留暂停/继续产生的有效计时时长；无有效计时或超过时间跨度时回退到开始-结束区间。
-        val duration = TimerSessionPolicy.calculateSavedDuration(
+        val duration = timerController?.manualDurationPreview ?: TimerSessionPolicy.calculateSavedDuration(
             mode = TimerMode.FEEDING,
             startAt = startTime,
             endAt = endTime,
@@ -1010,6 +1158,10 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
             this.isFirstTime = isFirstTime
             this.note = binding.etNote.text.toString().trim()
             this.createdAt = editingRecord?.createdAt ?: System.currentTimeMillis()
+            if (duration == 0L && endTime == 0L && selectedFeedingType != FeedingType.BREAST) {
+                this.timerData = com.zero.babydata.domain.TimerMetadataCodec.encode(
+                    com.zero.babydata.domain.TimerMetadata(basis = com.zero.babydata.domain.DurationBasis.UNMEASURED))
+            }
         }
 
         vm.save(feedingRecord, mutationTarget(babyId),
@@ -1043,12 +1195,19 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
 
     private fun renderInputFreeze() {
         if (view == null) return
-        val inProgress = mutationInProgress || sessionChecking || sessionCommitting
+        val inProgress = mutationInProgress || sessionChecking || sessionCommitting || timerBusy
+        // 防重复点击与亮度分离，毫秒级的持久化不应让保存按钮反复变暗、恢复。
         binding.tvSave.isEnabled = !inProgress
-        binding.tvSave.alpha = if (inProgress) 0.7f else 1f
         val frozen = inProgress || sessionCheckFailed
         if (frozen) timerController?.dismissPendingUi()
         formFreeze.render(frozen, binding.cardTimer, binding.cardFeedingContent)
+        if (!frozen) {
+            // 解冻会恢复写入前的 enabled，随后再应用片段汇总的只读约束。
+            val wasProgrammatic = isProgrammaticChange
+            isProgrammaticChange = true
+            renderTimerParts(vm.timer.state.value.takeIf { !isEditMode && it.babyId == currentDraftBabyId() }?.snapshot)
+            isProgrammaticChange = wasProgrammatic
+        }
         applyTimerLockState()
         updateToolbarAction()
     }
@@ -1061,7 +1220,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         renderedRecovery = null
         val babyId = currentDraftBabyId()
         val sessionId = timerController?.ongoingSessionId
-        if (isEditMode || babyId == null || (preserveDraft && sessionId == null)) {
+        if (isEditMode || babyId == null) {
             renderInputFreeze()
             return
         }
@@ -1095,7 +1254,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
                             resetPage()
                             ToastUtils.showShort(getString(R.string.save_success))
                         }
-                        !preserveRecoveredDraft -> state.session?.let(::restoreOngoingFeeding)
+                        else -> state.session?.let(::restoreOngoingFeeding)
                     }
                 }
                 renderInputFreeze()
@@ -1157,17 +1316,12 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         DialogHelper.showConfirmDialog(
             context = requireContext(),
             title = getString(R.string.tip),
-            content = getString(R.string.unsaved_record_tip),
+            content = getString(if (expectedSessionId != null) R.string.timer_leave_tip else R.string.unsaved_record_tip),
             confirmText = getString(R.string.confirm),
             cancelText = getString(R.string.cancel),
             onConfirm = {
                 if (isHidden || view == null || draftId != expectedDraftId || currentDraftBabyId() != expectedBabyId) return@showConfirmDialog
                 hasUnsavedChanges = false
-                if (!isEditMode && expectedSessionId != null) {
-                    currentDraftBabyId()?.let { babyId ->
-                        OngoingRecordManager.cancelFeeding(babyId, expectedSessionId)
-                    }
-                }
                 mainVm.navigateTo(getReturnTarget())
             }
         )
@@ -1189,6 +1343,12 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 在保存成功后或页面初始化时调用
      */
     private fun resetPage() {
+        pendingStop = null
+        renderedTimerRef = null
+        pendingTimerRawDraft = null
+        timerBusy = false
+        discardPending = false
+        reviewRevision = -1L
         isProgrammaticChange = true
         amountInput = RecordNumberInput(UnitConfig.getFeedingUnit())
         leftDurationInput = RecordNumberInput("min")
@@ -1240,6 +1400,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
         if (view == null) return
         
         if (hidden) {
+            pendingStop = null
             retainedDraft = null
             timerController?.dismissPendingUi()
             // 隐藏时不重置计时器（保留进行中状态）
@@ -1250,6 +1411,7 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
 
     /** 同页收到新宝宝或编辑目标时先清除旧表单，禁止旧草稿写入新目标。 */
     private fun openCurrentTarget() {
+        pendingStop = null
         sessionChecking = false
         sessionCheckFailed = false
         sessionCommitting = false
@@ -1274,36 +1436,12 @@ class FeedingRecordFragment : BaseFragment<FragmentFeedingRecordBinding>(), Back
      * 恢复进行中的喂养记录
      */
     private fun restoreOngoingFeeding(session: OngoingRecordManager.OngoingSession) {
-        session.pendingFeeding?.let(::applyRecordToUi)
-        val startTime = session.startAt
-        
+        if (!preserveRecoveredDraft) {
+            session.pendingFeeding?.let(::applyRecordToUi)
+            renderedTimerRef = null
+        }
         isProgrammaticChange = true
-        
-        // 恢复喂养类型
-        selectedFeedingType = FeedingType.fromType(session.feedingType)
-        when (selectedFeedingType) {
-            FeedingType.BREAST -> binding.rbBreast.isChecked = true
-            FeedingType.FORMULA -> binding.rbFormula.isChecked = true
-            FeedingType.MIXED -> binding.rbMixed.isChecked = true
-            FeedingType.SOLID_FOOD -> binding.rbSolid.isChecked = true
-            FeedingType.OTHER -> binding.rbOther.isChecked = true
-        }
-        updateFeedingTypeVisibility()
-        
-        // 设置开始时间
-        timerController?.syncStartTime(
-            timestamp = startTime,
-            clearEnd = session.endAt == null,
-            resetTimer = false,
-            notify = false
-        )
-        timerController?.restoreAutomaticStart(session.automaticStart, session.clockAnchor, session.sessionId)
-        if (session.status == OngoingRecordManager.SessionStatus.PAUSED && session.endAt != null) {
-            timerController?.restorePausedSession(session.endAt, session.activeDurationMs)
-        } else {
-            binding.timerPanel.timerView.startFromOffset(session.elapsedDuration())
-        }
-        
+        session.snapshot?.let { renderPersistentSnapshot(it) }
         hasUnsavedChanges = true
         isProgrammaticChange = false
     }

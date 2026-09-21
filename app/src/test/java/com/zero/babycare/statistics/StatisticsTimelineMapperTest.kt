@@ -14,6 +14,10 @@ import com.zero.babydata.entity.MilestoneData
 import com.zero.babydata.entity.SleepRecord
 import com.zero.babydata.entity.TemperatureData
 import com.zero.babydata.entity.VaccineData
+import com.zero.babydata.domain.TimerMetadata
+import com.zero.babydata.domain.TimerMetadataCodec
+import com.zero.babydata.domain.TimerPart
+import com.zero.babydata.domain.TimerSegment
 import com.zero.common.R as CommonR
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -22,6 +26,23 @@ import java.time.Instant
 import java.time.ZoneId
 
 class StatisticsTimelineMapperTest {
+
+    @Test
+    fun `activity timeline displays active segments and keeps the original overnight edit target`() {
+        val start = Instant.parse("2026-09-19T15:50:00Z").toEpochMilli()
+        val end = start + 30 * 60_000L
+        val record = EventRecord(eventId = 62, babyId = 1, type = EventType.ACTIVITY_TUMMY_TIME,
+            time = start, endTime = end, activeDurationMs = 20 * 60_000L,
+            timerData = TimerMetadataCodec.encode(TimerMetadata(segments = listOf(
+                TimerSegment(start, start + 5 * 60_000L, 5 * 60_000L, TimerPart.ACTIVITY),
+                TimerSegment(start + 15 * 60_000L, end, 15 * 60_000L, TimerPart.ACTIVITY)
+            ))))
+        val item = mapper.mapEvent(record)
+        assertEquals("09-19 23:50", item.timeText)
+        assertTrue(item.detailText.contains("20"))
+        assertTrue(!item.detailText.contains("30"))
+        assertEquals(TimelineEditTarget.Event(62), item.editTarget)
+    }
 
     @Test
     fun `medicine stable codes and legacy units share localized timeline labels`() {

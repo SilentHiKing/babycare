@@ -75,15 +75,16 @@ class LocalRulePredictor : Predictor {
         
         // 数据不足时使用默认值
         if (completedRecords.size < MIN_RECORDS_FOR_PREDICTION) {
-            return predictWithDefault(babyAgeMonths, completedRecords.maxOfOrNull { it.feedingEnd }, isFeeding = true)
+            return predictWithDefault(babyAgeMonths, completedRecords.maxOfOrNull(PredictionRecordSelector::feedingEnd), isFeeding = true)
         }
 
         // 补记可产生重叠：开始最晚的短记录不一定是最后结束的那次照护。
-        val lastRecord = completedRecords.maxBy { it.feedingEnd }
+        val lastRecord = completedRecords.maxBy(PredictionRecordSelector::feedingEnd)
+        val lastFeedingEnd = PredictionRecordSelector.feedingEnd(lastRecord)
         
         // 按时段分析间隔
         val intervals = calculateIntervals(
-            records = completedRecords.map { it.feedingStart to it.feedingEnd },
+            records = completedRecords.map { it.feedingStart to PredictionRecordSelector.feedingEnd(it) },
             minIntervalMs = MIN_FEEDING_INTERVAL_MS,
             maxIntervalMs = MAX_FEEDING_INTERVAL_MS
         )
@@ -91,7 +92,7 @@ class LocalRulePredictor : Predictor {
         val nightIntervals = intervals.filter { !it.second }.map { it.first }
         
         // 使用上次喂奶结束时间选择历史时段，比使用当前时间更能贴合“从这次结束后多久再喂”的规律。
-        val isDay = isTimeInDay(lastRecord.feedingEnd)
+        val isDay = isTimeInDay(lastFeedingEnd)
         val samePeriodIntervals = if (isDay) dayIntervals else nightIntervals
         var relevantIntervals = samePeriodIntervals.ifEmpty {
             if (isDay) nightIntervals else dayIntervals
@@ -104,7 +105,7 @@ class LocalRulePredictor : Predictor {
             if (allIntervals.size >= MIN_PERIOD_RECORDS) {
                 relevantIntervals = allIntervals
             } else if (allIntervals.isEmpty()) {
-                return predictWithDefault(babyAgeMonths, lastRecord.feedingEnd, isFeeding = true)
+                return predictWithDefault(babyAgeMonths, lastFeedingEnd, isFeeding = true)
             }
             // allIntervals 不为空但少于 MIN_PERIOD_RECORDS，仍使用这些数据但置信度会较低
             if (relevantIntervals.isEmpty()) {
@@ -125,14 +126,14 @@ class LocalRulePredictor : Predictor {
         
         // 计算预测间隔（使用 EWMA 替代简单中位数，更关注近期规律）
         val predictedInterval = (stats.ewma * ageFactor * durationFactor * amountFactor).toLong()
-        val predictedTime = lastRecord.feedingEnd + predictedInterval
+        val predictedTime = lastFeedingEnd + predictedInterval
         
         // 计算置信度
         val confidence = calculateConfidence(
             effectiveIntervalCount = relevantIntervals.size,
             coefficientOfVariation = stats.cv,
             hasPeriodCoverage = samePeriodIntervals.size >= MIN_PERIOD_RECORDS,
-            lastEventTime = lastRecord.feedingEnd
+            lastEventTime = lastFeedingEnd
         )
         
         // 计算区间（基于标准差，设置最小值避免区间为0）
@@ -160,14 +161,15 @@ class LocalRulePredictor : Predictor {
         
         // 数据不足时使用默认清醒窗口
         if (completedRecords.size < MIN_RECORDS_FOR_PREDICTION) {
-            return predictWithDefault(babyAgeMonths, completedRecords.maxOfOrNull { it.sleepEnd }, isFeeding = false)
+            return predictWithDefault(babyAgeMonths, completedRecords.maxOfOrNull(PredictionRecordSelector::sleepEnd), isFeeding = false)
         }
 
-        val lastRecord = completedRecords.maxBy { it.sleepEnd }
+        val lastRecord = completedRecords.maxBy(PredictionRecordSelector::sleepEnd)
+        val lastSleepEnd = PredictionRecordSelector.sleepEnd(lastRecord)
         
         // 按时段分析间隔（上次睡醒到下次入睡的时间）
         val awakeIntervals = calculateIntervals(
-            completedRecords.map { it.sleepStart to it.sleepEnd },
+            completedRecords.map { it.sleepStart to PredictionRecordSelector.sleepEnd(it) },
             MIN_AWAKE_WINDOW_MS,
             MAX_AWAKE_WINDOW_MS
         )
@@ -176,7 +178,7 @@ class LocalRulePredictor : Predictor {
         val nightIntervals = awakeIntervals.filter { !it.second }.map { it.first }
         
         // 睡眠预测关注“这次醒来之后多久再睡”，因此以上次醒来时间选择历史清醒窗口。
-        val isDay = isTimeInDay(lastRecord.sleepEnd)
+        val isDay = isTimeInDay(lastSleepEnd)
         val samePeriodIntervals = if (isDay) dayIntervals else nightIntervals
         var relevantIntervals = samePeriodIntervals.ifEmpty {
             if (isDay) nightIntervals else dayIntervals
@@ -188,7 +190,7 @@ class LocalRulePredictor : Predictor {
             if (allIntervals.size >= MIN_PERIOD_RECORDS) {
                 relevantIntervals = allIntervals
             } else if (allIntervals.isEmpty()) {
-                return predictWithDefault(babyAgeMonths, lastRecord.sleepEnd, isFeeding = false)
+                return predictWithDefault(babyAgeMonths, lastSleepEnd, isFeeding = false)
             }
             if (relevantIntervals.isEmpty()) {
                 relevantIntervals = allIntervals
@@ -203,14 +205,13 @@ class LocalRulePredictor : Predictor {
         val durationFactor = calculateSleepDurationFactor(lastRecord, completedRecords)
         
         val predictedInterval = (stats.ewma * ageFactor * durationFactor).toLong()
-        val lastSleepEnd = lastRecord.sleepEnd
         val predictedTime = lastSleepEnd + predictedInterval
         
         val confidence = calculateConfidence(
             effectiveIntervalCount = relevantIntervals.size,
             coefficientOfVariation = stats.cv,
             hasPeriodCoverage = samePeriodIntervals.size >= MIN_PERIOD_RECORDS,
-            lastEventTime = lastRecord.sleepEnd
+            lastEventTime = lastSleepEnd
         )
         
         // 设置最小区间，避免标准差为0时区间退化为单点
@@ -393,11 +394,11 @@ class LocalRulePredictor : Predictor {
     ): Double {
         if (allRecords.size < 3) return 1.0
         
-        // 喂养只使用有效计时；旧记录的零值仍沿用首页和统计已有的完整跨度回退规则。
-        val avgDuration = allRecords.takeLast(10)
-            .map(::effectiveFeedingDuration)
-            .average()
-        val lastDuration = effectiveFeedingDuration(lastRecord)
+        // 未计时的奶量记录仍参与间隔，但不能被当成零分钟拉低时长基线。
+        val durations = allRecords.takeLast(10).mapNotNull(::effectiveFeedingDuration)
+        if (durations.size < 3) return 1.0
+        val avgDuration = durations.average()
+        val lastDuration = effectiveFeedingDuration(lastRecord) ?: return 1.0
         
         return when {
             lastDuration > avgDuration * 1.3 -> 1.08   // 喂得久，间隔延长
@@ -406,11 +407,8 @@ class LocalRulePredictor : Predictor {
         }
     }
 
-    private fun effectiveFeedingDuration(record: FeedingRecord): Long =
-        RecordDurationCalculator.overlappedDuration(
-            record.feedingStart, record.feedingEnd, record.feedingDuration,
-            record.feedingStart, record.feedingEnd
-        )
+    private fun effectiveFeedingDuration(record: FeedingRecord): Long? =
+        RecordDurationCalculator.feedingDuration(record)
 
     /**
      * 根据上次瓶喂奶量调整间隔。
@@ -452,11 +450,11 @@ class LocalRulePredictor : Predictor {
     ): Double {
         if (allRecords.size < 3) return 1.0
         
-        // 确保时长为非负值
-        val avgDuration = allRecords.takeLast(10)
-            .map { (it.sleepEnd - it.sleepStart).coerceAtLeast(0L) }
-            .average()
-        val lastDuration = (lastRecord.sleepEnd - lastRecord.sleepStart).coerceAtLeast(0L)
+        // 显式夜醒属于同一记录，但不能再次计入睡眠时长修正。
+        val durations = allRecords.takeLast(10).mapNotNull { RecordDurationCalculator.sleepDuration(it) }
+        if (durations.size < 3) return 1.0
+        val avgDuration = durations.average()
+        val lastDuration = RecordDurationCalculator.sleepDuration(lastRecord) ?: return 1.0
         
         return when {
             lastDuration > avgDuration * 1.3 -> 1.10   // 睡得久，清醒窗口延长
