@@ -12,81 +12,86 @@
     android:paddingTop="22dp"
     android:paddingBottom="6dp">
 
-    <!-- 月份标题 -->
-    <ImageView
-        android:id="@+id/ivPrevious"
-        android:layout_width="@dimen/statistics_calendar_nav_button_size"
-        android:layout_height="@dimen/statistics_calendar_nav_button_size"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/calendar_previous"
-        android:padding="@dimen/statistics_calendar_nav_icon_padding"
-        android:rotation="0"
-        android:src="@drawable/ic_back"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="4dp"
-        app:layout_constraintTop_toBottomOf="@id/tvCalendarTitle"
-        app:tint="?attr/colorTextSecondary" />
-
-    <TextView
-        android:id="@+id/tvCalendarTitle"
-        style="@style/TextAppearance.BabyCare.Heading3"
-        android:layout_width="0dp"
+    <!-- 周期与前后翻页组成紧凑导航，“今天”作为右侧次级操作。 -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/calendarHeader"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="2024年1月 第2周" />
+        app:layout_constraintTop_toTopOf="parent">
 
-    <ImageView
-        android:id="@+id/ivNext"
-        android:layout_width="@dimen/statistics_calendar_nav_button_size"
-        android:layout_height="@dimen/statistics_calendar_nav_button_size"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/calendar_next"
-        android:padding="@dimen/statistics_calendar_nav_icon_padding"
-        android:rotation="180"
-        android:src="@drawable/ic_back"
-        app:layout_constraintBottom_toBottomOf="@id/ivPrevious"
-        app:layout_constraintEnd_toStartOf="@id/tvToday"
-        app:layout_constraintTop_toTopOf="@id/ivPrevious"
-        app:tint="?attr/colorTextSecondary" />
+        <ImageView
+            android:id="@+id/ivPrevious"
+            android:layout_width="@dimen/statistics_calendar_nav_button_size"
+            android:layout_height="@dimen/statistics_calendar_nav_button_size"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/calendar_previous"
+            android:padding="@dimen/statistics_calendar_nav_icon_padding"
+            android:src="@drawable/ic_back"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tvCalendarTitle"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintHorizontal_bias="0"
+            app:tint="?attr/colorTextSecondary" />
 
-    <TextView
-        android:id="@+id/tvToday"
-        style="@style/TextAppearance.BabyCare.Label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="?attr/bg_r999_stroke1_line1"
-        android:gravity="center"
-        android:minHeight="48dp"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
-        android:text="@string/today"
-        android:textColor="?attr/colorTextSecondary"
-        app:layout_constraintBottom_toBottomOf="@id/ivPrevious"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/ivPrevious" />
+        <TextView
+            android:id="@+id/tvCalendarTitle"
+            style="@style/TextAppearance.BabyCare.Heading3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            app:layout_constrainedWidth="true"
+            app:layout_constraintStart_toEndOf="@id/ivPrevious"
+            app:layout_constraintEnd_toStartOf="@id/ivNext"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:text="2024年1月 第2周" />
 
-    <!-- 标题和操作行分别按内容增高，避免大字号标题与星期标题相互覆盖。 -->
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/calendarHeaderBottom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:barrierDirection="bottom"
-        app:constraint_referenced_ids="ivPrevious,ivNext,tvToday" />
+        <ImageView
+            android:id="@+id/ivNext"
+            android:layout_width="@dimen/statistics_calendar_nav_button_size"
+            android:layout_height="@dimen/statistics_calendar_nav_button_size"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/calendar_next"
+            android:padding="@dimen/statistics_calendar_nav_icon_padding"
+            android:rotation="180"
+            android:src="@drawable/ic_back"
+            android:layout_marginEnd="@dimen/content_gap_medium"
+            app:layout_constraintStart_toEndOf="@id/tvCalendarTitle"
+            app:layout_constraintEnd_toStartOf="@id/tvToday"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:tint="?attr/colorTextSecondary" />
+
+        <TextView
+            android:id="@+id/tvToday"
+            style="@style/TextAppearance.BabyCare.Body2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:minHeight="@dimen/statistics_calendar_nav_button_size"
+            android:paddingStart="@dimen/content_gap_medium"
+            android:paddingEnd="@dimen/content_gap_medium"
+            android:paddingTop="@dimen/content_gap_small"
+            android:paddingBottom="@dimen/content_gap_small"
+            android:text="@string/today"
+            android:textColor="?attr/colorTextSecondary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- 日历控件 -->
     <com.zero.babycare.statistics.widget.BabyCalendarView
         android:id="@+id/calendarView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="@dimen/content_gap_medium"
         android:paddingStart="@dimen/statistics_calendar_grid_inset"
         android:paddingEnd="@dimen/statistics_calendar_grid_inset"
-        app:layout_constraintTop_toBottomOf="@id/calendarHeaderBottom" />
+        app:layout_constraintTop_toBottomOf="@id/calendarHeader" />
 
     <!-- 展开/收起指示器 -->
     <ImageView

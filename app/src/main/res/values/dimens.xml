@@ -13,7 +13,8 @@
 
     <!-- 日历网格在统一内容边界内再留一点呼吸感，避免首尾日期贴近容器边。 -->
     <dimen name="statistics_calendar_grid_inset">0dp</dimen>
-    <dimen name="statistics_calendar_nav_button_size">48dp</dimen>
+    <!-- 翻页与周期标题组成紧凑导航，箭头本体保持轻量。 -->
+    <dimen name="statistics_calendar_nav_button_size">36dp</dimen>
     <dimen name="statistics_calendar_nav_icon_padding">8dp</dimen>
 
     <!-- 时间轴固定列：左侧轨道 / 右侧时间与内容，保证回看记录时只有一条阅读主线。 -->
